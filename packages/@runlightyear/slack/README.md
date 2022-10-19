@@ -1,6 +1,6 @@
 # Slack Connector
 
-The Slack Connector for Big Idea Integration
+The Slack Connector for Lightyear
 
 ## Examples
 
