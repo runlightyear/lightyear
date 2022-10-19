@@ -1,0 +1,7 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Connector",
+  "extends": "./base.json",
+  "include": ["./"],
+  "exclude": ["dist", "build", "node_modules"]
+}

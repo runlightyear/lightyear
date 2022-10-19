@@ -1,0 +1,13 @@
+{
+  "projectFolder": ".",
+  "apiReport": {
+    "enabled": false
+  },
+  "docModel": {
+    "enabled": true,
+    "apiJsonFilePath": "<projectFolder>/../../../temp/<packageName>.api.json"
+  },
+  "dtsRollup": {
+    "enabled": false
+  }
+}

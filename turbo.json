@@ -1,0 +1,41 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "pipeline": {
+    "build": {
+      "cache": false,
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**"]
+    },
+    "test": {
+      "dependsOn": ["^test"],
+      "outputs": []
+    },
+    "test:watch": {
+      "dependsOn": ["^test:watch"],
+      "outputs": []
+    },
+    "docs:extract": {
+      "cache": false,
+      "dependsOn": ["build", "^docs:extract"],
+      "outputs": ["temp/@bigidea/*.api.json"]
+    },
+    "build:docs": {
+      "dependsOn": []
+    },
+    "lint": {
+      "outputs": []
+    },
+    "prettier:check": {
+      "outputs": []
+    },
+    "prettier:write": {
+      "outputs": []
+    },
+    "compile": {
+      "outputs": []
+    },
+    "dev": {
+      "cache": false
+    }
+  }
+}
