@@ -1,3 +1,3 @@
-# Big Idea Integration
+# Lightyear
 
-The core package for Big Idea Integration
+The core package for Lightyear
