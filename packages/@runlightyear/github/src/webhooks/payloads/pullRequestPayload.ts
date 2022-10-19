@@ -1,4 +1,4 @@
-import { WebhookDeliveryData } from "@bigidea/integration";
+import { WebhookDeliveryData } from "@runlightyear/lightyear";
 import commonPayload, { CommonPayload } from "./commonPayload";
 
 export interface PullRequestPayload extends CommonPayload {

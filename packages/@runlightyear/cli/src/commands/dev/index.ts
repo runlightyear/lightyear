@@ -22,7 +22,7 @@ dev
 
     nodemon({
       ignoreRoot: [".git"],
-      watch: ["src", "node_modules/@bigidea/integration-connectors/dist"],
+      watch: ["src", "node_modules/@runlightyear/lightyear/dist"],
       ext: "js,ts",
       execMap: {
         js: "npm run build",

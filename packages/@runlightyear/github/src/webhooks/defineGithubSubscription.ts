@@ -1,4 +1,4 @@
-import { defineSubscription, SubscribeArgsProps } from "@bigidea/integration";
+import { defineSubscription, SubscribeArgsProps } from "@runlightyear/lightyear";
 import { Github } from "../Github";
 import { CreateRepositoryWebhookOptions } from "./repositoryWebhooks/createRepositoryWebhook";
 

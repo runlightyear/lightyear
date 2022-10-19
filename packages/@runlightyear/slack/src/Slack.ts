@@ -4,7 +4,7 @@ import {
   HttpProxyRequestOptions,
   HttpProxyResponse,
   defineAuth,
-} from "@bigidea/integration";
+} from "@runlightyear/lightyear";
 import postMessage, { PostMessageOptions } from "./chat/postMessage";
 import section from "./elements/blocks/section";
 import plainText from "./elements/objects/plainText";
@@ -24,13 +24,13 @@ import { SlackScope } from "./types/SlackScope";
  *
  * @example Import
  * ```typescript
- * import { Slack } from '@bigidea/slack';
+ * import { Slack } from "@runlightyear/slack";
  * ```
  *
  * @example Create an auth
  *
  * ```typescript
- * const slackAuth = Slack.defineAuth({ name: 'slack' })
+ * const slackAuth = Slack.defineAuth({ name: "slack" })
  * ```
  *
  * @example Use in a task

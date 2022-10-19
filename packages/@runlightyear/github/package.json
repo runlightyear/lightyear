@@ -12,7 +12,7 @@
     "docs:extract": "api-extractor run --local --verbose"
   },
   "dependencies": {
-    "@bigidea/integration": "workspace:*"
+    "@runlightyear/lightyear": "workspace:*"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.31.2",

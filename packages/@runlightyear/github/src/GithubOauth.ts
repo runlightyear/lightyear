@@ -1,4 +1,4 @@
-import { OauthConnector } from "@bigidea/integration";
+import { OauthConnector } from "@runlightyear/lightyear";
 
 /**
  * Connector to the Github Oauth2 API

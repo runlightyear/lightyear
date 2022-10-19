@@ -1,6 +1,6 @@
 import { Github } from "../../Github";
 import WebhookEvent from "../WebhookEvent";
-import { HttpProxyResponse } from "@bigidea/integration";
+import { HttpProxyResponse } from "@runlightyear/lightyear";
 
 export interface ListRepositoryWebhooksOptions {
   /**

@@ -6,7 +6,7 @@ The Github Connector for Big Idea Integration
 
 ### Import
 ```typescript
-import { Github } from "@bigidea/github"
+import { Github } from "@runlightyear/github"
 ```
 
 ### Define an auth

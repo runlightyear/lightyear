@@ -11,11 +11,11 @@
     "docs:extract": "api-extractor run --local --verbose"
   },
   "dependencies": {
-    "@bigidea/integration": "workspace:*",
+    "@runlightyear/lightyear": "workspace:*",
     "node-fetch": "^2.6.7"
   },
   "devDependencies": {
-    "@bigidea/github": "workspace:*",
+    "@runlightyear/github": "workspace:*",
     "@microsoft/api-extractor": "^7.31.2",
     "@types/jest": "^28.1.8",
     "@types/node": "12.20.24",

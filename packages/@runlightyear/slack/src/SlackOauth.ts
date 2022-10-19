@@ -3,7 +3,7 @@ import {
   OauthConnector,
   OauthConnectorProps,
   AuthData,
-} from "@bigidea/integration";
+} from "@runlightyear/lightyear";
 import { SlackScope } from "./types/SlackScope";
 
 /**

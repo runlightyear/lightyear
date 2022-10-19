@@ -3,7 +3,7 @@
  *
  * @packageDocumentation
  */
-import { RestConnector } from "@bigidea/integration";
+import { RestConnector } from "@runlightyear/lightyear";
 import { Slack } from "./Slack";
 import { SlackOauth } from "./SlackOauth";
 
@@ -11,7 +11,7 @@ import type { PostMessageOptions } from "./chat/postMessage";
 import type {
   HttpProxyRequestOptions,
   HttpProxyResponse,
-} from "@bigidea/integration";
+} from "@runlightyear/lightyear";
 
 export { Slack, SlackOauth, RestConnector };
 export type { PostMessageOptions, HttpProxyRequestOptions, HttpProxyResponse };

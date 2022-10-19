@@ -3,7 +3,7 @@ import {
   HttpProxyResponse,
   RestConnector,
   WebhookDeliveryData,
-} from "@bigidea/integration";
+} from "@runlightyear/lightyear";
 import createGist, { CreateGistOptions } from "./gists/createGist";
 import createIssue, { CreateIssueOptions } from "./issues/createIssue";
 import updateIssue, { UpdateIssueOptions } from "./issues/updateIssue";
@@ -78,7 +78,7 @@ export interface GithubDefineAuthOptions {
  *
  * @example Import
  * ```typescript
- * import { Github } from "@bigidea/github"
+ * import { Github } from "@runlightyear/github"
  * ```
  *
  * @example Define an auth

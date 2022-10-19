@@ -1,4 +1,4 @@
-import { deCamelize } from "@bigidea/integration";
+import { deCamelize } from "@runlightyear/lightyear";
 import { Slack } from "../Slack";
 import { Block } from "../elements/blocks";
 

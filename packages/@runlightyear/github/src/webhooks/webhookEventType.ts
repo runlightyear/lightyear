@@ -1,4 +1,4 @@
-import { WebhookDeliveryData } from "@bigidea/integration";
+import { WebhookDeliveryData } from "@runlightyear/lightyear";
 import WebhookEvent from "./WebhookEvent";
 
 export default function isWebhookEventType(

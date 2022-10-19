@@ -1,4 +1,4 @@
-import { HttpProxyResponse } from "@bigidea/integration";
+import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { Github } from "../../Github";
 import WebhookEvent from "../WebhookEvent";
 import WebhookConfig from "../WebhookConfig";

@@ -7,7 +7,7 @@ The Slack Connector for Big Idea Integration
 ### Import
 
 ```typescript
-import { Slack } from '@bigidea/slack';
+import { Slack } from '@runlightyear/slack';
 ```
 
 ### Create an auth
