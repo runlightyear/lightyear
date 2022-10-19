@@ -1,6 +1,6 @@
 # Lightyear
 
-This is a prototype of a new approach to building integrations using an old and reliable technique: write some code!
+Use some code to build your integrations.
 
 ## System Requirements
 
