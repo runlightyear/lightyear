@@ -75,10 +75,10 @@ export abstract class OauthConnector {
     const suffix = inDevelopment() ? "-local" : "";
 
     if (this.appName) {
-      return `https://integration.bigidea.io/api/v1/oauth/${this.appName}/redirect${suffix}`;
+      return `https://app.runlightyear.com/api/v1/oauth/${this.appName}/redirect${suffix}`;
     }
 
-    return `https://integration.bigidea.io/api/v1/custom-oath/${this.customAppName}/redirect${suffix}`;
+    return `https://app.runlightyear.com/api/v1/custom-oath/${this.customAppName}/redirect${suffix}`;
   }
 
   getRequestAccessTokenHeaders(): {

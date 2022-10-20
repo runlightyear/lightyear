@@ -19,13 +19,13 @@ importers:
 
   apps/docs:
     specifiers:
-      '@bigidea/github': '*'
-      '@bigidea/integration': '*'
-      '@bigidea/slack': '*'
       '@docusaurus/core': 2.1.0
       '@docusaurus/module-type-aliases': 2.1.0
       '@docusaurus/preset-classic': 2.1.0
       '@mdx-js/react': ^1.6.22
+      '@runlightyear/github': '*'
+      '@runlightyear/lightyear': '*'
+      '@runlightyear/slack': '*'
       '@tsconfig/docusaurus': ^1.0.5
       clsx: ^1.2.1
       prism-react-renderer: ^1.3.5
@@ -34,12 +34,12 @@ importers:
       typedoc-plugin-missing-exports: ^1.0.0
       typescript: ^4.7.4
     dependencies:
-      '@bigidea/github': 0.1.3_tdm5zcqep4nsvpmkmbrzs32za4
-      '@bigidea/integration': 0.1.1_tdm5zcqep4nsvpmkmbrzs32za4
-      '@bigidea/slack': 0.1.2_tdm5zcqep4nsvpmkmbrzs32za4
       '@docusaurus/core': 2.1.0_56jbash75ng5psbctf36wqywr4
       '@docusaurus/preset-classic': 2.1.0_zrzq7nx3gxsjzrdractidxp6ja
       '@mdx-js/react': 1.6.22_react@17.0.2
+      '@runlightyear/github': link:../../packages/@runlightyear/github
+      '@runlightyear/lightyear': link:../../packages/@runlightyear/lightyear
+      '@runlightyear/slack': link:../../packages/@runlightyear/slack
       clsx: 1.2.1
       prism-react-renderer: 1.3.5_react@17.0.2
       react: 17.0.2
@@ -129,7 +129,7 @@ importers:
       eslint-config-custom: link:../../util/eslint-config-custom
       jest: 28.1.3_wueeenxefgwdmaotgbzwkpfawy
       prettier: 2.7.1
-      ts-jest: 28.0.8_eqqol6rpm4jvwa3dgns33uykjm
+      ts-jest: 28.0.8_mqzupvn4egmhbnidexwmhrt75u
       ts-node: 10.9.1_fdywls4oqk5utzi4err7lt7tke
       tsconfig: link:../../util/tsconfig
       tsup: 6.3.0_mwhvu7sfp6vq5ryuwb6hlbjfka
@@ -198,7 +198,7 @@ importers:
       node-fetch: 2.6.7
       query-string: 7.1.1
       tiny-invariant: 1.3.1
-      ts-jest: 28.0.8_mqzupvn4egmhbnidexwmhrt75u
+      ts-jest: 28.0.8_eqqol6rpm4jvwa3dgns33uykjm
     devDependencies:
       '@microsoft/api-extractor': 7.33.4
       '@types/aws-lambda': 8.10.108
@@ -1709,55 +1709,6 @@ packages:
   /@bcoe/v8-coverage/0.2.3:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  /@bigidea/github/0.1.3_tdm5zcqep4nsvpmkmbrzs32za4:
-    resolution: {integrity: sha512-SuBvTTy+CI5oKZ/E8FXbkvTtoHy546Nc3cbp42zlgMyuDDJM9kipaw4DFlMj/AbvjHGMeDacnKC4eR8YyiRrEQ==}
-    dependencies:
-      '@bigidea/integration': 0.1.1_tdm5zcqep4nsvpmkmbrzs32za4
-    transitivePeerDependencies:
-      - '@babel/core'
-      - '@jest/types'
-      - encoding
-      - esbuild
-      - jest
-      - supports-color
-      - typescript
-    dev: false
-
-  /@bigidea/integration/0.1.1_tdm5zcqep4nsvpmkmbrzs32za4:
-    resolution: {integrity: sha512-Qmd8m/+7Yv/WXejrBX1yBWntYJfOxw1JF/5Ik5p/Zewu1ZyXg+mc71afOPqqNQjKHzGwB+ng3f+kmI8xO3zSnw==}
-    dependencies:
-      aws-lambda: 1.0.7
-      babel-jest: 28.1.3_@babel+core@7.19.3
-      dayjs: 1.11.5
-      lodash: 4.17.21
-      node-fetch: 2.6.7
-      query-string: 7.1.1
-      tiny-invariant: 1.3.1
-      ts-jest: 28.0.8_eqqol6rpm4jvwa3dgns33uykjm
-    transitivePeerDependencies:
-      - '@babel/core'
-      - '@jest/types'
-      - encoding
-      - esbuild
-      - jest
-      - supports-color
-      - typescript
-    dev: false
-
-  /@bigidea/slack/0.1.2_tdm5zcqep4nsvpmkmbrzs32za4:
-    resolution: {integrity: sha512-0JCZUkP2sLvNPmvO//AtsZ/0cnk1tL6gkejlxJtjdUotVApEtHD91qwLVHqjcbPa1hmlR6kyXTLtaYQM3dBSoQ==}
-    dependencies:
-      '@bigidea/integration': 0.1.1_tdm5zcqep4nsvpmkmbrzs32za4
-    transitivePeerDependencies:
-      - '@babel/core'
-      - '@jest/types'
-      - encoding
-      - esbuild
-      - jest
-      - supports-color
-      - typescript
-    dev: false
-
   /@changesets/apply-release-plan/6.1.1:
     resolution: {integrity: sha512-LaQiP/Wf0zMVR0HNrLQAjz3rsNsr0d/RlnP6Ef4oi8VafOwnY1EoWdK4kssuUJGgNgDyHpomS50dm8CU3D7k7g==}
     dependencies:
@@ -2910,6 +2861,7 @@ packages:
     cpu: [arm]
     os: [android]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@esbuild/linux-loong64/0.15.12:
@@ -2918,6 +2870,7 @@ packages:
     cpu: [loong64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /@eslint/eslintrc/0.4.3:
@@ -6759,6 +6712,7 @@ packages:
     cpu: [x64]
     os: [android]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-android-arm64/0.15.12:
@@ -6767,6 +6721,7 @@ packages:
     cpu: [arm64]
     os: [android]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-darwin-64/0.15.12:
@@ -6775,6 +6730,7 @@ packages:
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-darwin-arm64/0.15.12:
@@ -6783,6 +6739,7 @@ packages:
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-freebsd-64/0.15.12:
@@ -6791,6 +6748,7 @@ packages:
     cpu: [x64]
     os: [freebsd]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-freebsd-arm64/0.15.12:
@@ -6799,6 +6757,7 @@ packages:
     cpu: [arm64]
     os: [freebsd]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-linux-32/0.15.12:
@@ -6807,6 +6766,7 @@ packages:
     cpu: [ia32]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-linux-64/0.15.12:
@@ -6815,6 +6775,7 @@ packages:
     cpu: [x64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-linux-arm/0.15.12:
@@ -6823,6 +6784,7 @@ packages:
     cpu: [arm]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-linux-arm64/0.15.12:
@@ -6831,6 +6793,7 @@ packages:
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-linux-mips64le/0.15.12:
@@ -6839,6 +6802,7 @@ packages:
     cpu: [mips64el]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-linux-ppc64le/0.15.12:
@@ -6847,6 +6811,7 @@ packages:
     cpu: [ppc64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-linux-riscv64/0.15.12:
@@ -6855,6 +6820,7 @@ packages:
     cpu: [riscv64]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-linux-s390x/0.15.12:
@@ -6863,6 +6829,7 @@ packages:
     cpu: [s390x]
     os: [linux]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-netbsd-64/0.15.12:
@@ -6871,6 +6838,7 @@ packages:
     cpu: [x64]
     os: [netbsd]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-openbsd-64/0.15.12:
@@ -6879,6 +6847,7 @@ packages:
     cpu: [x64]
     os: [openbsd]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-sunos-64/0.15.12:
@@ -6887,6 +6856,7 @@ packages:
     cpu: [x64]
     os: [sunos]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-windows-32/0.15.12:
@@ -6895,6 +6865,7 @@ packages:
     cpu: [ia32]
     os: [win32]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-windows-64/0.15.12:
@@ -6903,6 +6874,7 @@ packages:
     cpu: [x64]
     os: [win32]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild-windows-arm64/0.15.12:
@@ -6911,6 +6883,7 @@ packages:
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
+    dev: true
     optional: true
 
   /esbuild/0.15.12:
@@ -6941,6 +6914,7 @@ packages:
       esbuild-windows-32: 0.15.12
       esbuild-windows-64: 0.15.12
       esbuild-windows-arm64: 0.15.12
+    dev: true
 
   /escalade/3.1.1:
     resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}
@@ -13170,6 +13144,7 @@ packages:
       semver: 7.3.8
       typescript: 4.8.4
       yargs-parser: 21.1.1
+    dev: false
 
   /ts-jest/28.0.8_mqzupvn4egmhbnidexwmhrt75u:
     resolution: {integrity: sha512-5FaG0lXmRPzApix8oFG8RKjAz4ehtm8yMKOTy5HX3fY6W8kmvOrmcY0hKDElW52FJov+clhUbrKAqofnj4mXTg==}
@@ -13205,7 +13180,7 @@ packages:
       semver: 7.3.8
       typescript: 4.8.4
       yargs-parser: 21.1.1
-    dev: false
+    dev: true
 
   /ts-node/10.9.1_fdywls4oqk5utzi4err7lt7tke:
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}

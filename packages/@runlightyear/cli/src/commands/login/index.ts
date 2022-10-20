@@ -13,7 +13,7 @@ login
   )
   .addOption(new Option("--dev").hideHelp())
   .action(async (options) => {
-    let baseUrl = "https://integration.bigidea.io";
+    let baseUrl = "https://app.runlightyear.com";
     if (options.dev) {
       console.log("In dev mode, using http://localhost:3000");
       baseUrl = "http://localhost:3000";
