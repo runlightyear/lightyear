@@ -10,6 +10,7 @@ const config = {
   tagline: "Use some code to build integrations",
   url: "https://your-docusaurus-test-site.com",
   baseUrl: "/",
+  trailingSlash: false,
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   favicon: "img/favicon.ico",
