@@ -15,9 +15,9 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@bigidea/github": "*",
-    "@bigidea/integration": "*",
-    "@bigidea/slack": "*",
+    "@runlightyear/github": "*",
+    "@runlightyear/lightyear": "*",
+    "@runlightyear/slack": "*",
     "@docusaurus/core": "2.1.0",
     "@docusaurus/preset-classic": "2.1.0",
     "@mdx-js/react": "^1.6.22",
