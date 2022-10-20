@@ -9,7 +9,7 @@ const config = {
   title: "Lightyear API Docs",
   tagline: "Use some code to build integrations",
   url: "https://your-docusaurus-test-site.com",
-  baseUrl: "/",
+  baseUrl: "/lightyear/",
   trailingSlash: false,
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
