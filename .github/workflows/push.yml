@@ -16,6 +16,7 @@ jobs:
 #      - run: pnpm run compile
       - run: pnpm run test
       - run: pnpm run build
+      - run: pnpm run docs:generate
 
   publish:
     if: github.ref == 'refs/heads/main'
@@ -32,7 +33,7 @@ jobs:
 #      - run: pnpm run compile
       - run: pnpm run test
       - run: pnpm run build
-      - run: pnpm run build:docs
+      - run: pnpm run docs:generate
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
