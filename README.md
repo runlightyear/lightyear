@@ -45,7 +45,7 @@ npm run deploy
 
 ## Documentation
 
-You can find the latest documentation [here](https://runlightyear.github.io/lightyear/). 
+Coming soon!
 
 ## Contributing
 
