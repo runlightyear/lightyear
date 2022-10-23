@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.2.0
+
+### Minor Changes
+
+- Login command works with new production framework
+
 ## 0.1.1
 
 ### Patch Changes
