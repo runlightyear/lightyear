@@ -12,7 +12,7 @@ dotenv.config();
 
 program
   .name("integration")
-  .description("Big Idea Integration CLI")
+  .description("Lightyear CLI")
   .version(packageJson.version)
   .addCommand(create)
   .addCommand(login)

@@ -12,7 +12,7 @@ export default function getRequestHandler(baseUrl: string) {
 
     const code = parseCode(req.url);
     if (!code) {
-      res.setHeader("location", `${baseUrl}/prototype/cli-login/failure`);
+      res.setHeader("location", `${baseUrl}/cli-login/failed`);
       res.end();
       program.error("Failed to find code in url");
     }
