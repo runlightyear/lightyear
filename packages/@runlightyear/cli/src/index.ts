@@ -11,7 +11,7 @@ import { run } from "./commands/run";
 dotenv.config();
 
 program
-  .name("integration")
+  .name("lightyear")
   .description("Lightyear CLI")
   .version(packageJson.version)
   .addCommand(create)

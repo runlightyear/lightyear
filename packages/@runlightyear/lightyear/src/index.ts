@@ -12,7 +12,7 @@ import {
 } from "./base/http";
 import { defineSecret, SecretData } from "./base/secret";
 import { defineSubscription, SubscribeArgsProps } from "./base/subscription";
-import { defineTask, DefineTaskOptions } from "./base/task";
+import { defineAction, DefineActionOptions } from "./base/action";
 import { RunFunc, RunFuncProps } from "./run";
 import { defineVariable, getVariableData, VariableData } from "./base/variable";
 import { defineWebhook, getWebhookData } from "./base/webhook";
@@ -42,7 +42,7 @@ import { PollingData, WebhookDeliveryData } from "./base/runData";
 import deCamelize from "./util/deCamelize";
 
 export {
-  defineTask,
+  defineAction,
   defineAuth,
   getAuthData,
   defineVariable,
@@ -67,7 +67,7 @@ export {
 export type {
   AuthData,
   AuthProps,
-  DefineTaskOptions,
+  DefineActionOptions,
   VariableData,
   SecretData,
   BaseConnectorOptions,

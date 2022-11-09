@@ -21,7 +21,7 @@ export async function saveCache(options: SaveCacheOptions) {
 export interface GetCacheOptions {
   key: string;
   deployId?: string;
-  taskId?: string;
+  actionId?: string;
   runId?: string;
 }
 

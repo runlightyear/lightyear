@@ -2,7 +2,7 @@ import { APIGatewayEvent, Context, APIGatewayProxyResult } from "aws-lambda";
 import { run } from "../run";
 import { emptyLogs, emptySecrets, secrets as secretsList } from "../logging";
 import { deploy } from "../base/deploy";
-import { getTaskData } from "../base/task";
+import { getActionData } from "../base/action";
 import { getSubscriptionData, updateSubscription } from "../base/subscription";
 import { subscribe, unsubscribe } from "../subscriptionActions";
 import { createSubscriptionAction } from "../base/subscriptionAction";
@@ -11,7 +11,7 @@ interface RepoInvocation extends APIGatewayEvent {
   action: string;
   subscriptionName?: string;
   removed?: boolean;
-  taskName?: string;
+  actionName?: string;
   data?: any;
 }
 
@@ -54,7 +54,7 @@ export const handler = async (
   console.log(`Event: ${JSON.stringify(event, null, 2)}`);
   console.log(`Context: ${JSON.stringify(context, null, 2)}`);
 
-  const { action, subscriptionName, removed, taskName, data } = event;
+  const { action, subscriptionName, removed, actionName, data } = event;
 
   if (!action) {
     return result(400, "Required action missing");
@@ -169,17 +169,17 @@ export const handler = async (
 
     return result(statusCode, message);
   } else if (action === "run") {
-    if (!taskName) {
-      return result(400, "Missing taskName");
+    if (!actionName) {
+      return result(400, "Missing actionName");
     }
 
-    const taskData = await getTaskData(taskName);
-    const { auths, variables, secrets, webhook } = taskData;
+    const actionData = await getActionData(actionName);
+    const { auths, variables, secrets, webhook } = actionData;
 
     try {
-      console.log(`About to run task ${taskName}`);
+      console.log(`About to run action ${actionName}`);
       await run({
-        name: taskName,
+        name: actionName,
         data,
         variables,
         auths,
@@ -189,7 +189,7 @@ export const handler = async (
       });
       return result(200, "Run successful");
     } catch (error) {
-      console.log("Failed to run task", String(error));
+      console.log("Failed to run action", String(error));
       return result(500, "Run failed");
     }
   }

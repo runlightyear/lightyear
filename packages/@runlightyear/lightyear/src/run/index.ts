@@ -23,11 +23,11 @@ export interface RunFuncProps {
 
 export type RunFunc = (props: RunFuncProps) => void;
 
-type TaskIndex = {
+type ActionIndex = {
   [name: string]: RunFunc;
 };
 
-export const taskIndex: TaskIndex = {};
+export const actionIndex: ActionIndex = {};
 
 interface Props {
   name: string;
@@ -41,13 +41,13 @@ interface Props {
 
 export async function run(props: Props) {
   const { name, data, auths, variables, secrets, webhook, context } = props;
-  console.log("taskIndex", Object.keys(taskIndex));
+  console.log("actionIndex", Object.keys(actionIndex));
 
-  const fn = taskIndex[name];
+  const fn = actionIndex[name];
   if (!fn) {
-    console.error(`Unknown task: ${name}`);
-    console.debug("Known tasks:", Object.keys(taskIndex));
-    throw new Error(`Unknown task: ${name}`);
+    console.error(`Unknown action: ${name}`);
+    console.debug("Known actions:", Object.keys(actionIndex));
+    throw new Error(`Unknown action: ${name}`);
   }
 
   console.log("about to make the fn call");

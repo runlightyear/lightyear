@@ -1,4 +1,4 @@
-import runTask from "../../shared/runTask";
+import runAction from "../../shared/runAction";
 import pako from "pako";
 
 export default async function handleRunLocal(props: any) {
@@ -13,8 +13,8 @@ export default async function handleRunLocal(props: any) {
 
   console.log("payload", payload);
 
-  await runTask({
-    taskName: payload.taskName,
+  await runAction({
+    actionName: payload.actionName,
     data: payload.data,
     deliveryId: payload.deliveryId,
   });

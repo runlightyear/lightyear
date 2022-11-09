@@ -33,10 +33,10 @@ import { SlackScope } from "./types/SlackScope";
  * const slackAuth = Slack.defineAuth({ name: "slack" })
  * ```
  *
- * @example Use in a task
+ * @example Use in an action
  *
  * ```typescript
- * defineTask({
+ * defineAction({
  *   name: 'helloSlack',
  *   auths: {
  *     slack: slackAuth,

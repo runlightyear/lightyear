@@ -1,5 +1,16 @@
 # @runlightyear/github
 
+## 0.2.0
+
+### Minor Changes
+
+- Updates to work with new production version of lightyear
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.2.0
+
 ## 0.1.1
 
 ### Patch Changes
