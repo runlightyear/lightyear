@@ -31,7 +31,7 @@ dev
 
     nodemon.on("exit", async () => {
       await execDeploy();
-      await unsubscribe();
-      await subscribe();
+      // await unsubscribe();
+      // await subscribe();
     });
   });

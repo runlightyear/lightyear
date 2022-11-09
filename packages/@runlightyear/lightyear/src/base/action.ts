@@ -1,21 +1,21 @@
 import invariant from "tiny-invariant";
 import isFunction from "../util/isFunction";
 import baseRequest from "./baseRequest";
-import { RunFunc, taskIndex } from "../run";
+import { RunFunc, actionIndex } from "../run";
 import { InitializerSpec, deployList } from "./deploy";
 import { secrets as secretsList } from "../logging";
 import { AuthData } from "./auth";
 
-export type TaskTrigger = {
+export type ActionTrigger = {
   webhook?: string;
   schedule?: string;
   pollingFrequency?: number;
 };
 
-export interface DefineTaskOptions {
+export interface DefineActionOptions {
   name: string;
   description?: string;
-  trigger?: TaskTrigger;
+  trigger?: ActionTrigger;
   auths: {
     [name: string]: string;
   };
@@ -29,18 +29,18 @@ export interface DefineTaskOptions {
   run: RunFunc;
 }
 
-export interface DeployTaskProps {
+export interface DeployActionProps {
   name: string;
   description?: string;
-  trigger?: TaskTrigger;
+  trigger?: ActionTrigger;
 }
 
-export interface SetTaskInitializedProps {
+export interface SetActionInitializedProps {
   name: string;
   status: boolean;
 }
 
-function validateTaskProps({ name, trigger }: DeployTaskProps) {
+function validateActionProps({ name, trigger }: DeployActionProps) {
   invariant(name, "Missing required name");
   invariant(typeof name === "string", "Name must be a string");
 
@@ -60,12 +60,12 @@ function validateTaskProps({ name, trigger }: DeployTaskProps) {
 }
 
 /**
- * Info on how you define a task
+ * Info on how you define a action
  *
  * @example Hello World
  *
  * ```typescript
- * defineTask({
+ * defineAction({
  *   name: "hello world",
  *   description: "Prints hello world to the console",
  *   run: async () => {
@@ -76,25 +76,25 @@ function validateTaskProps({ name, trigger }: DeployTaskProps) {
  *
  * @param options
  */
-export function defineTask(options: DefineTaskOptions) {
+export function defineAction(options: DefineActionOptions) {
   const { run, ...rest } = options;
-  validateTaskProps(rest);
+  validateActionProps(rest);
   invariant(run, "Run function missing");
   invariant(isFunction(run), "Run must be a function");
 
-  deployList.push({ type: "task", data: rest });
-  taskIndex[rest.name] = run;
+  deployList.push({ type: "action", data: rest });
+  actionIndex[rest.name] = run;
 
   return rest.name;
 }
 
-export async function deployTask(envName: string, props: DeployTaskProps) {
-  validateTaskProps(props);
+export async function deployAction(envName: string, props: DeployActionProps) {
+  validateActionProps(props);
 
   const { name, description, trigger } = props;
 
   const response = await baseRequest({
-    uri: `/api/v1/envs/${envName}/tasks`,
+    uri: `/api/v1/envs/${envName}/actions`,
     data: {
       name,
       description,
@@ -104,32 +104,32 @@ export async function deployTask(envName: string, props: DeployTaskProps) {
 
   if (!response.ok) {
     console.error(await response.json());
-    throw new Error(`deployTask failed: ${name}`);
+    throw new Error(`deployAction failed: ${name}`);
   }
 
-  console.info(`Deployed task: ${name}`);
+  console.info(`Deployed action: ${name}`);
 }
 
-export async function setTaskInitializedStatus(
+export async function setActionInitializedStatus(
   envName: string,
-  props: SetTaskInitializedProps
+  props: SetActionInitializedProps
 ) {
-  validateTaskProps(props);
+  validateActionProps(props);
 
   const { name, status } = props;
 
   await baseRequest({
     method: "POST",
-    uri: `/api/v1/envs/${envName}/tasks/${name}/initialized`,
+    uri: `/api/v1/envs/${envName}/actions/${name}/initialized`,
     data: {
       status,
     },
   });
 
-  console.info(`Set task: ${name} to initialized: ${status}`);
+  console.info(`Set action: ${name} to initialized: ${status}`);
 }
 
-export type TaskData = {
+export type ActionData = {
   auths: {
     [name: string]: AuthData;
   };
@@ -142,16 +142,16 @@ export type TaskData = {
   webhook: string | null;
 };
 
-export async function getTaskData(name: string): Promise<TaskData> {
+export async function getActionData(name: string): Promise<ActionData> {
   const envName = process.env.ENV_NAME;
   invariant(envName, "Missing ENV_NAME");
 
   const response = await baseRequest({
     method: "GET",
-    uri: `/api/v1/envs/${envName}/tasks/${name}/data`,
+    uri: `/api/v1/envs/${envName}/actions/${name}/data`,
   });
 
-  const data = (await response.json()) as TaskData;
+  const data = (await response.json()) as ActionData;
 
   const { auths, variables, secrets, webhook } = data;
 

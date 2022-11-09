@@ -1,12 +1,12 @@
 {
   "name": "@runlightyear/cli",
-  "version": "0.1.1",
+  "version": "0.3.0",
   "publishConfig": {
     "access": "public"
   },
   "main": "dist/index.js",
   "bin": {
-    "integration": "./dist/index.js"
+    "lightyear": "./dist/index.js"
   },
   "scripts": {
     "dev": "nodemon --exec \"npx tsup src/index.ts --dts\" --watch src --ext ts,js",

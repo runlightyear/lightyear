@@ -21,14 +21,19 @@ export default async function uploadDeployResult({
     },
     body: JSON.stringify({
       status,
-      logs,
-      compiledCode: compiledCode.toString("utf-8"),
+      // logs,
+      // compiledCode: compiledCode.toString("utf-8"),
     }),
   });
 
   if (response.ok) {
     console.log("Uploaded deploy result");
   } else {
-    console.log("Failed to upload deploy result");
+    console.log(
+      "Failed to upload deploy result",
+      response.status,
+      response.statusText
+    );
+    console.log(await response.json());
   }
 }

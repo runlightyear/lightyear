@@ -18,11 +18,11 @@ BASE_URL=${BASE_URL}
 API_KEY=${API_KEY}
 `
     );
-    res.setHeader("location", `${BASE_URL}/prototype/cli-login/success`);
+    res.setHeader("location", `${BASE_URL}/cli-login/succeeded`);
     res.end();
     console.log("Login successful, wrote .env file");
   } catch (error) {
-    res.setHeader("location", `${BASE_URL}/prototype/cli-login/failure`);
+    res.setHeader("location", `${BASE_URL}/cli-login/failed`);
     res.end();
     program.error("Failed to write .env file" + error);
   }

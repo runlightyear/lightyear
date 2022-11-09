@@ -1,4 +1,4 @@
-import { DeployTaskProps, TaskData } from "./task";
+import { DeployActionProps, ActionData } from "./action";
 import { AuthProps } from "./auth";
 import { WebhookProps } from "./webhook";
 import baseRequest from "./baseRequest";
@@ -30,8 +30,8 @@ export type DeployFunc = (
 export type InitializerSpec = Initializer | Initializer[] | DeployFunc;
 
 export type DeployItem = {
-  type: "task" | "auth" | "variable" | "secret" | "subscription" | "webhook";
-  data: DeployTaskProps | AuthProps | WebhookProps;
+  type: "action" | "auth" | "variable" | "secret" | "subscription" | "webhook";
+  data: DeployActionProps | AuthProps | WebhookProps;
   subscribeArgs?: (props: SubscribeArgsProps) => Promise<object>;
   deploy?: (props: DeployFuncProps) => Promise<string>;
 };
@@ -80,11 +80,11 @@ export async function deploy({ envName }: Props) {
 
   // console.log("about to go through deployList");
   // for (const item of deployList) {
-  //   if (item.type === "task") {
+  //   if (item.type === "action") {
   //     let initializerArray: Initializer[];
   //     let temp: Initializer | Initializer[];
   //     if (!item.deploy) {
-  //       await setTaskInitializedStatus(envName, {
+  //       await setActionInitializedStatus(envName, {
   //         name: item.data.name,
   //         status: true,
   //       });
@@ -109,12 +109,12 @@ export async function deploy({ envName }: Props) {
   //           await initializer.init();
   //         }
   //
-  //         await setTaskInitializedStatus(envName, {
+  //         await setActionInitializedStatus(envName, {
   //           name: item.data.name,
   //           status: true,
   //         });
   //       } catch (error) {
-  //         await setTaskInitializedStatus(envName, {
+  //         await setActionInitializedStatus(envName, {
   //           name: item.data.name,
   //           status: false,
   //         });
@@ -127,7 +127,7 @@ export async function deploy({ envName }: Props) {
 }
 
 export interface DeployData {
-  [taskName: string]: TaskData;
+  [actionName: string]: ActionData;
 }
 
 export async function getDeployData(): Promise<DeployData> {
@@ -142,8 +142,8 @@ export async function getDeployData(): Promise<DeployData> {
 
   const data = <DeployData>await response.json();
 
-  for (const taskData of Object.values(data)) {
-    const { auths, secrets } = taskData;
+  for (const actionData of Object.values(data)) {
+    const { auths, secrets } = actionData;
 
     if (auths) {
       for (const auth of Object.values(auths)) {

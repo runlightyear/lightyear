@@ -1,12 +1,12 @@
 import { Command } from "commander";
-import runTask from "../../shared/runTask";
+import runAction from "../../shared/runAction";
 
 export const run = new Command("run");
 
 run
-  .description("Run a task")
-  .argument("<name>", "Name of task to run")
-  .action(async (taskName) => {
+  .description("Run a action")
+  .argument("<name>", "Name of action to run")
+  .action(async (actionName) => {
     console.log("ready to run");
-    await runTask({ taskName });
+    await runAction({ actionName });
   });

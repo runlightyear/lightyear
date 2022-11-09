@@ -13,9 +13,11 @@ login
   )
   .addOption(new Option("--dev").hideHelp())
   .action(async (options) => {
+    let authUrl = "https://accounts.runlightyear.com";
     let baseUrl = "https://app.runlightyear.com";
     if (options.dev) {
       console.log("In dev mode, using http://localhost:3000");
+      authUrl = "https://accounts.genuine.bass-25.lcl.dev";
       baseUrl = "http://localhost:3000";
     }
 
@@ -23,5 +25,5 @@ login
 
     const localPort = await startServer(getRequestHandler(baseUrl));
 
-    await openBrowser(baseUrl, accountType, localPort);
+    await openBrowser(authUrl, baseUrl, accountType, localPort);
   });

@@ -11,8 +11,8 @@ import { run } from "./commands/run";
 dotenv.config();
 
 program
-  .name("integration")
-  .description("Big Idea Integration CLI")
+  .name("lightyear")
+  .description("Lightyear CLI")
   .version(packageJson.version)
   .addCommand(create)
   .addCommand(login)

@@ -9,7 +9,7 @@ export default async function fetchApiKey(
 ) {
   try {
     console.log("fetching api key with baseUrl", baseUrl);
-    const response = await fetch(`${baseUrl}/api/v1/cli-login`, {
+    const response = await fetch(`${baseUrl}/api/v1/cli-login/key`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -18,18 +18,19 @@ export default async function fetchApiKey(
     });
 
     const text = await response.text();
+    const json = JSON.parse(text);
 
     if (response.status !== 200) {
+      console.error(json.message);
       program.error("Error fetching api key");
     }
 
-    const json = JSON.parse(text);
     const { ENV_NAME, BASE_URL, API_KEY } = json;
 
     return { ENV_NAME, BASE_URL, API_KEY };
   } catch (error) {
     console.log("error", error);
-    res.setHeader("location", `${baseUrl}/prototype/cli-login/failure`);
+    res.setHeader("location", `${baseUrl}/cli-login/failed`);
     res.end();
     program.error("Login failed");
   }

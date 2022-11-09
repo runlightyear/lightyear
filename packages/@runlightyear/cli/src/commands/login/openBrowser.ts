@@ -1,6 +1,7 @@
 import open from "open";
 
 export default async function openBrowser(
+  authUrl: string,
   baseUrl: string,
   accountType: "new" | "existing",
   localPort: number
@@ -9,5 +10,7 @@ export default async function openBrowser(
 
   const page = accountType === "new" ? "sign-up" : "sign-in";
 
-  await open(`${baseUrl}/${page}?next=/prototype/cli-login/${localPort}/`);
+  await open(
+    `${authUrl}/${page}?redirect_url=${baseUrl}/cli-login/port/${localPort}/`
+  );
 }

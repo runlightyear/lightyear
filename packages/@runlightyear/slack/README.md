@@ -16,10 +16,10 @@ import { Slack } from '@runlightyear/slack';
 const slackAuth = Slack.defineAuth({ name: 'slack' })
 ```
 
-### Use in a task
+### Use in an action
 
 ```typescript
-defineTask({
+defineAction({
   name: 'helloSlack',
   auths: {
     slack: slackAuth,

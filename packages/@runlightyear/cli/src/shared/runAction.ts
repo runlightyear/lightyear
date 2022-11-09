@@ -3,12 +3,12 @@ import getCompiledCode from "./getCompiledCode";
 import readPackage from "./readPackage";
 import runInContext from "./runInContext";
 
-export default async function runTask({
-  taskName,
+export default async function runAction({
+  actionName,
   data,
   deliveryId,
 }: {
-  taskName: string;
+  actionName: string;
   data?: object;
   deliveryId?: string;
 }) {
@@ -23,7 +23,7 @@ export default async function runTask({
 
   const handlerResult = await handler({
     action: "run",
-    taskName,
+    actionName,
     data,
   });
 
@@ -33,7 +33,7 @@ export default async function runTask({
 
   const { logs } = responseData;
 
-  const status = statusCode >= 300 ? "FAILURE" : "SUCCESS";
+  const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
   const response = await fetch(`${baseUrl}/api/v1/envs/${envName}/runs`, {
     method: "POST",
@@ -43,16 +43,20 @@ export default async function runTask({
     },
     body: JSON.stringify({
       status,
-      taskName,
-      logs,
-      deliveryId,
+      actionName,
+      // logs,
+      // deliveryId,
     }),
   });
 
   if (response.ok) {
     console.log("Uploaded run result");
   } else {
-    console.log("Failed to upload run result");
+    console.error(
+      "Failed to upload run result",
+      response.status,
+      response.statusText
+    );
   }
 
   return handlerResult;
