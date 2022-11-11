@@ -7,7 +7,7 @@ export default async function execDeploy() {
   const pkg = readPackage();
   const compiledCode = getCompiledCode(pkg.main);
   const handler = runInContext(compiledCode);
-  const handlerResult = await handler({ action: "deploy" });
+  const handlerResult = await handler({ operation: "deploy" });
 
   console.log("back from handler");
 

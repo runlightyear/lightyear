@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.4.1
+
+### Patch Changes
+
+- Fixed bug with terminology
+
 ## 0.4.0
 
 ### Minor Changes
