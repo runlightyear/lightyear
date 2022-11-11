@@ -22,7 +22,7 @@ export default async function runAction({
   const handler = runInContext(compiledCode);
 
   const handlerResult = await handler({
-    action: "run",
+    operation: "run",
     actionName,
     data,
   });
