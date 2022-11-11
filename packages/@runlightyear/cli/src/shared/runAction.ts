@@ -44,7 +44,7 @@ export default async function runAction({
     body: JSON.stringify({
       status,
       actionName,
-      // logs,
+      logs,
       // deliveryId,
     }),
   });

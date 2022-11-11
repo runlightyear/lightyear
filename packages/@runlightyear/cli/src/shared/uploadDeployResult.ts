@@ -21,7 +21,7 @@ export default async function uploadDeployResult({
     },
     body: JSON.stringify({
       status,
-      // logs,
+      logs,
       // compiledCode: compiledCode.toString("utf-8"),
     }),
   });

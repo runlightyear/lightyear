@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.4.0
+
+### Minor Changes
+
+- Upload logs from local deploys and runs
+
 ## 0.3.0
 
 ### Minor Changes
