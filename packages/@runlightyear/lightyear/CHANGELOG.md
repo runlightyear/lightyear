@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.3.0
+
+### Minor Changes
+
+- Updated terminology
+
 ## 0.2.0
 
 ### Minor Changes
