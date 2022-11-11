@@ -8,7 +8,7 @@ import { subscribe, unsubscribe } from "../subscriptionActions";
 import { createSubscriptionAction } from "../base/subscriptionAction";
 
 interface RepoInvocation extends APIGatewayEvent {
-  action: string;
+  operation: string;
   subscriptionName?: string;
   removed?: boolean;
   actionName?: string;
@@ -54,20 +54,20 @@ export const handler = async (
   console.log(`Event: ${JSON.stringify(event, null, 2)}`);
   console.log(`Context: ${JSON.stringify(context, null, 2)}`);
 
-  const { action, subscriptionName, removed, actionName, data } = event;
+  const { operation, subscriptionName, removed, actionName, data } = event;
 
-  if (!action) {
+  if (!operation) {
     return result(400, "Required action missing");
   }
 
-  if (!["deploy", "subscribe", "unsubscribe", "run"].includes(action)) {
+  if (!["deploy", "subscribe", "unsubscribe", "run"].includes(operation)) {
     return result(
       400,
-      `Invalid action, must be 'deploy', 'subscribe', 'unsubscribe', or 'run': ${action}`
+      `Invalid action, must be 'deploy', 'subscribe', 'unsubscribe', or 'run': ${operation}`
     );
   }
 
-  if (action === "deploy") {
+  if (operation === "deploy") {
     console.log("About to deploy");
     try {
       await deploy({ envName });
@@ -77,7 +77,7 @@ export const handler = async (
       console.trace();
       return result(500, `Deploy failed: ${error}`);
     }
-  } else if (action === "unsubscribe") {
+  } else if (operation === "unsubscribe") {
     if (!subscriptionName) {
       return result(400, "Missing subscriptionName");
     }
@@ -122,7 +122,7 @@ export const handler = async (
     }
 
     return result(statusCode, message);
-  } else if (action === "subscribe") {
+  } else if (operation === "subscribe") {
     console.log("ready to try subscribing");
     if (!subscriptionName) {
       return result(400, "Missing subscriptionName");
@@ -168,7 +168,7 @@ export const handler = async (
     });
 
     return result(statusCode, message);
-  } else if (action === "run") {
+  } else if (operation === "run") {
     if (!actionName) {
       return result(400, "Missing actionName");
     }
