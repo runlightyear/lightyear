@@ -15,6 +15,7 @@ export default async function handleRunLocal(props: any) {
 
   await runAction({
     actionName: payload.actionName,
+    runId: payload.runId,
     data: payload.data,
     deliveryId: payload.deliveryId,
   });

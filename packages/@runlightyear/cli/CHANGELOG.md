@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.5.0
+
+### Minor Changes
+
+- Updated to work with new pusher events
+
 ## 0.4.1
 
 ### Patch Changes

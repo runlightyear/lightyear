@@ -17,8 +17,8 @@ dev
     const credentials = await getPusherCredentials();
     const pusher = await getPusher(credentials);
 
-    const subscription = pusher.subscribe(`user=${credentials.userId}`);
-    subscription.bind("runLocal", handleRunLocal);
+    const subscription = pusher.subscribe(credentials.userId);
+    subscription.bind("localRunTriggered", handleRunLocal);
 
     nodemon({
       ignoreRoot: [".git"],
