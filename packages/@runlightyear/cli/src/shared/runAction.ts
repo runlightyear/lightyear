@@ -5,10 +5,12 @@ import runInContext from "./runInContext";
 
 export default async function runAction({
   actionName,
+  runId,
   data,
   deliveryId,
 }: {
   actionName: string;
+  runId: string;
   data?: object;
   deliveryId?: string;
 }) {
@@ -35,19 +37,21 @@ export default async function runAction({
 
   const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
-  const response = await fetch(`${baseUrl}/api/v1/envs/${envName}/runs`, {
-    method: "POST",
-    headers: {
-      Authorization: `apiKey ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      status,
-      actionName,
-      logs,
-      // deliveryId,
-    }),
-  });
+  const response = await fetch(
+    `${baseUrl}/api/v1/envs/${envName}/runs/${runId}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `apiKey ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status,
+        logs,
+        // deliveryId,
+      }),
+    }
+  );
 
   if (response.ok) {
     console.log("Uploaded run result");
@@ -57,6 +61,7 @@ export default async function runAction({
       response.status,
       response.statusText
     );
+    console.error(await response.text());
   }
 
   return handlerResult;
