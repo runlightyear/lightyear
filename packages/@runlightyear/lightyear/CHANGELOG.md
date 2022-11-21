@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.4.0
+
+### Minor Changes
+
+- Added required title to defineAction
+
 ## 0.3.0
 
 ### Minor Changes

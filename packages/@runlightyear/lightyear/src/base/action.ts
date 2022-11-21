@@ -14,6 +14,7 @@ export type ActionTrigger = {
 
 export interface DefineActionOptions {
   name: string;
+  title: string;
   description?: string;
   trigger?: ActionTrigger;
   auths: {
