@@ -1,10 +1,11 @@
 {
   "name": "@runlightyear/github",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
+    "dev": "nodemon --exec \"npx tsup src/index.ts --dts\" --watch src --ext ts,js",
     "lint": "eslint src/**.ts",
     "prettier:check": "prettier --check src",
     "compile": "tsc --noEmit",
@@ -18,10 +19,12 @@
     "@microsoft/api-extractor": "^7.31.2",
     "@types/jest": "^28.1.8",
     "@types/node": "12.20.24",
+    "@types/nodemon": "^1.19.2",
     "@typescript-eslint/parser": "^5.38.0",
     "api-extractor-config": "workspace:*",
     "eslint": "^7.32.0",
     "eslint-config-custom": "workspace:*",
+    "nodemon": "^2.0.19",
     "tsconfig": "workspace:*",
     "tsdoc-config": "workspace:*",
     "tsup": "^6.1.3",

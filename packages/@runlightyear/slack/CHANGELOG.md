@@ -1,5 +1,16 @@
 # @runlightyear/slack
 
+## 0.3.0
+
+### Minor Changes
+
+- Updated oauth2 support to work with new app
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.5.0
+
 ## 0.2.2
 
 ### Patch Changes
