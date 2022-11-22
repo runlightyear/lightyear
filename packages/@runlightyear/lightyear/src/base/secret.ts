@@ -13,7 +13,10 @@ function validateSecretProps({ name }: SecretProps) {
 
 export function defineSecret(props: SecretProps) {
   validateSecretProps(props);
-  deployList.push({ type: "secret", data: props });
+  deployList.push({
+    type: "secret",
+    // data: props
+  });
 
   return props.name;
 }
@@ -24,9 +27,9 @@ export async function deploySecret(envName: string, props: SecretProps) {
 
   const response = await baseRequest({
     uri: `/api/v1/envs/${envName}/secrets`,
-    data: {
-      name,
-    },
+    // data: {
+    //   name,
+    // },
   });
 
   if (!response.ok) {

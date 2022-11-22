@@ -1,5 +1,16 @@
 # @runlightyear/slack
 
+## 0.4.0
+
+### Minor Changes
+
+- Update the default Slack Oauth scope
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.6.0
+
 ## 0.3.0
 
 ### Minor Changes

@@ -31,7 +31,9 @@ export type InitializerSpec = Initializer | Initializer[] | DeployFunc;
 
 export type DeployItem = {
   type: "action" | "auth" | "variable" | "secret" | "subscription" | "webhook";
-  data: DeployActionProps | AuthProps | WebhookProps;
+  // data: DeployActionProps | AuthProps | WebhookProps;
+  actionProps?: DeployActionProps;
+  authProps?: AuthProps;
   subscribeArgs?: (props: SubscribeArgsProps) => Promise<object>;
   deploy?: (props: DeployFuncProps) => Promise<string>;
 };
@@ -60,23 +62,23 @@ export async function deploy({ envName }: Props) {
 
   const deployData = await getDeployData();
 
-  console.log(
-    "about to go through deployList to get subscribeArgs for subscriptions"
-  );
-  for (const item of deployList) {
-    if (item.type === "subscription") {
-      if (item.subscribeArgs && item.subscribeArgs instanceof Function) {
-        const subscribeArgsData = deployData[item.data.name];
-        const subscribeArgs = await item.subscribeArgs(subscribeArgsData);
-        await setSubscribeArgs(envName, {
-          name: item.data.name,
-          subscribeArgs,
-        });
-      } else {
-        throw new Error(`Missing deploy for ${item.data.name}`);
-      }
-    }
-  }
+  // console.log(
+  //   "about to go through deployList to get subscribeArgs for subscriptions"
+  // );
+  // for (const item of deployList) {
+  //   if (item.type === "subscription") {
+  //     if (item.subscribeArgs && item.subscribeArgs instanceof Function) {
+  //       const subscribeArgsData = deployData[item.data.name];
+  //       const subscribeArgs = await item.subscribeArgs(subscribeArgsData);
+  //       await setSubscribeArgs(envName, {
+  //         name: item.data.name,
+  //         subscribeArgs,
+  //       });
+  //     } else {
+  //       throw new Error(`Missing deploy for ${item.data.name}`);
+  //     }
+  //   }
+  // }
 
   // console.log("about to go through deployList");
   // for (const item of deployList) {
