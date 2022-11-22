@@ -13,7 +13,10 @@ function validateVariableProps({ name }: VariableProps) {
 
 export function defineVariable(props: VariableProps) {
   validateVariableProps(props);
-  deployList.push({ type: "variable", data: props });
+  deployList.push({
+    type: "variable",
+    // data: props
+  });
 
   return props.name;
 }

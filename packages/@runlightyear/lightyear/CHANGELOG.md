@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.6.0
+
+### Minor Changes
+
+- Temporarily disable some deploy features while we iterate on the app
+
 ## 0.5.0
 
 ### Minor Changes

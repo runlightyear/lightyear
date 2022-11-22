@@ -22,7 +22,7 @@ function validateAuthProps({ name }: AuthProps) {
  */
 export function defineAuth(props: AuthProps) {
   validateAuthProps(props);
-  deployList.push({ type: "auth", data: props });
+  deployList.push({ type: "auth", authProps: props });
 
   return props.name;
 }

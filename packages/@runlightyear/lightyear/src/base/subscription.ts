@@ -75,7 +75,11 @@ export function defineSubscription(options: DefineSubscriptionOptions) {
   const { subscribeArgs, subscribe, unsubscribe, ...rest } = options;
   validateSubscriptionProps(rest);
 
-  deployList.push({ type: "subscription", data: rest, subscribeArgs });
+  deployList.push({
+    type: "subscription",
+    // data: rest,
+    subscribeArgs,
+  });
   subscribeIndex[rest.name] = subscribe;
   unsubscribeIndex[rest.name] = unsubscribe;
 

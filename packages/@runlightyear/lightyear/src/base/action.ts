@@ -83,7 +83,7 @@ export function defineAction(options: DefineActionOptions) {
   invariant(run, "Run function missing");
   invariant(isFunction(run), "Run must be a function");
 
-  deployList.push({ type: "action", data: rest });
+  deployList.push({ type: "action", actionProps: rest });
   actionIndex[rest.name] = run;
 
   return rest.name;

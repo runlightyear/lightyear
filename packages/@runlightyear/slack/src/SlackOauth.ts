@@ -20,7 +20,22 @@ export class SlackOauth extends OauthConnector {
 
   getAuthRequestUrlParams() {
     console.log("in Slack.getAuthRequestUrlParams");
-    const scopes: SlackScope[] = ["chat:write"];
+    const scopes: SlackScope[] = [
+      "channels:manage",
+      "channels:read",
+      "channels:join",
+      "chat:write",
+      "chat:write.customize",
+      "chat:write.public",
+      "files:write",
+      "im:write",
+      "mpim:write",
+      "team:read",
+      "users.profile:read",
+      "users:read",
+      "users:read.email",
+      "workflow.steps:execute",
+    ];
 
     return {
       ...super.getAuthRequestUrlParams(),
