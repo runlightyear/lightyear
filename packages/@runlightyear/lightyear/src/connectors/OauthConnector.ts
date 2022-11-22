@@ -75,10 +75,10 @@ export abstract class OauthConnector {
     const suffix = inDevelopment() ? "-local" : "";
 
     if (this.appName) {
-      return `https://app.runlightyear.com/api/v1/oauth/${this.appName}/redirect${suffix}`;
+      return `https://app.runlightyear.com/api/v1/oauth2/${this.appName}/redirect${suffix}`;
     }
 
-    return `https://app.runlightyear.com/api/v1/custom-oath/${this.customAppName}/redirect${suffix}`;
+    return `https://app.runlightyear.com/api/v1/oauth2-custom/${this.customAppName}/redirect${suffix}`;
   }
 
   getRequestAccessTokenHeaders(): {
@@ -90,9 +90,7 @@ export abstract class OauthConnector {
     };
   }
 
-  getRequestAccessTokenBody(request: Request): string {
-    const url = new URL(request.url);
-    const code = url.searchParams.get("code");
+  getRequestAccessTokenBody(code: string): string {
     invariant(code, "Missing code");
 
     invariant(this.authData, "Missing authData");
@@ -117,20 +115,22 @@ export abstract class OauthConnector {
   }
 
   processRequestAccessTokenResponse({
-    response,
+    status,
+    statusText,
+    headers,
     text,
   }: {
-    response: Response;
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
     text: string;
   }): AuthData {
-    if (response.status >= 300) {
+    if (status >= 300) {
       console.error(text);
-      throw new Error(
-        `Request access token failed: ${response.status} ${response.statusText}`
-      );
+      throw new Error(`Request access token failed: ${status} ${statusText}`);
     }
 
-    console.log("status", response.status);
+    console.log("status", status);
     const data = JSON.parse(text);
 
     const tokenType = data["token_type"];
@@ -169,14 +169,20 @@ export abstract class OauthConnector {
   }
 
   processRefreshAccessTokenResponse({
-    response,
+    status,
+    statusText,
+    headers,
     text,
   }: {
-    response: Response;
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
     text: string;
   }): AuthData {
     const authData = this.processRequestAccessTokenResponse({
-      response,
+      status,
+      statusText,
+      headers,
       text,
     });
     const refreshedAt = dayjsUtc().format();

@@ -19,11 +19,12 @@ export class SlackOauth extends OauthConnector {
   }
 
   getAuthRequestUrlParams() {
+    console.log("in Slack.getAuthRequestUrlParams");
     const scopes: SlackScope[] = ["chat:write"];
 
     return {
       ...super.getAuthRequestUrlParams(),
-      scopes: scopes.join(","),
+      scope: scopes.join(","),
     };
   }
 
@@ -32,10 +33,14 @@ export class SlackOauth extends OauthConnector {
   }
 
   processRequestAccessTokenResponse({
-    response,
+    status,
+    statusText,
+    headers,
     text,
   }: {
-    response: Response;
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
     text: string;
   }): AuthData {
     const responseData = JSON.parse(text);
@@ -48,7 +53,9 @@ export class SlackOauth extends OauthConnector {
     }
 
     return super.processRequestAccessTokenResponse({
-      response,
+      status,
+      statusText,
+      headers,
       text,
     });
   }

@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.5.0
+
+### Minor Changes
+
+- Updated oauth2 support to work with new app
+
 ## 0.4.0
 
 ### Minor Changes
