@@ -1,5 +1,4 @@
 import invariant from "tiny-invariant";
-import { Request, Response } from "node-fetch";
 import { AuthData } from "../base/auth";
 import dayjsUtc from "../util/dayjsUtc";
 import inDevelopment from "../util/inDevelopment";
@@ -130,7 +129,7 @@ export abstract class OauthConnector {
       throw new Error(`Request access token failed: ${status} ${statusText}`);
     }
 
-    console.log("status", status);
+    console.debug("status", status);
     const data = JSON.parse(text);
 
     const tokenType = data["token_type"];

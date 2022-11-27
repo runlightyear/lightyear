@@ -19,7 +19,6 @@ export class SlackOauth extends OauthConnector {
   }
 
   getAuthRequestUrlParams() {
-    console.log("in Slack.getAuthRequestUrlParams");
     const scopes: SlackScope[] = [
       "channels:manage",
       "channels:read",
@@ -60,7 +59,6 @@ export class SlackOauth extends OauthConnector {
   }): AuthData {
     const responseData = JSON.parse(text);
 
-    console.log("responseData", responseData);
     if (!responseData.ok) {
       throw new Error(
         `Slack access token request failed: ${responseData.error}`
