@@ -6,6 +6,8 @@ import { InitializerSpec, deployList } from "./deploy";
 import { secrets as secretsList } from "../logging";
 import { AuthData } from "./auth";
 
+export type AppName = "github" | "slack";
+
 export type ActionTrigger = {
   webhook?: string;
   schedule?: string;
@@ -17,15 +19,9 @@ export interface DefineActionOptions {
   title: string;
   description?: string;
   trigger?: ActionTrigger;
-  auths: {
-    [name: string]: string;
-  };
-  variables: {
-    [name: string]: string;
-  };
-  secrets: {
-    [name: string]: string;
-  };
+  apps?: Array<AppName>;
+  variables?: Array<string>;
+  secrets?: Array<string>;
   deploy: InitializerSpec;
   run: RunFunc;
 }

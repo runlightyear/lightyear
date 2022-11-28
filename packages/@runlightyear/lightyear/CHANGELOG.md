@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.7.0
+
+### Minor Changes
+
+- New specification of apps, variables, and secrets
+
 ## 0.6.0
 
 ### Minor Changes
