@@ -13,7 +13,7 @@ const config = {
   trailingSlash: false,
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
-  favicon: "img/favicon.ico",
+  favicon: "img/favicon.png",
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
@@ -54,7 +54,7 @@ const config = {
       navbar: {
         title: "Lightyear",
         logo: {
-          alt: "My Site Logo",
+          alt: "Lightyear Logo",
           src: "img/logo.svg",
         },
         items: [
