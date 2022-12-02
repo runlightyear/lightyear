@@ -14,7 +14,7 @@ function validateWebhookProps({ name }: WebhookProps) {
 export function defineWebhook(props: WebhookProps) {
   deployList.push({
     type: "webhook",
-    // data: props
+    webhookProps: props,
   });
 
   return props.name;

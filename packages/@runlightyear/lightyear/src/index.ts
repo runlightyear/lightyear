@@ -10,11 +10,21 @@ import {
   HttpProxyResponse,
   HttpProxyResponseError,
 } from "./base/http";
-import { defineSecret, SecretData } from "./base/secret";
-import { defineSubscription, SubscribeArgsProps } from "./base/subscription";
+import {
+  // defineSecret,
+  SecretData,
+} from "./base/secret";
+import {
+  // defineSubscription,
+  SubscribeArgsProps,
+} from "./base/subscription";
 import { defineAction, DefineActionOptions } from "./base/action";
 import { RunFunc, RunFuncProps } from "./run";
-import { defineVariable, getVariableData, VariableData } from "./base/variable";
+import {
+  // defineVariable,
+  getVariableData,
+  VariableData,
+} from "./base/variable";
 import { defineWebhook, getWebhookData } from "./base/webhook";
 import {
   BaseConnector,
@@ -43,12 +53,12 @@ import deCamelize from "./util/deCamelize";
 
 export {
   defineAction,
-  defineAuth,
+  // defineAuth,
   getAuthData,
-  defineVariable,
+  // defineVariable,
   getVariableData,
-  defineSecret,
-  defineSubscription,
+  // defineSecret,
+  // defineSubscription,
   defineWebhook,
   getWebhookData,
   BaseConnector,

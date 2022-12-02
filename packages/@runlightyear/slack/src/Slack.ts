@@ -3,7 +3,6 @@ import {
   AuthConnectorOptions,
   HttpProxyRequestOptions,
   HttpProxyResponse,
-  defineAuth,
 } from "@runlightyear/lightyear";
 import postMessage, { PostMessageOptions } from "./chat/postMessage";
 import section from "./elements/blocks/section";
@@ -49,15 +48,6 @@ import { SlackScope } from "./types/SlackScope";
  * ```
  */
 export class Slack extends RestConnector {
-  /**
-   * Define a slack auth
-   */
-  static defineAuth(options: { name: string; scopes: SlackScope[] }) {
-    const { name } = options;
-
-    return defineAuth({ name, app: "slack" });
-  }
-
   /**
    * Create a new slack connector
    *
