@@ -58,10 +58,6 @@ import workflowRunPayload from "./webhooks/payloads/workflowRunPayload";
 import pingPayload from "./webhooks/payloads/pingPayload";
 import isWebhookEventType from "./webhooks/webhookEventType";
 import pushPayload from "./webhooks/payloads/pushPayload";
-import defineGithubSubscription, {
-  DefineSubscriptionOptions,
-} from "./webhooks/defineGithubSubscription";
-import githubSubscribeArgs from "./webhooks/githubSubscribeArgs";
 import WebhookEvent from "./webhooks/WebhookEvent";
 
 export interface GithubConnectorOptions extends AuthConnectorOptions {}
@@ -93,20 +89,6 @@ export interface GithubDefineAuthOptions {
  * ```
  */
 export class Github extends RestConnector {
-  /**
-   * Define a Github auth
-   *
-   * @group Auth
-   *
-   * @param options options
-   * @param options.name The name
-   */
-  static defineAuth(options: GithubDefineAuthOptions) {
-    const { name } = options;
-
-    return RestConnector.defineAuth({ name, app: "github" });
-  }
-
   constructor(options: GithubConnectorOptions) {
     super({ ...options, baseUrl: "https://api.github.com" });
   }
@@ -469,27 +451,5 @@ export class Github extends RestConnector {
    */
   static workflowRunPayload(data: WebhookDeliveryData) {
     return workflowRunPayload(data);
-  }
-
-  /**
-   * Define Webhook Subscription
-   *
-   * @group Webhook Subscription
-   *
-   * @param options
-   */
-  static defineSubscription(options: DefineSubscriptionOptions) {
-    return defineGithubSubscription(options);
-  }
-
-  /**
-   * Subscribe Args
-   *
-   * @group Webhook Subscription
-   *
-   * @param args
-   */
-  static subscribeArgs(args: CreateRepositoryWebhookOptions) {
-    return githubSubscribeArgs(args);
   }
 }

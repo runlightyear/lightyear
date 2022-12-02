@@ -15,7 +15,6 @@ import { DownloadRepoArchiveZipOptions } from "./repositories/contents/downloadR
 import { ListOrganizationRepositoriesOptions } from "./repositories/listOrganizationRepositories";
 import { ListRepositoriesForAuthenticatedUserOptions } from "./repositories/listRepositoriesForAuthenticatedUser";
 import { ListRepositoriesForUserOptions } from "./repositories/listRepositoriesForUser";
-import { DefineSubscriptionOptions } from "./webhooks/defineGithubSubscription";
 import { CommonPayload } from "./webhooks/payloads/commonPayload";
 import { PingPayload } from "./webhooks/payloads/pingPayload";
 import { PullRequestPayload } from "./webhooks/payloads/pullRequestPayload";
@@ -56,7 +55,6 @@ export type {
   ListOrganizationRepositoriesOptions,
   ListRepositoriesForAuthenticatedUserOptions,
   ListRepositoriesForUserOptions,
-  DefineSubscriptionOptions,
   CommonPayload,
   PingPayload,
   PullRequestPayload,
