@@ -4,27 +4,37 @@
  * work well for content-centric websites.
  */
 
+ /* Fonts */
+
+ @font-face {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400 600;
+  font-display: block;
+  font-style: normal;
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+}
+
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  --ifm-font-family-base:  'Inter', sans-serif;
+  --ifm-color-primary: #333869;
+  --ifm-color-primary-dark: #2e325f;
+  --ifm-color-primary-darker: #2b3059;
+  --ifm-color-primary-darkest: #24274a;
+  --ifm-color-primary-light: #383e74;
+  --ifm-color-primary-lighter: #3b4079;
+  --ifm-color-primary-lightest: #424989;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-color-primary: #d0d1e3;
+  --ifm-color-primary-dark: #b5b6d3;
+  --ifm-color-primary-darker: #a7a9cb;
+  --ifm-color-primary-darkest: #7e81b2;
+  --ifm-color-primary-light: #ebecf3;
+  --ifm-color-primary-lighter: #f9f9fb;
+  --ifm-color-primary-lightest: #ffffff;
 }
