@@ -34,6 +34,7 @@ export type DeployItem = {
   // data: DeployActionProps | AuthProps | WebhookProps;
   actionProps?: DeployActionProps;
   authProps?: AuthProps;
+  webhookProps?: WebhookProps;
   subscribeArgs?: (props: SubscribeArgsProps) => Promise<object>;
   deploy?: (props: DeployFuncProps) => Promise<string>;
 };
