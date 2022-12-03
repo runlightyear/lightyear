@@ -4,6 +4,7 @@ import { deployList } from "./deploy";
 
 export interface WebhookProps {
   name: string;
+  title: string;
 }
 
 function validateWebhookProps({ name }: WebhookProps) {
