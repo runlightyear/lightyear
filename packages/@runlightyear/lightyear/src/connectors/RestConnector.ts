@@ -18,14 +18,14 @@ export class RestConnector extends AuthConnector {
   }
 
   buildUrl(url: string, params?: Record<string, any>) {
-    console.log("in RestConnector.buildUrl");
+    console.debug("in RestConnector.buildUrl");
     const queryStr = params ? `?${queryString.stringify(params)}` : "";
 
     return `${this.baseUrl}${url}` + queryStr;
   }
 
   authorizationHeaders(): { [key: string]: string } {
-    console.log("in RestConnector.authorizationHeaders");
+    console.debug("in RestConnector.authorizationHeaders");
     const { accessToken } = this.getAuthData();
 
     return {
@@ -37,7 +37,7 @@ export class RestConnector extends AuthConnector {
    * Make a proxied http request
    */
   async request(options: HttpProxyRequestOptions): Promise<HttpProxyResponse> {
-    console.log("in RestConnector.request");
+    console.debug("in RestConnector.request");
     const { method, url, params, headers, data } = options;
 
     const proxyOptions = {

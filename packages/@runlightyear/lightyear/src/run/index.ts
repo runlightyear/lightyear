@@ -41,15 +41,15 @@ interface Props {
 
 export async function run(props: Props) {
   const { name, data, auths, variables, secrets, webhook, context } = props;
-  console.log("actionIndex", Object.keys(actionIndex));
+  console.debug("actionIndex", Object.keys(actionIndex));
 
   const fn = actionIndex[name];
   if (!fn) {
     console.error(`Unknown action: ${name}`);
-    console.debug("Known actions:", Object.keys(actionIndex));
+    console.info("Known actions:", Object.keys(actionIndex));
     throw new Error(`Unknown action: ${name}`);
   }
 
-  console.log("about to make the fn call");
+  console.info("Running the action function");
   await fn({ data, auths, variables, secrets, webhook, context });
 }

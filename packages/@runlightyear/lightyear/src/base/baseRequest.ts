@@ -17,7 +17,7 @@ export default async function baseRequest({
   params,
   data,
 }: BaseRequestProps): Promise<Response> {
-  console.log("in baseRequest XXX");
+  console.debug("in baseRequest");
   const baseUrl = process.env.BASE_URL;
   invariant(baseUrl, "Missing BASE_URL");
 
