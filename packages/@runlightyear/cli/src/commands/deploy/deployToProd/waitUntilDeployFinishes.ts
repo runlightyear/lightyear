@@ -5,35 +5,58 @@ import { program } from "commander";
 import countLines from "./countLines";
 import { terminal } from "terminal-kit";
 
+export type Log = {
+  id: string;
+  createdAt: Date;
+  deployId: string | null;
+  runId: string | null;
+  deliveryId: string | null;
+  level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
+  message: string;
+};
+
+export type GetDeployDetailResponseBody = {
+  id: string;
+  status: "QUEUED" | "RUNNING" | "SUCCEEDED" | "FAILED";
+  reason: string | null;
+  createdAt: string;
+  logs: Log[];
+};
+
 export default async function waitUntilDeployFinishes(deployId: string) {
   const credentials = await getPusherCredentials();
   const pusher = await getPusher(credentials);
 
+  terminal("Waiting for logs...\n");
   let prevLogLineCount: number = 1;
 
   const handleUpdate = async () => {
-    const deploy = await fetchDeploy("prod", deployId);
+    const deploy = (await fetchDeploy(
+      "prod",
+      deployId
+    )) as GetDeployDetailResponseBody;
 
-    terminal.up(prevLogLineCount - 1);
+    terminal.up(prevLogLineCount);
 
     const { status, logs } = deploy;
 
-    const logOutput = logs.join("\n") + "\n";
+    const logOutput =
+      logs.map((log) => `[${log.level}]: ${log.message}`).join("\n") + "\n";
     terminal(logOutput);
 
     prevLogLineCount = countLines(logOutput);
 
-    if (status === "SUCCESS") {
+    if (status === "SUCCEEDED") {
       terminal.green("Deploy succeeded! 🚀\n");
       process.exit(0);
-    } else if (status === "FAILURE") {
-      terminal.red("Deploy failed\n");
+    } else if (status === "FAILED") {
+      terminal.red("Deploy failed 💥\n");
       process.exit(1);
     }
   };
 
-  const subscription = pusher.subscribe(`deploy=${deployId}`);
-  subscription.bind("updated", handleUpdate);
+  const subscription = pusher.subscribe(credentials.userId);
+  subscription.bind("deployUpdated", handleUpdate);
 
   await handleUpdate();
 }

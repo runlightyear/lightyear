@@ -36,7 +36,7 @@ export const handler = async (
 ): Promise<APIGatewayProxyResult> => {
   const envName = process.env.ENV_NAME;
   if (!envName) {
-    console.log("Environment variable ENV_NAME not set");
+    console.error("Environment variable ENV_NAME not set");
     return result(400, "Environment variable ENV_NAME not set");
   }
 
@@ -51,8 +51,8 @@ export const handler = async (
     return result(400, "Environment variable BASE_URL not set");
   }
 
-  console.log(`Event: ${JSON.stringify(event, null, 2)}`);
-  console.log(`Context: ${JSON.stringify(context, null, 2)}`);
+  console.debug(`Event: ${JSON.stringify(event, null, 2)}`);
+  console.debug(`Context: ${JSON.stringify(context, null, 2)}`);
 
   const { operation, subscriptionName, removed, actionName, data } = event;
 
@@ -68,12 +68,12 @@ export const handler = async (
   }
 
   if (operation === "deploy") {
-    console.log("About to deploy");
+    console.info("Starting deploy");
     try {
       await deploy({ envName });
       return result(200, "Deploy successful");
     } catch (error) {
-      console.log("Failed to deploy", String(error));
+      console.error("Failed to deploy", String(error));
       console.trace();
       return result(500, `Deploy failed: ${error}`);
     }
@@ -177,7 +177,7 @@ export const handler = async (
     const { auths, variables, secrets, webhook } = actionData;
 
     try {
-      console.log(`About to run action ${actionName}`);
+      console.info(`Running action ${actionName}`);
       await run({
         name: actionName,
         data,
@@ -189,7 +189,7 @@ export const handler = async (
       });
       return result(200, "Run successful");
     } catch (error) {
-      console.log("Failed to run action", String(error));
+      console.error("Failed to run action", String(error));
       return result(500, "Run failed");
     }
   }

@@ -42,7 +42,17 @@ export type DeployItem = {
 export const deployList: DeployItem[] = [];
 
 export async function deploy({ envName }: Props) {
-  console.log("deployList", JSON.stringify(deployList));
+  console.debug("deployList", JSON.stringify(deployList));
+
+  const names = deployList.map((item) => {
+    if (item.type === "action") {
+      return item.actionProps?.name;
+    } else if (item.type === "webhook") {
+      return item.webhookProps?.name;
+    }
+  });
+
+  console.info(`Deploying ${names.join(", ")}`);
 
   const response = await baseRequest({
     method: "POST",
@@ -50,16 +60,14 @@ export async function deploy({ envName }: Props) {
     data: deployList,
   });
 
-  console.log("back from baseRequest");
-
-  console.log("testing");
+  console.debug("back from baseRequest");
 
   if (!response.ok) {
     console.error(await response.json());
     throw new Error(`deploy failed`);
   }
 
-  console.log("response was OK");
+  console.debug("response was OK");
 
   const deployData = await getDeployData();
 
@@ -134,7 +142,7 @@ export interface DeployData {
 }
 
 export async function getDeployData(): Promise<DeployData> {
-  console.log("in getDeployData");
+  console.debug("in getDeployData");
   const envName = process.env.ENV_NAME;
   invariant(envName, "Missing ENV_NAME");
 

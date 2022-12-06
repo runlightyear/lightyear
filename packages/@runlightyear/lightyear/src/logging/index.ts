@@ -12,10 +12,11 @@ export const emptySecrets = () => (secrets.length = 0);
 
 export interface Logger {
   log(...msg: any[]): void;
-  info(...msg: any[]): void;
-  warn(...msg: any[]): void;
   error(...msg: any[]): void;
+  warn(...msg: any[]): void;
+  info(...msg: any[]): void;
   debug(...msg: any[]): void;
+  trace(...msg: any[]): void;
 }
 
 const processArgs =
@@ -38,26 +39,29 @@ const addPrefix = !global.replacedConsole;
 
 const consoleReplacement: Logger = {
   log: processArgs("log", addPrefix),
-  info: processArgs("info", addPrefix),
-  warn: processArgs("warn", addPrefix),
   error: processArgs("error", addPrefix),
+  warn: processArgs("warn", addPrefix),
+  info: processArgs("info", addPrefix),
   debug: processArgs("debug", addPrefix),
+  trace: processArgs("trace", addPrefix),
 };
 
 const originalConsole: Logger = {
   log: global.console.log,
-  info: global.console.info,
-  warn: global.console.warn,
   error: global.console.error,
+  warn: global.console.warn,
+  info: global.console.info,
   debug: global.console.debug,
+  trace: global.console.trace,
 };
 
 if (!process.env.IN_VM) {
   global.console.log = consoleReplacement.log;
-  global.console.info = consoleReplacement.info;
-  global.console.warn = consoleReplacement.warn;
   global.console.error = consoleReplacement.error;
+  global.console.warn = consoleReplacement.warn;
+  global.console.info = consoleReplacement.info;
   global.console.debug = consoleReplacement.debug;
+  global.console.trace = consoleReplacement.debug;
 
   // @ts-ignore
   global.replacedConsole = true;
