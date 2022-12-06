@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.9.0
+
+### Minor Changes
+
+- Require title on defineWebhook
+
 ## 0.8.0
 
 ### Minor Changes
