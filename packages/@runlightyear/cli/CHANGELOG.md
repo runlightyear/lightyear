@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.7.0
+
+### Minor Changes
+
+- Login works with new urls
+
 ## 0.6.0
 
 ### Minor Changes

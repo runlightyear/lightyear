@@ -13,11 +13,11 @@ login
   )
   .addOption(new Option("--dev").hideHelp())
   .action(async (options) => {
-    let authUrl = "https://accounts.runlightyear.com";
+    let authUrl = "https://app.runlightyear.com";
     let baseUrl = "https://app.runlightyear.com";
     if (options.dev) {
       console.log("In dev mode, using http://localhost:3000");
-      authUrl = "https://accounts.genuine.bass-25.lcl.dev";
+      authUrl = "http://localhost:3000";
       baseUrl = "http://localhost:3000";
     }
 
