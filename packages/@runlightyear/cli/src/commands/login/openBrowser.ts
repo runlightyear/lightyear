@@ -8,7 +8,7 @@ export default async function openBrowser(
 ) {
   console.log("Opening your browser to allow you to login");
 
-  const page = accountType === "new" ? "sign-up" : "sign-in";
+  const pagePrefix = accountType === "new" ? "/sign-up#/?redirect_url=" : "";
 
-  await open(`${authUrl}/${page}#/?redirect_url=/cli-login/port/${localPort}/`);
+  await open(`${authUrl}${pagePrefix}/cli-login/port/${localPort}/`);
 }

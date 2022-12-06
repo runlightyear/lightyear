@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.7.1
+
+### Patch Changes
+
+- Fixed bug preventing login from working when already logged in
+
 ## 0.7.0
 
 ### Minor Changes
