@@ -2,14 +2,14 @@ import countLines from "./countLines";
 
 describe("countLines", () => {
   test("three lines", () => {
-    expect(countLines("one\ntwo\nthree")).toEqual(3);
+    expect(countLines("one\ntwo\nthree\n")).toEqual(3);
   });
 
   test("one line", () => {
-    expect(countLines("one")).toEqual(1);
+    expect(countLines("one\n")).toEqual(1);
   });
 
   test("blank", () => {
-    expect(countLines("")).toEqual(1);
+    expect(countLines("")).toEqual(0);
   });
 });
