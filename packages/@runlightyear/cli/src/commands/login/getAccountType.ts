@@ -11,8 +11,6 @@ export default async function getAccountType(): Promise<"new" | "existing"> {
     ],
   });
 
-  console.log("response", response);
-
   if (response.accountType === "new") {
     return "new";
   }

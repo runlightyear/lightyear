@@ -2,14 +2,13 @@ import readPackage from "./readPackage";
 import getCompiledCode from "./getCompiledCode";
 import runInContext from "./runInContext";
 import uploadDeployResult from "./uploadDeployResult";
+import { terminal } from "terminal-kit";
 
 export default async function execDeploy() {
   const pkg = readPackage();
   const compiledCode = getCompiledCode(pkg.main);
   const handler = runInContext(compiledCode);
   const handlerResult = await handler({ operation: "deploy" });
-
-  console.log("back from handler");
 
   const { statusCode, body } = handlerResult;
 
@@ -19,15 +18,17 @@ export default async function execDeploy() {
 
   const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
-  console.log("about to upload deploy result");
+  if (status === "SUCCEEDED") {
+    terminal.green("🚀 Deploy succeeded!\n");
+  } else if (status === "FAILED") {
+    terminal.red("💥 Deploy failed\n");
+  }
 
   await uploadDeployResult({
     status,
     logs,
     compiledCode: compiledCode.toString("utf-8"),
   });
-
-  console.log("back from uploading");
 
   return handlerResult;
 }

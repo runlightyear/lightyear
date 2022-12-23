@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { terminal } from "terminal-kit";
 
 export default async function uploadDeployResult({
   status,
@@ -27,13 +28,14 @@ export default async function uploadDeployResult({
   });
 
   if (response.ok) {
-    console.log("Uploaded deploy result");
+    // terminal("Uploaded deploy result\n");
   } else {
-    console.log(
+    terminal.red(
       "Failed to upload deploy result",
       response.status,
-      response.statusText
+      response.statusText,
+      "\n"
     );
-    console.log(await response.json());
+    terminal.red(await response.json(), "\n");
   }
 }

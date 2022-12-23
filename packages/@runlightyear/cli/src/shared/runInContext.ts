@@ -1,5 +1,6 @@
 import vm from "vm";
 import { program } from "commander";
+import { proxyConsole } from "./proxyConsole";
 
 interface OurContext {
   exports: {
@@ -16,7 +17,7 @@ export default function runInContext(code: any) {
     URLSearchParams,
     TextDecoder,
     global,
-    console,
+    console: proxyConsole,
     process,
     Buffer,
     clearTimeout,

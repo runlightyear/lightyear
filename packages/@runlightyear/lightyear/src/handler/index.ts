@@ -146,7 +146,6 @@ export const handler = async (
       message = "Subscribe successful";
     } catch (error) {
       console.log("Failed to subscribe", String(error));
-      console.trace();
       statusCode = 500;
       message = `Subscribe failed: ${error}`;
     }
