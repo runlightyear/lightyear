@@ -43,7 +43,26 @@ dev
       await execDeploy();
 
       terminal("\n\nWaiting for file changes...\n");
-      terminal("press h for help, press q to quit\n");
+      // terminal("press h for help, press q to quit\n");
+      terminal("press q to quit\n");
+
+      terminal.grabInput(true);
+
+      terminal.on("key", (name: string, matches: any, data: any) => {
+        if (data.code === "q" || data.code === "\u0003") {
+          terminal.grabInput(false);
+          setTimeout(function () {
+            process.exit();
+          }, 100);
+        } else if (data.code === "h") {
+          terminal("\n  press q to quit\n");
+        } else {
+          // terminal(`got key: '${name}'\n`);
+          // terminal(`got matches: '${matches}'\n`);
+          // terminal(`got data: '${JSON.stringify(data)}'\n`);
+        }
+      });
+
       // await unsubscribe();
       // await subscribe();
     });
