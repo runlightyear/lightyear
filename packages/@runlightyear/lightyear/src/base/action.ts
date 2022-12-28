@@ -28,18 +28,33 @@ export interface DefineActionOptions {
 
 export interface DeployActionProps {
   name: string;
+  title: string;
   description?: string;
   trigger?: ActionTrigger;
 }
 
 export interface SetActionInitializedProps {
   name: string;
+  title: string;
   status: boolean;
 }
 
-function validateActionProps({ name, trigger }: DeployActionProps) {
-  invariant(name, "Missing required name");
-  invariant(typeof name === "string", "Name must be a string");
+function validateActionProps({ name, title, trigger }: DeployActionProps) {
+  if (!name) {
+    throw new Error("Action missing name");
+  }
+
+  if (typeof name !== "string") {
+    throw new Error(`Invalid action name: ${name}`);
+  }
+
+  if (!title) {
+    throw new Error(`Action ${name} missing title`);
+  }
+
+  if (typeof title !== "string") {
+    throw new Error(`Invalid title for action ${name}: ${title}`);
+  }
 
   if (trigger) {
     const array = [

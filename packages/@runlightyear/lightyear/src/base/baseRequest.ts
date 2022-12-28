@@ -60,7 +60,7 @@ export default async function baseRequest({
     console.error(
       `Base request error: ${response.status} ${response.statusText}`
     );
-    console.error("body", await response.json());
+    console.error(JSON.stringify(await response.json(), null, 2));
     throw new BaseRequestError(response);
   }
 

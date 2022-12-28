@@ -74,7 +74,6 @@ export const handler = async (
       return result(200, "Deploy successful");
     } catch (error) {
       console.error("Failed to deploy", String(error));
-      console.trace();
       return result(500, `Deploy failed: ${error}`);
     }
   } else if (operation === "unsubscribe") {
@@ -98,7 +97,6 @@ export const handler = async (
       message = "Unsubscribe successful";
     } catch (error) {
       console.log("Failed to cleanup", String(error));
-      console.trace();
       statusCode = 500;
       message = `Unsubscribe failed: ${error}`;
     }

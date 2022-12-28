@@ -7,6 +7,7 @@ import execDeploy from "../../shared/execDeploy";
 import unsubscribe from "../../shared/unsubscribe";
 import subscribe from "../../shared/subscribe";
 import { terminal } from "terminal-kit";
+import { setRejectLogLevels } from "../../shared/proxyConsole";
 
 export const dev = new Command("dev");
 
@@ -43,19 +44,32 @@ dev
       await execDeploy();
 
       terminal("\n\nWaiting for file changes...\n");
-      // terminal("press h for help, press q to quit\n");
-      terminal("press q to quit\n");
+      terminal("press h for help, press q to quit\n");
+      // terminal("press q to quit\n");
 
       terminal.grabInput(true);
 
-      terminal.on("key", (name: string, matches: any, data: any) => {
+      terminal.on("key", async (name: string, matches: any, data: any) => {
         if (data.code === "q" || data.code === "\u0003") {
           terminal.grabInput(false);
           setTimeout(function () {
             process.exit();
           }, 100);
+        } else if (data.code === "d") {
+          await execDeploy();
+        } else if (data.code === "l") {
+          terminal("DEBUG logging on\n");
+          setRejectLogLevels([]);
+        } else if (data.code === "m") {
+          terminal("DEBUG logging off\n");
+          setRejectLogLevels(["debug", "trace"]);
         } else if (data.code === "h") {
-          terminal("\n  press q to quit\n");
+          terminal("\n");
+          terminal("  press d to deploy\n");
+          terminal("  press l to turn DEBUG logs on\n");
+          terminal("  press m to turn DEBUG logs off\n");
+          terminal("  press q to quit\n");
+          terminal("\n");
         } else {
           // terminal(`got key: '${name}'\n`);
           // terminal(`got matches: '${matches}'\n`);

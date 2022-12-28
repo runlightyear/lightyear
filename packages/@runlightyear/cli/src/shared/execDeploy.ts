@@ -7,7 +7,13 @@ import { terminal } from "terminal-kit";
 export default async function execDeploy() {
   const pkg = readPackage();
   const compiledCode = getCompiledCode(pkg.main);
-  const handler = runInContext(compiledCode);
+  let handler;
+  try {
+    handler = runInContext(compiledCode);
+  } catch (error) {
+    terminal.red(error);
+    return;
+  }
   const handlerResult = await handler({ operation: "deploy" });
 
   const { statusCode, body } = handlerResult;

@@ -22,6 +22,7 @@ export default function runInContext(code: any) {
     Buffer,
     clearTimeout,
   };
+
   vm.createContext(context);
 
   const script = new vm.Script(code.toString());
