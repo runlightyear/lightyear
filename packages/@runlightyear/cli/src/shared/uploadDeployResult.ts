@@ -14,21 +14,33 @@ export default async function uploadDeployResult({
   const envName = process.env.ENV_NAME;
   const apiKey = process.env.API_KEY;
 
-  const response = await fetch(`${baseUrl}/api/v1/envs/${envName}/deploys`, {
-    method: "POST",
-    headers: {
-      Authorization: `apiKey ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      status,
-      logs,
-      // compiledCode: compiledCode.toString("utf-8"),
-    }),
+  const compiledCodeStr = compiledCode.toString("utf-8");
+  const fetchBody = JSON.stringify({
+    status,
+    logs,
+    // compiledCode: compiledCodeStr,
+    compiledCode: "abcde",
   });
 
+  let response;
+
+  try {
+    terminal("about to fetch\n");
+    response = await fetch(`${baseUrl}/api/v1/envs/${envName}/deploys`, {
+      method: "POST",
+      headers: {
+        Authorization: `apiKey ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: fetchBody,
+    });
+  } catch (error) {
+    terminal("Exception thrown ", error, "\n");
+    return;
+  }
+
   if (response.ok) {
-    // terminal("Uploaded deploy result\n");
+    terminal("Uploaded deploy result\n");
   } else {
     terminal.red(
       "Failed to upload deploy result",

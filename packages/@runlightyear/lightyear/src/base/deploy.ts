@@ -1,12 +1,12 @@
 import { DeployActionProps, ActionData } from "./action";
 import { AuthProps } from "./auth";
-import { WebhookProps } from "./webhook";
+import { WebhookData, WebhookProps } from "./webhook";
 import baseRequest from "./baseRequest";
 import { Initializer } from "./Initializer";
 import invariant from "tiny-invariant";
 import { secrets as secretsList } from "../logging";
 import { Auths, Secrets, Variables } from "../run";
-import { setSubscribeArgs, SubscribeArgsProps } from "./subscription";
+import { setSubscribeProps } from "./subscription";
 
 interface Props {
   envName: string;
@@ -30,12 +30,13 @@ export type DeployFunc = (
 export type InitializerSpec = Initializer | Initializer[] | DeployFunc;
 
 export type DeployItem = {
-  type: "action" | "auth" | "variable" | "secret" | "subscription" | "webhook";
+  // type: "action" | "auth" | "variable" | "secret" | "subscription" | "webhook";
+  type: "action" | "webhook";
   // data: DeployActionProps | AuthProps | WebhookProps;
   actionProps?: DeployActionProps;
-  authProps?: AuthProps;
+  // authProps?: AuthProps;
   webhookProps?: WebhookProps;
-  subscribeArgs?: (props: SubscribeArgsProps) => Promise<object>;
+  // subscribeArgs?: (props: SubscribeArgsProps) => Promise<object>;
   deploy?: (props: DeployFuncProps) => Promise<string>;
 };
 
@@ -74,20 +75,26 @@ export async function deploy({ envName }: Props) {
   // console.log(
   //   "about to go through deployList to get subscribeArgs for subscriptions"
   // );
-  // for (const item of deployList) {
-  //   if (item.type === "subscription") {
-  //     if (item.subscribeArgs && item.subscribeArgs instanceof Function) {
-  //       const subscribeArgsData = deployData[item.data.name];
-  //       const subscribeArgs = await item.subscribeArgs(subscribeArgsData);
-  //       await setSubscribeArgs(envName, {
-  //         name: item.data.name,
-  //         subscribeArgs,
-  //       });
-  //     } else {
-  //       throw new Error(`Missing deploy for ${item.data.name}`);
-  //     }
-  //   }
-  // }
+  for (const item of deployList) {
+    if (item.type === "webhook") {
+      const { webhookProps } = item;
+      if (webhookProps?.subscribeProps) {
+        const { subscribeProps } = webhookProps;
+
+        const webhookData = deployData.webhooks[webhookProps.name];
+        const subscribePropsResult = await subscribeProps(webhookData);
+        await setSubscribeProps(
+          envName,
+          webhookProps.name,
+          subscribePropsResult
+        );
+      } else {
+        throw new Error(
+          `Missing subscribeProps for webhook ${webhookProps?.name}`
+        );
+      }
+    }
+  }
 
   // console.log("about to go through deployList");
   // for (const item of deployList) {
@@ -138,7 +145,12 @@ export async function deploy({ envName }: Props) {
 }
 
 export interface DeployData {
-  [actionName: string]: ActionData;
+  actions: {
+    [actionName: string]: ActionData;
+  };
+  webhooks: {
+    [webhookName: string]: WebhookData;
+  };
 }
 
 export async function getDeployData(): Promise<DeployData> {
@@ -153,7 +165,10 @@ export async function getDeployData(): Promise<DeployData> {
 
   const data = <DeployData>await response.json();
 
-  for (const actionData of Object.values(data)) {
+  for (const actionData of [
+    ...Object.values(data.actions),
+    ...Object.values(data.webhooks),
+  ]) {
     const { auths, secrets } = actionData;
 
     if (auths) {

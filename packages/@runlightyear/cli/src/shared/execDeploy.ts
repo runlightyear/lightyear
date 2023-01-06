@@ -25,7 +25,7 @@ export default async function execDeploy() {
   const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
   if (status === "SUCCEEDED") {
-    terminal.green("🚀 Deploy succeeded!\n");
+    // terminal.green("🚀 Deploy succeeded!\n");
   } else if (status === "FAILED") {
     terminal.red("💥 Deploy failed\n");
   }
@@ -35,6 +35,8 @@ export default async function execDeploy() {
     logs,
     compiledCode: compiledCode.toString("utf-8"),
   });
+
+  console.log("back from uploading");
 
   return handlerResult;
 }

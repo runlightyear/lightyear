@@ -4,8 +4,8 @@ import getPusherCredentials from "../../shared/getPusherCredentials";
 import handleRunLocal from "./handleRunLocal";
 import nodemon from "nodemon";
 import execDeploy from "../../shared/execDeploy";
-import unsubscribe from "../../shared/unsubscribe";
-import subscribe from "../../shared/subscribe";
+import execUnsubscribe from "../../shared/execUnsubscribe";
+import execSubscribe from "../../shared/execSubscribe";
 import { terminal } from "terminal-kit";
 import { setRejectLogLevels } from "../../shared/proxyConsole";
 
@@ -42,6 +42,8 @@ dev
 
     nodemon.on("exit", async () => {
       await execDeploy();
+      await execUnsubscribe();
+      await execSubscribe();
 
       terminal("\n\nWaiting for file changes...\n");
       terminal("press h for help, press q to quit\n");
@@ -76,8 +78,5 @@ dev
           // terminal(`got data: '${JSON.stringify(data)}'\n`);
         }
       });
-
-      // await unsubscribe();
-      // await subscribe();
     });
   });
