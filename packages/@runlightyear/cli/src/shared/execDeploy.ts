@@ -33,7 +33,7 @@ export default async function execDeploy() {
   await uploadDeployResult({
     status,
     logs,
-    compiledCode: compiledCode.toString("utf-8"),
+    compiledCode,
   });
 
   console.log("back from uploading");
