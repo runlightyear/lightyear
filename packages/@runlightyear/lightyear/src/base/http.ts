@@ -53,10 +53,14 @@ export const httpRequest: HttpRequest = async (options) => {
     data: options,
   });
 
-  console.info("response.status", response.status);
-  console.info("response.statusText", response.statusText);
+  console.debug(`response.status: ${response.status}`, response.status);
+  console.debug(
+    `response.statusText: ${response.statusText}`,
+    response.statusText
+  );
   const proxyResponse = (await response.json()) as HttpProxyResponse;
-  console.info("proxyResponse", proxyResponse);
+  console.debug("proxyResponse", proxyResponse);
+  console.debug(JSON.stringify(proxyResponse, null, 2));
 
   if (proxyResponse.status < 200 || proxyResponse.status >= 300) {
     throw new HttpProxyResponseError(proxyResponse);
