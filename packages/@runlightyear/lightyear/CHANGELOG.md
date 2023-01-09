@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.10.0
+
+### Minor Changes
+
+- Support for webhook subscriptions
+
 ## 0.9.0
 
 ### Minor Changes
