@@ -10,9 +10,6 @@ export async function subscribe(
   webhookName: string,
   subscribeFuncProps: SubscribeFuncProps
 ) {
-  console.info("in subscribe");
-  console.info(webhookName);
-  console.info(JSON.stringify(subscribeFuncProps, null, 2));
   const fn = subscribeIndex[webhookName];
   if (!fn) {
     console.error(`Unknown subscription: ${webhookName}`);

@@ -6,41 +6,52 @@ import uploadUnsubscribeResult from "./uploadUnsubscribeResult";
 
 export default async function execUnsubscribe() {
   const compiledCodeStr = await getPreviouslyDeployedCode();
-  if (compiledCodeStr) {
-    const compiledCode = Buffer.from(compiledCodeStr, "utf-8");
-    const handler = runInContext(compiledCode);
 
-    const unsubscribeList = await getUnsubscribeList();
+  if (!compiledCodeStr) {
+    terminal("No previous code found, skipping unsubscribe");
+    return;
+  }
 
-    terminal("unsubscribeList");
-    terminal(JSON.stringify(unsubscribeList, null, 2));
+  const compiledCode = Buffer.from(compiledCodeStr, "base64");
+  const handler = runInContext(compiledCode);
 
-    for (const webhookName of [
-      ...unsubscribeList.removed,
-      ...unsubscribeList.changed,
-    ]) {
-      terminal("About to attempt unsubscribe for ", webhookName, "\n");
+  const unsubscribeList = await getUnsubscribeList();
 
-      const handlerResult = await handler({
-        action: "unsubscribe",
-        subscriptionName: webhookName,
-        removed: true,
-      });
+  const doTheUnsubscribe = async (webhookName: string, removed: boolean) => {
+    terminal("Unsubscribing ", webhookName, "\n");
 
-      terminal("handlerResult ", JSON.stringify(handlerResult, null, 2), "\n");
+    const handlerResult = await handler({
+      operation: "unsubscribe",
+      webhookName,
+      // removed: true,
+    });
 
-      const { statusCode, body } = handlerResult;
-      const responseData = JSON.parse(body);
-      const { logs } = responseData;
+    terminal.gray(
+      "handlerResult",
+      JSON.stringify(handlerResult, null, 2),
+      "\n"
+    );
 
-      const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
+    const { statusCode, body } = handlerResult;
+    const responseData = JSON.parse(body);
+    const { logs } = responseData;
 
-      await uploadUnsubscribeResult({
-        webhookName,
-        status,
-        logs,
-      });
-    }
+    const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
+
+    await uploadUnsubscribeResult({
+      webhookName,
+      status,
+      logs,
+      removed,
+    });
+  };
+
+  for (const webhookName of unsubscribeList.removed) {
+    await doTheUnsubscribe(webhookName, true);
+  }
+
+  for (const webhookName of unsubscribeList.changed) {
+    await doTheUnsubscribe(webhookName, false);
   }
 
   return null;

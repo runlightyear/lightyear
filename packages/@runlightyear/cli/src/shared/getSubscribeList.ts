@@ -18,10 +18,7 @@ export default async function getSubscribeList() {
   );
 
   if (response.ok) {
-    terminal("Subscribe list returned\n");
-    const list = await response.json();
-    terminal(JSON.stringify(list, null, 2), "\n");
-    return list;
+    return await response.json();
   } else {
     terminal.red("Error retrieving subscribe list\n");
     return null;

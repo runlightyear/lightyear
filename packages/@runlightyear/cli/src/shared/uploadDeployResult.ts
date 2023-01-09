@@ -35,7 +35,6 @@ export default async function uploadDeployResult({
   }
 
   if (response.ok) {
-    terminal("Uploaded deploy result\n");
   } else {
     terminal.red(
       "Failed to upload deploy result",

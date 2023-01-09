@@ -17,17 +17,21 @@ export default async function execSubscribe() {
     ...subscribeList.created,
     ...subscribeList.changed,
   ]) {
-    terminal("About to attempt subscribe for ", webhookName, "\n");
+    terminal("Subscribing ", webhookName, "\n");
     const handlerResult = await handler({
       operation: "subscribe",
       webhookName,
     });
 
-    terminal("handlerResult ", JSON.stringify(handlerResult, null, 2), "\n");
-
     const { statusCode, body } = handlerResult;
     const responseData = JSON.parse(body);
     const { unsubscribeProps, logs } = responseData;
+
+    terminal(
+      "XXX unsubscribeProps",
+      JSON.stringify(unsubscribeProps, null, 2),
+      "\n"
+    );
 
     const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 

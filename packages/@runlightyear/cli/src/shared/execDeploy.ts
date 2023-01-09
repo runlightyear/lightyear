@@ -36,7 +36,5 @@ export default async function execDeploy() {
     compiledCode,
   });
 
-  console.log("back from uploading");
-
   return handlerResult;
 }

@@ -5,12 +5,13 @@ export interface UploadUnsubscribeResultProps {
   webhookName: string;
   status: string;
   logs: any;
+  removed: boolean;
 }
 
 export default async function uploadUnsubscribeResult(
   props: UploadUnsubscribeResultProps
 ) {
-  const { webhookName, status, logs } = props;
+  const { webhookName, status, logs, removed } = props;
 
   const baseUrl = process.env.BASE_URL;
   const envName = process.env.ENV_NAME;
@@ -33,7 +34,7 @@ export default async function uploadUnsubscribeResult(
   );
 
   if (activityResponse.ok) {
-    // terminal("Uploaded deploy result\n");
+    terminal.gray("Uploaded subscription activity\n");
   } else {
     terminal.red(
       "Failed to upload unsubscribe activity: ",
@@ -54,12 +55,19 @@ export default async function uploadUnsubscribeResult(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        status: status === "FAILED" ? "UNSUBSCRIBE_FAILED" : "UNSUBSCRIBED",
+        status:
+          status === "FAILED"
+            ? "UNSUBSCRIBE_FAILED"
+            : removed
+            ? "UNSUBSCRIBED"
+            : "NOT_SUBSCRIBED",
       }),
     }
   );
 
-  if (!subscriptionResponse.ok) {
+  if (subscriptionResponse.ok) {
+    terminal.gray("Uploaded subscription response\n");
+  } else {
     terminal.red("Failed to update subscription\n");
     terminal.red(
       JSON.stringify(await subscriptionResponse.json(), null, 2),

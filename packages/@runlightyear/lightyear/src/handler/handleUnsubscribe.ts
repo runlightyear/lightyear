@@ -1,8 +1,6 @@
 import { handlerResult } from "./handlerResult";
 import { unsubscribe } from "../subscriptionActivities";
 import { getWebhookData } from "../base/webhook";
-import { createSubscriptionActivity } from "../base/subscriptionActivity";
-import { updateSubscription } from "../base/subscription";
 
 export interface HandleUnsubscribeProps {
   envName: string;
@@ -11,7 +9,6 @@ export interface HandleUnsubscribeProps {
 }
 
 export async function handleUnsubscribe({
-  envName,
   webhookName,
   removed,
 }: HandleUnsubscribeProps) {
@@ -21,36 +18,11 @@ export async function handleUnsubscribe({
 
   const webhookData = await getWebhookData(webhookName);
 
-  let statusCode: number;
-  let message: string;
-
   try {
     await unsubscribe(webhookName, webhookData);
-    statusCode = 200;
-    message = "Unsubscribe successful";
+    return handlerResult(200, "Unsubscribe successful");
   } catch (error) {
     console.error("Failed to unsubscribe", String(error));
-    statusCode = 500;
-    message = `Unsubscribe failed: ${error}`;
+    return handlerResult(500, `Unsubscribe failed: ${error}`);
   }
-
-  // @ts-ignore
-  const logList = [...global.logs];
-
-  await createSubscriptionActivity({
-    webhookName: webhookName,
-    type: "UNSUBSCRIBE",
-    status: statusCode === 200 ? "SUCCEEDED" : "FAILED",
-    logs: logList,
-  });
-
-  if (removed) {
-    await updateSubscription(
-      envName,
-      webhookName,
-      statusCode === 200 ? "UNSUBSCRIBED" : "UNSUBSCRIBE_FAILED"
-    );
-  }
-
-  return handlerResult(statusCode, message);
 }

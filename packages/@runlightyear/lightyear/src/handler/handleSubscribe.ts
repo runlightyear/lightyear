@@ -7,7 +7,6 @@ export interface HandleSubscribeProps {
   webhookName: string | undefined;
 }
 export async function handleSubscribe({ webhookName }: HandleSubscribeProps) {
-  console.info("ready to try subscribing");
   if (!webhookName) {
     return handlerResult(400, "Missing webhookName");
   }
@@ -16,7 +15,7 @@ export async function handleSubscribe({ webhookName }: HandleSubscribeProps) {
 
   try {
     const unsubscribeProps = await subscribe(webhookName, webhookData);
-    return handlerResult(200, "Subscribe successful");
+    return handlerResult(200, "Subscribe successful", { unsubscribeProps });
   } catch (error) {
     console.error("Failed to subscribe", String(error));
     return handlerResult(500, `Subscribe failed: ${error}`);

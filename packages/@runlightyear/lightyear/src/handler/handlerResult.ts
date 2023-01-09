@@ -1,6 +1,10 @@
 import { emptyLogs, emptySecrets } from "../logging";
 
-export function handlerResult(statusCode: number, message: string) {
+export function handlerResult(
+  statusCode: number,
+  message: string,
+  additionalData?: { [key: string]: any }
+) {
   // @ts-ignore
   const logList = [...global.logs];
 
@@ -11,6 +15,10 @@ export function handlerResult(statusCode: number, message: string) {
 
   return {
     statusCode,
-    body: JSON.stringify({ message, logs: logList }, null, 2),
+    body: JSON.stringify(
+      { message, logs: logList, ...additionalData },
+      null,
+      2
+    ),
   };
 }
