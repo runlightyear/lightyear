@@ -1,5 +1,5 @@
 import { BaseConnector, BaseConnectorOptions } from "./BaseConnector";
-import { AuthData, defineAuth } from "../base/auth";
+import { AuthData } from "../base/auth";
 
 /**
  * AuthConnectorOptions
@@ -20,18 +20,6 @@ export interface AuthConnectorOptions extends BaseConnectorOptions {
  */
 export class AuthConnector extends BaseConnector {
   _auth: AuthData;
-
-  static defineAuth({
-    name,
-    app,
-    customApp,
-  }: {
-    name: string;
-    app?: string;
-    customApp?: string;
-  }) {
-    return defineAuth({ name, app, customApp });
-  }
 
   constructor({ auth, ...rest }: AuthConnectorOptions) {
     super(rest);

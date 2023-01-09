@@ -4,28 +4,26 @@
  * @packageDocumentation
  */
 
-import { defineAuth, getAuthData, AuthData, AuthProps } from "./base/auth";
+import { getAuthData, AuthData, AuthProps } from "./base/auth";
 import {
   HttpProxyRequestOptions,
   HttpProxyResponse,
   HttpProxyResponseError,
 } from "./base/http";
-import {
-  // defineSecret,
-  SecretData,
-} from "./base/secret";
-import {
-  // defineSubscription,
-  SubscribeArgsProps,
-} from "./base/subscription";
+import { SecretData } from "./base/secret";
 import { defineAction, DefineActionOptions } from "./base/action";
 import { RunFunc, RunFuncProps } from "./run";
+import { getVariableData, VariableData } from "./base/variable";
 import {
-  // defineVariable,
-  getVariableData,
-  VariableData,
-} from "./base/variable";
-import { defineWebhook, getWebhookData } from "./base/webhook";
+  defineWebhook,
+  getWebhookData,
+  SubscribePropsFunc,
+  SubscribePropsFuncProps,
+  SubscribeFunc,
+  SubscribeFuncProps,
+  UnsubscribeFunc,
+  UnsubscribeFuncProps,
+} from "./base/webhook";
 import {
   BaseConnector,
   BaseConnectorOptions,
@@ -53,12 +51,8 @@ import deCamelize from "./util/deCamelize";
 
 export {
   defineAction,
-  // defineAuth,
   getAuthData,
-  // defineVariable,
   getVariableData,
-  // defineSecret,
-  // defineSubscription,
   defineWebhook,
   getWebhookData,
   BaseConnector,
@@ -88,8 +82,13 @@ export type {
   OauthConfigData,
   RestConnectorOptions,
   PollingData,
-  SubscribeArgsProps,
   WebhookDeliveryData,
   RunFunc,
   RunFuncProps,
+  SubscribePropsFunc,
+  SubscribePropsFuncProps,
+  SubscribeFunc,
+  SubscribeFuncProps,
+  UnsubscribeFunc,
+  UnsubscribeFuncProps,
 };

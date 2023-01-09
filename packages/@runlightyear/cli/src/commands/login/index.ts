@@ -4,6 +4,7 @@ import startServer from "./startServer";
 import getRequestHandler from "./getRequestHandler";
 import openBrowser from "./openBrowser";
 import getAccountType from "./getAccountType";
+import { terminal } from "terminal-kit";
 
 export const login = new Command("login");
 
@@ -16,7 +17,7 @@ login
     let authUrl = "https://app.runlightyear.com";
     let baseUrl = "https://app.runlightyear.com";
     if (options.dev) {
-      console.log("In dev mode, using http://localhost:3000");
+      terminal.red("In dev mode, using http://localhost:3000\n");
       authUrl = "http://localhost:3000";
       baseUrl = "http://localhost:3000";
     }

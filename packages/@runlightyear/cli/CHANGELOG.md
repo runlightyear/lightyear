@@ -1,5 +1,12 @@
 # @runlightyear/cli
 
+## 0.8.0
+
+### Minor Changes
+
+- Support for webhook subscriptions
+- Dev server improvements
+
 ## 0.7.1
 
 ### Patch Changes

@@ -51,8 +51,9 @@ export default async function baseRequest({
     body: data && JSON.stringify(data),
   };
 
-  console.debug("baseRequest url", url);
+  console.debug(`baseRequest url: ${url}`);
   console.debug("baseRequest options", options);
+  console.debug(JSON.stringify(options));
 
   const response = await fetch(url, options);
 
@@ -60,7 +61,7 @@ export default async function baseRequest({
     console.error(
       `Base request error: ${response.status} ${response.statusText}`
     );
-    console.error("body", await response.json());
+    console.error(JSON.stringify(await response.json(), null, 2));
     throw new BaseRequestError(response);
   }
 

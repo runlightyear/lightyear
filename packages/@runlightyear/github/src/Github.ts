@@ -59,6 +59,9 @@ import pingPayload from "./webhooks/payloads/pingPayload";
 import isWebhookEventType from "./webhooks/webhookEventType";
 import pushPayload from "./webhooks/payloads/pushPayload";
 import WebhookEvent from "./webhooks/WebhookEvent";
+import defineGithubWebhook, {
+  DefineGithubWebhookProps,
+} from "./webhooks/defineGithubWebhook";
 
 export interface GithubConnectorOptions extends AuthConnectorOptions {}
 
@@ -276,6 +279,13 @@ export class Github extends RestConnector {
    */
   async downloadRepoArchiveZip(options: DownloadRepoArchiveZipOptions) {
     return downloadRepoArchiveZip(this)(options);
+  }
+
+  /**
+   * Define a GitHub repository webhook
+   */
+  static defineWebhook(props: DefineGithubWebhookProps) {
+    return defineGithubWebhook(props);
   }
 
   /**

@@ -16,7 +16,6 @@ export interface Logger {
   warn(...msg: any[]): void;
   info(...msg: any[]): void;
   debug(...msg: any[]): void;
-  trace(...msg: any[]): void;
 }
 
 const processArgs =
@@ -43,7 +42,6 @@ const consoleReplacement: Logger = {
   warn: processArgs("warn", addPrefix),
   info: processArgs("info", addPrefix),
   debug: processArgs("debug", addPrefix),
-  trace: processArgs("trace", addPrefix),
 };
 
 const originalConsole: Logger = {
@@ -52,7 +50,6 @@ const originalConsole: Logger = {
   warn: global.console.warn,
   info: global.console.info,
   debug: global.console.debug,
-  trace: global.console.trace,
 };
 
 if (!process.env.IN_VM) {
@@ -61,7 +58,6 @@ if (!process.env.IN_VM) {
   global.console.warn = consoleReplacement.warn;
   global.console.info = consoleReplacement.info;
   global.console.debug = consoleReplacement.debug;
-  global.console.trace = consoleReplacement.debug;
 
   // @ts-ignore
   global.replacedConsole = true;

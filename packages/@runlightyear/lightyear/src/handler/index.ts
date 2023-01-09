@@ -1,33 +1,20 @@
 import { APIGatewayEvent, Context, APIGatewayProxyResult } from "aws-lambda";
 import { run } from "../run";
-import { emptyLogs, emptySecrets, secrets as secretsList } from "../logging";
+import { secrets as secretsList } from "../logging";
 import { deploy } from "../base/deploy";
-import { getActionData } from "../base/action";
-import { getSubscriptionData, updateSubscription } from "../base/subscription";
-import { subscribe, unsubscribe } from "../subscriptionActions";
-import { createSubscriptionAction } from "../base/subscriptionAction";
+import { subscribe, unsubscribe } from "../subscriptionActivities";
+import { handleRun } from "./handleRun";
+import { handleDeploy } from "./handleDeploy";
+import { handleSubscribe } from "./handleSubscribe";
+import { handleUnsubscribe } from "./handleUnsubscribe";
+import { handlerResult } from "./handlerResult";
 
 interface RepoInvocation extends APIGatewayEvent {
   operation: string;
-  subscriptionName?: string;
   removed?: boolean;
   actionName?: string;
+  webhookName?: string;
   data?: any;
-}
-
-function result(statusCode: number, message: string) {
-  // @ts-ignore
-  const logList = [...global.logs];
-
-  // Lambdas retain state in between 'warm' runs, so important to clear
-  // anything global
-  emptyLogs();
-  emptySecrets();
-
-  return {
-    statusCode,
-    body: JSON.stringify({ message, logs: logList }, null, 2),
-  };
 }
 
 export const handler = async (
@@ -37,162 +24,45 @@ export const handler = async (
   const envName = process.env.ENV_NAME;
   if (!envName) {
     console.error("Environment variable ENV_NAME not set");
-    return result(400, "Environment variable ENV_NAME not set");
+    return handlerResult(400, "Environment variable ENV_NAME not set");
   }
 
   const apiKey = process.env.API_KEY;
   if (apiKey) {
     secretsList.push(apiKey);
   } else {
-    return result(400, "Environment variable API_KEY not set");
+    return handlerResult(400, "Environment variable API_KEY not set");
   }
 
   if (!process.env.BASE_URL) {
-    return result(400, "Environment variable BASE_URL not set");
+    return handlerResult(400, "Environment variable BASE_URL not set");
   }
 
   console.debug(`Event: ${JSON.stringify(event, null, 2)}`);
   console.debug(`Context: ${JSON.stringify(context, null, 2)}`);
 
-  const { operation, subscriptionName, removed, actionName, data } = event;
+  const { operation, webhookName, removed, actionName, data } = event;
 
   if (!operation) {
-    return result(400, "Required action missing");
+    return handlerResult(400, "Required operation missing");
   }
 
   if (!["deploy", "subscribe", "unsubscribe", "run"].includes(operation)) {
-    return result(
+    return handlerResult(
       400,
-      `Invalid action, must be 'deploy', 'subscribe', 'unsubscribe', or 'run': ${operation}`
+      `Invalid operation, must be 'deploy', 'subscribe', 'unsubscribe', or 'run': ${operation}`
     );
   }
 
   if (operation === "deploy") {
-    console.info("Starting deploy");
-    try {
-      await deploy({ envName });
-      return result(200, "Deploy successful");
-    } catch (error) {
-      console.error("Failed to deploy", String(error));
-      console.trace();
-      return result(500, `Deploy failed: ${error}`);
-    }
+    return handleDeploy({ envName });
   } else if (operation === "unsubscribe") {
-    if (!subscriptionName) {
-      return result(400, "Missing subscriptionName");
-    }
-
-    const subscriptionData = await getSubscriptionData(subscriptionName);
-    const { unsubscribeArgs, auths } = subscriptionData;
-
-    let statusCode: number;
-    let message: string;
-
-    try {
-      await unsubscribe({
-        name: subscriptionName,
-        unsubscribeArgs,
-        auths,
-      });
-      statusCode = 200;
-      message = "Unsubscribe successful";
-    } catch (error) {
-      console.log("Failed to cleanup", String(error));
-      console.trace();
-      statusCode = 500;
-      message = `Unsubscribe failed: ${error}`;
-    }
-
-    // @ts-ignore
-    const logList = [...global.logs];
-
-    await createSubscriptionAction({
-      type: "UNSUBSCRIBE",
-      status: statusCode === 200 ? "SUCCESS" : "FAILURE",
-      subscriptionName,
-      logs: logList,
-    });
-
-    if (removed) {
-      await updateSubscription(envName, {
-        name: subscriptionName,
-        status: statusCode === 200 ? "UNSUBSCRIBED" : "UNSUBSCRIBE_FAILED",
-        unsubscribeArgs,
-      });
-    }
-
-    return result(statusCode, message);
+    return handleUnsubscribe({ envName, webhookName, removed });
   } else if (operation === "subscribe") {
-    console.log("ready to try subscribing");
-    if (!subscriptionName) {
-      return result(400, "Missing subscriptionName");
-    }
-
-    const subscriptionData = await getSubscriptionData(subscriptionName);
-    const { subscribeArgs, auths } = subscriptionData;
-
-    let statusCode: number;
-    let message: string;
-
-    let unsubscribeArgs: object | undefined = undefined;
-
-    try {
-      unsubscribeArgs = await subscribe({
-        name: subscriptionName,
-        subscribeArgs,
-        auths,
-      });
-      statusCode = 200;
-      message = "Subscribe successful";
-    } catch (error) {
-      console.log("Failed to subscribe", String(error));
-      console.trace();
-      statusCode = 500;
-      message = `Subscribe failed: ${error}`;
-    }
-
-    // @ts-ignore
-    const logList = [...global.logs];
-
-    await createSubscriptionAction({
-      type: "SUBSCRIBE",
-      status: statusCode === 200 ? "SUCCESS" : "FAILURE",
-      subscriptionName,
-      logs: logList,
-    });
-
-    await updateSubscription(envName, {
-      name: subscriptionName,
-      status: statusCode === 200 ? "SUBSCRIBED" : "SUBSCRIBE_FAILED",
-      unsubscribeArgs,
-    });
-
-    return result(statusCode, message);
+    return handleSubscribe({ envName, webhookName });
   } else if (operation === "run") {
-    if (!actionName) {
-      return result(400, "Missing actionName");
-    }
-
-    const actionData = await getActionData(actionName);
-    const { auths, variables, secrets, webhook } = actionData;
-
-    try {
-      console.info(`Running action ${actionName}`);
-      await run({
-        name: actionName,
-        data,
-        variables,
-        auths,
-        secrets,
-        webhook,
-        context,
-      });
-      return result(200, "Run successful");
-    } catch (error) {
-      console.error("Failed to run action", String(error));
-      return result(500, "Run failed");
-    }
+    return handleRun({ actionName, data, context });
   }
 
-  return result(500, "Unknown error");
+  return handlerResult(500, "Unknown error");
 };

@@ -13,9 +13,5 @@ export default async function startServer(callback: RequestListener) {
     program.error("Error starting local server");
   }
 
-  const port = address.port;
-
-  console.log("listening on port", port);
-
   return address.port;
 }

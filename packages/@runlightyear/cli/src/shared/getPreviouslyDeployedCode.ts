@@ -17,10 +17,8 @@ export default async function getPreviouslyDeployedCode() {
   );
 
   if (response.ok) {
-    console.log("Retrieved previous deploy");
     const data = await response.json();
-    const { compiledCode } = data;
-    return compiledCode;
+    return data.compiledCode;
   } else {
     console.log("Previous deploy not found");
     return null;

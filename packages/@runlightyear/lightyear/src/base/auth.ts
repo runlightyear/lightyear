@@ -1,7 +1,6 @@
 import invariant from "tiny-invariant";
 import baseRequest from "./baseRequest";
 import { secrets } from "../logging";
-import { deployList } from "./deploy";
 
 /**
  * @public
@@ -10,43 +9,6 @@ export interface AuthProps {
   name: string;
   app?: string;
   customApp?: string;
-}
-
-function validateAuthProps({ name }: AuthProps) {
-  invariant(name, "Missing required name");
-  invariant(typeof name === "string", "Name must be a string");
-}
-
-/**
- * @public
- */
-export function defineAuth(props: AuthProps) {
-  validateAuthProps(props);
-  deployList.push({ type: "auth", authProps: props });
-
-  return props.name;
-}
-
-export async function deployAuth(envName: string, props: AuthProps) {
-  // console.log("testing");
-  validateAuthProps(props);
-  const { name, app, customApp }: AuthProps = props;
-
-  const response = await baseRequest({
-    uri: `/api/v1/envs/${envName}/auths`,
-    data: {
-      name,
-      app,
-      customApp,
-    },
-  });
-
-  if (!response.ok) {
-    console.error(await response.json());
-    throw new Error(`deployAuth failed: ${name}`);
-  }
-
-  console.info(`Deployed auth: ${name}`);
 }
 
 /**

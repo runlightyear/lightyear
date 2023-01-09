@@ -1,6 +1,7 @@
 import { program } from "commander";
 import { ServerResponse } from "http";
 import fetch from "node-fetch";
+import { terminal } from "terminal-kit";
 
 export default async function fetchApiKey(
   baseUrl: string,
@@ -8,7 +9,7 @@ export default async function fetchApiKey(
   res: ServerResponse
 ) {
   try {
-    console.log("fetching api key with baseUrl", baseUrl);
+    terminal("Fetching credentials\n");
     const response = await fetch(`${baseUrl}/api/v1/cli-login/key`, {
       method: "POST",
       headers: {

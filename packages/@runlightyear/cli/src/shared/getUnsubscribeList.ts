@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { terminal } from "terminal-kit";
 
 export default async function getUnsubscribeList() {
   const baseUrl = process.env.BASE_URL;
@@ -6,7 +7,7 @@ export default async function getUnsubscribeList() {
   const apiKey = process.env.API_KEY;
 
   const response = await fetch(
-    `${baseUrl}/api/v1/envs/${envName}/subscriptions/unsubscribe-list`,
+    `${baseUrl}/api/v1/envs/${envName}/webhooks/unsubscribe-list`,
     {
       method: "GET",
       headers: {
@@ -17,12 +18,16 @@ export default async function getUnsubscribeList() {
   );
 
   if (response.ok) {
-    console.log("Unsubscribe list returned");
-    const list = await response.json();
-    console.log(list);
-    return list;
+    return await response.json();
   } else {
-    console.log("Error retrieving destroy list");
+    terminal.red(
+      "Failed to get unsubscribe list: ",
+      response.status,
+      " ",
+      response.statusText,
+      "\n"
+    );
+    terminal.red(await response.json(), "\n");
     return null;
   }
 }

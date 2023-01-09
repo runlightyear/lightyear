@@ -1,6 +1,7 @@
 import { program } from "commander";
 import fs from "fs";
 import { ServerResponse } from "http";
+import { terminal } from "terminal-kit";
 
 export default async function writeEnvFile(
   {
@@ -20,7 +21,7 @@ API_KEY=${API_KEY}
     );
     res.setHeader("location", `${BASE_URL}/cli-login/succeeded`);
     res.end();
-    console.log("Login successful, wrote .env file");
+    terminal("Login successful, wrote credentials to .env file\n");
   } catch (error) {
     res.setHeader("location", `${BASE_URL}/cli-login/failed`);
     res.end();

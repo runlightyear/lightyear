@@ -1,10 +1,58 @@
 import invariant from "tiny-invariant";
 import baseRequest from "./baseRequest";
 import { deployList } from "./deploy";
+import { AppName } from "./action";
+import { Auths, Secrets, Variables } from "../run";
+import { AuthData } from "./auth";
+
+export type SubscribeFuncProps = {
+  endpoint: string;
+  auths: Auths;
+  variables: Variables;
+  secrets: Secrets;
+  subscribeProps: any;
+};
+
+export type UnsubscribeFuncProps = {
+  endpoint: string;
+  auths: Auths;
+  variables: Variables;
+  secrets: Secrets;
+  unsubscribeProps: any;
+};
+
+export type SubscribeFunc = (props: SubscribeFuncProps) => Promise<object>;
+export type UnsubscribeFunc = (props: UnsubscribeFuncProps) => void;
+
+type SubscribeIndex = {
+  [name: string]: SubscribeFunc;
+};
+
+type UnsubscribeIndex = {
+  [name: string]: UnsubscribeFunc;
+};
+
+export const subscribeIndex: SubscribeIndex = {};
+export const unsubscribeIndex: UnsubscribeIndex = {};
+
+export type SubscribePropsFuncProps = {
+  endpoint: string;
+  auths: Auths;
+  variables: Variables;
+  secrets: Secrets;
+};
+
+export type SubscribePropsFunc = (props: SubscribePropsFuncProps) => object;
 
 export interface WebhookProps {
   name: string;
   title: string;
+  apps?: Array<AppName>;
+  variables?: Array<string>;
+  secrets?: Array<string>;
+  subscribeProps: SubscribePropsFunc;
+  subscribe: SubscribeFunc;
+  unsubscribe: UnsubscribeFunc;
 }
 
 function validateWebhookProps({ name }: WebhookProps) {
@@ -17,6 +65,8 @@ export function defineWebhook(props: WebhookProps) {
     type: "webhook",
     webhookProps: props,
   });
+  subscribeIndex[props.name] = props.subscribe;
+  unsubscribeIndex[props.name] = props.unsubscribe;
 
   return props.name;
 }
@@ -42,8 +92,18 @@ export async function deployWebhook(envName: string, props: WebhookProps) {
 }
 
 export type WebhookData = {
-  id: string;
-  url: string;
+  endpoint: string;
+  auths: {
+    [name: string]: AuthData;
+  };
+  variables: {
+    [name: string]: string | null;
+  };
+  secrets: {
+    [name: string]: string | null;
+  };
+  subscribeProps: any;
+  unsubscribeProps: any;
 };
 
 export async function getWebhookData(name: string): Promise<WebhookData> {
@@ -57,10 +117,21 @@ export async function getWebhookData(name: string): Promise<WebhookData> {
 
   const data = <WebhookData>await response.json();
 
-  const { id, url } = data;
+  const {
+    endpoint,
+    auths,
+    variables,
+    secrets,
+    subscribeProps,
+    unsubscribeProps,
+  } = data;
 
   return {
-    id,
-    url,
+    endpoint,
+    auths,
+    variables,
+    secrets,
+    subscribeProps,
+    unsubscribeProps,
   };
 }

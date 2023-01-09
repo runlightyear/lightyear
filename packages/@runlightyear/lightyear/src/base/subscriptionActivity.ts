@@ -2,16 +2,16 @@ import baseRequest from "./baseRequest";
 import invariant from "tiny-invariant";
 
 interface Props {
+  webhookName: string;
   type: "SUBSCRIBE" | "UNSUBSCRIBE";
-  status: "QUEUED" | "RUNNING" | "SUCCESS" | "FAILURE";
-  subscriptionName: string;
+  status: "QUEUED" | "RUNNING" | "SUCCEEDED" | "FAILED";
   logs: string[];
 }
 
-export async function createSubscriptionAction({
+export async function createSubscriptionActivity({
+  webhookName,
   type,
   status,
-  subscriptionName,
   logs,
 }: Props) {
   const envName = process.env.ENV_NAME;
@@ -19,11 +19,10 @@ export async function createSubscriptionAction({
 
   return await baseRequest({
     method: "POST",
-    uri: `/api/v1/envs/${envName}/subscription-actions`,
+    uri: `/api/v1/envs/${envName}/webhooks/${webhookName}/subscription/activities`,
     data: {
       type,
       status,
-      subscriptionName,
       logs,
     },
   });

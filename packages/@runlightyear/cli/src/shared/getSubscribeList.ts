@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { terminal } from "terminal-kit";
 
 export default async function getSubscribeList() {
   const baseUrl = process.env.BASE_URL;
@@ -6,7 +7,7 @@ export default async function getSubscribeList() {
   const apiKey = process.env.API_KEY;
 
   const response = await fetch(
-    `${baseUrl}/api/v1/envs/${envName}/subscriptions/subscribe-list`,
+    `${baseUrl}/api/v1/envs/${envName}/webhooks/subscribe-list`,
     {
       method: "GET",
       headers: {
@@ -17,12 +18,9 @@ export default async function getSubscribeList() {
   );
 
   if (response.ok) {
-    console.log("Subscribe list returned");
-    const list = await response.json();
-    console.log(list);
-    return list;
+    return await response.json();
   } else {
-    console.log("Error retrieving subscribe list");
+    terminal.red("Error retrieving subscribe list\n");
     return null;
   }
 }
