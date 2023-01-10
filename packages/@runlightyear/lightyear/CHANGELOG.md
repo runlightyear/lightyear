@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.10.1
+
+### Patch Changes
+
+- Fixed bug with defineWebhook props
+
 ## 0.10.0
 
 ### Minor Changes

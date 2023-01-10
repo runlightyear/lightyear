@@ -1,5 +1,16 @@
 # @runlightyear/github
 
+## 0.5.0
+
+### Minor Changes
+
+- Support for github scopes
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.10.1
+
 ## 0.4.0
 
 ### Minor Changes
