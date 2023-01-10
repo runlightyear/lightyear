@@ -103,7 +103,7 @@ export class Github extends RestConnector {
     const { accessToken } = this.getAuthData();
 
     return {
-      Authorization: `token ${accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
       Accept: "application/vnd.github+json",
     };
   }
