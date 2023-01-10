@@ -50,9 +50,9 @@ export interface WebhookProps {
   apps?: Array<AppName>;
   variables?: Array<string>;
   secrets?: Array<string>;
-  subscribeProps: SubscribePropsFunc;
-  subscribe: SubscribeFunc;
-  unsubscribe: UnsubscribeFunc;
+  subscribeProps?: SubscribePropsFunc;
+  subscribe?: SubscribeFunc;
+  unsubscribe?: UnsubscribeFunc;
 }
 
 function validateWebhookProps({ name }: WebhookProps) {
@@ -65,8 +65,12 @@ export function defineWebhook(props: WebhookProps) {
     type: "webhook",
     webhookProps: props,
   });
-  subscribeIndex[props.name] = props.subscribe;
-  unsubscribeIndex[props.name] = props.unsubscribe;
+  if (props.subscribe) {
+    subscribeIndex[props.name] = props.subscribe;
+  }
+  if (props.unsubscribe) {
+    unsubscribeIndex[props.name] = props.unsubscribe;
+  }
 
   return props.name;
 }
