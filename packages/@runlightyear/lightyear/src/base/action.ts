@@ -163,7 +163,7 @@ export async function getActionData(name: string): Promise<ActionData> {
     uri: `/api/v1/envs/${envName}/actions/${name}/data`,
   });
 
-  const data = (await response.json()) as ActionData;
+  const data = <ActionData>await response.json();
 
   const { auths, variables, secrets, webhook } = data;
 

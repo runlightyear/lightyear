@@ -4,6 +4,7 @@ import { deployList } from "./deploy";
 import { AppName } from "./action";
 import { Auths, Secrets, Variables } from "../run";
 import { AuthData } from "./auth";
+import { prefixedRedactedConsole } from "../logging";
 
 export type SubscribeFuncProps = {
   endpoint: string;
@@ -129,6 +130,20 @@ export async function getWebhookData(name: string): Promise<WebhookData> {
     subscribeProps,
     unsubscribeProps,
   } = data;
+
+  if (auths) {
+    for (const auth of Object.values(auths)) {
+      const { accessToken, refreshToken, apiKey } = auth;
+
+      accessToken && prefixedRedactedConsole.addSecrets([accessToken]);
+      refreshToken && prefixedRedactedConsole.addSecrets([refreshToken]);
+      apiKey && prefixedRedactedConsole.addSecrets([apiKey]);
+    }
+  }
+
+  if (secrets) {
+    prefixedRedactedConsole.addSecrets(Object.values(secrets));
+  }
 
   return {
     endpoint,
