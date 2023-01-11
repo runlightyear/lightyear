@@ -1,6 +1,5 @@
 import vm from "vm";
 import { program } from "commander";
-import { proxyConsole } from "./proxyConsole";
 
 interface OurContext {
   exports: {
@@ -17,7 +16,7 @@ export default function runInContext(code: any) {
     URLSearchParams,
     TextDecoder,
     global,
-    console: proxyConsole,
+    console,
     process,
     Buffer,
     clearTimeout,
@@ -28,8 +27,6 @@ export default function runInContext(code: any) {
   const script = new vm.Script(code.toString());
 
   script.runInContext(context);
-
-  // console.log = originalConsole.log;
 
   if (!context.exports.handler) {
     program.error("Can't find export 'handler'");

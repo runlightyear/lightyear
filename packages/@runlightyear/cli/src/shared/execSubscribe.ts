@@ -4,6 +4,9 @@ import runInContext from "./runInContext";
 import getSubscribeList from "./getSubscribeList";
 import uploadSubscribeResult from "./uploadSubscribeResult";
 import { terminal } from "terminal-kit";
+import { restoreConsole } from "./restoreConsole";
+import { logDisplayLevel } from "./setLogDisplayLevel";
+import { prepareConsole } from "../logging";
 
 export default async function execSubscribe() {
   const pkg = readPackage();
@@ -17,23 +20,22 @@ export default async function execSubscribe() {
     ...subscribeList.created,
     ...subscribeList.changed,
   ]) {
-    terminal("Subscribing ", webhookName, "\n");
+    console.info("Subscribing ", webhookName);
     const handlerResult = await handler({
       operation: "subscribe",
       webhookName,
+      logDisplayLevel,
     });
+
+    prepareConsole();
 
     const { statusCode, body } = handlerResult;
     const responseData = JSON.parse(body);
     const { unsubscribeProps, logs } = responseData;
 
-    terminal(
-      "XXX unsubscribeProps",
-      JSON.stringify(unsubscribeProps, null, 2),
-      "\n"
-    );
-
     const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
+
+    console.debug("about to upload subscribe result");
 
     await uploadSubscribeResult({
       webhookName,

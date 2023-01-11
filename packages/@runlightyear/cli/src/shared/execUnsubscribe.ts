@@ -3,6 +3,9 @@ import runInContext from "./runInContext";
 import getPreviouslyDeployedCode from "./getPreviouslyDeployedCode";
 import { terminal } from "terminal-kit";
 import uploadUnsubscribeResult from "./uploadUnsubscribeResult";
+import { restoreConsole } from "./restoreConsole";
+import { logDisplayLevel } from "./setLogDisplayLevel";
+import { prepareConsole } from "../logging";
 
 export default async function execUnsubscribe() {
   const compiledCodeStr = await getPreviouslyDeployedCode();
@@ -24,7 +27,10 @@ export default async function execUnsubscribe() {
       operation: "unsubscribe",
       webhookName,
       // removed: true,
+      logDisplayLevel,
     });
+
+    prepareConsole();
 
     terminal.gray(
       "handlerResult",

@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.11.0
+
+### Minor Changes
+
+- Improvements to logging
+
 ## 0.10.1
 
 ### Patch Changes

@@ -37,11 +37,7 @@ export async function setSubscribeProps(
     },
   });
 
-  console.info(
-    `Set webhook ${webhookName} subscribeProps to ${JSON.stringify(
-      subscribeProps
-    )}`
-  );
+  console.debug(`Set webhook ${webhookName} subscribeProps"`, subscribeProps);
 }
 
 export async function setUnsubscribeProps(

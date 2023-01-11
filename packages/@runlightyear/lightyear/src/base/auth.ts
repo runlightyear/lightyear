@@ -1,6 +1,6 @@
 import invariant from "tiny-invariant";
 import baseRequest from "./baseRequest";
-import { secrets } from "../logging";
+import { prefixedRedactedConsole } from "../logging";
 
 /**
  * @public
@@ -57,9 +57,9 @@ export async function getAuthData(name: string): Promise<AuthData> {
 
   const { accessToken, refreshToken, apiKey } = data;
 
-  accessToken && secrets.push(accessToken);
-  refreshToken && secrets.push(refreshToken);
-  apiKey && secrets.push(apiKey);
+  accessToken && prefixedRedactedConsole.addSecrets([accessToken]);
+  refreshToken && prefixedRedactedConsole.addSecrets([refreshToken]);
+  apiKey && prefixedRedactedConsole.addSecrets([apiKey]);
 
   return {
     accessToken,

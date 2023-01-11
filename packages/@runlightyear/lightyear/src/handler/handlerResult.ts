@@ -1,4 +1,4 @@
-import { emptyLogs, emptySecrets } from "../logging";
+import { prefixedRedactedConsole } from "../logging";
 
 export function handlerResult(
   statusCode: number,
@@ -6,12 +6,12 @@ export function handlerResult(
   additionalData?: { [key: string]: any }
 ) {
   // @ts-ignore
-  const logList = [...global.logs];
+  const logList = [...prefixedRedactedConsole.history];
 
-  // Lambdas retain state in between 'warm' runs, so important to clear
-  // anything global
-  emptyLogs();
-  emptySecrets();
+  // // Lambdas retain state in between 'warm' runs, so important to clear
+  // // anything global
+  // emptyLogs();
+  // emptySecrets();
 
   return {
     statusCode,

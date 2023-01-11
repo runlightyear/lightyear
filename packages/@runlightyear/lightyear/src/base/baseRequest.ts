@@ -53,7 +53,6 @@ export default async function baseRequest({
 
   console.debug(`baseRequest url: ${url}`);
   console.debug("baseRequest options", options);
-  console.debug(JSON.stringify(options));
 
   const response = await fetch(url, options);
 
