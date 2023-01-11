@@ -3,6 +3,7 @@ import runInContext from "./runInContext";
 import getPreviouslyDeployedCode from "./getPreviouslyDeployedCode";
 import { terminal } from "terminal-kit";
 import uploadUnsubscribeResult from "./uploadUnsubscribeResult";
+import { restoreConsole } from "./restoreConsole";
 
 export default async function execUnsubscribe() {
   const compiledCodeStr = await getPreviouslyDeployedCode();
@@ -14,6 +15,8 @@ export default async function execUnsubscribe() {
 
   const compiledCode = Buffer.from(compiledCodeStr, "base64");
   const handler = runInContext(compiledCode);
+
+  restoreConsole();
 
   const unsubscribeList = await getUnsubscribeList();
 

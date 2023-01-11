@@ -4,12 +4,15 @@ import runInContext from "./runInContext";
 import getSubscribeList from "./getSubscribeList";
 import uploadSubscribeResult from "./uploadSubscribeResult";
 import { terminal } from "terminal-kit";
+import { restoreConsole } from "./restoreConsole";
 
 export default async function execSubscribe() {
   const pkg = readPackage();
 
   const compiledCode = getCompiledCode(pkg.main);
   const handler = runInContext(compiledCode);
+
+  restoreConsole();
 
   const subscribeList = await getSubscribeList();
 

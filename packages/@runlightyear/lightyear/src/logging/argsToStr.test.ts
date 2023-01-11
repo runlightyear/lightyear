@@ -27,4 +27,10 @@ describe("argsToStr", () => {
   "a": 1
 }`);
   });
+
+  test("an error", () => {
+    expect(argsToStr(new Error("this is an error"))).toEqual(
+      "Error: this is an error"
+    );
+  });
 });

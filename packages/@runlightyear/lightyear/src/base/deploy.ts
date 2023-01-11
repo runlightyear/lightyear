@@ -4,7 +4,7 @@ import { WebhookData, WebhookProps } from "./webhook";
 import baseRequest from "./baseRequest";
 import { Initializer } from "./Initializer";
 import invariant from "tiny-invariant";
-import { secrets as secretsList } from "../logging";
+import { prefixedRedactedConsole } from "../logging";
 import { Auths, Secrets, Variables } from "../run";
 import { setSubscribeProps } from "./subscription";
 
@@ -174,16 +174,14 @@ export async function getDeployData(): Promise<DeployData> {
     if (auths) {
       for (const auth of Object.values(auths)) {
         const { accessToken, refreshToken, apiKey } = auth;
-        accessToken && secretsList.push(accessToken);
-        refreshToken && secretsList.push(refreshToken);
-        apiKey && secretsList.push(apiKey);
+        accessToken && prefixedRedactedConsole.addSecrets([accessToken]);
+        refreshToken && prefixedRedactedConsole.addSecrets([refreshToken]);
+        apiKey && prefixedRedactedConsole.addSecrets([apiKey]);
       }
     }
 
     if (secrets) {
-      for (const secretValue of Object.values(secrets)) {
-        secretValue && secretsList.push(secretValue);
-      }
+      prefixedRedactedConsole.addSecrets(Object.values(secrets));
     }
   }
 

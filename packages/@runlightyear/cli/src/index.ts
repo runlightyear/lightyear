@@ -7,6 +7,7 @@ import { login } from "./commands/login";
 import { dev } from "./commands/dev";
 import { deploy } from "./commands/deploy";
 import { run } from "./commands/run";
+import { test } from "./commands/test";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ program
   .description("Lightyear CLI")
   .version(packageJson.version)
   .addCommand(create)
+  .addCommand(test)
   .addCommand(login)
   .addCommand(dev)
   .addCommand(deploy)

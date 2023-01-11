@@ -3,6 +3,7 @@ import getCompiledCode from "./getCompiledCode";
 import runInContext from "./runInContext";
 import uploadDeployResult from "./uploadDeployResult";
 import { terminal } from "terminal-kit";
+import { restoreConsole } from "./restoreConsole";
 
 export default async function execDeploy() {
   const pkg = readPackage();
@@ -11,10 +12,14 @@ export default async function execDeploy() {
   try {
     handler = runInContext(compiledCode);
   } catch (error) {
+    restoreConsole();
     terminal.red(error);
     return;
   }
+
   const handlerResult = await handler({ operation: "deploy" });
+
+  restoreConsole();
 
   const { statusCode, body } = handlerResult;
 
@@ -25,7 +30,7 @@ export default async function execDeploy() {
   const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
   if (status === "SUCCEEDED") {
-    // terminal.green("🚀 Deploy succeeded!\n");
+    terminal.green("🚀 Deploy succeeded!\n");
   } else if (status === "FAILED") {
     terminal.red("💥 Deploy failed\n");
   }

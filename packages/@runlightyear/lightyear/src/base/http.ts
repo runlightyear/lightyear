@@ -46,7 +46,7 @@ export interface HttpRequest {
 }
 
 export const httpRequest: HttpRequest = async (options) => {
-  console.info("httpRequest with options", JSON.stringify(options, null, 2));
+  console.debug("httpRequest with options", JSON.stringify(options, null, 2));
 
   const response = await baseRequest({
     uri: "/api/v1/httpRequest",

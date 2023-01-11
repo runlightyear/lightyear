@@ -1,6 +1,6 @@
+import "../logging";
 import { APIGatewayEvent, Context, APIGatewayProxyResult } from "aws-lambda";
 import { run } from "../run";
-import { secrets as secretsList } from "../logging";
 import { deploy } from "../base/deploy";
 import { subscribe, unsubscribe } from "../subscriptionActivities";
 import { handleRun } from "./handleRun";
@@ -8,6 +8,8 @@ import { handleDeploy } from "./handleDeploy";
 import { handleSubscribe } from "./handleSubscribe";
 import { handleUnsubscribe } from "./handleUnsubscribe";
 import { handlerResult } from "./handlerResult";
+import { prefixedRedactedConsole } from "../logging";
+import { prepareConsole } from "../logging/prepareConsole";
 
 interface RepoInvocation extends APIGatewayEvent {
   operation: string;
@@ -21,6 +23,8 @@ export const handler = async (
   event: RepoInvocation,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
+  prepareConsole();
+
   const envName = process.env.ENV_NAME;
   if (!envName) {
     console.error("Environment variable ENV_NAME not set");
@@ -29,7 +33,7 @@ export const handler = async (
 
   const apiKey = process.env.API_KEY;
   if (apiKey) {
-    secretsList.push(apiKey);
+    prefixedRedactedConsole.addSecrets([apiKey]);
   } else {
     return handlerResult(400, "Environment variable API_KEY not set");
   }
