@@ -8,8 +8,13 @@ import { dev } from "./commands/dev";
 import { deploy } from "./commands/deploy";
 import { run } from "./commands/run";
 import { test } from "./commands/test";
+import { prepareConsole } from "./logging";
 
 dotenv.config();
+
+prepareConsole();
+
+console.log("XXX hi there");
 
 program
   .name("lightyear")

@@ -2,6 +2,7 @@ import { prefixedRedactedConsole } from "./index";
 import { LogDisplayLevel } from "./PrefixedRedactedConsole";
 
 export function prepareConsole(logDisplayLevel: LogDisplayLevel) {
+  prefixedRedactedConsole.setGlobalPrefix("\x1b[38;5;12m" + "VM:" + "\x1b[0m");
   prefixedRedactedConsole.setLogDisplayLevel(logDisplayLevel);
 
   console.log = (...args: any[]) => prefixedRedactedConsole.log(...args);

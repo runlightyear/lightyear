@@ -8,6 +8,7 @@ import execUnsubscribe from "../../shared/execUnsubscribe";
 import execSubscribe from "../../shared/execSubscribe";
 import { terminal } from "terminal-kit";
 import { setLogDisplayLevel } from "../../shared/setLogDisplayLevel";
+import { prepareConsole } from "../../logging";
 
 export const dev = new Command("dev");
 
@@ -40,6 +41,41 @@ dev
       },
     });
 
+    terminal.on("key", async (name: string, matches: any, data: any) => {
+      if (data.code === "q" || data.code === "\u0003") {
+        terminal.grabInput(false);
+        setTimeout(function () {
+          process.exit();
+        }, 100);
+      } else if (data.code === "d") {
+        await execDeploy();
+        await execUnsubscribe();
+        await execSubscribe();
+
+        terminal("\n\nWaiting for file changes...\n");
+        terminal("press h for help, press q to quit\n");
+      } else if (data.code === "l") {
+        console.info("DEBUG logging on");
+        setLogDisplayLevel("DEBUG");
+        prepareConsole();
+      } else if (data.code === "m") {
+        console.info("DEBUG logging off");
+        setLogDisplayLevel("INFO");
+        prepareConsole();
+      } else if (data.code === "h") {
+        terminal("\n");
+        terminal("  press d to deploy\n");
+        terminal("  press l to turn DEBUG logs on\n");
+        terminal("  press m to turn DEBUG logs off\n");
+        terminal("  press q to quit\n");
+        terminal("\n");
+      } else {
+        // terminal(`got key: '${name}'\n`);
+        // terminal(`got matches: '${matches}'\n`);
+        // terminal(`got data: '${JSON.stringify(data)}'\n`);
+      }
+    });
+
     nodemon.on("exit", async () => {
       await execDeploy();
       await execUnsubscribe();
@@ -50,33 +86,5 @@ dev
       // terminal("press q to quit\n");
 
       terminal.grabInput(true);
-
-      terminal.on("key", async (name: string, matches: any, data: any) => {
-        if (data.code === "q" || data.code === "\u0003") {
-          terminal.grabInput(false);
-          setTimeout(function () {
-            process.exit();
-          }, 100);
-        } else if (data.code === "d") {
-          await execDeploy();
-        } else if (data.code === "l") {
-          terminal("DEBUG logging on\n");
-          setLogDisplayLevel("DEBUG");
-        } else if (data.code === "m") {
-          terminal("DEBUG logging off\n");
-          setLogDisplayLevel("INFO");
-        } else if (data.code === "h") {
-          terminal("\n");
-          terminal("  press d to deploy\n");
-          terminal("  press l to turn DEBUG logs on\n");
-          terminal("  press m to turn DEBUG logs off\n");
-          terminal("  press q to quit\n");
-          terminal("\n");
-        } else {
-          // terminal(`got key: '${name}'\n`);
-          // terminal(`got matches: '${matches}'\n`);
-          // terminal(`got data: '${JSON.stringify(data)}'\n`);
-        }
-      });
     });
   });

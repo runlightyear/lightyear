@@ -5,6 +5,7 @@ import { terminal } from "terminal-kit";
 import uploadUnsubscribeResult from "./uploadUnsubscribeResult";
 import { restoreConsole } from "./restoreConsole";
 import { logDisplayLevel } from "./setLogDisplayLevel";
+import { prepareConsole } from "../logging";
 
 export default async function execUnsubscribe() {
   const compiledCodeStr = await getPreviouslyDeployedCode();
@@ -17,8 +18,6 @@ export default async function execUnsubscribe() {
   const compiledCode = Buffer.from(compiledCodeStr, "base64");
   const handler = runInContext(compiledCode);
 
-  restoreConsole();
-
   const unsubscribeList = await getUnsubscribeList();
 
   const doTheUnsubscribe = async (webhookName: string, removed: boolean) => {
@@ -30,6 +29,8 @@ export default async function execUnsubscribe() {
       // removed: true,
       logDisplayLevel,
     });
+
+    prepareConsole();
 
     terminal.gray(
       "handlerResult",

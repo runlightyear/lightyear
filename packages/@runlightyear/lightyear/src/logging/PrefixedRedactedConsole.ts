@@ -6,9 +6,14 @@ import * as process from "process";
 export type LogDisplayLevel = "DEBUG" | "INFO";
 
 export class PrefixedRedactedConsole {
+  globalPrefix: string = "";
   secrets: Array<string> = [];
   history: Array<string> = [];
   logDisplayLevel: LogDisplayLevel = "DEBUG";
+
+  setGlobalPrefix(prefix: string) {
+    this.globalPrefix = prefix;
+  }
 
   addSecrets(secrets: Array<string | null>) {
     this.secrets = [
@@ -19,50 +24,6 @@ export class PrefixedRedactedConsole {
 
   setLogDisplayLevel(level: LogDisplayLevel) {
     this.logDisplayLevel = level;
-  }
-
-  redactParams(params: any[]) {
-    return redactSecrets(this.secrets, argsToStr(params));
-  }
-
-  _log(props: {
-    params: any[];
-    color: string;
-    prefix: string;
-    display: boolean;
-  }) {
-    this._write({ ...props, stream: process.stdout });
-  }
-  // _log(props: { params: any[]; color: string; prefix: string }) {
-  //   const { params, color = "", prefix } = props;
-  //
-  //   const message = this.redactParams(params);
-  //   this.history.push(message);
-  //   process.stdout.write(`${color}VM:[${prefix}] ${message}\x1b[0m\n`);
-  // }
-
-  _warn(props: {
-    params: any[];
-    color: string;
-    prefix: string;
-    display: boolean;
-  }) {
-    this._write({ ...props, stream: process.stderr });
-  }
-
-  _write(props: {
-    params: any[];
-    color: string;
-    prefix: string;
-    stream: typeof process.stdout | typeof process.stderr;
-    display: boolean;
-  }) {
-    const { params, color, prefix, stream, display } = props;
-    const message = `[${prefix}]: ${this.redactParams(params)}`;
-    this.history.push(message);
-    if (display) {
-      stream.write(`${color}VM:${message}\x1b[0m\n`);
-    }
   }
 
   log(...params: any[]) {
@@ -109,5 +70,46 @@ export class PrefixedRedactedConsole {
   }
   table(...params: any[]) {
     this.error("console.table not supported.");
+  }
+
+  _redactParams(params: any[]) {
+    return redactSecrets(this.secrets, argsToStr(params));
+  }
+
+  _log(props: {
+    params: any[];
+    color: string;
+    prefix: string;
+    display: boolean;
+  }) {
+    this._write({ ...props, stream: process.stdout });
+  }
+
+  _warn(props: {
+    params: any[];
+    color: string;
+    prefix: string;
+    display: boolean;
+  }) {
+    this._write({ ...props, stream: process.stderr });
+  }
+
+  _write(props: {
+    params: any[];
+    color: string;
+    prefix: string;
+    stream: typeof process.stdout | typeof process.stderr;
+    display: boolean;
+  }) {
+    const { params, color, prefix, stream, display } = props;
+    const message = `[${prefix}]: ${this._redactParams(params)}`;
+    this.history.push(message);
+    if (display) {
+      stream.write(
+        `${
+          this.globalPrefix ? this.globalPrefix + " " : ""
+        }${color}${message}\x1b[0m\n`
+      );
+    }
   }
 }

@@ -17,7 +17,7 @@ export async function handleSubscribe({ webhookName }: HandleSubscribeProps) {
     const unsubscribeProps = await subscribe(webhookName, webhookData);
     return handlerResult(200, "Subscribe successful", { unsubscribeProps });
   } catch (error) {
-    console.error("Failed to subscribe", String(error));
+    console.error("Failed to subscribe", error);
     return handlerResult(500, `Subscribe failed: ${error}`);
   }
 }

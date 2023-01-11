@@ -1,9 +1,14 @@
+const prefixedLog =
+  (fn: typeof console.log) =>
+  (...args: any[]) =>
+    fn("CLI:", ...args);
+
 const originalConsole = {
-  log: console.log,
-  debug: console.debug,
-  info: console.info,
-  warn: console.warn,
-  error: console.error,
+  log: prefixedLog(console.log),
+  debug: prefixedLog(console.debug),
+  info: prefixedLog(console.info),
+  warn: prefixedLog(console.warn),
+  error: prefixedLog(console.error),
 };
 
 export function restoreConsole() {
@@ -13,5 +18,5 @@ export function restoreConsole() {
   console.warn = originalConsole.warn;
   console.error = originalConsole.error;
 
-  console.info("Console restored");
+  console.debug("Console restored");
 }

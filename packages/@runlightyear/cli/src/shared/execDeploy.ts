@@ -5,6 +5,7 @@ import uploadDeployResult from "./uploadDeployResult";
 import { terminal } from "terminal-kit";
 import { restoreConsole } from "./restoreConsole";
 import { logDisplayLevel } from "./setLogDisplayLevel";
+import { prepareConsole } from "../logging";
 
 export default async function execDeploy() {
   const pkg = readPackage();
@@ -13,7 +14,7 @@ export default async function execDeploy() {
   try {
     handler = runInContext(compiledCode);
   } catch (error) {
-    restoreConsole();
+    prepareConsole();
     terminal.red(error);
     return;
   }
@@ -23,7 +24,7 @@ export default async function execDeploy() {
     logDisplayLevel,
   });
 
-  restoreConsole();
+  prepareConsole();
 
   const { statusCode, body } = handlerResult;
 
@@ -34,7 +35,7 @@ export default async function execDeploy() {
   const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
   if (status === "SUCCEEDED") {
-    terminal.green("🚀 Deploy succeeded!\n");
+    // terminal.green("🚀 Deploy succeeded!\n");
   } else if (status === "FAILED") {
     terminal.red("💥 Deploy failed\n");
   }
