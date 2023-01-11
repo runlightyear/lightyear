@@ -4,6 +4,7 @@ import runInContext from "./runInContext";
 import uploadDeployResult from "./uploadDeployResult";
 import { terminal } from "terminal-kit";
 import { restoreConsole } from "./restoreConsole";
+import { logDisplayLevel } from "./setLogDisplayLevel";
 
 export default async function execDeploy() {
   const pkg = readPackage();
@@ -17,7 +18,10 @@ export default async function execDeploy() {
     return;
   }
 
-  const handlerResult = await handler({ operation: "deploy" });
+  const handlerResult = await handler({
+    operation: "deploy",
+    logDisplayLevel,
+  });
 
   restoreConsole();
 

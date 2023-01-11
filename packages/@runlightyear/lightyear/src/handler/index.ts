@@ -17,13 +17,16 @@ interface RepoInvocation extends APIGatewayEvent {
   actionName?: string;
   webhookName?: string;
   data?: any;
+  logDisplayLevel?: "DEBUG" | "INFO";
 }
 
 export const handler = async (
   event: RepoInvocation,
   context: Context
 ): Promise<APIGatewayProxyResult> => {
-  prepareConsole();
+  const { logDisplayLevel } = event;
+
+  prepareConsole(logDisplayLevel || "DEBUG");
 
   const envName = process.env.ENV_NAME;
   if (!envName) {

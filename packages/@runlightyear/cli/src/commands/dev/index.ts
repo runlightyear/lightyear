@@ -7,6 +7,7 @@ import execDeploy from "../../shared/execDeploy";
 import execUnsubscribe from "../../shared/execUnsubscribe";
 import execSubscribe from "../../shared/execSubscribe";
 import { terminal } from "terminal-kit";
+import { setLogDisplayLevel } from "../../shared/setLogDisplayLevel";
 
 export const dev = new Command("dev");
 
@@ -60,10 +61,10 @@ dev
           await execDeploy();
         } else if (data.code === "l") {
           terminal("DEBUG logging on\n");
-          // setRejectLogLevels([]);
+          setLogDisplayLevel("DEBUG");
         } else if (data.code === "m") {
           terminal("DEBUG logging off\n");
-          // setRejectLogLevels(["debug", "trace"]);
+          setLogDisplayLevel("INFO");
         } else if (data.code === "h") {
           terminal("\n");
           terminal("  press d to deploy\n");

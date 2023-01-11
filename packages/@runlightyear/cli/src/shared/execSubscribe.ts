@@ -5,6 +5,7 @@ import getSubscribeList from "./getSubscribeList";
 import uploadSubscribeResult from "./uploadSubscribeResult";
 import { terminal } from "terminal-kit";
 import { restoreConsole } from "./restoreConsole";
+import { logDisplayLevel } from "./setLogDisplayLevel";
 
 export default async function execSubscribe() {
   const pkg = readPackage();
@@ -24,6 +25,7 @@ export default async function execSubscribe() {
     const handlerResult = await handler({
       operation: "subscribe",
       webhookName,
+      logDisplayLevel,
     });
 
     const { statusCode, body } = handlerResult;

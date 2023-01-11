@@ -3,9 +3,12 @@ import redactSecrets from "./redactSecrets";
 import isString from "../util/isString";
 import * as process from "process";
 
+export type LogDisplayLevel = "DEBUG" | "INFO";
+
 export class PrefixedRedactedConsole {
   secrets: Array<string> = [];
   history: Array<string> = [];
+  logDisplayLevel: LogDisplayLevel = "DEBUG";
 
   addSecrets(secrets: Array<string | null>) {
     this.secrets = [
@@ -14,11 +17,20 @@ export class PrefixedRedactedConsole {
     ];
   }
 
+  setLogDisplayLevel(level: LogDisplayLevel) {
+    this.logDisplayLevel = level;
+  }
+
   redactParams(params: any[]) {
     return redactSecrets(this.secrets, argsToStr(params));
   }
 
-  _log(props: { params: any[]; color: string; prefix: string }) {
+  _log(props: {
+    params: any[];
+    color: string;
+    prefix: string;
+    display: boolean;
+  }) {
     this._write({ ...props, stream: process.stdout });
   }
   // _log(props: { params: any[]; color: string; prefix: string }) {
@@ -29,7 +41,12 @@ export class PrefixedRedactedConsole {
   //   process.stdout.write(`${color}VM:[${prefix}] ${message}\x1b[0m\n`);
   // }
 
-  _warn(props: { params: any[]; color: string; prefix: string }) {
+  _warn(props: {
+    params: any[];
+    color: string;
+    prefix: string;
+    display: boolean;
+  }) {
     this._write({ ...props, stream: process.stderr });
   }
 
@@ -38,31 +55,39 @@ export class PrefixedRedactedConsole {
     color: string;
     prefix: string;
     stream: typeof process.stdout | typeof process.stderr;
+    display: boolean;
   }) {
-    const { params, color, prefix, stream } = props;
+    const { params, color, prefix, stream, display } = props;
     const message = `[${prefix}]: ${this.redactParams(params)}`;
     this.history.push(message);
-    stream.write(`${color}VM:${message}\x1b[0m\n`);
+    if (display) {
+      stream.write(`${color}VM:${message}\x1b[0m\n`);
+    }
   }
 
   log(...params: any[]) {
-    this._log({ color: "", prefix: "LOG", params });
+    this._log({ color: "", prefix: "LOG", params, display: true });
   }
 
   debug(...params: any[]) {
-    this._log({ color: "\x1b[38;5;244m", prefix: "DEBUG", params });
+    this._log({
+      color: "\x1b[38;5;244m",
+      prefix: "DEBUG",
+      params,
+      display: this.logDisplayLevel === "DEBUG",
+    });
   }
 
   info(...params: any[]) {
-    this._log({ color: "", prefix: "INFO", params });
+    this._log({ color: "", prefix: "INFO", params, display: true });
   }
 
   warn(...params: any[]) {
-    this._warn({ color: "\x1b[33m", prefix: "WARN", params });
+    this._warn({ color: "\x1b[33m", prefix: "WARN", params, display: true });
   }
 
   error(...params: any[]) {
-    this._warn({ color: "\x1b[31m", prefix: "ERROR", params });
+    this._warn({ color: "\x1b[31m", prefix: "ERROR", params, display: true });
   }
 
   dir(...params: any[]) {
