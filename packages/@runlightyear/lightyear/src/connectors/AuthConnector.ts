@@ -27,12 +27,12 @@ export class AuthConnector extends BaseConnector {
   }
 
   getAuthData() {
-    console.log("in AuthConnector.getAuthData");
+    console.debug("in AuthConnector.getAuthData");
     return this._auth;
   }
 
   async refreshToken() {
-    console.log("in AuthConnector.refreshToken");
+    console.debug("in AuthConnector.refreshToken");
     // return await refreshToken(this._auth);
   }
 }

@@ -3,7 +3,7 @@ import isFunction from "../util/isFunction";
 import baseRequest from "./baseRequest";
 import { RunFunc, actionIndex } from "../run";
 import { InitializerSpec, deployList } from "./deploy";
-import { secrets as secretsList } from "../logging";
+import { prefixedRedactedConsole } from "../logging";
 import { AuthData } from "./auth";
 
 export type AppName = "github" | "slack";
@@ -163,23 +163,22 @@ export async function getActionData(name: string): Promise<ActionData> {
     uri: `/api/v1/envs/${envName}/actions/${name}/data`,
   });
 
-  const data = (await response.json()) as ActionData;
+  const data = <ActionData>await response.json();
 
   const { auths, variables, secrets, webhook } = data;
 
   if (auths) {
     for (const auth of Object.values(auths)) {
       const { accessToken, refreshToken, apiKey } = auth;
-      accessToken && secretsList.push(accessToken);
-      refreshToken && secretsList.push(refreshToken);
-      apiKey && secretsList.push(apiKey);
+
+      accessToken && prefixedRedactedConsole.addSecrets([accessToken]);
+      refreshToken && prefixedRedactedConsole.addSecrets([refreshToken]);
+      apiKey && prefixedRedactedConsole.addSecrets([apiKey]);
     }
   }
 
   if (secrets) {
-    for (const secretValue of Object.values(secrets)) {
-      secretValue && secretsList.push(secretValue);
-    }
+    prefixedRedactedConsole.addSecrets(Object.values(secrets));
   }
 
   return {

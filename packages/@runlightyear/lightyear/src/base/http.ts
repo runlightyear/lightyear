@@ -46,24 +46,22 @@ export interface HttpRequest {
 }
 
 export const httpRequest: HttpRequest = async (options) => {
-  console.info("httpRequest with options", JSON.stringify(options, null, 2));
+  console.debug("httpRequest with options", JSON.stringify(options, null, 2));
 
   const response = await baseRequest({
     uri: "/api/v1/httpRequest",
     data: options,
   });
 
-  console.debug(`response.status: ${response.status}`, response.status);
-  console.debug(
-    `response.statusText: ${response.statusText}`,
-    response.statusText
-  );
+  console.debug(`response.status`, response.status);
+  console.debug(`response.statusText`, response.statusText);
   const proxyResponse = (await response.json()) as HttpProxyResponse;
-  console.debug("proxyResponse", proxyResponse);
-  console.debug(JSON.stringify(proxyResponse, null, 2));
 
   if (proxyResponse.status < 200 || proxyResponse.status >= 300) {
+    console.error("Error in proxy http request", proxyResponse);
     throw new HttpProxyResponseError(proxyResponse);
+  } else {
+    console.debug("proxyResponse", proxyResponse);
   }
 
   return proxyResponse;

@@ -43,7 +43,7 @@ import {
 } from "./connectors/RestConnector";
 import { deploy } from "./base/deploy";
 import { run } from "./run";
-import { logs } from "./logging";
+import { PrefixedRedactedConsole } from "./logging/PrefixedRedactedConsole";
 import { handler } from "./handler";
 import toTimestamp from "./util/toTimestamp";
 import { PollingData, WebhookDeliveryData } from "./base/runData";
@@ -61,7 +61,7 @@ export {
   RestConnector,
   deploy,
   run,
-  logs,
+  PrefixedRedactedConsole,
   handler,
   toTimestamp,
   deCamelize,

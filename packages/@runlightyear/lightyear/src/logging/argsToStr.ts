@@ -1,11 +1,15 @@
 import isString from "../util/isString";
 import isObject from "../util/isObject";
 
-export default function argsToStr(...args: Array<any>) {
+export default function argsToStr(args: Array<any>) {
   return args
     .map((arg) => {
       if (isString(arg)) {
         return arg;
+      }
+
+      if (arg instanceof Error) {
+        return String(arg);
       }
 
       if (isObject(arg)) {

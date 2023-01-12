@@ -1,5 +1,16 @@
 # @runlightyear/cli
 
+## 0.9.0
+
+### Minor Changes
+
+- Improvements to logging
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.11.0
+
 ## 0.8.0
 
 ### Minor Changes
