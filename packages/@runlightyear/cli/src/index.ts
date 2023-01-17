@@ -14,8 +14,6 @@ dotenv.config();
 
 prepareConsole();
 
-console.log("XXX hi there");
-
 program
   .name("lightyear")
   .description("Lightyear CLI")

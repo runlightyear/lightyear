@@ -34,19 +34,17 @@ export default async function uploadUnsubscribeResult(
   );
 
   if (activityResponse.ok) {
-    terminal.gray("Uploaded subscription activity\n");
+    console.debug("Uploaded unsubscribe activity\n");
   } else {
-    terminal.red(
-      "Failed to upload unsubscribe activity: ",
+    console.error(
+      "Failed to upload unsubscribe activity:",
       activityResponse.status,
-      " ",
-      activityResponse.statusText,
-      "\n"
+      activityResponse.statusText
     );
-    terminal.red(JSON.stringify(await activityResponse.json(), null, 2), "\n");
+    console.error(JSON.stringify(await activityResponse.json(), null, 2));
   }
 
-  const subscriptionResponse = await fetch(
+  const unsubscriptionResponse = await fetch(
     `${baseUrl}/api/v1/envs/${envName}/webhooks/${webhookName}/subscription`,
     {
       method: "PATCH",
@@ -65,12 +63,12 @@ export default async function uploadUnsubscribeResult(
     }
   );
 
-  if (subscriptionResponse.ok) {
-    terminal.gray("Uploaded subscription response\n");
+  if (unsubscriptionResponse.ok) {
+    console.debug("Uploaded unsubscribe activity\n");
   } else {
-    terminal.red("Failed to update subscription\n");
-    terminal.red(
-      JSON.stringify(await subscriptionResponse.json(), null, 2),
+    console.error("Failed to update subscription\n");
+    console.error(
+      JSON.stringify(await unsubscriptionResponse.json(), null, 2),
       "\n"
     );
   }

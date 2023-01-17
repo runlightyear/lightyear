@@ -20,14 +20,12 @@ export default async function getUnsubscribeList() {
   if (response.ok) {
     return await response.json();
   } else {
-    terminal.red(
+    console.error(
       "Failed to get unsubscribe list: ",
       response.status,
-      " ",
-      response.statusText,
-      "\n"
+      response.statusText
     );
-    terminal.red(await response.json(), "\n");
+    console.error(await response.json(), "\n");
     return null;
   }
 }

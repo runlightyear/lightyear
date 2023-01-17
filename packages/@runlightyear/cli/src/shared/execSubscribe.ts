@@ -20,7 +20,7 @@ export default async function execSubscribe() {
     ...subscribeList.created,
     ...subscribeList.changed,
   ]) {
-    console.info("Subscribing ", webhookName);
+    console.info("Subscribing", webhookName);
     const handlerResult = await handler({
       operation: "subscribe",
       webhookName,

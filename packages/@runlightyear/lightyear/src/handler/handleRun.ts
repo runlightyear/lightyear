@@ -29,6 +29,11 @@ export async function handleRun({ actionName, data, context }: HandleRunProps) {
     });
     return handlerResult(200, "Run successful");
   } catch (error) {
+    if (error === "SKIPPED") {
+      console.info("Run skipped");
+      return handlerResult(202, "Run skipped");
+    }
+
     console.error("Failed to run action", String(error));
     return handlerResult(500, "Run failed");
   }

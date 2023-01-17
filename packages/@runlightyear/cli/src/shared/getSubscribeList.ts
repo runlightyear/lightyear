@@ -20,7 +20,7 @@ export default async function getSubscribeList() {
   if (response.ok) {
     return await response.json();
   } else {
-    terminal.red("Error retrieving subscribe list\n");
+    console.error("Error retrieving subscribe list\n");
     return null;
   }
 }

@@ -2,6 +2,8 @@ import fetch from "node-fetch";
 import getCompiledCode from "./getCompiledCode";
 import readPackage from "./readPackage";
 import runInContext from "./runInContext";
+import { prepareConsole } from "../logging";
+import { logDisplayLevel } from "./setLogDisplayLevel";
 
 export default async function runAction({
   actionName,
@@ -27,7 +29,10 @@ export default async function runAction({
     operation: "run",
     actionName,
     data,
+    logDisplayLevel,
   });
+
+  prepareConsole();
 
   const { statusCode, body } = handlerResult;
 
@@ -35,7 +40,8 @@ export default async function runAction({
 
   const { logs } = responseData;
 
-  const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
+  const status =
+    statusCode === 202 ? "SKIPPED" : statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
   const response = await fetch(
     `${baseUrl}/api/v1/envs/${envName}/runs/${runId}`,

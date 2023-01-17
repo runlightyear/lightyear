@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.12.0
+
+### Minor Changes
+
+- Support for skipping runs
+
 ## 0.11.0
 
 ### Minor Changes
