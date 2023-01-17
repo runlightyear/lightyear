@@ -34,16 +34,14 @@ export default async function uploadSubscribeResult(
   );
 
   if (activityResponse.ok) {
-    // terminal("Uploaded deploy result\n");
+    console.debug("Uploaded subscribe activity result");
   } else {
-    terminal.red(
+    console.error(
       "Failed to upload subscribe activity: ",
       activityResponse.status,
-      " ",
-      activityResponse.statusText,
-      "\n"
+      activityResponse.statusText
     );
-    terminal.red(JSON.stringify(await activityResponse.json(), null, 2), "\n");
+    console.error(JSON.stringify(await activityResponse.json(), null, 2));
   }
 
   const subscriptionResponse = await fetch(
@@ -62,10 +60,7 @@ export default async function uploadSubscribeResult(
   );
 
   if (!subscriptionResponse.ok) {
-    terminal.red("Failed to update subscription\n");
-    terminal.red(
-      JSON.stringify(await subscriptionResponse.json(), null, 2),
-      "\n"
-    );
+    console.error("Failed to update subscription");
+    console.error(JSON.stringify(await subscriptionResponse.json(), null, 2));
   }
 }

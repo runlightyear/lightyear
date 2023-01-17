@@ -45,11 +45,14 @@ export async function run(props: Props) {
 
   const fn = actionIndex[name];
   if (!fn) {
-    console.error(`Unknown action: ${name}`);
-    console.info("Known actions:", Object.keys(actionIndex));
+    console.error(
+      `Unknown action: ${name}`,
+      "Known actions:",
+      Object.keys(actionIndex)
+    );
     throw new Error(`Unknown action: ${name}`);
   }
 
-  console.info("Running the action function");
+  console.debug("Running the action function");
   await fn({ data, auths, variables, secrets, webhook, context });
 }

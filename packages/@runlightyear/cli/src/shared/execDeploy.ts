@@ -3,7 +3,6 @@ import getCompiledCode from "./getCompiledCode";
 import runInContext from "./runInContext";
 import uploadDeployResult from "./uploadDeployResult";
 import { terminal } from "terminal-kit";
-import { restoreConsole } from "./restoreConsole";
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { prepareConsole } from "../logging";
 
@@ -15,7 +14,7 @@ export default async function execDeploy() {
     handler = runInContext(compiledCode);
   } catch (error) {
     prepareConsole();
-    terminal.red(error);
+    console.error(error);
     return;
   }
 

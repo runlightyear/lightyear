@@ -30,6 +30,10 @@ export default function commonPayload(
   deliveryData: WebhookDeliveryData
 ): CommonPayload {
   const event = deliveryData.headers && deliveryData.headers["x-github-event"];
+  if (event === "ping") {
+    throw "SKIPPED";
+  }
+
   if (event !== expectedEvent) {
     throw new Error(`Expected event: ${expectedEvent}, got: ${event}`);
   }

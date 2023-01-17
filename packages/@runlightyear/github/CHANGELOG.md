@@ -1,5 +1,16 @@
 # @runlightyear/github
 
+## 0.6.0
+
+### Minor Changes
+
+- Support for skipping runs
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.12.0
+
 ## 0.5.1
 
 ### Patch Changes

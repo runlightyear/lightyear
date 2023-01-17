@@ -1,5 +1,17 @@
 # @runlightyear/cli
 
+## 0.10.0
+
+### Minor Changes
+
+- Support for skipping runs
+
+### Patch Changes
+
+- Cleaned up most remaining logging issues
+- Updated dependencies
+  - @runlightyear/lightyear@0.12.0
+
 ## 0.9.0
 
 ### Minor Changes
