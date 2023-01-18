@@ -27,6 +27,8 @@ export const handler = async (
   const { logDisplayLevel } = event;
 
   prepareConsole(logDisplayLevel || "DEBUG");
+  prefixedRedactedConsole.initialize();
+  console.debug("Initialized console");
 
   const envName = process.env.ENV_NAME;
   if (!envName) {

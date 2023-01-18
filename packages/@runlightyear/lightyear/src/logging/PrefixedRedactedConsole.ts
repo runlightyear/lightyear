@@ -15,6 +15,11 @@ export class PrefixedRedactedConsole {
     this.globalPrefix = prefix;
   }
 
+  initialize() {
+    this.secrets = [];
+    this.history = [];
+  }
+
   addSecrets(secrets: Array<string | null>) {
     this.secrets = [
       ...this.secrets,
