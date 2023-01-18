@@ -1,5 +1,16 @@
 # @runlightyear/github
 
+## 0.7.0
+
+### Minor Changes
+
+- Added some details to the common payload
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.12.1
+
 ## 0.6.0
 
 ### Minor Changes
