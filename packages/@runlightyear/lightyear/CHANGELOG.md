@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.12.1
+
+### Patch Changes
+
+- Export SKIPPED for run functions to throw when necessary
+
 ## 0.12.0
 
 ### Minor Changes

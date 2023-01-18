@@ -49,6 +49,8 @@ import toTimestamp from "./util/toTimestamp";
 import { PollingData, WebhookDeliveryData } from "./base/runData";
 import deCamelize from "./util/deCamelize";
 
+const SKIPPED = "SKIPPED";
+
 export {
   defineAction,
   getAuthData,
@@ -66,6 +68,7 @@ export {
   toTimestamp,
   deCamelize,
   HttpProxyResponseError,
+  SKIPPED,
 };
 
 export type {
