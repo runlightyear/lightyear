@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.12.2
+
+### Patch Changes
+
+- Initialize the console at start of each operation
+
 ## 0.12.1
 
 ### Patch Changes
