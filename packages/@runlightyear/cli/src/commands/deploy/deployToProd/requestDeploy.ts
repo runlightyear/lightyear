@@ -23,7 +23,7 @@ export default async function requestDeploy(envName: string) {
 
   if (response.ok) {
     const data = await response.json();
-    console.log(`Deploy requested: ${data.deployId}`);
+    console.info(`Deploy requested: ${data.deployId}`);
     return data;
   } else {
     program.error("Error requesting deploy");

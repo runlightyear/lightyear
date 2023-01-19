@@ -1,5 +1,11 @@
 # @runlightyear/github
 
+## 0.7.2
+
+### Patch Changes
+
+- Added a conclusion optoin on the workflowRun payload
+
 ## 0.7.1
 
 ### Patch Changes

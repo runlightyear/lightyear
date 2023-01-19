@@ -4,6 +4,7 @@ import fetchDeploy from "./fetchDeploy";
 import { program } from "commander";
 import countLines from "./countLines";
 import { terminal } from "terminal-kit";
+import { logDisplayLevel } from "../../../shared/setLogDisplayLevel";
 
 export type Log = {
   id: string;
@@ -41,7 +42,18 @@ export default async function waitUntilDeployFinishes(deployId: string) {
     const { status, logs } = deploy;
 
     const logOutput =
-      logs.map((log) => `[${log.level}]: ${log.message}`).join("\n") + "\n";
+      logs
+        .filter((log) =>
+          logDisplayLevel === "DEBUG" ? true : log.level !== "DEBUG"
+        )
+        .map(
+          (log) =>
+            "\x1b[35m" +
+            "Server: " +
+            "\x1b[0m" +
+            `[${log.level}]: ${log.message}`
+        )
+        .join("\n") + "\n";
     terminal(logOutput);
 
     prevLogLineCount = countLines(logOutput);

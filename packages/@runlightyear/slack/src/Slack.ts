@@ -61,12 +61,10 @@ export class Slack extends RestConnector {
    * @internal
    */
   authorizationHeaders(): { [p: string]: string } {
-    const { accessToken, apiKey } = this.getAuthData();
-
-    console.log("got the apiKey", apiKey);
+    const { accessToken } = this.getAuthData();
 
     return {
-      Authorization: `Bearer ${accessToken || apiKey}`,
+      Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     };
   }

@@ -9,6 +9,8 @@ import { deploy } from "./commands/deploy";
 import { run } from "./commands/run";
 import { test } from "./commands/test";
 import { prepareConsole } from "./logging";
+import { setLogDisplayLevel } from "./shared/setLogDisplayLevel";
+import { terminal } from "terminal-kit";
 
 dotenv.config();
 
@@ -23,9 +25,16 @@ program
   .addCommand(login)
   .addCommand(dev)
   .addCommand(deploy)
-  .addCommand(run);
+  .addCommand(run)
+  .option("-d, --debug", "output extra debugging");
 
 async function main() {
   await program.parseAsync();
+
+  const options = program.opts();
+  if (options.debug) {
+    terminal("we are in debug mode");
+    setLogDisplayLevel("DEBUG");
+  }
 }
 main();

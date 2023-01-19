@@ -5,7 +5,7 @@ import deleteTgz from "./deleteTgz";
 import waitUntilDeployFinishes from "./waitUntilDeployFinishes";
 
 export default async function deployToProd() {
-  console.log("Deploying to to prod");
+  console.info("Deploying to prod");
 
   const fileList = await getFileList();
   await tarSourceCode(fileList);

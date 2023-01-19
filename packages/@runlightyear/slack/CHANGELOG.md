@@ -1,5 +1,11 @@
 # @runlightyear/slack
 
+## 0.4.11
+
+### Patch Changes
+
+- Got rid of some extraneous logs
+
 ## 0.4.10
 
 ### Patch Changes
