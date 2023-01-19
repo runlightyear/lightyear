@@ -78,19 +78,38 @@ export async function deploy({ envName }: Props) {
   for (const item of deployList) {
     if (item.type === "webhook") {
       const { webhookProps } = item;
-      if (webhookProps?.subscribeProps) {
-        const { subscribeProps } = webhookProps;
+      if (!webhookProps) {
+        throw new Error("Missing webhookProps");
+      }
 
+      if (
+        webhookProps.subscribe ||
+        webhookProps.unsubscribe ||
+        webhookProps.subscribeProps
+      ) {
+        if (!webhookProps.subscribeProps) {
+          throw new Error(
+            `Missing subscribeProps for webhook ${webhookProps.name}`
+          );
+        }
+        if (!webhookProps.subscribe) {
+          throw new Error(`Missing subscribe for webhook ${webhookProps.name}`);
+        }
+        if (!webhookProps.unsubscribe) {
+          throw new Error(
+            `Missing unsubscribe for webhook ${webhookProps.name}`
+          );
+        }
+      }
+
+      if (webhookProps.subscribeProps) {
+        const { subscribeProps } = webhookProps;
         const webhookData = deployData.webhooks[webhookProps.name];
         const subscribePropsResult = await subscribeProps(webhookData);
         await setSubscribeProps(
           envName,
           webhookProps.name,
           subscribePropsResult
-        );
-      } else {
-        throw new Error(
-          `Missing subscribeProps for webhook ${webhookProps?.name}`
         );
       }
     }

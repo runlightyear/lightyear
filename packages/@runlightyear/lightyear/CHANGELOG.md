@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.12.3
+
+### Patch Changes
+
+- Fix bug that required all webhooks to have subscriptionProps
+
 ## 0.12.2
 
 ### Patch Changes
