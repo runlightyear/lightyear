@@ -54,5 +54,12 @@ export default async function execUnsubscribe() {
     await doTheUnsubscribe(webhookName, false);
   }
 
+  if (unsubscribeList.skipped && unsubscribeList.skipped.length > 0) {
+    console.info(
+      "Skipping unsubscribe for webhooks that need configuration:",
+      unsubscribeList.skipped.join(", ")
+    );
+  }
+
   return null;
 }

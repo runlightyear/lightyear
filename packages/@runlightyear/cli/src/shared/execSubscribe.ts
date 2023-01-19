@@ -44,4 +44,11 @@ export default async function execSubscribe() {
       unsubscribeProps,
     });
   }
+
+  if (subscribeList.skipped && subscribeList.skipped.length > 0) {
+    console.info(
+      "Skipping subscribe for webhooks that need configuration:",
+      subscribeList.skipped.join(", ")
+    );
+  }
 }
