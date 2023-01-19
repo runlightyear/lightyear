@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.11.0
+
+### Minor Changes
+
+- Added a --debug flag and cleaned up logging on production deploys
+
 ## 0.10.2
 
 ### Patch Changes
