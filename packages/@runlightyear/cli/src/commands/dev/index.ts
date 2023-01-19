@@ -4,8 +4,8 @@ import getPusherCredentials from "../../shared/getPusherCredentials";
 import handleRunLocal from "./handleRunLocal";
 import nodemon from "nodemon";
 import execDeploy from "../../shared/execDeploy";
-import execUnsubscribe from "../../shared/execUnsubscribe";
-import execSubscribe from "../../shared/execSubscribe";
+import execUnsubscribeAfterDeploy from "../../shared/execUnsubscribeAfterDeploy";
+import execSubscribeAfterDeploy from "../../shared/execSubscribeAfterDeploy";
 import { terminal } from "terminal-kit";
 import { setLogDisplayLevel } from "../../shared/setLogDisplayLevel";
 import { prepareConsole } from "../../logging";
@@ -49,8 +49,8 @@ dev
         }, 100);
       } else if (data.code === "d") {
         await execDeploy();
-        await execUnsubscribe();
-        await execSubscribe();
+        await execUnsubscribeAfterDeploy();
+        await execSubscribeAfterDeploy();
 
         terminal("\n\nWaiting for file changes...\n");
         terminal("press h for help, press q to quit\n");
@@ -78,8 +78,8 @@ dev
 
     nodemon.on("exit", async () => {
       await execDeploy();
-      await execUnsubscribe();
-      await execSubscribe();
+      await execUnsubscribeAfterDeploy();
+      await execSubscribeAfterDeploy();
 
       terminal("\n\nWaiting for file changes...\n");
       terminal("press h for help, press q to quit\n");

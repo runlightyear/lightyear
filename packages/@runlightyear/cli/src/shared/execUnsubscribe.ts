@@ -1,65 +1,42 @@
-import getUnsubscribeList from "./getUnsubscribeList";
-import runInContext from "./runInContext";
-import getPreviouslyDeployedCode from "./getPreviouslyDeployedCode";
-import uploadUnsubscribeResult from "./uploadUnsubscribeResult";
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { prepareConsole } from "../logging";
+import runInContext from "./runInContext";
+import uploadUnsubscribeResult from "./uploadUnsubscribeResult";
 
-export default async function execUnsubscribe() {
-  const compiledCodeStr = await getPreviouslyDeployedCode();
+export interface ExecUnsubscribeProps {
+  webhookName: string;
+  compiledCode: Buffer;
+  removed: boolean;
+}
 
-  if (!compiledCodeStr) {
-    console.debug("No previous code found, skipping unsubscribe step");
-    return;
-  }
+export default async function execUnsubscribe(props: ExecUnsubscribeProps) {
+  const { webhookName, compiledCode, removed } = props;
 
-  const compiledCode = Buffer.from(compiledCodeStr, "base64");
+  console.info("Unsubscribing", webhookName);
+
   const handler = runInContext(compiledCode);
 
-  const unsubscribeList = await getUnsubscribeList();
+  const handlerResult = await handler({
+    operation: "unsubscribe",
+    webhookName,
+    // removed: true,
+    logDisplayLevel,
+  });
 
-  const doTheUnsubscribe = async (webhookName: string, removed: boolean) => {
-    console.info("Unsubscribing", webhookName);
+  prepareConsole();
 
-    const handlerResult = await handler({
-      operation: "unsubscribe",
-      webhookName,
-      // removed: true,
-      logDisplayLevel,
-    });
+  const { statusCode, body } = handlerResult;
+  const responseData = JSON.parse(body);
+  const { logs } = responseData;
 
-    prepareConsole();
+  const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
-    const { statusCode, body } = handlerResult;
-    const responseData = JSON.parse(body);
-    const { logs } = responseData;
+  console.debug("about to upload unsubscribe result");
 
-    const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
-
-    console.debug("about to upload unsubscribe result");
-
-    await uploadUnsubscribeResult({
-      webhookName,
-      status,
-      logs,
-      removed,
-    });
-  };
-
-  for (const webhookName of unsubscribeList.removed) {
-    await doTheUnsubscribe(webhookName, true);
-  }
-
-  for (const webhookName of unsubscribeList.changed) {
-    await doTheUnsubscribe(webhookName, false);
-  }
-
-  if (unsubscribeList.skipped && unsubscribeList.skipped.length > 0) {
-    console.info(
-      "Skipping unsubscribe for webhooks that need configuration:",
-      unsubscribeList.skipped.join(", ")
-    );
-  }
-
-  return null;
+  await uploadUnsubscribeResult({
+    webhookName,
+    status,
+    logs,
+    removed,
+  });
 }
