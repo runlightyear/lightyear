@@ -17,7 +17,7 @@ export interface WorkflowRunPayload extends CommonPayload {
   workflowRun: {
     artifactsUrl: string;
     checkSuiteId: string;
-    conclusion?: "success" | string;
+    conclusion?: "success" | "cancelled" | string;
     headBranch: string;
     headSha: string;
     [name: string]: any;

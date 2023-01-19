@@ -3,7 +3,7 @@ import { TEMP_TGZ_FILE } from "./constants";
 import { program } from "commander";
 
 export default async function tarSourceCode(fileList: string[]) {
-  console.log("Preparing source code");
+  console.info("Preparing source code");
 
   try {
     await tar.create(
@@ -12,14 +12,14 @@ export default async function tarSourceCode(fileList: string[]) {
         file: TEMP_TGZ_FILE,
         prefix: "project",
         filter(path: string, stat: FileStat): boolean {
-          console.log("Adding", path);
+          console.debug("Adding", path);
           return true;
         },
       },
       fileList
     );
   } catch (error) {
-    console.log(error);
+    console.error(error);
     program.error("Error creating tgz");
   }
 }
