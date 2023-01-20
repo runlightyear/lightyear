@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.12.4
+
+### Patch Changes
+
+- Added debug statement to display environment
+
 ## 0.12.3
 
 ### Patch Changes

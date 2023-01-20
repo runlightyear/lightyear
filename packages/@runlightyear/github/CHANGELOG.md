@@ -1,5 +1,12 @@
 # @runlightyear/github
 
+## 0.7.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.12.4
+
 ## 0.7.3
 
 ### Patch Changes
