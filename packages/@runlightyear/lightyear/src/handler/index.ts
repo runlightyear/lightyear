@@ -34,6 +34,8 @@ export const handler = async (
   if (!envName) {
     console.error("Environment variable ENV_NAME not set");
     return handlerResult(400, "Environment variable ENV_NAME not set");
+  } else {
+    console.debug("In environment", process.env.ENV_NAME);
   }
 
   const apiKey = process.env.API_KEY;

@@ -1,47 +1,39 @@
-import readPackage from "./readPackage";
-import getCompiledCode from "./getCompiledCode";
-import runInContext from "./runInContext";
-import getSubscribeList from "./getSubscribeList";
-import uploadSubscribeResult from "./uploadSubscribeResult";
-import { terminal } from "terminal-kit";
-import { restoreConsole } from "./restoreConsole";
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { prepareConsole } from "../logging";
+import uploadSubscribeResult from "./uploadSubscribeResult";
+import runInContext from "./runInContext";
 
-export default async function execSubscribe() {
-  const pkg = readPackage();
+export interface ExecSubscribeProps {
+  webhookName: string;
+  compiledCode: Buffer;
+}
 
-  const compiledCode = getCompiledCode(pkg.main);
+export default async function execSubscribe(props: ExecSubscribeProps) {
+  const { webhookName, compiledCode } = props;
+
   const handler = runInContext(compiledCode);
 
-  const subscribeList = await getSubscribeList();
+  console.info("Subscribing", webhookName);
+  const handlerResult = await handler({
+    operation: "subscribe",
+    webhookName,
+    logDisplayLevel,
+  });
 
-  for (const webhookName of [
-    ...subscribeList.created,
-    ...subscribeList.changed,
-  ]) {
-    console.info("Subscribing", webhookName);
-    const handlerResult = await handler({
-      operation: "subscribe",
-      webhookName,
-      logDisplayLevel,
-    });
+  prepareConsole();
 
-    prepareConsole();
+  const { statusCode, body } = handlerResult;
+  const responseData = JSON.parse(body);
+  const { unsubscribeProps, logs } = responseData;
 
-    const { statusCode, body } = handlerResult;
-    const responseData = JSON.parse(body);
-    const { unsubscribeProps, logs } = responseData;
+  const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
-    const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
+  console.debug("about to upload subscribe result");
 
-    console.debug("about to upload subscribe result");
-
-    await uploadSubscribeResult({
-      webhookName,
-      status,
-      logs,
-      unsubscribeProps,
-    });
-  }
+  await uploadSubscribeResult({
+    webhookName,
+    status,
+    logs,
+    unsubscribeProps,
+  });
 }
