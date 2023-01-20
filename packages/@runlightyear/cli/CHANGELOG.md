@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.12.0
+
+### Minor Changes
+
+- Support for resubscribe
+
 ## 0.11.1
 
 ### Patch Changes

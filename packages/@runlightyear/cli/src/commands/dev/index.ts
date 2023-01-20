@@ -9,6 +9,7 @@ import execSubscribeAfterDeploy from "../../shared/execSubscribeAfterDeploy";
 import { terminal } from "terminal-kit";
 import { setLogDisplayLevel } from "../../shared/setLogDisplayLevel";
 import { prepareConsole } from "../../logging";
+import handleResubscribe from "./handleResubscribe";
 
 export const dev = new Command("dev");
 
@@ -31,6 +32,7 @@ dev
 
     const subscription = pusher.subscribe(credentials.userId);
     subscription.bind("localRunTriggered", handleRunLocal);
+    subscription.bind("localResubscribeTriggered", handleResubscribe);
 
     nodemon({
       ignoreRoot: [".git"],
