@@ -1,6 +1,5 @@
-import {deploy, getDeployData} from "../base/deploy";
+import { deploy } from "../base/deploy";
 import { handlerResult } from "./handlerResult";
-import {subscribeProps} from "../subscriptionActivities";
 
 export interface handleDeployProps {
   envName: string;
