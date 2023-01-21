@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.13.0
+
+### Minor Changes
+
+- Added subscribeProps operation
+
 ## 0.12.4
 
 ### Patch Changes
