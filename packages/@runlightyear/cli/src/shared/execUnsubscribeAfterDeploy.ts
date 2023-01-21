@@ -1,8 +1,17 @@
 import getUnsubscribeList from "./getUnsubscribeList";
 import getPreviouslyDeployedCode from "./getPreviouslyDeployedCode";
 import execUnsubscribe from "./execUnsubscribe";
+import updateDeploy from "./updateDeploy";
 
-export default async function execUnsubscribeAfterDeploy() {
+export interface ExecUnsubscribeAfterDeployProps {
+  deployId: string;
+}
+
+export default async function execUnsubscribeAfterDeploy(
+  props: ExecUnsubscribeAfterDeployProps
+) {
+  const { deployId } = props;
+
   const compiledCodeStr = await getPreviouslyDeployedCode();
 
   if (!compiledCodeStr) {
@@ -16,6 +25,14 @@ export default async function execUnsubscribeAfterDeploy() {
 
   const doTheUnsubscribe = async (webhookName: string, removed: boolean) => {
     await execUnsubscribe({ webhookName, compiledCode, removed });
+
+    const message = `unsubscribed ${webhookName}`;
+
+    console.info(message);
+    await updateDeploy({
+      deployId,
+      logs: [`[INFO]: ${message}`],
+    });
   };
 
   for (const webhookName of unsubscribeList.removed) {
@@ -27,10 +44,15 @@ export default async function execUnsubscribeAfterDeploy() {
   }
 
   if (unsubscribeList.skipped && unsubscribeList.skipped.length > 0) {
-    console.info(
-      "Skipping unsubscribe for webhooks that need configuration:",
-      unsubscribeList.skipped.join(", ")
-    );
+    const message =
+      "Skipping unsubscribe for webhooks that need configuration:" +
+      unsubscribeList.skipped.join(", ");
+
+    console.info(message);
+    await updateDeploy({
+      deployId,
+      logs: [`[INFO]: ${message}`],
+    });
   }
 
   return null;

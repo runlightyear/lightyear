@@ -10,6 +10,9 @@ import { terminal } from "terminal-kit";
 import { setLogDisplayLevel } from "../../shared/setLogDisplayLevel";
 import { prepareConsole } from "../../logging";
 import handleResubscribe from "./handleResubscribe";
+import execSubscribeProps from "../../shared/execSubscribeProps";
+import createDeploy from "../../shared/createDeploy";
+import execDeployAndSubscribe from "../../shared/execDeployAndSubscribe";
 
 export const dev = new Command("dev");
 
@@ -50,9 +53,7 @@ dev
           process.exit();
         }, 100);
       } else if (data.code === "d") {
-        await execDeploy();
-        await execUnsubscribeAfterDeploy();
-        await execSubscribeAfterDeploy();
+        await execDeployAndSubscribe();
 
         terminal("\n\nWaiting for file changes...\n");
         terminal("press h for help, press q to quit\n");
@@ -79,9 +80,7 @@ dev
     });
 
     nodemon.on("exit", async () => {
-      await execDeploy();
-      await execUnsubscribeAfterDeploy();
-      await execSubscribeAfterDeploy();
+      await execDeployAndSubscribe();
 
       terminal("\n\nWaiting for file changes...\n");
       terminal("press h for help, press q to quit\n");

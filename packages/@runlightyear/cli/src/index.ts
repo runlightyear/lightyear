@@ -33,7 +33,6 @@ async function main() {
 
   const options = program.opts();
   if (options.debug) {
-    terminal("we are in debug mode");
     setLogDisplayLevel("DEBUG");
   }
 }
