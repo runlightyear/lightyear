@@ -2,10 +2,17 @@ import readPackage from "./readPackage";
 import getCompiledCode from "./getCompiledCode";
 import getSubscribeList from "./getSubscribeList";
 import execSubscribe from "./execSubscribe";
+import updateDeploy from "./updateDeploy";
 
-export default async function execSubscribeAfterDeploy() {
-  const pkg = readPackage();
-  const compiledCode = getCompiledCode(pkg.main);
+export interface ExecSubscribeAfterDeployProps {
+  deployId: string;
+  compiledCode: Buffer;
+}
+
+export default async function execSubscribeAfterDeploy(
+  props: ExecSubscribeAfterDeployProps
+) {
+  const { deployId, compiledCode } = props;
 
   const subscribeList = await getSubscribeList();
 
@@ -14,12 +21,25 @@ export default async function execSubscribeAfterDeploy() {
     ...subscribeList.changed,
   ]) {
     await execSubscribe({ webhookName, compiledCode });
+
+    const message = `subscribed ${webhookName}`;
+
+    console.info(message);
+    await updateDeploy({
+      deployId,
+      logs: [`[INFO]: ${message}`],
+    });
   }
 
   if (subscribeList.skipped && subscribeList.skipped.length > 0) {
-    console.info(
-      "Skipping subscribe for webhooks that need configuration:",
-      subscribeList.skipped.join(", ")
-    );
+    const message =
+      "Skipping subscribe for webhooks that need configuration:" +
+      subscribeList.skipped.join(", ");
+
+    console.info(message);
+    await updateDeploy({
+      deployId,
+      logs: [`[INFO]: ${message}`],
+    });
   }
 }

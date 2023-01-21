@@ -10,6 +10,7 @@ import { handleUnsubscribe } from "./handleUnsubscribe";
 import { handlerResult } from "./handlerResult";
 import { prefixedRedactedConsole } from "../logging";
 import { prepareConsole } from "../logging/prepareConsole";
+import { handleSubscribeProps } from "./handleSubscribeProps";
 
 interface RepoInvocation extends APIGatewayEvent {
   operation: string;
@@ -58,7 +59,11 @@ export const handler = async (
     return handlerResult(400, "Required operation missing");
   }
 
-  if (!["deploy", "subscribe", "unsubscribe", "run"].includes(operation)) {
+  if (
+    !["deploy", "subscribeProps", "subscribe", "unsubscribe", "run"].includes(
+      operation
+    )
+  ) {
     return handlerResult(
       400,
       `Invalid operation, must be 'deploy', 'subscribe', 'unsubscribe', or 'run': ${operation}`
@@ -67,6 +72,8 @@ export const handler = async (
 
   if (operation === "deploy") {
     return handleDeploy({ envName });
+  } else if (operation === "subscribeProps") {
+    return handleSubscribeProps({ envName });
   } else if (operation === "unsubscribe") {
     return handleUnsubscribe({ envName, webhookName, removed });
   } else if (operation === "subscribe") {

@@ -1,12 +1,11 @@
 import { DeployActionProps, ActionData } from "./action";
-import { AuthProps } from "./auth";
 import { WebhookData, WebhookProps } from "./webhook";
 import baseRequest from "./baseRequest";
 import { Initializer } from "./Initializer";
 import invariant from "tiny-invariant";
 import { prefixedRedactedConsole } from "../logging";
 import { Auths, Secrets, Variables } from "../run";
-import { setSubscribeProps } from "./subscription";
+import { subscribeProps } from "../subscriptionActivities";
 
 interface Props {
   envName: string;
@@ -69,96 +68,6 @@ export async function deploy({ envName }: Props) {
   }
 
   console.debug("response was OK");
-
-  const deployData = await getDeployData();
-
-  // console.log(
-  //   "about to go through deployList to get subscribeArgs for subscriptions"
-  // );
-  for (const item of deployList) {
-    if (item.type === "webhook") {
-      const { webhookProps } = item;
-      if (!webhookProps) {
-        throw new Error("Missing webhookProps");
-      }
-
-      if (
-        webhookProps.subscribe ||
-        webhookProps.unsubscribe ||
-        webhookProps.subscribeProps
-      ) {
-        if (!webhookProps.subscribeProps) {
-          throw new Error(
-            `Missing subscribeProps for webhook ${webhookProps.name}`
-          );
-        }
-        if (!webhookProps.subscribe) {
-          throw new Error(`Missing subscribe for webhook ${webhookProps.name}`);
-        }
-        if (!webhookProps.unsubscribe) {
-          throw new Error(
-            `Missing unsubscribe for webhook ${webhookProps.name}`
-          );
-        }
-      }
-
-      if (webhookProps.subscribeProps) {
-        const { subscribeProps } = webhookProps;
-        const webhookData = deployData.webhooks[webhookProps.name];
-        const subscribePropsResult = await subscribeProps(webhookData);
-        await setSubscribeProps(
-          envName,
-          webhookProps.name,
-          subscribePropsResult
-        );
-      }
-    }
-  }
-
-  // console.log("about to go through deployList");
-  // for (const item of deployList) {
-  //   if (item.type === "action") {
-  //     let initializerArray: Initializer[];
-  //     let temp: Initializer | Initializer[];
-  //     if (!item.deploy) {
-  //       await setActionInitializedStatus(envName, {
-  //         name: item.data.name,
-  //         status: true,
-  //       });
-  //     } else {
-  //       if (item.deploy instanceof Function) {
-  //         const itemDeployData = deployData[item.data.name];
-  //         temp = await item.deploy(itemDeployData);
-  //       } else {
-  //         temp = item.deploy;
-  //       }
-  //
-  //       if (temp === null || temp === undefined) {
-  //         initializerArray = [];
-  //       } else if (temp instanceof Initializer) {
-  //         initializerArray = [temp];
-  //       } else {
-  //         initializerArray = temp;
-  //       }
-  //
-  //       try {
-  //         for (const initializer of initializerArray) {
-  //           await initializer.init();
-  //         }
-  //
-  //         await setActionInitializedStatus(envName, {
-  //           name: item.data.name,
-  //           status: true,
-  //         });
-  //       } catch (error) {
-  //         await setActionInitializedStatus(envName, {
-  //           name: item.data.name,
-  //           status: false,
-  //         });
-  //       }
-  //     }
-  //   }
-  // }
 
   console.info("Deploy succeeded");
 }

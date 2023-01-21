@@ -26,6 +26,7 @@
       "outputs": []
     },
     "prettier:check": {
+      "cache": false,
       "outputs": []
     },
     "prettier:write": {

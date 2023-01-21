@@ -1,14 +1,19 @@
 import readPackage from "./readPackage";
 import getCompiledCode from "./getCompiledCode";
 import runInContext from "./runInContext";
-import uploadDeployResult from "./uploadDeployResult";
+import updateDeploy from "./updateDeploy";
 import { terminal } from "terminal-kit";
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { prepareConsole } from "../logging";
 
-export default async function execDeploy() {
-  const pkg = readPackage();
-  const compiledCode = getCompiledCode(pkg.main);
+export interface ExecDeployProps {
+  deployId: string;
+  compiledCode: Buffer;
+}
+
+export default async function execDeploy(props: ExecDeployProps) {
+  const { deployId, compiledCode } = props;
+
   let handler;
   try {
     handler = runInContext(compiledCode);
@@ -26,11 +31,8 @@ export default async function execDeploy() {
   prepareConsole();
 
   const { statusCode, body } = handlerResult;
-
   const responseData = JSON.parse(body);
-
   const { logs } = responseData;
-
   const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
   if (status === "SUCCEEDED") {
@@ -39,10 +41,9 @@ export default async function execDeploy() {
     terminal.red("💥 Deploy failed\n");
   }
 
-  await uploadDeployResult({
-    status,
+  await updateDeploy({
+    deployId,
     logs,
-    compiledCode,
   });
 
   return handlerResult;
