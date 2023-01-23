@@ -5,21 +5,18 @@ import updateDeploy from "./updateDeploy";
 
 export interface ExecUnsubscribeAfterDeployProps {
   deployId: string;
+  compiledCode: Buffer | null;
 }
 
 export default async function execUnsubscribeAfterDeploy(
   props: ExecUnsubscribeAfterDeployProps
 ) {
-  const { deployId } = props;
+  const { deployId, compiledCode } = props;
 
-  const compiledCodeStr = await getPreviouslyDeployedCode();
-
-  if (!compiledCodeStr) {
+  if (!compiledCode) {
     console.debug("No previous code found, skipping unsubscribe step");
     return;
   }
-
-  const compiledCode = Buffer.from(compiledCodeStr, "base64");
 
   const unsubscribeList = await getUnsubscribeList();
 

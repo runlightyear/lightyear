@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.13.1
+
+### Patch Changes
+
+- Fix bug with handling manual resubscribes
+
 ## 0.13.0
 
 ### Minor Changes
