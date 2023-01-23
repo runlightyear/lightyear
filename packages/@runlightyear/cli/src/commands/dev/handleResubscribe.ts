@@ -11,5 +11,8 @@ export default async function handleResubscribe(props: any) {
 
   console.debug("payload", payload);
 
-  await execResubscribe({ webhookName: payload.webhookName });
+  await execResubscribe({
+    webhookName: payload.webhookName,
+    manual: payload.manual,
+  });
 }

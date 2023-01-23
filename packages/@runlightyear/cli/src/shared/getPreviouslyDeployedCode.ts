@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 
-export default async function getPreviouslyDeployedCode() {
+export default async function getPreviouslyDeployedCode(): Promise<Buffer | null> {
   const baseUrl = process.env.BASE_URL;
   const envName = process.env.ENV_NAME;
   const apiKey = process.env.API_KEY;
@@ -18,7 +18,10 @@ export default async function getPreviouslyDeployedCode() {
 
   if (response.ok) {
     const data = await response.json();
-    return data.compiledCode;
+    if (!data.compiledCode) {
+      throw new Error("Missing compiledCode");
+    }
+    return Buffer.from(data.compiledCode, "base64");
   } else {
     console.log("Previous deploy not found");
     return null;
