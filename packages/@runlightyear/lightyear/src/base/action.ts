@@ -6,7 +6,7 @@ import { InitializerSpec, deployList } from "./deploy";
 import { prefixedRedactedConsole } from "../logging";
 import { AuthData } from "./auth";
 
-export type AppName = "github" | "slack";
+export type AppName = "github" | "openai" | "slack";
 
 export type ActionTrigger = {
   webhook?: string;
@@ -22,7 +22,6 @@ export interface DefineActionOptions {
   apps?: Array<AppName>;
   variables?: Array<string>;
   secrets?: Array<string>;
-  deploy: InitializerSpec;
   run: RunFunc;
 }
 
