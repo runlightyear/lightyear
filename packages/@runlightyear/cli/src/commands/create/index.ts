@@ -2,6 +2,9 @@ import { Command } from "commander";
 import checkLocalDirectoryAvailable from "./checkLocalDirectoryAvailable";
 import checkGitInstalled from "./checkGitInstalled";
 import cloneFromTemplate from "./cloneFromTemplate";
+import removeGitDir from "./removeGitDir";
+import initGit from "./initGit";
+import addAllFilesToGit from "./addAllFilesToGit";
 
 export const create = new Command("create");
 
@@ -12,4 +15,7 @@ create
     await checkGitInstalled();
     await checkLocalDirectoryAvailable(name);
     await cloneFromTemplate(name);
+    await removeGitDir(name);
+    await initGit(name);
+    await addAllFilesToGit(name);
   });

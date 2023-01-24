@@ -4,7 +4,7 @@ import execa from "execa";
 const TEMPLATE_URL = "https://github.com/runlightyear/lightyear-template";
 
 export default async function cloneFromTemplate(projectName: string) {
-  console.log("Cloning from template into directory", projectName);
+  console.info("Cloning from template into directory", projectName);
 
   try {
     await execa("git", [

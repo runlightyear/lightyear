@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.14.0
+
+### Minor Changes
+
+- Disconnect the cloned repo from the template during create
+
 ## 0.13.2
 
 ### Patch Changes
