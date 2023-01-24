@@ -1,6 +1,6 @@
 {
-  "name": "@runlightyear/slack",
-  "version": "0.4.15",
+  "name": "@runlightyear/openai",
+  "version": "0.1.0",
   "publishConfig": {
     "access": "public"
   },
@@ -12,15 +12,12 @@
     "docs:extract": "api-extractor run --local --verbose"
   },
   "dependencies": {
-    "@runlightyear/lightyear": "workspace:*",
-    "node-fetch": "^2.6.7"
+    "@runlightyear/lightyear": "workspace:*"
   },
   "devDependencies": {
-    "@runlightyear/github": "workspace:*",
     "@microsoft/api-extractor": "^7.31.2",
     "@types/jest": "^28.1.8",
     "@types/node": "12.20.24",
-    "@types/node-fetch": "^2.6.2",
     "@types/nodemon": "^1.19.2",
     "@typescript-eslint/parser": "^5.38.0",
     "api-extractor-config": "workspace:*",

@@ -14,7 +14,7 @@ importers:
     devDependencies:
       '@microsoft/api-documenter': link:packages/util/api-documenter
       eslint-config-custom: link:packages/util/eslint-config-custom
-      prettier: 2.8.2
+      prettier: 2.8.3
       turbo: 1.7.0
 
   apps/docs:
@@ -221,6 +221,39 @@ importers:
       ts-node: 10.9.1_fdywls4oqk5utzi4err7lt7tke
       tsconfig: link:../../util/tsconfig
       tsup: 6.3.0_mwhvu7sfp6vq5ryuwb6hlbjfka
+      typescript: 4.8.4
+
+  packages/@runlightyear/openai:
+    specifiers:
+      '@microsoft/api-extractor': ^7.31.2
+      '@runlightyear/lightyear': workspace:*
+      '@types/jest': ^28.1.8
+      '@types/node': 12.20.24
+      '@types/nodemon': ^1.19.2
+      '@typescript-eslint/parser': ^5.38.0
+      api-extractor-config: workspace:*
+      eslint: ^7.32.0
+      eslint-config-custom: workspace:*
+      nodemon: ^2.0.19
+      tsconfig: workspace:*
+      tsdoc-config: workspace:*
+      tsup: ^6.1.3
+      typescript: ^4.5.2
+    dependencies:
+      '@runlightyear/lightyear': link:../lightyear
+    devDependencies:
+      '@microsoft/api-extractor': 7.33.4
+      '@types/jest': 28.1.8
+      '@types/node': 12.20.24
+      '@types/nodemon': 1.19.2
+      '@typescript-eslint/parser': 5.40.1_3rubbgt5ekhqrcgx4uwls3neim
+      api-extractor-config: link:../../util/api-extractor-config
+      eslint: 7.32.0
+      eslint-config-custom: link:../../util/eslint-config-custom
+      nodemon: 2.0.20
+      tsconfig: link:../../util/tsconfig
+      tsdoc-config: link:../../util/tsdoc-config
+      tsup: 6.3.0_typescript@4.8.4
       typescript: 4.8.4
 
   packages/@runlightyear/slack:
@@ -1732,7 +1765,7 @@ packages:
       fs-extra: 7.0.1
       lodash.startcase: 4.4.0
       outdent: 0.5.0
-      prettier: 2.8.2
+      prettier: 2.8.3
       resolve-from: 5.0.0
       semver: 5.7.1
     dev: false
@@ -1899,7 +1932,7 @@ packages:
       '@changesets/types': 5.2.0
       fs-extra: 7.0.1
       human-id: 1.0.2
-      prettier: 2.8.2
+      prettier: 2.8.3
     dev: false
 
   /@colors/colors/1.5.0:
@@ -4368,7 +4401,7 @@ packages:
   /@types/resolve/1.17.1:
     resolution: {integrity: sha512-yy7HuzQhj0dhGpD8RLXSZWEkLsV9ibvxvi6EiJ3bkqLAO1RGo0WbkWQiwpRlSFymTJRz0d3k5LM3kkx8ArDbLw==}
     dependencies:
-      '@types/node': 12.20.24
+      '@types/node': 18.11.2
     dev: true
 
   /@types/responselike/1.0.0:
@@ -11457,8 +11490,8 @@ packages:
     hasBin: true
     dev: true
 
-  /prettier/2.8.2:
-    resolution: {integrity: sha512-BtRV9BcncDyI2tsuS19zzhzoxD8Dh8LiCx7j7tHzrkz8GFXAexeWFdi22mjE1d16dftH2qNaytVxqiRTGlMfpw==}
+  /prettier/2.8.3:
+    resolution: {integrity: sha512-tJ/oJ4amDihPoufT5sM0Z1SKEuKay8LfVAMlbbhnnkvt6BUserZylqo2PN+p9KeljLr0OHa2rXHU1T8reeoTrw==}
     engines: {node: '>=10.13.0'}
     hasBin: true
 

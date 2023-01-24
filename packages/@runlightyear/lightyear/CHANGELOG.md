@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.14.0
+
+### Minor Changes
+
+- Added support for OpenAI
+
 ## 0.13.0
 
 ### Minor Changes
