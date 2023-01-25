@@ -42,7 +42,7 @@ export default async function execUnsubscribeAfterDeploy(
 
   if (unsubscribeList.skipped && unsubscribeList.skipped.length > 0) {
     const message =
-      "Skipping unsubscribe for webhooks that need configuration:" +
+      "Skipping unsubscribe for webhooks that need configuration: " +
       unsubscribeList.skipped.join(", ");
 
     console.info(message);
