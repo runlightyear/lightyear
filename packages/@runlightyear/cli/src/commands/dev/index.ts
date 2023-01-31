@@ -3,15 +3,10 @@ import getPusher from "../../shared/getPusher";
 import getPusherCredentials from "../../shared/getPusherCredentials";
 import handleRunLocal from "./handleRunLocal";
 import nodemon from "nodemon";
-import execDeploy from "../../shared/execDeploy";
-import execUnsubscribeAfterDeploy from "../../shared/execUnsubscribeAfterDeploy";
-import execSubscribeAfterDeploy from "../../shared/execSubscribeAfterDeploy";
 import { terminal } from "terminal-kit";
 import { setLogDisplayLevel } from "../../shared/setLogDisplayLevel";
 import { prepareConsole } from "../../logging";
 import handleResubscribe from "./handleResubscribe";
-import execSubscribeProps from "../../shared/execSubscribeProps";
-import createDeploy from "../../shared/createDeploy";
 import execDeployAndSubscribe from "../../shared/execDeployAndSubscribe";
 
 export const dev = new Command("dev");
@@ -24,6 +19,8 @@ const largeLogo = `
  |_|_|\\__, |_| |_|\\__|\\__, |\\___|\\__,_|_|   
       |___/           |___/                 
 `;
+
+let firstDeploy = true;
 
 dev
   .description("Automatically compile and deploy on changes to source")
@@ -85,6 +82,13 @@ dev
       terminal("\n\nWaiting for file changes...\n");
       terminal("press h for help, press q to quit\n");
       // terminal("press q to quit\n");
+
+      if (firstDeploy) {
+        terminal(
+          "\n\nDashboard is available at https://app.runlightyear.com\n\n"
+        );
+        firstDeploy = false;
+      }
 
       terminal.grabInput(true);
     });
