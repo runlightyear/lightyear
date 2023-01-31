@@ -1,13 +1,12 @@
 import { program } from "commander";
-import execa from "execa";
+import fs from "fs";
+import * as path from "path";
 
 export default async function removeGitDir(projectName: string) {
   console.debug("Removing .git dir");
 
   try {
-    await execa("rm", [`-rf`, `.git`], {
-      cwd: projectName,
-    });
+    fs.rmdirSync(path.join(projectName, ".git"), { recursive: true });
     console.debug("Successfully removed .git dir");
   } catch (error) {
     console.log(error);
