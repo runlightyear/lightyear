@@ -5,25 +5,24 @@ import { terminal } from "terminal-kit";
 
 export default async function writeEnvFile(
   {
-    ENV_NAME,
-    BASE_URL,
-    API_KEY,
-  }: { ENV_NAME: string; BASE_URL: string; API_KEY: string },
+    LIGHTYEAR_API_KEY,
+    baseUrl,
+  }: { LIGHTYEAR_API_KEY: string; baseUrl: string },
   res: ServerResponse
 ) {
   try {
     fs.writeFileSync(
       ".env",
-      `ENV_NAME=${ENV_NAME}
-BASE_URL=${BASE_URL}
-API_KEY=${API_KEY}
-`
+      `LIGHTYEAR_API_KEY=${LIGHTYEAR_API_KEY}\n` +
+        (baseUrl !== "https://app.runlightyear.com"
+          ? `BASE_URL=${baseUrl}\n`
+          : "")
     );
-    res.setHeader("location", `${BASE_URL}/cli-login/succeeded`);
+    res.setHeader("location", `${baseUrl}/cli-login/succeeded`);
     res.end();
     terminal("Login successful, wrote credentials to .env file\n");
   } catch (error) {
-    res.setHeader("location", `${BASE_URL}/cli-login/failed`);
+    res.setHeader("location", `${baseUrl}/cli-login/failed`);
     res.end();
     program.error("Failed to write .env file" + error);
   }

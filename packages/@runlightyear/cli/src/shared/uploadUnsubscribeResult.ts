@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import { terminal } from "terminal-kit";
+import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export interface UploadUnsubscribeResultProps {
   webhookName: string;
@@ -13,9 +14,9 @@ export default async function uploadUnsubscribeResult(
 ) {
   const { webhookName, status, logs, removed } = props;
 
-  const baseUrl = process.env.BASE_URL;
-  const envName = process.env.ENV_NAME;
-  const apiKey = process.env.API_KEY;
+  const baseUrl = getBaseUrl();
+  const envName = getEnvName();
+  const apiKey = getApiKey();
 
   const activityResponse = await fetch(
     `${baseUrl}/api/v1/envs/${envName}/webhooks/${webhookName}/subscription/activities`,

@@ -1,9 +1,10 @@
 import { program } from "commander";
 import fetch from "node-fetch";
+import { getApiKey, getBaseUrl } from "@runlightyear/lightyear";
 
 export default async function fetchDeploy(envName: string, deployId: string) {
-  const baseUrl = process.env.BASE_URL;
-  const apiKey = process.env.API_KEY;
+  const baseUrl = getBaseUrl();
+  const apiKey = getApiKey();
 
   const response = await fetch(
     `${baseUrl}/api/v1/envs/${envName}/deploys/${deployId}`,

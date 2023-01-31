@@ -1,5 +1,6 @@
 import { program } from "commander";
 import fetch from "node-fetch";
+import { getApiKey, getBaseUrl } from "@runlightyear/lightyear";
 
 export interface PusherCredentials {
   pusherKey: string;
@@ -8,21 +9,24 @@ export interface PusherCredentials {
 }
 
 export default async function getPusherCredentials(): Promise<PusherCredentials> {
-  const baseUrl = process.env.BASE_URL;
-  if (!baseUrl) {
-    program.error("Missing BASE_URL env variable");
+  const baseUrl = getBaseUrl();
+
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    program.error("Missing LIGHTYEAR_API_KEY env variable");
   }
 
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    program.error("Missing API_KEY env variable");
-  }
+  console.info("baseUrl", baseUrl);
 
   const response = await fetch(`${baseUrl}/api/v1/realtime/credentials`, {
     headers: {
       Authorization: `apiKey ${apiKey}`,
     },
   });
+
+  if (!response.ok) {
+    program.error("Could not get pusher credentials");
+  }
 
   return await response.json();
 }

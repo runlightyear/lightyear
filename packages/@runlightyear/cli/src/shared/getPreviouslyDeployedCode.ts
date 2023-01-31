@@ -1,9 +1,10 @@
 import fetch from "node-fetch";
+import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export default async function getPreviouslyDeployedCode(): Promise<Buffer | null> {
-  const baseUrl = process.env.BASE_URL;
-  const envName = process.env.ENV_NAME;
-  const apiKey = process.env.API_KEY;
+  const baseUrl = getBaseUrl();
+  const envName = getEnvName();
+  const apiKey = getApiKey();
 
   const response = await fetch(
     `${baseUrl}/api/v1/envs/${envName}/deploys/previous-code`,

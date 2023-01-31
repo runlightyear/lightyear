@@ -18,12 +18,8 @@ export default function getRequestHandler(baseUrl: string) {
       program.error("Failed to find code in url");
     }
 
-    const { ENV_NAME, BASE_URL, API_KEY } = await fetchApiKey(
-      baseUrl,
-      code,
-      res
-    );
-    await writeEnvFile({ ENV_NAME, BASE_URL, API_KEY }, res);
+    const { LIGHTYEAR_API_KEY } = await fetchApiKey(baseUrl, code, res);
+    await writeEnvFile({ LIGHTYEAR_API_KEY, baseUrl }, res);
 
     process.exit(0);
   };

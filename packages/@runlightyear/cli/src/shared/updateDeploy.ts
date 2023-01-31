@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export default async function updateDeploy({
   deployId,
@@ -11,9 +12,9 @@ export default async function updateDeploy({
   logs?: any;
   compiledCode?: any;
 }) {
-  const baseUrl = process.env.BASE_URL;
-  const envName = process.env.ENV_NAME;
-  const apiKey = process.env.API_KEY;
+  const baseUrl = getBaseUrl();
+  const envName = getEnvName();
+  const apiKey = getApiKey();
 
   let response;
 

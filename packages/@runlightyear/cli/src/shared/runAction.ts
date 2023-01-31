@@ -4,6 +4,7 @@ import readPackage from "./readPackage";
 import runInContext from "./runInContext";
 import { prepareConsole } from "../logging";
 import { logDisplayLevel } from "./setLogDisplayLevel";
+import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export default async function runAction({
   actionName,
@@ -16,9 +17,9 @@ export default async function runAction({
   data?: object;
   deliveryId?: string;
 }) {
-  const baseUrl = process.env.BASE_URL;
-  const envName = process.env.ENV_NAME;
-  const apiKey = process.env.API_KEY;
+  const baseUrl = getBaseUrl();
+  const envName = getEnvName();
+  const apiKey = getApiKey();
 
   const pkg = readPackage();
 
