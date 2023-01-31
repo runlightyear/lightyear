@@ -41,7 +41,8 @@ const defineGithubWebhook = (props: DefineGithubWebhookProps) => {
     secrets,
     subscribeProps,
     subscribe: async ({ auths, endpoint, subscribeProps }) => {
-      console.info("Subscribing to Github webhook");
+      console.debug("Subscribing to Github webhook");
+      console.debug("subscribeProps", subscribeProps);
 
       const github = new Github({ auth: auths.github });
 
@@ -54,14 +55,21 @@ const defineGithubWebhook = (props: DefineGithubWebhookProps) => {
         },
       });
 
-      return {
+      console.debug("Subscribed to Github webhook");
+
+      const unsubscribeProps = {
         hookId: response.data.id,
         owner: subscribeProps.owner,
         repo: subscribeProps.repo,
       };
+
+      console.debug("Unsubscribe props", unsubscribeProps);
+
+      return unsubscribeProps;
     },
     unsubscribe: async ({ auths, unsubscribeProps }) => {
-      console.info("Unsubscribing from Github webhook");
+      console.debug("Unsubscribing from Github webhook");
+      console.debug("unsubscribeProps", unsubscribeProps);
 
       const github = new Github({ auth: auths.github });
 
@@ -70,6 +78,8 @@ const defineGithubWebhook = (props: DefineGithubWebhookProps) => {
         repo: unsubscribeProps.repo,
         hookId: unsubscribeProps.hookId,
       });
+
+      console.info("Unsubscribed from Github webhook");
     },
   });
 };
