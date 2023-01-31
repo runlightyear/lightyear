@@ -2,10 +2,11 @@ import fetch from "node-fetch";
 import fse from "fs-extra";
 import { program } from "commander";
 import { TEMP_TGZ_FILE } from "./constants";
+import { getApiKey, getBaseUrl } from "@runlightyear/lightyear";
 
 export default async function requestDeploy(envName: string) {
-  const baseUrl = process.env.BASE_URL;
-  const apiKey = process.env.API_KEY;
+  const baseUrl = getBaseUrl();
+  const apiKey = getApiKey();
 
   const tgz = await fse.readFile(TEMP_TGZ_FILE);
 

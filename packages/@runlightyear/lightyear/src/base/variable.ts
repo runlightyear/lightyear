@@ -1,12 +1,13 @@
 import invariant from "tiny-invariant";
 import baseRequest from "./baseRequest";
+import { getEnvName } from "../util/getEnvName";
 
 export type VariableData = {
   value: string | null;
 };
 
 export async function getVariableData(name: string): Promise<VariableData> {
-  const envName = process.env.ENV_NAME;
+  const envName = getEnvName();
   invariant(envName, "Missing ENV_NAME");
 
   const response = await baseRequest({

@@ -1,6 +1,7 @@
 import invariant from "tiny-invariant";
 import baseRequest from "./baseRequest";
 import { prefixedRedactedConsole } from "../logging";
+import { getEnvName } from "../util/getEnvName";
 
 /**
  * @public
@@ -45,7 +46,7 @@ export type AuthData = {
  * @param name - the name of the auth
  */
 export async function getAuthData(name: string): Promise<AuthData> {
-  const envName = process.env.ENV_NAME;
+  const envName = getEnvName();
   invariant(envName, "Missing ENV_NAME");
 
   const response = await baseRequest({
@@ -69,7 +70,7 @@ export async function getAuthData(name: string): Promise<AuthData> {
 }
 
 export async function refreshToken(name: string) {
-  const envName = process.env.ENV_NAME;
+  const envName = getEnvName();
   invariant(envName, "Missing ENV_NAME");
 
   console.info(`Refreshing auth: ${name}`);

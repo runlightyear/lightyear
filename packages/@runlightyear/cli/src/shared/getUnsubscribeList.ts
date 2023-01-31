@@ -1,10 +1,11 @@
 import fetch from "node-fetch";
 import { terminal } from "terminal-kit";
+import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export default async function getUnsubscribeList() {
-  const baseUrl = process.env.BASE_URL;
-  const envName = process.env.ENV_NAME;
-  const apiKey = process.env.API_KEY;
+  const baseUrl = getBaseUrl();
+  const envName = getEnvName();
+  const apiKey = getApiKey();
 
   const response = await fetch(
     `${baseUrl}/api/v1/envs/${envName}/webhooks/unsubscribe-list`,

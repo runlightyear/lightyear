@@ -1,5 +1,6 @@
 import baseRequest from "./baseRequest";
 import invariant from "tiny-invariant";
+import { getEnvName } from "../util/getEnvName";
 
 interface Props {
   webhookName: string;
@@ -14,7 +15,7 @@ export async function createSubscriptionActivity({
   status,
   logs,
 }: Props) {
-  const envName = process.env.ENV_NAME;
+  const envName = getEnvName();
   invariant(envName, "Missing ENV_NAME");
 
   return await baseRequest({

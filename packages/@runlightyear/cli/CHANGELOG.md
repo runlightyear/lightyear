@@ -1,5 +1,18 @@
 # @runlightyear/cli
 
+## 0.15.0
+
+### Minor Changes
+
+- 776bbb7: Support for new LIGHTYEAR_API_KEY env var
+- bfbe1ae: Make git setup during create cross-platform
+
+### Patch Changes
+
+- 7969ef4: Added url for dashboard after first deploy
+- Updated dependencies [36fa04b]
+  - @runlightyear/lightyear@0.15.0
+
 ## 0.14.1
 
 ### Patch Changes

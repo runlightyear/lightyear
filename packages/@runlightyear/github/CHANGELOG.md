@@ -1,5 +1,13 @@
 # @runlightyear/github
 
+## 0.7.7
+
+### Patch Changes
+
+- 1b3f3e7: Added some additional logging to Github.defineGithubWebhook
+- Updated dependencies [36fa04b]
+  - @runlightyear/lightyear@0.15.0
+
 ## 0.7.6
 
 ### Patch Changes
