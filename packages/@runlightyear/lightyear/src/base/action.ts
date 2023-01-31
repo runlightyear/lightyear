@@ -5,6 +5,7 @@ import { RunFunc, actionIndex } from "../run";
 import { InitializerSpec, deployList } from "./deploy";
 import { prefixedRedactedConsole } from "../logging";
 import { AuthData } from "./auth";
+import { getEnvName } from "../util/getEnvName";
 
 export type AppName = "github" | "openai" | "slack";
 
@@ -154,7 +155,7 @@ export type ActionData = {
 };
 
 export async function getActionData(name: string): Promise<ActionData> {
-  const envName = process.env.ENV_NAME;
+  const envName = getEnvName();
   invariant(envName, "Missing ENV_NAME");
 
   const response = await baseRequest({

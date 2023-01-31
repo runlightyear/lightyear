@@ -1,4 +1,5 @@
 import baseRequest from "./baseRequest";
+import { getEnvName } from "../util/getEnvName";
 
 export interface SaveCacheOptions {
   key: string;
@@ -6,7 +7,7 @@ export interface SaveCacheOptions {
 }
 
 export async function saveCache(options: SaveCacheOptions) {
-  const envName = process.env.ENV_NAME;
+  const envName = getEnvName();
   const { key, value } = options;
 
   await baseRequest({
@@ -30,7 +31,7 @@ export type CacheData = {
 };
 
 export async function getCache(options: GetCacheOptions): Promise<string> {
-  const envName = process.env.ENV_NAME;
+  const envName = getEnvName();
   const { key } = options;
 
   const response = await baseRequest({

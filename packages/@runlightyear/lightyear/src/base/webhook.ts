@@ -5,6 +5,7 @@ import { AppName } from "./action";
 import { Auths, Secrets, Variables } from "../run";
 import { AuthData } from "./auth";
 import { prefixedRedactedConsole } from "../logging";
+import { getEnvName } from "../util/getEnvName";
 
 export type SubscribeFuncProps = {
   endpoint: string;
@@ -112,7 +113,7 @@ export type WebhookData = {
 };
 
 export async function getWebhookData(name: string): Promise<WebhookData> {
-  const envName = process.env.ENV_NAME;
+  const envName = getEnvName();
   invariant(envName, "Missing ENV_NAME");
 
   const response = await baseRequest({

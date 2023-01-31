@@ -1,6 +1,8 @@
 import invariant from "tiny-invariant";
 import fetch, { Response } from "node-fetch";
 import { BaseRequestError } from "./BaseRequestError";
+import { getBaseUrl } from "../util/getBaseUrl";
+import { getApiKey } from "../util/getApiKey";
 
 interface BaseRequestProps {
   uri: string;
@@ -18,10 +20,10 @@ export default async function baseRequest({
   data,
 }: BaseRequestProps): Promise<Response> {
   console.debug("in baseRequest");
-  const baseUrl = process.env.BASE_URL;
+  const baseUrl = getBaseUrl();
   invariant(baseUrl, "Missing BASE_URL");
 
-  const apiKey = process.env.API_KEY;
+  const apiKey = getApiKey();
   invariant(apiKey, "Missing API_KEY");
 
   let queryString = "";

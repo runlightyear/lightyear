@@ -6,6 +6,7 @@ import invariant from "tiny-invariant";
 import { prefixedRedactedConsole } from "../logging";
 import { Auths, Secrets, Variables } from "../run";
 import { subscribeProps } from "../subscriptionActivities";
+import { getEnvName } from "../util/getEnvName";
 
 interface Props {
   envName: string;
@@ -83,7 +84,7 @@ export interface DeployData {
 
 export async function getDeployData(): Promise<DeployData> {
   console.debug("in getDeployData");
-  const envName = process.env.ENV_NAME;
+  const envName = getEnvName();
   invariant(envName, "Missing ENV_NAME");
 
   const response = await baseRequest({
