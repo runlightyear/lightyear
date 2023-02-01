@@ -24,7 +24,7 @@ export default async function getPreviouslyDeployedCode(): Promise<Buffer | null
     }
     return Buffer.from(data.compiledCode, "base64");
   } else {
-    console.log("Previous deploy not found");
+    console.debug("Previous deploy not found");
     return null;
   }
 }

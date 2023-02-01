@@ -15,7 +15,7 @@ export default async function execSubscribeProps(props: ExecSubscribeProps) {
 
   const handler = runInContext(compiledCode);
 
-  console.info("Evaluating subscribe props");
+  console.debug("Evaluating subscribe props");
   const handlerResult = await handler({
     operation: "subscribeProps",
     logDisplayLevel,
