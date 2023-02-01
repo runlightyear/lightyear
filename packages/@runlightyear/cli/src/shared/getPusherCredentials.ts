@@ -16,8 +16,6 @@ export default async function getPusherCredentials(): Promise<PusherCredentials>
     program.error("Missing LIGHTYEAR_API_KEY env variable");
   }
 
-  console.info("baseUrl", baseUrl);
-
   const response = await fetch(`${baseUrl}/api/v1/realtime/credentials`, {
     headers: {
       Authorization: `apiKey ${apiKey}`,
