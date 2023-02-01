@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.15.2
+
+### Patch Changes
+
+- 9602aa0: Fixed a log message
+
 ## 0.15.1
 
 ### Patch Changes
