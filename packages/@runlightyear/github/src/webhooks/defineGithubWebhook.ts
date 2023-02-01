@@ -55,7 +55,7 @@ const defineGithubWebhook = (props: DefineGithubWebhookProps) => {
         },
       });
 
-      console.debug("Subscribed to Github webhook");
+      console.info("Subscribed to Github webhook");
 
       const unsubscribeProps = {
         hookId: response.data.id,
