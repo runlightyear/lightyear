@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.15.3
+
+### Patch Changes
+
+- Get rid of unnecessary log message
+
 ## 0.15.2
 
 ### Patch Changes
