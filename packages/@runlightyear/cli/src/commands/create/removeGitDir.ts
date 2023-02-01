@@ -6,7 +6,7 @@ export default async function removeGitDir(projectName: string) {
   console.debug("Removing .git dir");
 
   try {
-    fs.rmdirSync(path.join(projectName, ".git"), { recursive: true });
+    fs.rmSync(path.join(projectName, ".git"), { recursive: true });
     console.debug("Successfully removed .git dir");
   } catch (error) {
     console.log(error);

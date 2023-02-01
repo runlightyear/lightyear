@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.15.1
+
+### Patch Changes
+
+- Fixed error with git configuration during create
+
 ## 0.15.0
 
 ### Minor Changes
