@@ -89,7 +89,6 @@ dev
 
       terminal("\n\nWaiting for file changes...\n");
       terminal("press h for help, press q to quit\n");
-      // terminal("press q to quit\n");
 
       terminal.grabInput(true);
     });
