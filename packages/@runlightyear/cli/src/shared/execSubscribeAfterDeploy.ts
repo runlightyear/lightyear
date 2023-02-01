@@ -33,7 +33,7 @@ export default async function execSubscribeAfterDeploy(
 
   if (subscribeList.skipped && subscribeList.skipped.length > 0) {
     const message =
-      "Skipping subscribe for webhooks that need configuration:" +
+      "Skipping subscribe for webhooks that need configuration: " +
       subscribeList.skipped.join(", ");
 
     console.info(message);
