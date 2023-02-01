@@ -15,7 +15,7 @@ importers:
       '@microsoft/api-documenter': link:packages/util/api-documenter
       eslint-config-custom: link:packages/util/eslint-config-custom
       prettier: 2.8.3
-      turbo: 1.7.0
+      turbo: 1.7.1
 
   apps/docs:
     specifiers:
@@ -59,7 +59,7 @@ importers:
       '@types/command-exists': ^1.2.0
       '@types/fs-extra': ^9.0.13
       '@types/jest': ^28.1.8
-      '@types/node': 12.20.24
+      '@types/node': 16.18.11
       '@types/node-fetch': ^2.6.2
       '@types/nodemon': ^1.19.2
       '@types/pako': ^2.0.0
@@ -118,7 +118,7 @@ importers:
       '@types/command-exists': 1.2.0
       '@types/fs-extra': 9.0.13
       '@types/jest': 28.1.8
-      '@types/node': 12.20.24
+      '@types/node': 16.18.11
       '@types/node-fetch': 2.6.2
       '@types/nodemon': 1.19.2
       '@types/pako': 2.0.0
@@ -129,10 +129,10 @@ importers:
       babel-jest: 28.1.3_@babel+core@7.19.3
       eslint: 7.32.0
       eslint-config-custom: link:../../util/eslint-config-custom
-      jest: 28.1.3_wueeenxefgwdmaotgbzwkpfawy
+      jest: 28.1.3_35bb52e3ngsl3trrvg3csiponq
       prettier: 2.7.1
       ts-jest: 28.0.8_mqzupvn4egmhbnidexwmhrt75u
-      ts-node: 10.9.1_fdywls4oqk5utzi4err7lt7tke
+      ts-node: 10.9.1_fuvgya3hcdoxlfgft445xm6sbq
       tsconfig: link:../../util/tsconfig
       tsup: 6.3.0_mwhvu7sfp6vq5ryuwb6hlbjfka
       typescript: 4.8.4
@@ -4205,7 +4205,7 @@ packages:
   /@types/fs-extra/9.0.13:
     resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
     dependencies:
-      '@types/node': 12.20.24
+      '@types/node': 18.11.2
     dev: true
 
   /@types/graceful-fs/4.1.5:
@@ -4313,7 +4313,7 @@ packages:
   /@types/node-fetch/2.6.2:
     resolution: {integrity: sha512-DHqhlq5jeESLy19TYhLakJ07kNumXWjcDdxXsLUMJZ6ue8VZJj4kLPQVE/2mdHh3xZziNF1xppu5lwmS53HR+A==}
     dependencies:
-      '@types/node': 12.20.24
+      '@types/node': 18.11.2
       form-data: 3.0.1
     dev: true
 
@@ -4328,6 +4328,9 @@ packages:
     resolution: {integrity: sha512-Y6S38pFr04yb13qqHf8uk1nHE3lXgQ30WZbv1mLliV9pt0NjvqdWttLcrOYLnXbOafknVYRHZGoMSpR9UwfYow==}
     dev: false
 
+  /@types/node/16.18.11:
+    resolution: {integrity: sha512-3oJbGBUWuS6ahSnEq1eN2XrCyf4YsWI8OyCvo7c64zQJNplk3mO84t53o8lfTk+2ji59g5ycfc6qQ3fdHliHuA==}
+
   /@types/node/17.0.45:
     resolution: {integrity: sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==}
     dev: false
@@ -4338,7 +4341,7 @@ packages:
   /@types/nodemon/1.19.2:
     resolution: {integrity: sha512-4GWiTN3HevkxMIxEQ7OpD3MAHhlVsX2tairCMRmf8oYZxmhHw9+UpQpIdGdJrjsMT2Ty26FtJzUUcP/qM5fR8A==}
     dependencies:
-      '@types/node': 12.20.24
+      '@types/node': 18.11.2
     dev: true
 
   /@types/normalize-package-data/2.4.1:
@@ -4456,7 +4459,7 @@ packages:
   /@types/tar/6.1.3:
     resolution: {integrity: sha512-YzDOr5kdAeqS8dcO6NTTHTMJ44MUCBDoLEIyPtwEn7PssKqUYL49R1iCVJPeiPzPlKi6DbH33eZkpeJ27e4vHg==}
     dependencies:
-      '@types/node': 12.20.24
+      '@types/node': 18.11.2
       minipass: 3.3.5
     dev: true
 
@@ -8982,6 +8985,33 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
+  /jest-cli/28.1.3_35bb52e3ngsl3trrvg3csiponq:
+    resolution: {integrity: sha512-roY3kvrv57Azn1yPgdTebPAXvdR2xfezaKKYzVxZ6It/5NCxzJym6tUI5P1zkdWhfUYkxEI9uZWcQdaFLo8mJQ==}
+    engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
+    hasBin: true
+    peerDependencies:
+      node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
+    peerDependenciesMeta:
+      node-notifier:
+        optional: true
+    dependencies:
+      '@jest/core': 28.1.3_ts-node@10.9.1
+      '@jest/test-result': 28.1.3
+      '@jest/types': 28.1.3
+      chalk: 4.1.2
+      exit: 0.1.2
+      graceful-fs: 4.2.10
+      import-local: 3.1.0
+      jest-config: 28.1.3_35bb52e3ngsl3trrvg3csiponq
+      jest-util: 28.1.3
+      jest-validate: 28.1.3
+      prompts: 2.4.2
+      yargs: 17.6.0
+    transitivePeerDependencies:
+      - '@types/node'
+      - supports-color
+      - ts-node
+
   /jest-cli/28.1.3_wueeenxefgwdmaotgbzwkpfawy:
     resolution: {integrity: sha512-roY3kvrv57Azn1yPgdTebPAXvdR2xfezaKKYzVxZ6It/5NCxzJym6tUI5P1zkdWhfUYkxEI9uZWcQdaFLo8mJQ==}
     engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
@@ -9008,6 +9038,7 @@ packages:
       - '@types/node'
       - supports-color
       - ts-node
+    dev: true
 
   /jest-config/27.4.7:
     resolution: {integrity: sha512-xz/o/KJJEedHMrIY9v2ParIoYSrSVY6IVeE4z5Z3i101GoA5XgfbJz+1C8EYPsv7u7f39dS8F9v46BHDhn0vlw==}
@@ -9047,6 +9078,45 @@ packages:
       - utf-8-validate
     dev: true
 
+  /jest-config/28.1.3_35bb52e3ngsl3trrvg3csiponq:
+    resolution: {integrity: sha512-MG3INjByJ0J4AsNBm7T3hsuxKQqFIiRo/AUqb1q9LRKI5UU6Aar9JHbr9Ivn1TVwfUD9KirRoM/T6u8XlcQPHQ==}
+    engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
+    peerDependencies:
+      '@types/node': '*'
+      ts-node: '>=9.0.0'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      ts-node:
+        optional: true
+    dependencies:
+      '@babel/core': 7.19.3
+      '@jest/test-sequencer': 28.1.3
+      '@jest/types': 28.1.3
+      '@types/node': 16.18.11
+      babel-jest: 28.1.3_@babel+core@7.19.3
+      chalk: 4.1.2
+      ci-info: 3.5.0
+      deepmerge: 4.2.2
+      glob: 7.2.3
+      graceful-fs: 4.2.10
+      jest-circus: 28.1.3
+      jest-environment-node: 28.1.3
+      jest-get-type: 28.0.2
+      jest-regex-util: 28.0.2
+      jest-resolve: 28.1.3
+      jest-runner: 28.1.3
+      jest-util: 28.1.3
+      jest-validate: 28.1.3
+      micromatch: 4.0.5
+      parse-json: 5.2.0
+      pretty-format: 28.1.3
+      slash: 3.0.0
+      strip-json-comments: 3.1.1
+      ts-node: 10.9.1_fuvgya3hcdoxlfgft445xm6sbq
+    transitivePeerDependencies:
+      - supports-color
+
   /jest-config/28.1.3_5uyhgycj63wuqgvl4exdnr442q:
     resolution: {integrity: sha512-MG3INjByJ0J4AsNBm7T3hsuxKQqFIiRo/AUqb1q9LRKI5UU6Aar9JHbr9Ivn1TVwfUD9KirRoM/T6u8XlcQPHQ==}
     engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
@@ -9082,7 +9152,7 @@ packages:
       pretty-format: 28.1.3
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1_fdywls4oqk5utzi4err7lt7tke
+      ts-node: 10.9.1_fuvgya3hcdoxlfgft445xm6sbq
     transitivePeerDependencies:
       - supports-color
 
@@ -9124,6 +9194,7 @@ packages:
       ts-node: 10.9.1_fdywls4oqk5utzi4err7lt7tke
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /jest-diff/27.5.1:
     resolution: {integrity: sha512-m0NvkX55LDt9T4mctTEgnZk3fmEg3NRYutvMPWM/0iPnkFj2wIeF45O1718cMSOFO1vINkqmxqD8vE37uTEbqw==}
@@ -9857,6 +9928,25 @@ packages:
       supports-color: 8.1.1
     dev: false
 
+  /jest/28.1.3_35bb52e3ngsl3trrvg3csiponq:
+    resolution: {integrity: sha512-N4GT5on8UkZgH0O5LUavMRV1EDEhNTL0KEfRmDIeZHSV7p2XgLoY9t9VDUgL6o+yfdgYHVxuz81G8oB9VG5uyA==}
+    engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
+    hasBin: true
+    peerDependencies:
+      node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
+    peerDependenciesMeta:
+      node-notifier:
+        optional: true
+    dependencies:
+      '@jest/core': 28.1.3_ts-node@10.9.1
+      '@jest/types': 28.1.3
+      import-local: 3.1.0
+      jest-cli: 28.1.3_35bb52e3ngsl3trrvg3csiponq
+    transitivePeerDependencies:
+      - '@types/node'
+      - supports-color
+      - ts-node
+
   /jest/28.1.3_wueeenxefgwdmaotgbzwkpfawy:
     resolution: {integrity: sha512-N4GT5on8UkZgH0O5LUavMRV1EDEhNTL0KEfRmDIeZHSV7p2XgLoY9t9VDUgL6o+yfdgYHVxuz81G8oB9VG5uyA==}
     engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
@@ -9875,6 +9965,7 @@ packages:
       - '@types/node'
       - supports-color
       - ts-node
+    dev: true
 
   /jju/1.4.0:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
@@ -11122,7 +11213,7 @@ packages:
         optional: true
     dependencies:
       lilconfig: 2.0.6
-      ts-node: 10.9.1_fdywls4oqk5utzi4err7lt7tke
+      ts-node: 10.9.1_fuvgya3hcdoxlfgft445xm6sbq
       yaml: 1.10.2
     dev: true
 
@@ -13203,7 +13294,7 @@ packages:
       bs-logger: 0.2.6
       esbuild: 0.15.12
       fast-json-stable-stringify: 2.1.0
-      jest: 28.1.3_wueeenxefgwdmaotgbzwkpfawy
+      jest: 28.1.3_35bb52e3ngsl3trrvg3csiponq
       jest-util: 28.1.3
       json5: 2.2.1
       lodash.memoize: 4.1.2
@@ -13232,6 +13323,37 @@ packages:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.3
       '@types/node': 12.20.24
+      acorn: 8.8.0
+      acorn-walk: 8.2.0
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 4.8.4
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+    dev: true
+
+  /ts-node/10.9.1_fuvgya3hcdoxlfgft445xm6sbq:
+    resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
+    peerDependencies:
+      '@swc/core': '>=1.2.50'
+      '@swc/wasm': '>=1.2.50'
+      '@types/node': '*'
+      typescript: '>=2.7'
+    peerDependenciesMeta:
+      '@swc/core':
+        optional: true
+      '@swc/wasm':
+        optional: true
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.9
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.3
+      '@types/node': 16.18.11
       acorn: 8.8.0
       acorn-walk: 8.2.0
       arg: 4.1.3
@@ -13353,65 +13475,65 @@ packages:
       yargs: 17.6.0
     dev: false
 
-  /turbo-darwin-64/1.7.0:
-    resolution: {integrity: sha512-hSGAueSf5Ko8J67mpqjpt9FsP6ePn1nMcl7IVPoJq5dHsgX3anCP/BPlexJ502bNK+87DDyhQhJ/LPSJXKrSYQ==}
+  /turbo-darwin-64/1.7.1:
+    resolution: {integrity: sha512-H2txI1gkCQpav+5qGVxB4RzPTTqgDmzbXaJXbjYDR8cS0X/Oq5STea6fRTfumYR2x86Gr3co0V4fQfwILnfvYg==}
     cpu: [x64]
     os: [darwin]
     requiresBuild: true
     dev: true
     optional: true
 
-  /turbo-darwin-arm64/1.7.0:
-    resolution: {integrity: sha512-BLLOW5W6VZxk5+0ZOj5AO1qjM0P5isIgjbEuyAl8lHZ4s9antUbY4CtFrspT32XxPTYoDl4UjviPMcSsbcl3WQ==}
+  /turbo-darwin-arm64/1.7.1:
+    resolution: {integrity: sha512-T7yLTMAdnwfaF9H3uBizztLld1aK/gYiNubpl4HCbMsE/aYEbITtNx1dAFQnjRiPHS4dNYK4gIKc9nnAsnfkxg==}
     cpu: [arm64]
     os: [darwin]
     requiresBuild: true
     dev: true
     optional: true
 
-  /turbo-linux-64/1.7.0:
-    resolution: {integrity: sha512-aw2qxmfZa+kT87SB3GNUoFimqEPzTlzlRqhPgHuAAT6Uf0JHnmebPt4K+ZPtDNl5yfVmtB05bhHPqw+5QV97Yg==}
+  /turbo-linux-64/1.7.1:
+    resolution: {integrity: sha512-kQw+jEpEVUskfPy+7rMF5x6e9Za9AbdD9P7bSo1JuV+tZgUOaFc5iC9Zyj26qhc0Zzl4qZecZ9YccNbZKZ9yCQ==}
     cpu: [x64]
     os: [linux]
     requiresBuild: true
     dev: true
     optional: true
 
-  /turbo-linux-arm64/1.7.0:
-    resolution: {integrity: sha512-AJEx2jX+zO5fQtJpO3r6uhTabj4oSA5ZhB7zTs/rwu/XqoydsvStA4X8NDW4poTbOjF7DcSHizqwi04tSMzpJw==}
+  /turbo-linux-arm64/1.7.1:
+    resolution: {integrity: sha512-PLe0XBJ/YEmiQh+jDcmTRZlxVtkY0CerAu/AKE/c9hCnp6shYqG+peyyuCEzIssUCij2A5yhVd7SIOTQGDzFrQ==}
     cpu: [arm64]
     os: [linux]
     requiresBuild: true
     dev: true
     optional: true
 
-  /turbo-windows-64/1.7.0:
-    resolution: {integrity: sha512-ewj7PPv2uxqv0r31hgnBa3E5qwUu7eyVRP5M1gB/TJXfSHduU79gbxpKCyxIZv2fL/N2/3U7EPOQPSZxBAoljA==}
+  /turbo-windows-64/1.7.1:
+    resolution: {integrity: sha512-70ndrkQomG4JlAAaflVL+Io1msItHiZUq/zf88Nk4z30QSqqC0Zl4rOpUPE3v1IYSO48bUabshySZa9/aTPHhw==}
     cpu: [x64]
     os: [win32]
     requiresBuild: true
     dev: true
     optional: true
 
-  /turbo-windows-arm64/1.7.0:
-    resolution: {integrity: sha512-LzjOUzveWkvTD0jP8DBMYiAnYemmydsvqxdSmsUapHHJkl6wKZIOQNSO7pxsy+9XM/1/+0f9Y9F9ZNl5lePTEA==}
+  /turbo-windows-arm64/1.7.1:
+    resolution: {integrity: sha512-344XY2SrugfHtIe06Vbi17yZ4SRkPvWghvO/gUgUkgSZN06oYj0SHN2+z8pnLkBTfgkt2zBm2cqFFpVFwa8F2A==}
     cpu: [arm64]
     os: [win32]
     requiresBuild: true
     dev: true
     optional: true
 
-  /turbo/1.7.0:
-    resolution: {integrity: sha512-cwympNwQNnQZ/TffBd8yT0i0O10Cf/hlxccCYgUcwhcGEb9rDjE5thDbHoHw1hlJQUF/5ua7ERJe7Zr0lNE/ww==}
+  /turbo/1.7.1:
+    resolution: {integrity: sha512-0ngDU5+2/wLuvTKpc2ZyDtO6aPeHTa6ASlQGySCx+lwSDiE4fCkRVvNINDtT1HgdO/bEo2CQkLoen/Qjf7wWiQ==}
     hasBin: true
     requiresBuild: true
     optionalDependencies:
-      turbo-darwin-64: 1.7.0
-      turbo-darwin-arm64: 1.7.0
-      turbo-linux-64: 1.7.0
-      turbo-linux-arm64: 1.7.0
-      turbo-windows-64: 1.7.0
-      turbo-windows-arm64: 1.7.0
+      turbo-darwin-64: 1.7.1
+      turbo-darwin-arm64: 1.7.1
+      turbo-linux-64: 1.7.1
+      turbo-linux-arm64: 1.7.1
+      turbo-windows-64: 1.7.1
+      turbo-windows-arm64: 1.7.1
     dev: true
 
   /tweetnacl/1.0.3:
