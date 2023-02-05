@@ -1,5 +1,3 @@
-import readPackage from "./readPackage";
-import getCompiledCode from "./getCompiledCode";
 import getSubscribeList from "./getSubscribeList";
 import execSubscribe from "./execSubscribe";
 import updateDeploy from "./updateDeploy";
@@ -20,15 +18,32 @@ export default async function execSubscribeAfterDeploy(
     ...subscribeList.created,
     ...subscribeList.changed,
   ]) {
-    await execSubscribe({ webhookName, compiledCode });
+    let message;
 
-    const message = `subscribed ${webhookName}`;
-
-    console.info(message);
+    message = `Subscribing ${webhookName}`;
+    console.debug(message);
     await updateDeploy({
       deployId,
-      logs: [`[INFO]: ${message}`],
+      logs: [`[DEBUG]: ${message}`],
     });
+
+    const status = await execSubscribe({ webhookName, compiledCode, deployId });
+
+    if (status === "SUCCEEDED") {
+      message = `Subscribe for ${webhookName} succeeded`;
+      console.info(message);
+      await updateDeploy({
+        deployId,
+        logs: [`[INFO]: ${message}`],
+      });
+    } else {
+      message = `Subscribe for ${webhookName} failed`;
+      console.error(message);
+      await updateDeploy({
+        deployId,
+        logs: [`[ERROR]: ${message}`],
+      });
+    }
   }
 
   if (subscribeList.skipped && subscribeList.skipped.length > 0) {

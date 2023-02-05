@@ -1,34 +1,38 @@
 import getUnsubscribeList from "./getUnsubscribeList";
-import getPreviouslyDeployedCode from "./getPreviouslyDeployedCode";
 import execUnsubscribe from "./execUnsubscribe";
 import updateDeploy from "./updateDeploy";
 
 export interface ExecUnsubscribeAfterDeployProps {
   deployId: string;
-  compiledCode: Buffer | null;
 }
 
 export default async function execUnsubscribeAfterDeploy(
   props: ExecUnsubscribeAfterDeployProps
 ) {
-  const { deployId, compiledCode } = props;
-
-  if (!compiledCode) {
-    console.debug("No previous code found, skipping unsubscribe step");
-    return;
-  }
+  const { deployId } = props;
 
   const unsubscribeList = await getUnsubscribeList();
 
   const doTheUnsubscribe = async (webhookName: string, removed: boolean) => {
-    await execUnsubscribe({ webhookName, compiledCode, removed });
+    let message, level;
 
-    const message = `unsubscribed ${webhookName}`;
+    try {
+      await execUnsubscribe({ webhookName, removed });
+      message = `Unsubscribed ${webhookName}`;
+      level = "INFO";
+    } catch (err) {
+      message = `Problem unsubscribing ${webhookName}: ${err}`;
+      level = "WARN";
+    }
 
-    console.info(message);
+    if (level === "INFO") {
+      console.info(message);
+    } else if (level === "WARN") {
+      console.warn(message);
+    }
     await updateDeploy({
       deployId,
-      logs: [`[INFO]: ${message}`],
+      logs: [`[${level}]: ${message}`],
     });
   };
 

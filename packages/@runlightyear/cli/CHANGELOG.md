@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.16.0
+
+### Minor Changes
+
+- Improvements to webhook subscriptions
+
 ## 0.15.3
 
 ### Patch Changes

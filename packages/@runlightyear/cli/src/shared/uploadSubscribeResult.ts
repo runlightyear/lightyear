@@ -6,13 +6,14 @@ export interface UploadSubscribeResultProps {
   webhookName: string;
   status: string;
   unsubscribeProps: any;
+  deployId: string;
   logs: any;
 }
 
 export default async function uploadSubscribeResult(
   props: UploadSubscribeResultProps
 ) {
-  const { webhookName, status, unsubscribeProps, logs } = props;
+  const { webhookName, status, unsubscribeProps, logs, deployId } = props;
 
   const baseUrl = getBaseUrl();
   const envName = getEnvName();
@@ -56,6 +57,7 @@ export default async function uploadSubscribeResult(
       body: JSON.stringify({
         status: status === "FAILED" ? "SUBSCRIBE_FAILED" : "SUBSCRIBED",
         unsubscribeProps,
+        deployId,
       }),
     }
   );
