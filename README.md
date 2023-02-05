@@ -45,8 +45,5 @@ npm run deploy
 
 ## Documentation
 
-Coming soon!
+https://docs.runlightyear.com
 
-## Contributing
-
-[Contributing Guidelines]('./CONTRIBUTING.md)
