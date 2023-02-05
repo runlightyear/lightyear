@@ -6,14 +6,14 @@ import runInContext from "./runInContext";
 export interface ExecSubscribeProps {
   webhookName: string;
   compiledCode: Buffer;
+  deployId: string;
 }
 
 export default async function execSubscribe(props: ExecSubscribeProps) {
-  const { webhookName, compiledCode } = props;
+  const { webhookName, compiledCode, deployId } = props;
 
   const handler = runInContext(compiledCode);
 
-  console.info("Subscribing", webhookName);
   const handlerResult = await handler({
     operation: "subscribe",
     webhookName,
@@ -29,11 +29,15 @@ export default async function execSubscribe(props: ExecSubscribeProps) {
   const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
   console.debug("about to upload subscribe result");
+  console.debug("deployId", deployId);
 
   await uploadSubscribeResult({
     webhookName,
     status,
     logs,
     unsubscribeProps,
+    deployId,
   });
+
+  return status;
 }

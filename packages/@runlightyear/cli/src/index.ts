@@ -21,7 +21,6 @@ program
   .description("Lightyear CLI")
   .version(packageJson.version)
   .addCommand(create)
-  .addCommand(test)
   .addCommand(login)
   .addCommand(dev)
   .addCommand(deploy)

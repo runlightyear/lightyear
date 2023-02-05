@@ -1,13 +1,23 @@
 import fetch from "node-fetch";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
-export default async function getPreviouslyDeployedCode(): Promise<Buffer | null> {
+export interface GetPreviouslyDeployedCodeProps {
+  webhookName: string;
+}
+
+export default async function getPreviouslyDeployedCode(
+  props: GetPreviouslyDeployedCodeProps
+): Promise<Buffer | null> {
   const baseUrl = getBaseUrl();
   const envName = getEnvName();
   const apiKey = getApiKey();
 
+  const { webhookName } = props;
+
+  console.debug("Fetching subscription deploy code for", webhookName);
+
   const response = await fetch(
-    `${baseUrl}/api/v1/envs/${envName}/deploys/previous-code`,
+    `${baseUrl}/api/v1/envs/${envName}/webhooks/${webhookName}/subscription/deploy/code`,
     {
       method: "GET",
       headers: {
@@ -17,11 +27,15 @@ export default async function getPreviouslyDeployedCode(): Promise<Buffer | null
     }
   );
 
+  console.debug("Back from fetching subscription deploy code for", webhookName);
+
   if (response.ok) {
     const data = await response.json();
     if (!data.compiledCode) {
       throw new Error("Missing compiledCode");
     }
+
+    console.debug("Got subscription deploy code");
     return Buffer.from(data.compiledCode, "base64");
   } else {
     console.debug("Previous deploy not found");

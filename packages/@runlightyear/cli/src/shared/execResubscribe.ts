@@ -5,8 +5,6 @@ import createDeploy from "./createDeploy";
 import execUnsubscribeAfterDeploy from "./execUnsubscribeAfterDeploy";
 import execSubscribeAfterDeploy from "./execSubscribeAfterDeploy";
 import updateDeploy from "./updateDeploy";
-import execUnsubscribe from "./execUnsubscribe";
-import execSubscribe from "./execSubscribe";
 
 export interface ExecResubscribeProps {
   webhookName: string;
@@ -19,22 +17,28 @@ export default async function execResubscribe(props: ExecResubscribeProps) {
   const pkg = readPackage();
   const compiledCode = getCompiledCode(pkg.main);
 
-  console.info("Resubscribing", webhookName);
+  const deployId = await createDeploy({ compiledCode });
 
+  let message;
   if (manual) {
-    await execUnsubscribe({ webhookName, compiledCode, removed: false });
-    await execSubscribe({ webhookName, compiledCode });
+    message = `User requested resubscribe for ${webhookName}`;
   } else {
-    const deployId = await createDeploy({ compiledCode });
-
-    await execSubscribeProps({ deployId, compiledCode });
-
-    await execUnsubscribeAfterDeploy({ deployId, compiledCode });
-    await execSubscribeAfterDeploy({ deployId, compiledCode });
-
-    await updateDeploy({
-      deployId,
-      status: "SUCCEEDED",
-    });
+    message = `Resubscribe due to a change on ${webhookName}`;
   }
+
+  console.info(message);
+  await updateDeploy({
+    deployId,
+    logs: [`[INFO]: ${message}`],
+  });
+
+  await execSubscribeProps({ deployId, compiledCode });
+
+  await execUnsubscribeAfterDeploy({ deployId });
+  await execSubscribeAfterDeploy({ deployId, compiledCode });
+
+  await updateDeploy({
+    deployId,
+    status: "SUCCEEDED",
+  });
 }

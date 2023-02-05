@@ -12,7 +12,7 @@ import getPreviouslyDeployedCode from "./getPreviouslyDeployedCode";
 export default async function execDeployAndSubscribe() {
   const pkg = readPackage();
   const compiledCode = getCompiledCode(pkg.main);
-  const previousCompiledCode = await getPreviouslyDeployedCode();
+  // const previousCompiledCode = await getPreviouslyDeployedCode();
 
   const deployId = await createDeploy({ compiledCode });
 
@@ -20,7 +20,6 @@ export default async function execDeployAndSubscribe() {
   await execSubscribeProps({ deployId, compiledCode });
   await execUnsubscribeAfterDeploy({
     deployId,
-    compiledCode: previousCompiledCode,
   });
   await execSubscribeAfterDeploy({ deployId, compiledCode });
 
