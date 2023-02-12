@@ -22,6 +22,7 @@ export type AuthData = {
   apiKey: string | null;
   tokenType?: string | null;
   state?: string | null;
+  codeVerifier?: string | null;
   /**
    * The oauth2 access token
    */

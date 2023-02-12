@@ -51,6 +51,7 @@ import deCamelize from "./util/deCamelize";
 import { getApiKey } from "./util/getApiKey";
 import { getBaseUrl } from "./util/getBaseUrl";
 import { getEnvName } from "./util/getEnvName";
+import { base64ToBase64Url } from "./util/base64ToBase64Url";
 
 const SKIPPED = "SKIPPED";
 
@@ -75,6 +76,7 @@ export {
   getApiKey,
   getBaseUrl,
   getEnvName,
+  base64ToBase64Url,
 };
 
 export type {

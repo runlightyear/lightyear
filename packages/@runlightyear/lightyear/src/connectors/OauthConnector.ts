@@ -89,7 +89,7 @@ export abstract class OauthConnector {
     };
   }
 
-  getRequestAccessTokenBody(code: string): string {
+  getRequestAccessTokenParams(code: string): Record<string, string> {
     invariant(code, "Missing code");
 
     invariant(this.authData, "Missing authData");
@@ -102,13 +102,23 @@ export abstract class OauthConnector {
     invariant(clientId, "Missing clientId");
     invariant(clientSecret, "Missing clientSecret");
 
+    return {
+      grant_type: "authorization_code",
+      code,
+      state,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: this.redirectUri(),
+    };
+  }
+
+  getRequestAccessTokenBody(code: string): string {
+    const rawParams = this.getRequestAccessTokenParams(code);
+
     const params = new URLSearchParams();
-    params.append("grant_type", "authorization_code");
-    params.append("code", code);
-    params.append("state", state);
-    params.append("client_id", clientId);
-    params.append("client_secret", clientSecret);
-    params.append("redirect_uri", this.redirectUri());
+    Object.entries(rawParams).forEach((nameValuePair) => {
+      params.append(nameValuePair[0], nameValuePair[1]);
+    });
 
     return params.toString();
   }
