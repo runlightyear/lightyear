@@ -7,7 +7,7 @@ import { prefixedRedactedConsole } from "../logging";
 import { AuthData } from "./auth";
 import { getEnvName } from "../util/getEnvName";
 
-export type AppName = "github" | "openai" | "slack";
+export type AppName = "airtable" | "github" | "openai" | "slack";
 
 export type ActionTrigger = {
   webhook?: string;

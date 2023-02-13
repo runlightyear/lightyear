@@ -1,5 +1,12 @@
 # @runlightyear/lightyear
 
+## 0.16.0
+
+### Minor Changes
+
+- Flexibility to specify oauth token request params
+- Initial support for GraphQL connectors
+
 ## 0.15.0
 
 ### Minor Changes

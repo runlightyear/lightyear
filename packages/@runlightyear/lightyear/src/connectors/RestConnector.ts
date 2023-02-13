@@ -7,14 +7,18 @@ import { WebhookDeliveryData } from "../base/runData";
 
 export interface RestConnectorOptions extends AuthConnectorOptions {
   baseUrl: string;
+  camelize?: boolean;
 }
 
 export class RestConnector extends AuthConnector {
   baseUrl: string;
+  camelize: boolean;
 
-  constructor({ baseUrl, ...rest }: RestConnectorOptions) {
+  constructor(props: RestConnectorOptions) {
+    const { baseUrl, camelize = true, ...rest } = props;
     super(rest);
     this.baseUrl = baseUrl;
+    this.camelize = camelize;
   }
 
   buildUrl(url: string, params?: Record<string, any>) {
@@ -30,6 +34,7 @@ export class RestConnector extends AuthConnector {
 
     return {
       Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
     };
   }
 
@@ -52,7 +57,11 @@ export class RestConnector extends AuthConnector {
 
     const response = await httpRequest(proxyOptions);
 
-    return { ...response, data: camelize(response.data) };
+    const processedData = this.camelize
+      ? camelize(response.data)
+      : response.data;
+
+    return { ...response, data: processedData };
   }
 
   async get(options: HttpProxyRequestOptions) {
