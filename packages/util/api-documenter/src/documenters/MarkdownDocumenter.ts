@@ -1524,10 +1524,16 @@ export class MarkdownDocumenter {
     const withExtension = "./" + this._getFilenameForApiItem(apiItem);
     const withoutExtension = withExtension.slice(0, -3);
     if (withoutExtension.slice(-6) === "/index") {
-      return withoutExtension.slice(0, -6);
-    } else {
-      return withoutExtension;
+      const withoutIndex = withoutExtension.slice(0, -6);
+
+      if (withoutIndex === ".") {
+        return "/docs";
+      }
+
+      return withoutIndex;
     }
+
+    return withoutExtension;
   }
 
   private _deleteOldOutputFiles(): void {
