@@ -1535,7 +1535,7 @@ export class MarkdownDocumenter {
   }
 
   private _getLinkFilenameForApiItem(apiItem: ApiItem): string {
-    const withExtension = "./" + this._getFilenameForApiItem(apiItem);
+    const withExtension = "/docs/api/" + this._getFilenameForApiItem(apiItem);
     const withoutExtension = withExtension.slice(0, -3);
     if (withoutExtension.slice(-6) === "/index") {
       const withoutIndex = withoutExtension.slice(0, -6);
