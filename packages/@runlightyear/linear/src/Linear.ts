@@ -1,5 +1,4 @@
-import { GraphQLConnector } from "@runlightyear/lightyear/src/connectors/GraphQLConnector";
-import { AuthConnectorProps } from "@runlightyear/lightyear";
+import { GraphQLConnector, AuthConnectorProps } from "@runlightyear/lightyear";
 
 /**
  * @beta
