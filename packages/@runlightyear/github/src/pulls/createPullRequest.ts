@@ -1,6 +1,6 @@
 import { Github } from "../Github";
 
-export interface CreatePullRequestOptions {
+export interface CreatePullRequestProps {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
@@ -40,7 +40,7 @@ export interface CreatePullRequestOptions {
 }
 
 const createPullRequest =
-  (self: Github) => async (options: CreatePullRequestOptions) => {
+  (self: Github) => async (props: CreatePullRequestProps) => {
     const {
       owner,
       repo,
@@ -51,7 +51,7 @@ const createPullRequest =
       maintainerCanModify,
       draft,
       issue,
-    } = options;
+    } = props;
 
     return await self.post({
       url: `/repos/${owner}/${repo}/pulls`,

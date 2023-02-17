@@ -1,16 +1,16 @@
 import { Github, GithubConnectorProps, GithubDefineAuthProps } from "./Github";
 import { GithubOauth } from "./GithubOauth";
-import { CreateGistOptions } from "./gists/createGist";
-import { CreateIssueOptions } from "./issues/createIssue";
-import { UpdateIssueOptions } from "./issues/updateIssue";
-import { CreatePullRequestOptions } from "./pulls/createPullRequest";
-import { CreatePullRequestCommentOptions } from "./pulls/createReviewCommentForPullRequest";
-import { UpdatePullRequestOptions } from "./pulls/updatePullRequest";
-import { DownloadRepoArchiveTarOptions } from "./repositories/contents/downloadRepoArchiveTar";
-import { DownloadRepoArchiveZipOptions } from "./repositories/contents/downloadRepoArchiveZip";
-import { ListOrganizationRepositoriesOptions } from "./repositories/listOrganizationRepositories";
-import { ListRepositoriesForAuthenticatedUserOptions } from "./repositories/listRepositoriesForAuthenticatedUser";
-import { ListRepositoriesForUserOptions } from "./repositories/listRepositoriesForUser";
+import { CreateGistProps } from "./gists/createGist";
+import { CreateIssueProps } from "./issues/createIssue";
+import { UpdateIssueProps } from "./issues/updateIssue";
+import { CreatePullRequestProps } from "./pulls/createPullRequest";
+import { CreatePullRequestCommentProps } from "./pulls/createReviewCommentForPullRequest";
+import { UpdatePullRequestProps } from "./pulls/updatePullRequest";
+import { DownloadRepoArchiveTarProps } from "./repositories/contents/downloadRepoArchiveTar";
+import { DownloadRepoArchiveZipProps } from "./repositories/contents/downloadRepoArchiveZip";
+import { ListOrganizationRepositoriesProps } from "./repositories/listOrganizationRepositories";
+import { ListRepositoriesForAuthenticatedUserProps } from "./repositories/listRepositoriesForAuthenticatedUser";
+import { ListRepositoriesForUserProps } from "./repositories/listRepositoriesForUser";
 import { CommonPayload } from "./webhooks/payloads/commonPayload";
 import { PingPayload } from "./webhooks/payloads/pingPayload";
 import { PullRequestPayload } from "./webhooks/payloads/pullRequestPayload";
@@ -18,19 +18,19 @@ import { PullRequestReviewPayload } from "./webhooks/payloads/pullRequestReviewP
 import { PushPayload } from "./webhooks/payloads/pushPayload";
 import { WorkflowRunPayload } from "./webhooks/payloads/workflowRunPayload";
 import {
-  CreateRepositoryWebhookOptions,
+  CreateRepositoryWebhookProps,
   CreateRepositoryWebhookResponse,
 } from "./webhooks/repositoryWebhooks/createRepositoryWebhook";
-import { DeleteRepositoryWebhookOptions } from "./webhooks/repositoryWebhooks/deleteRepositoryWebhook";
-import { GetRepositoryWebhookOptions } from "./webhooks/repositoryWebhooks/getRepositoryWebhook";
+import { DeleteRepositoryWebhookProps } from "./webhooks/repositoryWebhooks/deleteRepositoryWebhook";
+import { GetRepositoryWebhookProps } from "./webhooks/repositoryWebhooks/getRepositoryWebhook";
 import {
-  ListRepositoryWebhooksOptions,
+  ListRepositoryWebhooksProps,
   ListRepositoryWebhooksResponse,
 } from "./webhooks/repositoryWebhooks/listRepositoryWebhooks";
-import { PingRepositoryWebhookOptions } from "./webhooks/repositoryWebhooks/pingRepositoryWebhook";
-import { TestPushRepositoryWebhookOptions } from "./webhooks/repositoryWebhooks/testPushRepositoryWebhook";
+import { PingRepositoryWebhookProps } from "./webhooks/repositoryWebhooks/pingRepositoryWebhook";
+import { TestPushRepositoryWebhookProps } from "./webhooks/repositoryWebhooks/testPushRepositoryWebhook";
 import {
-  UpdateRepositoryWebhookOptions,
+  UpdateRepositoryWebhookProps,
   UpdateRepositoryWebhookResponse,
 } from "./webhooks/repositoryWebhooks/updateRepositoryWebhook";
 import WebhookConfig from "./webhooks/WebhookConfig";
@@ -40,32 +40,32 @@ export { Github, GithubOauth };
 export type {
   GithubConnectorProps,
   GithubDefineAuthProps,
-  CreateGistOptions,
-  CreateIssueOptions,
-  UpdateIssueOptions,
-  CreatePullRequestOptions,
-  CreatePullRequestCommentOptions,
-  UpdatePullRequestOptions,
-  DownloadRepoArchiveTarOptions,
-  DownloadRepoArchiveZipOptions,
-  ListOrganizationRepositoriesOptions,
-  ListRepositoriesForAuthenticatedUserOptions,
-  ListRepositoriesForUserOptions,
+  CreateGistProps,
+  CreateIssueProps,
+  UpdateIssueProps,
+  CreatePullRequestProps,
+  CreatePullRequestCommentProps,
+  UpdatePullRequestProps,
+  DownloadRepoArchiveTarProps,
+  DownloadRepoArchiveZipProps,
+  ListOrganizationRepositoriesProps,
+  ListRepositoriesForAuthenticatedUserProps,
+  ListRepositoriesForUserProps,
   CommonPayload,
   PingPayload,
   PullRequestPayload,
   PullRequestReviewPayload,
   PushPayload,
   WorkflowRunPayload,
-  CreateRepositoryWebhookOptions,
+  CreateRepositoryWebhookProps,
   CreateRepositoryWebhookResponse,
-  DeleteRepositoryWebhookOptions,
-  GetRepositoryWebhookOptions,
-  ListRepositoryWebhooksOptions,
+  DeleteRepositoryWebhookProps,
+  GetRepositoryWebhookProps,
+  ListRepositoryWebhooksProps,
   ListRepositoryWebhooksResponse,
-  PingRepositoryWebhookOptions,
-  TestPushRepositoryWebhookOptions,
-  UpdateRepositoryWebhookOptions,
+  PingRepositoryWebhookProps,
+  TestPushRepositoryWebhookProps,
+  UpdateRepositoryWebhookProps,
   UpdateRepositoryWebhookResponse,
   WebhookConfig,
   WebhookEvent,

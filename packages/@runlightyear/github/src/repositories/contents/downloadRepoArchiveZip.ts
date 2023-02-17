@@ -1,6 +1,6 @@
 import { Github } from "../../Github";
 
-export interface DownloadRepoArchiveZipOptions {
+export interface DownloadRepoArchiveZipProps {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
@@ -13,8 +13,8 @@ export interface DownloadRepoArchiveZipOptions {
 }
 
 const downloadRepoArchiveZip =
-  (self: Github) => async (options: DownloadRepoArchiveZipOptions) => {
-    const { owner, repo, ref } = options;
+  (self: Github) => async (props: DownloadRepoArchiveZipProps) => {
+    const { owner, repo, ref } = props;
 
     return await self.get({
       url: `/repos/${owner}/${repo}/zipball/${ref}`,

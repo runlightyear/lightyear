@@ -1,6 +1,6 @@
 import { Github } from "../Github";
 
-export interface CreateIssueOptions {
+export interface CreateIssueProps {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
@@ -37,8 +37,8 @@ export interface CreateIssueOptions {
   assignees?: Array<string>;
 }
 
-const createIssue = (self: Github) => async (options: CreateIssueOptions) => {
-  const { owner, repo, title, milestone, labels, assignees } = options;
+const createIssue = (self: Github) => async (props: CreateIssueProps) => {
+  const { owner, repo, title, milestone, labels, assignees } = props;
 
   return await self.post({
     url: `/repos/${owner}/${repo}/issues`,

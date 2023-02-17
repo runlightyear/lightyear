@@ -1,7 +1,7 @@
 import type { GithubTypes } from "../GithubTypes";
 import { Github } from "../Github";
 
-export interface CreateGistOptions {
+export interface CreateGistProps {
   /**
    * Description of the gist
    */
@@ -16,8 +16,8 @@ export interface CreateGistOptions {
   isPublic?: boolean;
 }
 
-const createGist = (self: Github) => async (options: CreateGistOptions) => {
-  const { description, files, isPublic } = options;
+const createGist = (self: Github) => async (props: CreateGistProps) => {
+  const { description, files, isPublic } = props;
 
   return await self.post({
     url: `/gists`,
