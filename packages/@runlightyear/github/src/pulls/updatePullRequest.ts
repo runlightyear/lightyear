@@ -1,9 +1,9 @@
 import { Github } from "../Github";
 
 /**
- * This is a description of these options
+ * This is a description of these props
  */
-export interface UpdatePullRequestOptions {
+export interface UpdatePullRequestProps {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
@@ -39,7 +39,7 @@ export interface UpdatePullRequestOptions {
 }
 
 const updatePullRequest =
-  (self: Github) => async (options: UpdatePullRequestOptions) => {
+  (self: Github) => async (props: UpdatePullRequestProps) => {
     const {
       owner,
       repo,
@@ -49,7 +49,7 @@ const updatePullRequest =
       state,
       base,
       maintainerCanModify,
-    } = options;
+    } = props;
 
     return await self.patch({
       url: `/repos/${owner}/${repo}/pulls/${pullNumber}`,

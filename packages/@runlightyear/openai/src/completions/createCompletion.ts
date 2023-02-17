@@ -1,6 +1,9 @@
 import { OpenAI } from "../OpenAI";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 
+/**
+ * @beta
+ */
 export interface CreateCompletionProps {
   /**
    * ID of the model to use. You can use the List models API to see all of your available models, or see our Model overview for descriptions of them.
@@ -121,6 +124,9 @@ export interface CreateCompletionProps {
   user?: string;
 }
 
+/**
+ * @beta
+ */
 export interface CreateCompletionResponse extends HttpProxyResponse {
   data: {
     id: string;

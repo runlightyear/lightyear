@@ -1,6 +1,9 @@
 import { OauthConnector, OauthConnectorProps } from "@runlightyear/lightyear";
 import { LinearScope } from "./types/LinearScope";
 
+/**
+ * @beta
+ */
 export interface LinearOauthProps extends OauthConnectorProps {
   /**
    * List of scopes
@@ -23,6 +26,9 @@ export interface LinearOauthProps extends OauthConnectorProps {
     | "application";
 }
 
+/**
+ * @beta
+ */
 export class LinearOauth extends OauthConnector {
   scope: LinearScope[];
   prompt: "consent" | undefined;

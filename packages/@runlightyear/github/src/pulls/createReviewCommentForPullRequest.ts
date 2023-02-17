@@ -1,6 +1,6 @@
 import { Github } from "../Github";
 
-export interface CreatePullRequestCommentOptions {
+export interface CreatePullRequestCommentProps {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
@@ -26,7 +26,7 @@ export interface CreatePullRequestCommentOptions {
    */
   path?: string;
   /**
-   * In a split diff view, the side of the diff that the pull request's changes appear on. Can be LEFT or RIGHT. Use LEFT for deletions that appear in red. Use RIGHT for additions that appear in green or unchanged lines that appear in white and are shown for context. For a multi-line comment, side represents whether the last line of the comment range is a deletion or addition. For more information, see "Diff view options" in the GitHub Help documentation.
+   * In a split diff view, the side of the diff that the pull request's changes appear on. Can be LEFT or RIGHT. Use LEFT for deletions that appear in red. Use RIGHT for additions that appear in green or unchanged lines that appear in white and are shown for context. For a multi-line comment, side represents whether the last line of the comment range is a deletion or addition. For more information, see "Diff view props" in the GitHub Help documentation.
    *
    * Can be one of: LEFT, RIGHT
    */
@@ -56,7 +56,7 @@ export interface CreatePullRequestCommentOptions {
 }
 
 const createReviewCommentForPullRequest =
-  (self: Github) => async (options: CreatePullRequestCommentOptions) => {
+  (self: Github) => async (props: CreatePullRequestCommentProps) => {
     const {
       owner,
       repo,
@@ -69,7 +69,7 @@ const createReviewCommentForPullRequest =
       startLine,
       startSide,
       inReplyTo,
-    } = options;
+    } = props;
 
     return await self.post({
       url: `/repos/${owner}/${repo}/pulls/${pullNumber}/comments`,

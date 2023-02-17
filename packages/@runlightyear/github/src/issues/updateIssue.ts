@@ -1,6 +1,6 @@
 import { Github } from "../Github";
 
-export interface UpdateIssueOptions {
+export interface UpdateIssueProps {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
@@ -49,7 +49,7 @@ export interface UpdateIssueOptions {
   assignees?: Array<string>;
 }
 
-const updateIssue = (self: Github) => async (options: UpdateIssueOptions) => {
+const updateIssue = (self: Github) => async (props: UpdateIssueProps) => {
   const {
     owner,
     repo,
@@ -60,7 +60,7 @@ const updateIssue = (self: Github) => async (options: UpdateIssueOptions) => {
     milestone,
     labels,
     assignees,
-  } = options;
+  } = props;
 
   return await self.patch({
     url: `/repos/${owner}/${repo}/issues/${issueNumber}`,

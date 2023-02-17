@@ -1,6 +1,6 @@
 import {
   RestConnector,
-  AuthConnectorOptions,
+  AuthConnectorProps,
   HttpProxyRequestOptions,
   HttpProxyResponse,
 } from "@runlightyear/lightyear";
@@ -53,7 +53,7 @@ export class Slack extends RestConnector {
    *
    * @param options
    */
-  constructor(options: AuthConnectorOptions) {
+  constructor(options: AuthConnectorProps) {
     super({ ...options, baseUrl: "https://slack.com/api/" });
   }
 

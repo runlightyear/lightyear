@@ -1,9 +1,9 @@
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { Github } from "../../Github";
-import WebhookConfig from "../WebhookConfig";
-import WebhookEvent from "../WebhookEvent";
+import WebhookConfig from "../../types/WebhookConfig";
+import WebhookEvent from "../../types/WebhookEvent";
 
-export interface UpdateRepositoryWebhookOptions {
+export interface UpdateRepositoryWebhookProps {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
@@ -80,7 +80,7 @@ export interface UpdateRepositoryWebhookResponse extends HttpProxyResponse {
 const updateRepositoryWebhook =
   (self: Github) =>
   async (
-    options: UpdateRepositoryWebhookOptions
+    props: UpdateRepositoryWebhookProps
   ): Promise<UpdateRepositoryWebhookResponse> => {
     const {
       owner,
@@ -91,7 +91,7 @@ const updateRepositoryWebhook =
       addEvents,
       removeEvents,
       active,
-    } = options;
+    } = props;
 
     return self.patch({
       url: `/repos/${owner}/${repo}/hooks/${hookId}`,

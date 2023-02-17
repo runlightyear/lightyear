@@ -3,6 +3,9 @@ import { AuthData } from "../base/auth";
 import dayjsUtc from "../util/dayjsUtc";
 import inDevelopment from "../util/inDevelopment";
 
+/**
+ * @public
+ */
 export interface OauthConnectorProps {
   appName?: string;
   customAppName?: string;
@@ -10,6 +13,9 @@ export interface OauthConnectorProps {
   authData: AuthData;
 }
 
+/**
+ * @public
+ */
 export interface OauthConfigData {
   clientId: string | null;
   clientSecret: string | null;
@@ -17,7 +23,15 @@ export interface OauthConfigData {
 }
 
 /**
- * Oauth2 token management
+ * @public
+ *
+ * Oauth2 Connector
+ *
+ * Creates the input to the 3 essential Oauth tasks:
+ *
+ * 1. Generates a url to request an access token
+ * 2. Converts the oauth callback parameters into the https call to request an access token
+ * 3. Provides the https params to refresh an access token
  */
 export abstract class OauthConnector {
   appName?: string;

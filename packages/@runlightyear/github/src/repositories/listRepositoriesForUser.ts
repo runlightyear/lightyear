@@ -1,6 +1,6 @@
 import { Github } from "../Github";
 
-export interface ListRepositoriesForUserOptions {
+export interface ListRepositoriesForUserProps {
   /**
    * The handle for the GitHub user account.
    */
@@ -36,8 +36,8 @@ export interface ListRepositoriesForUserOptions {
 }
 
 const listRepositoriesForUser =
-  (self: Github) => async (options: ListRepositoriesForUserOptions) => {
-    const { username, type, sort, direction, perPage, page } = options;
+  (self: Github) => async (props: ListRepositoriesForUserProps) => {
+    const { username, type, sort, direction, perPage, page } = props;
 
     return await self.get({
       url: `/users/${username}/repos`,

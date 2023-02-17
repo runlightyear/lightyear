@@ -1,14 +1,22 @@
 import baseRequest from "./baseRequest";
 import { getEnvName } from "../util/getEnvName";
 
-export interface SaveCacheOptions {
+/**
+ * @alpha
+ */
+export interface SaveCacheProps {
   key: string;
   value: string;
 }
 
-export async function saveCache(options: SaveCacheOptions) {
+/**
+ * @alpha
+ *
+ * @param props
+ */
+export async function saveCache(props: SaveCacheProps) {
   const envName = getEnvName();
-  const { key, value } = options;
+  const { key, value } = props;
 
   await baseRequest({
     method: "PATCH",
@@ -19,20 +27,31 @@ export async function saveCache(options: SaveCacheOptions) {
   });
 }
 
-export interface GetCacheOptions {
+/**
+ * @alpha
+ */
+export interface GetCacheProps {
   key: string;
   deployId?: string;
   actionId?: string;
   runId?: string;
 }
 
+/**
+ * @alpha
+ */
 export type CacheData = {
   value: string;
 };
 
-export async function getCache(options: GetCacheOptions): Promise<string> {
+/**
+ * @alpha
+ *
+ * @param props
+ */
+export async function getCache(props: GetCacheProps): Promise<string> {
   const envName = getEnvName();
-  const { key } = options;
+  const { key } = props;
 
   const response = await baseRequest({
     method: "GET",

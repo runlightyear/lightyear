@@ -1,76 +1,114 @@
-import {
-  Github,
-  GithubConnectorOptions,
-  GithubDefineAuthOptions,
-} from "./Github";
+/** GitHub **/
+
+import { Github } from "./Github";
+import type { GithubConnectorProps, GithubDefineAuthProps } from "./Github";
+
+/** GithubOauth **/
+
 import { GithubOauth } from "./GithubOauth";
-import { CreateGistOptions } from "./gists/createGist";
-import { CreateIssueOptions } from "./issues/createIssue";
-import { UpdateIssueOptions } from "./issues/updateIssue";
-import { CreatePullRequestOptions } from "./pulls/createPullRequest";
-import { CreatePullRequestCommentOptions } from "./pulls/createReviewCommentForPullRequest";
-import { UpdatePullRequestOptions } from "./pulls/updatePullRequest";
-import { DownloadRepoArchiveTarOptions } from "./repositories/contents/downloadRepoArchiveTar";
-import { DownloadRepoArchiveZipOptions } from "./repositories/contents/downloadRepoArchiveZip";
-import { ListOrganizationRepositoriesOptions } from "./repositories/listOrganizationRepositories";
-import { ListRepositoriesForAuthenticatedUserOptions } from "./repositories/listRepositoriesForAuthenticatedUser";
-import { ListRepositoriesForUserOptions } from "./repositories/listRepositoriesForUser";
+import type { GithubOauthProps } from "./GithubOauth";
+
+/** Gists **/
+
+import { CreateGistProps } from "./gists/createGist";
+
+/** Issues **/
+
+import { CreateIssueProps } from "./issues/createIssue";
+import { UpdateIssueProps } from "./issues/updateIssue";
+
+/** Pulls **/
+
+import { CreatePullRequestProps } from "./pulls/createPullRequest";
+import { CreatePullRequestCommentProps } from "./pulls/createReviewCommentForPullRequest";
+import { UpdatePullRequestProps } from "./pulls/updatePullRequest";
+
+/** Repositories **/
+
+import { DownloadRepoArchiveTarProps } from "./repositories/contents/downloadRepoArchiveTar";
+import { DownloadRepoArchiveZipProps } from "./repositories/contents/downloadRepoArchiveZip";
+import { ListOrganizationRepositoriesProps } from "./repositories/listOrganizationRepositories";
+import { ListRepositoriesForAuthenticatedUserProps } from "./repositories/listRepositoriesForAuthenticatedUser";
+import { ListRepositoriesForUserProps } from "./repositories/listRepositoriesForUser";
+
+/** Webhooks **/
+
+import type {
+  DefineGithubWebhookProps,
+  GithubWebhookSubscribeProps,
+  GithubWebhookSubscribePropsFunc,
+} from "./webhooks/defineGithubWebhook";
+
+/** Webhooks Payloads **/
+
 import { CommonPayload } from "./webhooks/payloads/commonPayload";
 import { PingPayload } from "./webhooks/payloads/pingPayload";
 import { PullRequestPayload } from "./webhooks/payloads/pullRequestPayload";
 import { PullRequestReviewPayload } from "./webhooks/payloads/pullRequestReviewPayload";
 import { PushPayload } from "./webhooks/payloads/pushPayload";
 import { WorkflowRunPayload } from "./webhooks/payloads/workflowRunPayload";
+
+/** Webhooks Repositories **/
+
 import {
-  CreateRepositoryWebhookOptions,
+  CreateRepositoryWebhookProps,
   CreateRepositoryWebhookResponse,
 } from "./webhooks/repositoryWebhooks/createRepositoryWebhook";
-import { DeleteRepositoryWebhookOptions } from "./webhooks/repositoryWebhooks/deleteRepositoryWebhook";
-import { GetRepositoryWebhookOptions } from "./webhooks/repositoryWebhooks/getRepositoryWebhook";
+import { DeleteRepositoryWebhookProps } from "./webhooks/repositoryWebhooks/deleteRepositoryWebhook";
+import { GetRepositoryWebhookProps } from "./webhooks/repositoryWebhooks/getRepositoryWebhook";
 import {
-  ListRepositoryWebhooksOptions,
+  ListRepositoryWebhooksProps,
   ListRepositoryWebhooksResponse,
 } from "./webhooks/repositoryWebhooks/listRepositoryWebhooks";
-import { PingRepositoryWebhookOptions } from "./webhooks/repositoryWebhooks/pingRepositoryWebhook";
-import { TestPushRepositoryWebhookOptions } from "./webhooks/repositoryWebhooks/testPushRepositoryWebhook";
+import { PingRepositoryWebhookProps } from "./webhooks/repositoryWebhooks/pingRepositoryWebhook";
+import { TestPushRepositoryWebhookProps } from "./webhooks/repositoryWebhooks/testPushRepositoryWebhook";
 import {
-  UpdateRepositoryWebhookOptions,
+  UpdateRepositoryWebhookProps,
   UpdateRepositoryWebhookResponse,
 } from "./webhooks/repositoryWebhooks/updateRepositoryWebhook";
-import WebhookConfig from "./webhooks/WebhookConfig";
-import WebhookEvent from "./webhooks/WebhookEvent";
+
+/** Types **/
+
+import type { GithubScope } from "./types/GithubScope";
+import type WebhookConfig from "./types/WebhookConfig";
+import type WebhookEvent from "./types/WebhookEvent";
 
 export { Github, GithubOauth };
 export type {
-  GithubConnectorOptions,
-  GithubDefineAuthOptions,
-  CreateGistOptions,
-  CreateIssueOptions,
-  UpdateIssueOptions,
-  CreatePullRequestOptions,
-  CreatePullRequestCommentOptions,
-  UpdatePullRequestOptions,
-  DownloadRepoArchiveTarOptions,
-  DownloadRepoArchiveZipOptions,
-  ListOrganizationRepositoriesOptions,
-  ListRepositoriesForAuthenticatedUserOptions,
-  ListRepositoriesForUserOptions,
+  GithubConnectorProps,
+  GithubOauthProps,
+  GithubDefineAuthProps,
+  CreateGistProps,
+  CreateIssueProps,
+  UpdateIssueProps,
+  CreatePullRequestProps,
+  CreatePullRequestCommentProps,
+  UpdatePullRequestProps,
+  DownloadRepoArchiveTarProps,
+  DownloadRepoArchiveZipProps,
+  ListOrganizationRepositoriesProps,
+  ListRepositoriesForAuthenticatedUserProps,
+  ListRepositoriesForUserProps,
+  DefineGithubWebhookProps,
+  GithubWebhookSubscribeProps,
+  GithubWebhookSubscribePropsFunc,
   CommonPayload,
   PingPayload,
   PullRequestPayload,
   PullRequestReviewPayload,
   PushPayload,
   WorkflowRunPayload,
-  CreateRepositoryWebhookOptions,
+  CreateRepositoryWebhookProps,
   CreateRepositoryWebhookResponse,
-  DeleteRepositoryWebhookOptions,
-  GetRepositoryWebhookOptions,
-  ListRepositoryWebhooksOptions,
+  DeleteRepositoryWebhookProps,
+  GetRepositoryWebhookProps,
+  ListRepositoryWebhooksProps,
   ListRepositoryWebhooksResponse,
-  PingRepositoryWebhookOptions,
-  TestPushRepositoryWebhookOptions,
-  UpdateRepositoryWebhookOptions,
+  PingRepositoryWebhookProps,
+  TestPushRepositoryWebhookProps,
+  UpdateRepositoryWebhookProps,
   UpdateRepositoryWebhookResponse,
+  GithubScope,
   WebhookConfig,
   WebhookEvent,
 };

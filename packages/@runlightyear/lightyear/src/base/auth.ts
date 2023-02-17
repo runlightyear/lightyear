@@ -4,7 +4,7 @@ import { prefixedRedactedConsole } from "../logging";
 import { getEnvName } from "../util/getEnvName";
 
 /**
- * @public
+ * @internal
  */
 export interface AuthProps {
   name: string;
@@ -13,7 +13,7 @@ export interface AuthProps {
 }
 
 /**
- * @public
+ * @internal
  */
 export type AuthData = {
   /**
@@ -42,7 +42,7 @@ export type AuthData = {
 };
 
 /**
- * @public
+ * @internal
  *
  * @param name - the name of the auth
  */

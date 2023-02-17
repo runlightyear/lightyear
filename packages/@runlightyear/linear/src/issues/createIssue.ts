@@ -1,6 +1,9 @@
 import { Linear } from "../Linear";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 
+/**
+ * @beta
+ */
 export interface CreateIssueProps {
   /**
    * The identifier of the user to assign the issue to.

@@ -7,6 +7,9 @@ import { AuthData } from "./auth";
 import { prefixedRedactedConsole } from "../logging";
 import { getEnvName } from "../util/getEnvName";
 
+/**
+ * @public
+ */
 export type SubscribeFuncProps = {
   endpoint: string;
   auths: Auths;
@@ -15,6 +18,9 @@ export type SubscribeFuncProps = {
   subscribeProps: any;
 };
 
+/**
+ * @public
+ */
 export type UnsubscribeFuncProps = {
   endpoint: string;
   auths: Auths;
@@ -23,7 +29,14 @@ export type UnsubscribeFuncProps = {
   unsubscribeProps: any;
 };
 
+/**
+ * @public
+ */
 export type SubscribeFunc = (props: SubscribeFuncProps) => Promise<object>;
+
+/**
+ * @public
+ */
 export type UnsubscribeFunc = (props: UnsubscribeFuncProps) => void;
 
 type SubscribeIndex = {
@@ -37,6 +50,9 @@ type UnsubscribeIndex = {
 export const subscribeIndex: SubscribeIndex = {};
 export const unsubscribeIndex: UnsubscribeIndex = {};
 
+/**
+ * @public
+ */
 export type SubscribePropsFuncProps = {
   endpoint: string;
   auths: Auths;
@@ -44,9 +60,15 @@ export type SubscribePropsFuncProps = {
   secrets: Secrets;
 };
 
+/**
+ * @public
+ */
 export type SubscribePropsFunc = (props: SubscribePropsFuncProps) => object;
 
-export interface WebhookProps {
+/**
+ * @public
+ */
+export interface DefineWebhookProps {
   name: string;
   title: string;
   apps?: Array<AppName>;
@@ -57,12 +79,51 @@ export interface WebhookProps {
   unsubscribe?: UnsubscribeFunc;
 }
 
-function validateWebhookProps({ name }: WebhookProps) {
+function validateWebhookProps({ name }: DefineWebhookProps) {
   invariant(name, "Missing required name");
   invariant(typeof name === "string", "Name must be a string");
 }
 
-export function defineWebhook(props: WebhookProps) {
+/**
+ * @public
+ *
+ * Define a Webhook
+ *
+ * @example Basic
+ *
+ * ```typescript
+ * defineWebhook({
+ *   name: "basicWebhook",
+ *   title: "Basic Webhook",
+ * })
+ *```
+ *
+ * @example With Subscription
+ *
+ * ```typescript
+ * defineWebhook({
+ *   name: "subscriptionWebhook",
+ *   title: "Subscription Webhook",
+ *   subscribeProps: () => {
+ *     // returns the props to be passed into subscribe
+ *     // represents essential parameters to create the subscription
+ *   },
+ *   subscribe: ({ subscribeProps }) => {
+ *     // runs after a change in subscribeProps is detected
+ *     // code to create subscription using subscribe props
+ *     // return value becomes unsubscribeProps for unsubscribe
+ *     // for example: hook id returned by rest api call
+ *   },
+ *   unsubscribe: ({ unsubscribeProps }) => {
+ *      // if subscribed, runs after a change in subscribeProps is detected
+ *      // code to unsubscribe using unsubscribe props
+ *   },
+ * })
+ * ```
+ *
+ * @param props
+ */
+export function defineWebhook(props: DefineWebhookProps) {
   deployList.push({
     type: "webhook",
     webhookProps: props,
@@ -77,7 +138,10 @@ export function defineWebhook(props: WebhookProps) {
   return props.name;
 }
 
-export async function deployWebhook(envName: string, props: WebhookProps) {
+export async function deployWebhook(
+  envName: string,
+  props: DefineWebhookProps
+) {
   validateWebhookProps(props);
 
   const { name } = props;
@@ -112,6 +176,11 @@ export type WebhookData = {
   unsubscribeProps: any;
 };
 
+/**
+ * @internal
+ *
+ * @param name
+ */
 export async function getWebhookData(name: string): Promise<WebhookData> {
   const envName = getEnvName();
   invariant(envName, "Missing ENV_NAME");

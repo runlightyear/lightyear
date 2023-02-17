@@ -1,6 +1,6 @@
-import WebhookEvent from "./WebhookEvent";
+import WebhookEvent from "../types/WebhookEvent";
 import { defineWebhook } from "@runlightyear/lightyear";
-import { SubscribePropsFuncProps } from "@runlightyear/lightyear/src";
+import type { SubscribePropsFuncProps } from "@runlightyear/lightyear";
 import { Github } from "../Github";
 
 export type GithubWebhookSubscribeProps = {

@@ -1,7 +1,13 @@
 import baseRequest from "./baseRequest";
 
+/**
+ * @public
+ */
 export type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
 
+/**
+ * @public
+ */
 export interface HttpProxyRequestOptions {
   method?: HttpMethod;
   url: string;
@@ -13,6 +19,9 @@ export interface HttpProxyRequestOptions {
   body?: string;
 }
 
+/**
+ * @public
+ */
 export type HttpProxyResponse = {
   /**
    * The http status of the proxied response
@@ -32,6 +41,9 @@ export type HttpProxyResponse = {
   data: any;
 };
 
+/**
+ * @public
+ */
 export class HttpProxyResponseError extends Error {
   response: HttpProxyResponse;
 

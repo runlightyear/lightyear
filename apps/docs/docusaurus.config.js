@@ -60,7 +60,7 @@ const config = {
         items: [
           {
             type: "doc",
-            docId: "api/index",
+            docId: "index",
             position: "left",
             label: "API",
           },
@@ -79,7 +79,7 @@ const config = {
             items: [
               {
                 label: "API",
-                to: "/docs/api",
+                to: "/docs",
               },
             ],
           },

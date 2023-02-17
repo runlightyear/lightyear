@@ -1,20 +1,35 @@
 import queryString from "query-string";
-import { AuthConnector, AuthConnectorOptions } from "./AuthConnector";
+import { AuthConnector, AuthConnectorProps } from "./AuthConnector";
 import { HttpProxyResponse, httpRequest } from "../base/http";
 import { HttpProxyRequestOptions } from "../base/http";
 import camelize from "../util/camelize";
 import { WebhookDeliveryData } from "../base/runData";
 
-export interface RestConnectorOptions extends AuthConnectorOptions {
+/**
+ * @public
+ */
+export interface RestConnectorProps extends AuthConnectorProps {
   baseUrl: string;
+  /**
+   * Whether to automatically convert calls to and from camelCase to snake_case
+   */
   camelize?: boolean;
 }
 
+/**
+ * @public
+ *
+ * Rest Connector
+ *
+ * The base for making calls to REST APIs
+ *
+ * @param props
+ */
 export class RestConnector extends AuthConnector {
   baseUrl: string;
   camelize: boolean;
 
-  constructor(props: RestConnectorOptions) {
+  constructor(props: RestConnectorProps) {
     const { baseUrl, camelize = true, ...rest } = props;
     super(rest);
     this.baseUrl = baseUrl;
