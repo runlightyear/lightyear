@@ -58,7 +58,7 @@ import workflowRunPayload from "./webhooks/payloads/workflowRunPayload";
 import pingPayload from "./webhooks/payloads/pingPayload";
 import isWebhookEventType from "./webhooks/webhookEventType";
 import pushPayload from "./webhooks/payloads/pushPayload";
-import WebhookEvent from "./webhooks/WebhookEvent";
+import WebhookEvent from "./types/WebhookEvent";
 import defineGithubWebhook, {
   DefineGithubWebhookProps,
 } from "./webhooks/defineGithubWebhook";
@@ -283,6 +283,21 @@ export class Github extends RestConnector {
 
   /**
    * Define a GitHub repository webhook
+   *
+   * @example Subscribe to push events
+   * ```typescript
+   * Github.defineWebhook({
+   *   name: "githubPushes",
+   *   title: "GitHub Pushes",
+   *   subscribeProps: () => {
+   *     return {
+   *       owner: "<owner>",
+   *       repo: "<repo>",
+   *       events: ["push"],
+   *     }
+   *   },
+   * });
+   * ```
    */
   static defineWebhook(props: DefineGithubWebhookProps) {
     return defineGithubWebhook(props);

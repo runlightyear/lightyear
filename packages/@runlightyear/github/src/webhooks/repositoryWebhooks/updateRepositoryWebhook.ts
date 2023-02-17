@@ -1,7 +1,7 @@
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { Github } from "../../Github";
-import WebhookConfig from "../WebhookConfig";
-import WebhookEvent from "../WebhookEvent";
+import WebhookConfig from "../../types/WebhookConfig";
+import WebhookEvent from "../../types/WebhookEvent";
 
 export interface UpdateRepositoryWebhookProps {
   /**

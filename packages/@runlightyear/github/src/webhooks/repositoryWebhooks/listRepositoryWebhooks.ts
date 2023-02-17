@@ -1,5 +1,5 @@
 import { Github } from "../../Github";
-import WebhookEvent from "../WebhookEvent";
+import WebhookEvent from "../../types/WebhookEvent";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 
 export interface ListRepositoryWebhooksProps {

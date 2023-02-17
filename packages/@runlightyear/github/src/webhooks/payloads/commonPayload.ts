@@ -1,6 +1,6 @@
 import { WebhookDeliveryData } from "@runlightyear/lightyear";
 import { Github } from "../../Github";
-import WebhookEvent from "../WebhookEvent";
+import WebhookEvent from "../../types/WebhookEvent";
 
 export interface CommonPayload {
   /**
