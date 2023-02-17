@@ -373,7 +373,7 @@ export class MarkdownDocumenter {
 
     if (apiItem instanceof ApiClass) {
       if (apiItem.extendsType) {
-        const extendsParagraph: DocParagraph = new DocParagraph(
+        const extendsParagraphHeader: DocParagraph = new DocParagraph(
           { configuration },
           [
             new DocEmphasisSpan({ configuration, bold: false }, [
@@ -381,20 +381,29 @@ export class MarkdownDocumenter {
             ]),
           ]
         );
+        const extendsParagraph: DocParagraph = new DocParagraph(
+          { configuration },
+          []
+        );
         this._appendExcerptWithHyperlinks(
           extendsParagraph,
           apiItem.extendsType.excerpt
         );
+        output.appendNode(extendsParagraphHeader);
         output.appendNode(extendsParagraph);
       }
       if (apiItem.implementsTypes.length > 0) {
-        const implementsParagraph: DocParagraph = new DocParagraph(
+        const implementsParagraphHeader: DocParagraph = new DocParagraph(
           { configuration },
           [
             new DocEmphasisSpan({ configuration, bold: true }, [
               new DocPlainText({ configuration, text: "Implements: " }),
             ]),
           ]
+        );
+        const implementsParagraph: DocParagraph = new DocParagraph(
+          { configuration },
+          []
         );
         let needsComma: boolean = false;
         for (const implementsType of apiItem.implementsTypes) {
@@ -409,19 +418,24 @@ export class MarkdownDocumenter {
           );
           needsComma = true;
         }
+        output.appendNode(implementsParagraphHeader);
         output.appendNode(implementsParagraph);
       }
     }
 
     if (apiItem instanceof ApiInterface) {
       if (apiItem.extendsTypes.length > 0) {
-        const extendsParagraph: DocParagraph = new DocParagraph(
+        const extendsParagraphHeader: DocParagraph = new DocParagraph(
           { configuration },
           [
             new DocEmphasisSpan({ configuration, bold: true }, [
               new DocPlainText({ configuration, text: "Extends: " }),
             ]),
           ]
+        );
+        const extendsParagraph: DocParagraph = new DocParagraph(
+          { configuration },
+          []
         );
         let needsComma: boolean = false;
         for (const extendsType of apiItem.extendsTypes) {
@@ -436,6 +450,7 @@ export class MarkdownDocumenter {
           );
           needsComma = true;
         }
+        output.appendNode(extendsParagraphHeader);
         output.appendNode(extendsParagraph);
       }
     }
@@ -459,7 +474,6 @@ export class MarkdownDocumenter {
             ]),
           ]
         );
-
         const referencesParagraph: DocParagraph = new DocParagraph(
           { configuration },
           []
