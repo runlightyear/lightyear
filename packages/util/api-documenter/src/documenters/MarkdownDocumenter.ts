@@ -451,7 +451,7 @@ export class MarkdownDocumenter {
           ).resolvedApiItem
       );
       if (refs.length > 0) {
-        const referencesParagraph: DocParagraph = new DocParagraph(
+        const referencesHeaderParagraph: DocParagraph = new DocParagraph(
           { configuration },
           [
             new DocEmphasisSpan({ configuration, bold: true }, [
@@ -460,9 +460,10 @@ export class MarkdownDocumenter {
           ]
         );
 
-        // referencesParagraph.appendNode(
-        //   new DocPlainText({ configuration, text: "\n\n" })
-        // );
+        const referencesParagraph: DocParagraph = new DocParagraph(
+          { configuration },
+          []
+        );
 
         let needsComma: boolean = false;
         const visited: Set<string> = new Set();
@@ -481,6 +482,8 @@ export class MarkdownDocumenter {
           this._appendExcerptTokenWithHyperlinks(referencesParagraph, ref);
           needsComma = true;
         }
+
+        output.appendNode(referencesHeaderParagraph);
         output.appendNode(referencesParagraph);
       }
     }
