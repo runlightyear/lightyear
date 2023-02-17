@@ -1522,7 +1522,12 @@ export class MarkdownDocumenter {
 
   private _getLinkFilenameForApiItem(apiItem: ApiItem): string {
     const withExtension = "./" + this._getFilenameForApiItem(apiItem);
-    return withExtension.slice(0, -3);
+    const withoutExtension = withExtension.slice(0, -3);
+    if (withoutExtension.slice(-6) === "/index") {
+      return withoutExtension.slice(0, -6);
+    } else {
+      return withoutExtension;
+    }
   }
 
   private _deleteOldOutputFiles(): void {
