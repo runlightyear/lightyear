@@ -2,8 +2,15 @@
 
 import { snakeCase, isArray, transform, isObject } from "lodash";
 
-const deCamelize = (obj: Record<string, unknown> | Record<string, unknown>[]) =>
-  transform(
+/**
+ * @internal
+ *
+ * Convert an object with camelCase keys to one with snake_case keys
+ *
+ * @param obj
+ */
+function deCamelize(obj: Record<string, unknown> | Record<string, unknown>[]) {
+  return transform(
     obj,
     (result: Record<string, unknown>, value: unknown, key: string, target) => {
       const newKey = isArray(target) ? key : snakeCase(key);
@@ -12,5 +19,5 @@ const deCamelize = (obj: Record<string, unknown> | Record<string, unknown>[]) =>
         : value;
     }
   );
-
+}
 export default deCamelize;

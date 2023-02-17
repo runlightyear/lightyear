@@ -1,8 +1,4 @@
-import {
-  Github,
-  GithubConnectorOptions,
-  GithubDefineAuthOptions,
-} from "./Github";
+import { Github, GithubConnectorProps, GithubDefineAuthProps } from "./Github";
 import { GithubOauth } from "./GithubOauth";
 import { CreateGistOptions } from "./gists/createGist";
 import { CreateIssueOptions } from "./issues/createIssue";
@@ -42,8 +38,8 @@ import WebhookEvent from "./webhooks/WebhookEvent";
 
 export { Github, GithubOauth };
 export type {
-  GithubConnectorOptions,
-  GithubDefineAuthOptions,
+  GithubConnectorProps,
+  GithubDefineAuthProps,
   CreateGistOptions,
   CreateIssueOptions,
   UpdateIssueOptions,

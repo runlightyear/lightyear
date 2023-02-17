@@ -1,5 +1,5 @@
 import { DeployActionProps, ActionData } from "./action";
-import { WebhookData, WebhookProps } from "./webhook";
+import { WebhookData, DefineWebhookProps } from "./webhook";
 import baseRequest from "./baseRequest";
 import { Initializer } from "./Initializer";
 import invariant from "tiny-invariant";
@@ -35,13 +35,18 @@ export type DeployItem = {
   // data: DeployActionProps | AuthProps | WebhookProps;
   actionProps?: DeployActionProps;
   // authProps?: AuthProps;
-  webhookProps?: WebhookProps;
+  webhookProps?: DefineWebhookProps;
   // subscribeArgs?: (props: SubscribeArgsProps) => Promise<object>;
   deploy?: (props: DeployFuncProps) => Promise<string>;
 };
 
 export const deployList: DeployItem[] = [];
 
+/**
+ * @internal
+ *
+ * @param envName
+ */
 export async function deploy({ envName }: Props) {
   console.debug("deployList", JSON.stringify(deployList));
 
@@ -82,6 +87,9 @@ export interface DeployData {
   };
 }
 
+/**
+ * @internal
+ */
 export async function getDeployData(): Promise<DeployData> {
   console.debug("in getDeployData");
   const envName = getEnvName();

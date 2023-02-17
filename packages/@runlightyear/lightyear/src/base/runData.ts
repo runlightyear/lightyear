@@ -1,3 +1,6 @@
+/**
+ * @internal
+ */
 export interface PollingData {
   triggeredAt: string;
   lastTriggeredAt: string | null;

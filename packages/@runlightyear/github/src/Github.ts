@@ -1,5 +1,5 @@
 import {
-  AuthConnectorOptions,
+  AuthConnectorProps,
   HttpProxyResponse,
   RestConnector,
   WebhookDeliveryData,
@@ -63,9 +63,9 @@ import defineGithubWebhook, {
   DefineGithubWebhookProps,
 } from "./webhooks/defineGithubWebhook";
 
-export interface GithubConnectorOptions extends AuthConnectorOptions {}
+export interface GithubConnectorProps extends AuthConnectorProps {}
 
-export interface GithubDefineAuthOptions {
+export interface GithubDefineAuthProps {
   /**
    * The name of the auth
    */
@@ -73,6 +73,8 @@ export interface GithubDefineAuthOptions {
 }
 
 /**
+ * @beta
+ *
  * Connector to the Github API
  *
  * @example Import
@@ -92,8 +94,8 @@ export interface GithubDefineAuthOptions {
  * ```
  */
 export class Github extends RestConnector {
-  constructor(options: GithubConnectorOptions) {
-    super({ ...options, baseUrl: "https://api.github.com" });
+  constructor(props: GithubConnectorProps) {
+    super({ ...props, baseUrl: "https://api.github.com" });
   }
 
   /**

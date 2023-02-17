@@ -1,12 +1,10 @@
-import { BaseConnector, BaseConnectorOptions } from "./BaseConnector";
+import { BaseConnector, BaseConnectorProps } from "./BaseConnector";
 import { AuthData } from "../base/auth";
 
 /**
- * AuthConnectorOptions
- *
- * Some more text
+ * @public
  */
-export interface AuthConnectorOptions extends BaseConnectorOptions {
+export interface AuthConnectorProps extends BaseConnectorProps {
   /**
    * Name of the auth to use
    */
@@ -14,14 +12,16 @@ export interface AuthConnectorOptions extends BaseConnectorOptions {
 }
 
 /**
- * Docs for AuthConnector
- *
  * @public
+ *
+ * Docs for AuthConnector
  */
 export class AuthConnector extends BaseConnector {
   _auth: AuthData;
 
-  constructor({ auth, ...rest }: AuthConnectorOptions) {
+  constructor(props: AuthConnectorProps) {
+    const { auth, ...rest } = props;
+
     super(rest);
     this._auth = auth;
   }

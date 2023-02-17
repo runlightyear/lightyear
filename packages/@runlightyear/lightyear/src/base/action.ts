@@ -15,7 +15,10 @@ export type ActionTrigger = {
   pollingFrequency?: number;
 };
 
-export interface DefineActionOptions {
+/**
+ * @public
+ */
+export interface DefineActionProps {
   name: string;
   title: string;
   description?: string;
@@ -72,7 +75,9 @@ function validateActionProps({ name, title, trigger }: DeployActionProps) {
 }
 
 /**
- * Info on how you define a action
+ * @public
+ *
+ * Define an Action
  *
  * @example Hello World
  *
@@ -86,10 +91,10 @@ function validateActionProps({ name, title, trigger }: DeployActionProps) {
  * })
  * ```
  *
- * @param options
+ * @param props
  */
-export function defineAction(options: DefineActionOptions) {
-  const { run, ...rest } = options;
+export function defineAction(props: DefineActionProps) {
+  const { run, ...rest } = props;
   validateActionProps(rest);
   invariant(run, "Run function missing");
   invariant(isFunction(run), "Run must be a function");

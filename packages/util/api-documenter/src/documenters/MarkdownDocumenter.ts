@@ -459,6 +459,11 @@ export class MarkdownDocumenter {
             ]),
           ]
         );
+
+        // referencesParagraph.appendNode(
+        //   new DocPlainText({ configuration, text: "\n\n" })
+        // );
+
         let needsComma: boolean = false;
         const visited: Set<string> = new Set();
         for (const ref of refs) {
@@ -1513,7 +1518,8 @@ export class MarkdownDocumenter {
   }
 
   private _getLinkFilenameForApiItem(apiItem: ApiItem): string {
-    return "./" + this._getFilenameForApiItem(apiItem);
+    const withExtension = "./" + this._getFilenameForApiItem(apiItem);
+    return withExtension.slice(0, -3);
   }
 
   private _deleteOldOutputFiles(): void {
