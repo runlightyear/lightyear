@@ -26,30 +26,39 @@ import { SlackScope } from "./types/SlackScope";
  * import { Slack } from "@runlightyear/slack";
  * ```
  *
- * @example Create an auth
- *
- * ```typescript
- * const slackAuth = Slack.defineAuth({ name: "slack" })
- * ```
- *
  * @example Use in an action
- *
  * ```typescript
  * defineAction({
- *   name: 'helloSlack',
- *   auths: {
- *     slack: slackAuth,
- *   },
- *   run: async ({ auths }) => {
+ *   name: "slackExample",
+ *   title: "Slack Example",
+ *   apps: ["slack"],
+ *   run: ({ auths }) => {
  *     const slack = new Slack({ auth: auths.slack });
- *     await slack.postMessage({ channel: '#general', text: 'Hello Slack'})
  *   }
  * })
+ * ```
+ *
+ * @example Post a message
+ *
+ * ```typescript
+ * await slack.postMessage({ channel: '#general', text: 'Hello Slack'})
  * ```
  */
 export class Slack extends RestConnector {
   /**
    * Create a new slack connector
+   *
+   * @example
+   * ```typescript
+   * defineAction({
+   *   name: "slackExample",
+   *   title: "Slack Example",
+   *   apps: ["slack"],
+   *   run: ({ auths }) => {
+   *     const slack = new Slack({ auth: auths.slack });
+   *   }
+   * })
+   * ```
    *
    * @param props
    */

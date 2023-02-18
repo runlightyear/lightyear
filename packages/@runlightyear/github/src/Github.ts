@@ -82,17 +82,42 @@ export interface GithubDefineAuthProps {
  * import { Github } from "@runlightyear/github"
  * ```
  *
- * @example Define an auth
+ * @example Use in an action
  * ```typescript
- * const githubAuth = Github.defineAuth({ name: "github" });
+ * defineAction({
+ *   name: "githubExample",
+ *   title: "GitHub Example",
+ *   apps: ["github"],
+ *   run: ({ auths }) => {
+ *     const github = new Github({ auth: auths.github });
+ *   }
+ * })
  * ```
  *
- * @example List all github repos
+ * @example Create an issue
  * ```typescript
- * const github = new Github({ auth: githubAuth });
- * await github.listRepos();
+ * await github.createIssue({
+ *   owner: "<owner>",
+ *   repo: "<repo name>",
+ *   title: "New Issue",
+ * })
  * ```
- */
+ *
+ * @example Subscribe to push events
+ * ```typescript
+ * Github.defineWebhook({
+ *   name: "githubPushes",
+ *   title: "GitHub Pushes",
+ *   subscribeProps: () => {
+ *     return {
+ *       owner: "<owner>",
+ *       repo: "<repo name>",
+ *       events: ["push"],
+ *     }
+ *   },
+ * });
+ *
+ * ``` */
 export class Github extends RestConnector {
   /**
    * @example
