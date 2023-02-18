@@ -5,7 +5,7 @@
  */
 import { RestConnector } from "@runlightyear/lightyear";
 import { Slack } from "./Slack";
-import { SlackOauth } from "./SlackOauth";
+import { SlackOAuth } from "./SlackOAuth";
 
 import type { PostMessageProps } from "./chat/postMessage";
 import type {
@@ -13,5 +13,5 @@ import type {
   HttpProxyResponse,
 } from "@runlightyear/lightyear";
 
-export { Slack, SlackOauth, RestConnector };
+export { Slack, SlackOAuth, RestConnector };
 export type { PostMessageProps, HttpProxyRequestProps, HttpProxyResponse };

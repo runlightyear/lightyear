@@ -2,9 +2,9 @@
 import { Airtable } from "./Airtable";
 import type { AirtableProps } from "./Airtable";
 
-/* Airtable Oauth */
-import { AirtableOauth } from "./AirtableOauth";
-import type { AirtableOauthProps } from "./AirtableOauth";
+/* Airtable OAuth */
+import { AirtableOAuth } from "./AirtableOAuth";
+import type { AirtableOAuthProps } from "./AirtableOAuth";
 
 /* Types */
 import type { AirtableScope } from "./types/AirtableScope";
@@ -27,10 +27,10 @@ import type {
   CreateRecordsResponse,
 } from "./records/createRecords";
 
-export { Airtable, AirtableOauth };
+export { Airtable, AirtableOAuth };
 export type {
   AirtableProps,
-  AirtableOauthProps,
+  AirtableOAuthProps,
   AirtableScope,
   Timezone,
   WhoamiResponse,

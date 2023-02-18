@@ -3,10 +3,10 @@
 import { GitHub } from "./GitHub";
 import type { GitHubConnectorProps, GitHubDefineAuthProps } from "./GitHub";
 
-/** GitHubOauth **/
+/** GitHubOAuth **/
 
-import { GitHubOauth } from "./GitHubOauth";
-import type { GitHubOauthProps } from "./GitHubOauth";
+import { GitHubOAuth } from "./GitHubOAuth";
+import type { GitHubOAuthProps } from "./GitHubOAuth";
 
 /** Gists **/
 
@@ -73,10 +73,10 @@ import type { GitHubScope } from "./types/GitHubScope";
 import type WebhookConfig from "./types/WebhookConfig";
 import type WebhookEvent from "./types/WebhookEvent";
 
-export { GitHub, GitHubOauth };
+export { GitHub, GitHubOAuth };
 export type {
   GitHubConnectorProps,
-  GitHubOauthProps,
+  GitHubOAuthProps,
   GitHubDefineAuthProps,
   CreateGistProps,
   CreateIssueProps,

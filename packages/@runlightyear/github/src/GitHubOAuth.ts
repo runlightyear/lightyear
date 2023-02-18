@@ -1,16 +1,13 @@
-import {
-  OauthConnector,
-  OauthConnectorProps,
-} from "@runlightyear/lightyear";
+import { OAuthConnector, OAuthConnectorProps } from "@runlightyear/lightyear";
 import { GitHubScope } from "./types/GitHubScope";
 
-export interface GitHubOauthProps extends OauthConnectorProps {}
+export interface GitHubOAuthProps extends OAuthConnectorProps {}
 
 /**
- * Connector to the GitHub Oauth2 API
+ * Connector to the GitHub OAuth2 API
  */
-export class GitHubOauth extends OauthConnector {
-  constructor(props: GitHubOauthProps) {
+export class GitHubOAuth extends OAuthConnector {
+  constructor(props: GitHubOAuthProps) {
     super(props);
   }
 

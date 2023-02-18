@@ -67,12 +67,12 @@ import type { BaseConnectorProps } from "./connectors/BaseConnector";
 import { AuthConnector } from "./connectors/AuthConnector";
 import type { AuthConnectorProps } from "./connectors/AuthConnector";
 
-/* Oauth Connector */
-import { OauthConnector } from "./connectors/OauthConnector";
+/* OAuth Connector */
+import { OAuthConnector } from "./connectors/OAuthConnector";
 import type {
-  OauthConnectorProps,
-  OauthConfigData,
-} from "./connectors/OauthConnector";
+  OAuthConnectorProps,
+  OAuthConfigData,
+} from "./connectors/OAuthConnector";
 
 /* Rest Connector */
 import { RestConnector } from "./connectors/RestConnector";
@@ -115,7 +115,7 @@ export {
   getWebhookData,
   BaseConnector,
   AuthConnector,
-  OauthConnector,
+  OAuthConnector,
   RestConnector,
   GraphQLConnector,
   deploy,
@@ -143,8 +143,8 @@ export type {
   AuthConnectorProps,
   HttpProxyRequestProps,
   HttpProxyResponse,
-  OauthConnectorProps,
-  OauthConfigData,
+  OAuthConnectorProps,
+  OAuthConfigData,
   RestConnectorProps,
   GraphQLConnectorProps,
   PollingData,
