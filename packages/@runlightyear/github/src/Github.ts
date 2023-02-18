@@ -94,6 +94,21 @@ export interface GithubDefineAuthProps {
  * ```
  */
 export class Github extends RestConnector {
+  /**
+   * @example
+   * ```typescript
+   * defineAction({
+   *   name: "githubExample",
+   *   title: "GitHub Example",
+   *   apps: ["github"],
+   *   run: ({ auths }) => {
+   *     const github = new Github({ auth: auths.github });
+   *   }
+   * })
+   * ```
+   *
+   * @param props
+   */
   constructor(props: GithubConnectorProps) {
     super({ ...props, baseUrl: "https://api.github.com" });
   }
