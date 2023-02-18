@@ -1,12 +1,12 @@
 /** GitHub **/
 
-import { Github } from "./Github";
-import type { GithubConnectorProps, GithubDefineAuthProps } from "./Github";
+import { GitHub } from "./GitHub";
+import type { GitHubConnectorProps, GitHubDefineAuthProps } from "./GitHub";
 
-/** GithubOauth **/
+/** GitHubOauth **/
 
-import { GithubOauth } from "./GithubOauth";
-import type { GithubOauthProps } from "./GithubOauth";
+import { GitHubOauth } from "./GitHubOauth";
+import type { GitHubOauthProps } from "./GitHubOauth";
 
 /** Gists **/
 
@@ -34,10 +34,10 @@ import { ListRepositoriesForUserProps } from "./repositories/listRepositoriesFor
 /** Webhooks **/
 
 import type {
-  DefineGithubWebhookProps,
-  GithubWebhookSubscribeProps,
-  GithubWebhookSubscribePropsFunc,
-} from "./webhooks/defineGithubWebhook";
+  DefineGitHubWebhookProps,
+  GitHubWebhookSubscribeProps,
+  GitHubWebhookSubscribePropsFunc,
+} from "./webhooks/defineGitHubWebhook";
 
 /** Webhooks Payloads **/
 
@@ -69,15 +69,15 @@ import {
 
 /** Types **/
 
-import type { GithubScope } from "./types/GithubScope";
+import type { GitHubScope } from "./types/GitHubScope";
 import type WebhookConfig from "./types/WebhookConfig";
 import type WebhookEvent from "./types/WebhookEvent";
 
-export { Github, GithubOauth };
+export { GitHub, GitHubOauth };
 export type {
-  GithubConnectorProps,
-  GithubOauthProps,
-  GithubDefineAuthProps,
+  GitHubConnectorProps,
+  GitHubOauthProps,
+  GitHubDefineAuthProps,
   CreateGistProps,
   CreateIssueProps,
   UpdateIssueProps,
@@ -89,9 +89,9 @@ export type {
   ListOrganizationRepositoriesProps,
   ListRepositoriesForAuthenticatedUserProps,
   ListRepositoriesForUserProps,
-  DefineGithubWebhookProps,
-  GithubWebhookSubscribeProps,
-  GithubWebhookSubscribePropsFunc,
+  DefineGitHubWebhookProps,
+  GitHubWebhookSubscribeProps,
+  GitHubWebhookSubscribePropsFunc,
   CommonPayload,
   PingPayload,
   PullRequestPayload,
@@ -108,7 +108,7 @@ export type {
   TestPushRepositoryWebhookProps,
   UpdateRepositoryWebhookProps,
   UpdateRepositoryWebhookResponse,
-  GithubScope,
+  GitHubScope,
   WebhookConfig,
   WebhookEvent,
 };

@@ -1,5 +1,5 @@
 import { HttpProxyResponse } from "@runlightyear/lightyear";
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 import WebhookConfig from "../../types/WebhookConfig";
 import WebhookEvent from "../../types/WebhookEvent";
 
@@ -78,7 +78,7 @@ export interface UpdateRepositoryWebhookResponse extends HttpProxyResponse {
  * Updates a webhook configured in a repository. If you previously had a secret set, you must provide the same secret or set a new secret or the secret will be removed. If you are only updating individual webhook config properties, use "Update a webhook configuration for a repository."
  */
 const updateRepositoryWebhook =
-  (self: Github) =>
+  (self: GitHub) =>
   async (
     props: UpdateRepositoryWebhookProps
   ): Promise<UpdateRepositoryWebhookResponse> => {

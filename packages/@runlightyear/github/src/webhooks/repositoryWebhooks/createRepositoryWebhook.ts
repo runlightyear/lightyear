@@ -1,5 +1,5 @@
 import { HttpProxyResponse } from "@runlightyear/lightyear";
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 import WebhookEvent from "../../types/WebhookEvent";
 import WebhookConfig from "../../types/WebhookConfig";
 
@@ -67,7 +67,7 @@ export interface CreateRepositoryWebhookResponse extends HttpProxyResponse {
  */
 
 const createRepositoryWebhook =
-  (self: Github) =>
+  (self: GitHub) =>
   async (
     props: CreateRepositoryWebhookProps
   ): Promise<CreateRepositoryWebhookResponse> => {

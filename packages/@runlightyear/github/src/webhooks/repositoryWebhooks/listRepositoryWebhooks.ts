@@ -1,4 +1,4 @@
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 import WebhookEvent from "../../types/WebhookEvent";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 
@@ -63,7 +63,7 @@ export interface ListRepositoryWebhooksResponse extends HttpProxyResponse {
  * List repository webhooks
  */
 const listRepositoryWebhooks =
-  (self: Github) =>
+  (self: GitHub) =>
   async (
     props: ListRepositoryWebhooksProps
   ): Promise<ListRepositoryWebhooksResponse> => {

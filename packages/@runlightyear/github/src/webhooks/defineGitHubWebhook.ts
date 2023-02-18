@@ -1,9 +1,9 @@
 import WebhookEvent from "../types/WebhookEvent";
 import { defineWebhook } from "@runlightyear/lightyear";
 import type { SubscribePropsFuncProps } from "@runlightyear/lightyear";
-import { Github } from "../Github";
+import { GitHub } from "../GitHub";
 
-export type GithubWebhookSubscribeProps = {
+export type GitHubWebhookSubscribeProps = {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
@@ -18,19 +18,19 @@ export type GithubWebhookSubscribeProps = {
   events?: Array<WebhookEvent>;
 };
 
-export type GithubWebhookSubscribePropsFunc = (
+export type GitHubWebhookSubscribePropsFunc = (
   props: SubscribePropsFuncProps
-) => GithubWebhookSubscribeProps;
+) => GitHubWebhookSubscribeProps;
 
-export interface DefineGithubWebhookProps {
+export interface DefineGitHubWebhookProps {
   name: string;
   title: string;
   variables?: Array<string>;
   secrets?: Array<string>;
-  subscribeProps: GithubWebhookSubscribePropsFunc;
+  subscribeProps: GitHubWebhookSubscribePropsFunc;
 }
 
-const defineGithubWebhook = (props: DefineGithubWebhookProps) => {
+const defineGitHubWebhook = (props: DefineGitHubWebhookProps) => {
   const { name, title, variables, secrets, subscribeProps } = props;
 
   return defineWebhook({
@@ -41,10 +41,10 @@ const defineGithubWebhook = (props: DefineGithubWebhookProps) => {
     secrets,
     subscribeProps,
     subscribe: async ({ auths, endpoint, subscribeProps }) => {
-      console.debug("Subscribing to Github webhook");
+      console.debug("Subscribing to GitHub webhook");
       console.debug("subscribeProps", subscribeProps);
 
-      const github = new Github({ auth: auths.github });
+      const github = new GitHub({ auth: auths.github });
 
       const response = await github.createRepositoryWebhook({
         owner: subscribeProps.owner,
@@ -55,7 +55,7 @@ const defineGithubWebhook = (props: DefineGithubWebhookProps) => {
         },
       });
 
-      console.info("Subscribed to Github webhook");
+      console.info("Subscribed to GitHub webhook");
 
       const unsubscribeProps = {
         hookId: response.data.id,
@@ -68,10 +68,10 @@ const defineGithubWebhook = (props: DefineGithubWebhookProps) => {
       return unsubscribeProps;
     },
     unsubscribe: async ({ auths, unsubscribeProps }) => {
-      console.debug("Unsubscribing from Github webhook");
+      console.debug("Unsubscribing from GitHub webhook");
       console.debug("unsubscribeProps", unsubscribeProps);
 
-      const github = new Github({ auth: auths.github });
+      const github = new GitHub({ auth: auths.github });
 
       await github.deleteRepositoryWebhook({
         owner: unsubscribeProps.owner,
@@ -79,9 +79,9 @@ const defineGithubWebhook = (props: DefineGithubWebhookProps) => {
         hookId: unsubscribeProps.hookId,
       });
 
-      console.info("Unsubscribed from Github webhook");
+      console.info("Unsubscribed from GitHub webhook");
     },
   });
 };
 
-export default defineGithubWebhook;
+export default defineGitHubWebhook;

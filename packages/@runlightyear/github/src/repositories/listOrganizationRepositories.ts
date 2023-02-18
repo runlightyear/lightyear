@@ -1,4 +1,4 @@
-import { Github } from "../Github";
+import { GitHub } from "../GitHub";
 
 export interface ListOrganizationRepositoriesProps {
   /**
@@ -41,7 +41,7 @@ export interface ListOrganizationRepositoriesProps {
 }
 
 const listOrganizationRepositories =
-  (self: Github) => async (props: ListOrganizationRepositoriesProps) => {
+  (self: GitHub) => async (props: ListOrganizationRepositoriesProps) => {
     const { org, type, sort, direction, perPage, page } = props;
 
     return await self.get({

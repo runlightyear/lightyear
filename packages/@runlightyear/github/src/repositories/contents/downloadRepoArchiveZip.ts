@@ -1,4 +1,4 @@
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 
 export interface DownloadRepoArchiveZipProps {
   /**
@@ -13,7 +13,7 @@ export interface DownloadRepoArchiveZipProps {
 }
 
 const downloadRepoArchiveZip =
-  (self: Github) => async (props: DownloadRepoArchiveZipProps) => {
+  (self: GitHub) => async (props: DownloadRepoArchiveZipProps) => {
     const { owner, repo, ref } = props;
 
     return await self.get({

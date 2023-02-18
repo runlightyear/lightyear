@@ -1,4 +1,4 @@
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 
 export interface DownloadRepoArchiveTarProps {
   /**
@@ -13,7 +13,7 @@ export interface DownloadRepoArchiveTarProps {
 }
 
 const downloadRepoArchiveTar =
-  (self: Github) => async (props: DownloadRepoArchiveTarProps) => {
+  (self: GitHub) => async (props: DownloadRepoArchiveTarProps) => {
     const { owner, repo, ref } = props;
 
     return await self.get({

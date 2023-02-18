@@ -1,4 +1,4 @@
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 
 export interface DeleteRepositoryWebhookProps {
   /**
@@ -19,7 +19,7 @@ export interface DeleteRepositoryWebhookProps {
  * Delete a repository webhook
  */
 const deleteRepositoryWebhook =
-  (self: Github) => async (props: DeleteRepositoryWebhookProps) => {
+  (self: GitHub) => async (props: DeleteRepositoryWebhookProps) => {
     const { owner, repo, hookId } = props;
 
     return self.delete({

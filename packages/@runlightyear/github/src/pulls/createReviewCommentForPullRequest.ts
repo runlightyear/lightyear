@@ -1,4 +1,4 @@
-import { Github } from "../Github";
+import { GitHub } from "../GitHub";
 
 export interface CreatePullRequestCommentProps {
   /**
@@ -56,7 +56,7 @@ export interface CreatePullRequestCommentProps {
 }
 
 const createReviewCommentForPullRequest =
-  (self: Github) => async (props: CreatePullRequestCommentProps) => {
+  (self: GitHub) => async (props: CreatePullRequestCommentProps) => {
     const {
       owner,
       repo,

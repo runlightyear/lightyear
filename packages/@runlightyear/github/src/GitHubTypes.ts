@@ -1,7 +1,7 @@
 /* eslint-disable */
 /* this integration will be reworked soon */
 
-export namespace GithubTypes {
+export namespace GitHubTypes {
   export type Content = {
     content: string;
   };

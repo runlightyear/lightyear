@@ -1,4 +1,4 @@
-import { Github } from "../Github";
+import { GitHub } from "../GitHub";
 
 export interface CreatePullRequestProps {
   /**
@@ -40,7 +40,7 @@ export interface CreatePullRequestProps {
 }
 
 const createPullRequest =
-  (self: Github) => async (props: CreatePullRequestProps) => {
+  (self: GitHub) => async (props: CreatePullRequestProps) => {
     const {
       owner,
       repo,

@@ -1,5 +1,5 @@
-import type { GithubTypes } from "../GithubTypes";
-import { Github } from "../Github";
+import type { GitHubTypes } from "../GitHubTypes";
+import { GitHub } from "../GitHub";
 
 export interface CreateGistProps {
   /**
@@ -9,14 +9,14 @@ export interface CreateGistProps {
   /**
    * Names and content for the files that make up the gist
    */
-  files: GithubTypes.Files;
+  files: GitHubTypes.Files;
   /**
    * Flag indicating whether the gist is public
    */
   isPublic?: boolean;
 }
 
-const createGist = (self: Github) => async (props: CreateGistProps) => {
+const createGist = (self: GitHub) => async (props: CreateGistProps) => {
   const { description, files, isPublic } = props;
 
   return await self.post({

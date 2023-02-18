@@ -1,4 +1,4 @@
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 
 export interface TestPushRepositoryWebhookProps {
   /**
@@ -21,7 +21,7 @@ export interface TestPushRepositoryWebhookProps {
  * This will trigger the hook with the latest push to the current repository if the hook is subscribed to push events. If the hook is not subscribed to push events, the server will respond with 204 but no test POST will be generated.
  */
 const testPushRepositoryWebhook =
-  (self: Github) => async (props: TestPushRepositoryWebhookProps) => {
+  (self: GitHub) => async (props: TestPushRepositoryWebhookProps) => {
     const { owner, repo, hookId } = props;
 
     return self.post({

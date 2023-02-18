@@ -1,4 +1,4 @@
-import { Github } from "../Github";
+import { GitHub } from "../GitHub";
 
 export interface CreateIssueProps {
   /**
@@ -37,7 +37,7 @@ export interface CreateIssueProps {
   assignees?: Array<string>;
 }
 
-const createIssue = (self: Github) => async (props: CreateIssueProps) => {
+const createIssue = (self: GitHub) => async (props: CreateIssueProps) => {
   const { owner, repo, title, milestone, labels, assignees } = props;
 
   return await self.post({
