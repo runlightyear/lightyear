@@ -28,7 +28,7 @@ import type { DeployFuncProps, DeployFunc } from "./base/deploy";
 
 /* Http Proxy */
 import type {
-  HttpProxyRequestOptions,
+  HttpProxyRequestProps,
   HttpProxyResponse,
   HttpProxyResponseError,
 } from "./base/http";
@@ -141,7 +141,7 @@ export type {
   SecretData,
   BaseConnectorProps,
   AuthConnectorProps,
-  HttpProxyRequestOptions,
+  HttpProxyRequestProps,
   HttpProxyResponse,
   OauthConnectorProps,
   OauthConfigData,

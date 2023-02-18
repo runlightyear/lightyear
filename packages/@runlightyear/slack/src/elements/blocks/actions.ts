@@ -1,6 +1,6 @@
 import { SlackObject } from "../objects";
 
-interface ActionsOptions {
+interface ActionsProps {
   /**
    * An array of interactive element objects - buttons, select menus, overflow menus, or date pickers. There is a maximum of 25 elements in each action block.
    */
@@ -11,12 +11,12 @@ interface ActionsOptions {
   blockId?: string;
 }
 
-export interface Actions extends ActionsOptions {
+export interface Actions extends ActionsProps {
   type: "actions";
 }
 
-export default function actions(options: ActionsOptions) {
-  const { elements, blockId } = options;
+export default function actions(props: ActionsProps) {
+  const { elements, blockId } = props;
 
   return {
     type: "actions",

@@ -1,6 +1,6 @@
 import { PlainText } from "../objects/plainText";
 
-export interface VideoOptions {
+export interface VideoProps {
   /**
    * A tooltip for the video. Required for accessibility
    */
@@ -43,12 +43,12 @@ export interface VideoOptions {
   blockId?: string;
 }
 
-export interface Video extends VideoOptions {
+export interface Video extends VideoProps {
   type: "video";
 }
 
-export default function video(options: VideoOptions) {
-  const { videoUrl, altText, title, blockId } = options;
+export default function video(props: VideoProps) {
+  const { videoUrl, altText, title, blockId } = props;
 
   return {
     type: "video",

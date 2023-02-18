@@ -43,7 +43,7 @@ export default async function baseRequest({
   }
 
   const url = `${baseUrl}${uri}${queryString}`;
-  const options = {
+  const props = {
     method,
     headers: {
       Authorization: `apiKey ${apiKey}`,
@@ -53,9 +53,9 @@ export default async function baseRequest({
   };
 
   console.debug(`baseRequest url: ${url}`);
-  console.debug("baseRequest options", options);
+  console.debug("baseRequest props", props);
 
-  const response = await fetch(url, options);
+  const response = await fetch(url, props);
 
   if (!response.ok) {
     console.error(

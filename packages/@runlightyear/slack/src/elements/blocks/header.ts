@@ -1,6 +1,6 @@
 import { PlainText } from "../objects/plainText";
 
-export interface HeaderOptions {
+export interface HeaderProps {
   /**
    * The text for the block, in the form of a plain_text text object. Maximum length for the text in this field is 150 characters.
    */
@@ -11,12 +11,12 @@ export interface HeaderOptions {
   blockId?: string;
 }
 
-export interface Header extends HeaderOptions {
+export interface Header extends HeaderProps {
   type: "header";
 }
 
-export default function header(options: HeaderOptions) {
-  const { text, blockId } = options;
+export default function header(props: HeaderProps) {
+  const { text, blockId } = props;
 
   return {
     type: "header",

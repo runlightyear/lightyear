@@ -1,10 +1,10 @@
 import {
   RestConnector,
   AuthConnectorProps,
-  HttpProxyRequestOptions,
+  HttpProxyRequestProps,
   HttpProxyResponse,
 } from "@runlightyear/lightyear";
-import postMessage, { PostMessageOptions } from "./chat/postMessage";
+import postMessage, { PostMessageProps } from "./chat/postMessage";
 import section from "./elements/blocks/section";
 import plainText from "./elements/objects/plainText";
 import markdownText from "./elements/objects/markdownText";
@@ -51,10 +51,10 @@ export class Slack extends RestConnector {
   /**
    * Create a new slack connector
    *
-   * @param options
+   * @param props
    */
-  constructor(options: AuthConnectorProps) {
-    super({ ...options, baseUrl: "https://slack.com/api/" });
+  constructor(props: AuthConnectorProps) {
+    super({ ...props, baseUrl: "https://slack.com/api/" });
   }
 
   /**
@@ -72,13 +72,13 @@ export class Slack extends RestConnector {
   /**
    * @internal
    */
-  async request(options: HttpProxyRequestOptions): Promise<HttpProxyResponse> {
-    const response = await super.request(options);
+  async request(props: HttpProxyRequestProps): Promise<HttpProxyResponse> {
+    const response = await super.request(props);
     let data = response.data;
 
     if (!data.ok && data.error === "token_expired") {
       await this.refreshToken();
-      const responseAfterRefresh = await super.request(options);
+      const responseAfterRefresh = await super.request(props);
       data = responseAfterRefresh.data;
     }
 
@@ -117,10 +117,10 @@ export class Slack extends RestConnector {
    * })
    * ```
    *
-   * @param options
+   * @param props
    */
-  async postMessage(options: PostMessageOptions): Promise<HttpProxyResponse> {
-    return postMessage(this)(options);
+  async postMessage(props: PostMessageProps): Promise<HttpProxyResponse> {
+    return postMessage(this)(props);
   }
 
   static blocks = {
