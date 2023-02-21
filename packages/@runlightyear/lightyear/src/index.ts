@@ -42,6 +42,13 @@ import { PollingData, WebhookDeliveryData } from "./base/runData";
 /* Secrets */
 import { SecretData } from "./base/secret";
 
+/* Smtp Proxy */
+import type {
+  SmtpProxyRequestProps,
+  SmtpProxyResponse,
+  EmailAddress,
+} from "./base/smtp";
+
 /* Variables */
 import { getVariableData, VariableData } from "./base/variable";
 
@@ -82,6 +89,10 @@ import type { RestConnectorProps } from "./connectors/RestConnector";
 import { GraphQLConnector } from "./connectors/GraphQLConnector";
 import type { GraphQLConnectorProps } from "./connectors/GraphQLConnector";
 
+/* Smtp Connector */
+import { SmtpConnector } from "./connectors/SmtpConnector";
+import { SmtpConnectorProps } from "./connectors/SmtpConnector";
+
 /** Logging **/
 
 import { PrefixedRedactedConsole } from "./logging/PrefixedRedactedConsole";
@@ -118,6 +129,7 @@ export {
   OAuthConnector,
   RestConnector,
   GraphQLConnector,
+  SmtpConnector,
   deploy,
   run,
   PrefixedRedactedConsole,
@@ -143,10 +155,14 @@ export type {
   AuthConnectorProps,
   HttpProxyRequestProps,
   HttpProxyResponse,
+  SmtpProxyRequestProps,
+  SmtpProxyResponse,
+  EmailAddress,
   OAuthConnectorProps,
   OAuthConfigData,
   RestConnectorProps,
   GraphQLConnectorProps,
+  SmtpConnectorProps,
   PollingData,
   WebhookDeliveryData,
   RunFunc,

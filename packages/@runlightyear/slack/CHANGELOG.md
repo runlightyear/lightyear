@@ -1,5 +1,21 @@
 # @runlightyear/slack
 
+## 0.5.0
+
+### Minor Changes
+
+- 6fb536f: Standardize on the term props for parameters passed as an object
+- 6fb536f: Migrate terminology from Oauth to OAuth
+- 6fb536f: Updated documentation
+
+### Patch Changes
+
+- Updated dependencies [6fb536f]
+- Updated dependencies
+- Updated dependencies [6fb536f]
+- Updated dependencies [6fb536f]
+  - @runlightyear/lightyear@0.17.0
+
 ## 0.4.17
 
 ### Patch Changes

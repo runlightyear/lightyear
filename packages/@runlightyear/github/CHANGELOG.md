@@ -1,5 +1,22 @@
 # @runlightyear/github
 
+## 0.8.0
+
+### Minor Changes
+
+- 6fb536f: Standardize on the term props for parameters passed as an object
+- 6fb536f: Migrate terminology from Oauth to OAuth
+- 6fb536f: Migrate from Github to GitHub
+- 6fb536f: Updated documentation
+
+### Patch Changes
+
+- Updated dependencies [6fb536f]
+- Updated dependencies
+- Updated dependencies [6fb536f]
+- Updated dependencies [6fb536f]
+  - @runlightyear/lightyear@0.17.0
+
 ## 0.7.9
 
 ### Patch Changes

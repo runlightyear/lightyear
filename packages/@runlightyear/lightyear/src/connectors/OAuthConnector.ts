@@ -166,7 +166,15 @@ export abstract class OAuthConnector {
       expiresAt = dayjsUtc().add(parseInt(expiresIn), "seconds").format();
     }
 
-    return { tokenType, accessToken, refreshToken, expiresAt, apiKey: null };
+    return {
+      tokenType,
+      accessToken,
+      refreshToken,
+      expiresAt,
+      apiKey: null,
+      username: null,
+      password: null,
+    };
   }
 
   getRefreshAccessTokenHeaders() {
