@@ -54,12 +54,12 @@ const config = {
           src: "img/logo.svg",
         },
         items: [
-          {
-            type: "doc",
-            docId: "index",
-            position: "left",
-            label: "API",
-          },
+          // {
+          //   type: "doc",
+          //   href: "/lightyear/docs/api",
+          //   position: "left",
+          //   label: "API",
+          // },
           {
             href: "https://github.com/runlightyear/lightyear",
             label: "GitHub",
