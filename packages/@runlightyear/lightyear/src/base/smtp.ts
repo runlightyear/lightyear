@@ -1,7 +1,7 @@
 import baseRequest from "./baseRequest";
 
 /**
- * @beta
+ * @alpha
  */
 export interface SmtpProxyRequestProps {
   host: string;
@@ -16,7 +16,6 @@ export interface SmtpProxyRequestProps {
   subject: string;
   text: string;
   html: string;
-
 }
 
 export type EmailAddress = {
@@ -24,6 +23,9 @@ export type EmailAddress = {
   address: string;
 };
 
+/**
+ * @alpha
+ */
 export type SmtpProxyResponse = {
   accepted: Array<string | EmailAddress>;
   pending: Array<string | EmailAddress>;
@@ -37,10 +39,14 @@ export type SmtpProxyResponse = {
   response: string;
 };
 
-
-
-
-export async function smtpRequest(props: SmtpProxyRequestProps) : Promise<SmtpProxyResponse> {
+/**
+ * @alpha
+ *
+ * @param props
+ */
+export async function smtpRequest(
+  props: SmtpProxyRequestProps
+): Promise<SmtpProxyResponse> {
   console.debug("httpRequest with props", JSON.stringify(props, null, 2));
 
   const response = await baseRequest({
