@@ -28,7 +28,7 @@ import type { DeployFuncProps, DeployFunc } from "./base/deploy";
 
 /* Http Proxy */
 import type {
-  HttpProxyRequestOptions,
+  HttpProxyRequestProps,
   HttpProxyResponse,
   HttpProxyResponseError,
 } from "./base/http";
@@ -41,6 +41,13 @@ import { PollingData, WebhookDeliveryData } from "./base/runData";
 
 /* Secrets */
 import { SecretData } from "./base/secret";
+
+/* Smtp Proxy */
+import type {
+  SmtpProxyRequestProps,
+  SmtpProxyResponse,
+  EmailAddress,
+} from "./base/smtp";
 
 /* Variables */
 import { getVariableData, VariableData } from "./base/variable";
@@ -67,12 +74,12 @@ import type { BaseConnectorProps } from "./connectors/BaseConnector";
 import { AuthConnector } from "./connectors/AuthConnector";
 import type { AuthConnectorProps } from "./connectors/AuthConnector";
 
-/* Oauth Connector */
-import { OauthConnector } from "./connectors/OauthConnector";
+/* OAuth Connector */
+import { OAuthConnector } from "./connectors/OAuthConnector";
 import type {
-  OauthConnectorProps,
-  OauthConfigData,
-} from "./connectors/OauthConnector";
+  OAuthConnectorProps,
+  OAuthConfigData,
+} from "./connectors/OAuthConnector";
 
 /* Rest Connector */
 import { RestConnector } from "./connectors/RestConnector";
@@ -81,6 +88,10 @@ import type { RestConnectorProps } from "./connectors/RestConnector";
 /* GraphQL Connector */
 import { GraphQLConnector } from "./connectors/GraphQLConnector";
 import type { GraphQLConnectorProps } from "./connectors/GraphQLConnector";
+
+/* Smtp Connector */
+import { SmtpConnector } from "./connectors/SmtpConnector";
+import { SmtpConnectorProps } from "./connectors/SmtpConnector";
 
 /** Logging **/
 
@@ -115,9 +126,10 @@ export {
   getWebhookData,
   BaseConnector,
   AuthConnector,
-  OauthConnector,
+  OAuthConnector,
   RestConnector,
   GraphQLConnector,
+  SmtpConnector,
   deploy,
   run,
   PrefixedRedactedConsole,
@@ -141,12 +153,16 @@ export type {
   SecretData,
   BaseConnectorProps,
   AuthConnectorProps,
-  HttpProxyRequestOptions,
+  HttpProxyRequestProps,
   HttpProxyResponse,
-  OauthConnectorProps,
-  OauthConfigData,
+  SmtpProxyRequestProps,
+  SmtpProxyResponse,
+  EmailAddress,
+  OAuthConnectorProps,
+  OAuthConfigData,
   RestConnectorProps,
   GraphQLConnectorProps,
+  SmtpConnectorProps,
   PollingData,
   WebhookDeliveryData,
   RunFunc,

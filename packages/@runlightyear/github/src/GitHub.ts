@@ -59,13 +59,13 @@ import pingPayload from "./webhooks/payloads/pingPayload";
 import isWebhookEventType from "./webhooks/webhookEventType";
 import pushPayload from "./webhooks/payloads/pushPayload";
 import WebhookEvent from "./types/WebhookEvent";
-import defineGithubWebhook, {
-  DefineGithubWebhookProps,
-} from "./webhooks/defineGithubWebhook";
+import defineGitHubWebhook, {
+  DefineGitHubWebhookProps,
+} from "./webhooks/defineGitHubWebhook";
 
-export interface GithubConnectorProps extends AuthConnectorProps {}
+export interface GitHubConnectorProps extends AuthConnectorProps {}
 
-export interface GithubDefineAuthProps {
+export interface GitHubDefineAuthProps {
   /**
    * The name of the auth
    */
@@ -75,26 +75,66 @@ export interface GithubDefineAuthProps {
 /**
  * @beta
  *
- * Connector to the Github API
+ * Connector to the GitHub API
  *
  * @example Import
  * ```typescript
- * import { Github } from "@runlightyear/github"
+ * import { GitHub } from "@runlightyear/github"
  * ```
  *
- * @example Define an auth
+ * @example Use in an action
  * ```typescript
- * const githubAuth = Github.defineAuth({ name: "github" });
+ * defineAction({
+ *   name: "githubExample",
+ *   title: "GitHub Example",
+ *   apps: ["github"],
+ *   run: ({ auths }) => {
+ *     const github = new GitHub({ auth: auths.github });
+ *   }
+ * })
  * ```
  *
- * @example List all github repos
+ * @example Create an issue
  * ```typescript
- * const github = new Github({ auth: githubAuth });
- * await github.listRepos();
+ * await github.createIssue({
+ *   owner: "<owner>",
+ *   repo: "<repo name>",
+ *   title: "New Issue",
+ * })
  * ```
- */
-export class Github extends RestConnector {
-  constructor(props: GithubConnectorProps) {
+ *
+ * @example Subscribe to push events
+ * ```typescript
+ * GitHub.defineWebhook({
+ *   name: "githubPushes",
+ *   title: "GitHub Pushes",
+ *   subscribeProps: () => {
+ *     return {
+ *       owner: "<owner>",
+ *       repo: "<repo name>",
+ *       events: ["push"],
+ *     }
+ *   },
+ * });
+ *
+ * ``` */
+export class GitHub extends RestConnector {
+  /**
+   * @example
+   * ```typescript
+   * defineAction({
+   *   name: "githubExample",
+   *   title: "GitHub Example",
+   *   apps: ["github"],
+   *   run: ({ auths }) => {
+   *     const github = new GitHub({ auth: auths.github });
+   *   }
+   * })
+   * ```
+   *
+   * @param props
+   */
+  constructor(props: GitHubConnectorProps) {
     super({ ...props, baseUrl: "https://api.github.com" });
   }
 
@@ -286,7 +326,7 @@ export class Github extends RestConnector {
    *
    * @example Subscribe to push events
    * ```typescript
-   * Github.defineWebhook({
+   * GitHub.defineWebhook({
    *   name: "githubPushes",
    *   title: "GitHub Pushes",
    *   subscribeProps: () => {
@@ -299,8 +339,8 @@ export class Github extends RestConnector {
    * });
    * ```
    */
-  static defineWebhook(props: DefineGithubWebhookProps) {
-    return defineGithubWebhook(props);
+  static defineWebhook(props: DefineGitHubWebhookProps) {
+    return defineGitHubWebhook(props);
   }
 
   /**

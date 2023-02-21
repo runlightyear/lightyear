@@ -30,7 +30,7 @@ export interface AirtableProps extends AuthConnectorProps {}
  * }
  * ```
  *
- * @example Create an issue
+ * @example Create a record
  * ```typescript
  * await airtable.createRecords({
  *   baseId: "<base id>",
@@ -44,6 +44,21 @@ export interface AirtableProps extends AuthConnectorProps {}
  * ```
  */
 export class Airtable extends RestConnector {
+  /**
+   * @example Use in an action
+   * ```typescript
+   * defineAction({
+   *   name: "airtableExample",
+   *   title: "Airtable Example"
+   *   apps: ["airtable"],
+   *   run: async ({ auths }) => {
+   *     const airtable = new Airtable({ auth: auths.airtable });
+   *   }
+   * }
+   * ```
+   *
+   * @param props
+   */
   constructor(props: AirtableProps) {
     super({
       ...props,

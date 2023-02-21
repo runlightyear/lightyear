@@ -1,4 +1,4 @@
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 
 export interface PingRepositoryWebhookProps {
   /**
@@ -21,7 +21,7 @@ export interface PingRepositoryWebhookProps {
  * This will trigger a ping event to be sent to the hook.
  */
 const pingRepositoryWebhook =
-  (self: Github) => async (props: PingRepositoryWebhookProps) => {
+  (self: GitHub) => async (props: PingRepositoryWebhookProps) => {
     const { owner, repo, hookId } = props;
 
     return self.post({

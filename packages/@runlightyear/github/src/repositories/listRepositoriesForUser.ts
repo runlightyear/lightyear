@@ -1,4 +1,4 @@
-import { Github } from "../Github";
+import { GitHub } from "../GitHub";
 
 export interface ListRepositoriesForUserProps {
   /**
@@ -36,7 +36,7 @@ export interface ListRepositoriesForUserProps {
 }
 
 const listRepositoriesForUser =
-  (self: Github) => async (props: ListRepositoriesForUserProps) => {
+  (self: GitHub) => async (props: ListRepositoriesForUserProps) => {
     const { username, type, sort, direction, perPage, page } = props;
 
     return await self.get({

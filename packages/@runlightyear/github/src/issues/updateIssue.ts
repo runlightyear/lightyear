@@ -1,4 +1,4 @@
-import { Github } from "../Github";
+import { GitHub } from "../GitHub";
 
 export interface UpdateIssueProps {
   /**
@@ -49,7 +49,7 @@ export interface UpdateIssueProps {
   assignees?: Array<string>;
 }
 
-const updateIssue = (self: Github) => async (props: UpdateIssueProps) => {
+const updateIssue = (self: GitHub) => async (props: UpdateIssueProps) => {
   const {
     owner,
     repo,

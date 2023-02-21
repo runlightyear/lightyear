@@ -1,16 +1,16 @@
 import { Response } from "node-fetch";
 import {
-  OauthConnector,
-  OauthConnectorProps,
+  OAuthConnector,
+  OAuthConnectorProps,
   AuthData,
 } from "@runlightyear/lightyear";
 import { SlackScope } from "./types/SlackScope";
 
 /**
- * Connector to the Slack Oauth2 API
+ * Connector to the Slack OAuth2 API
  */
-export class SlackOauth extends OauthConnector {
-  constructor(props: OauthConnectorProps) {
+export class SlackOAuth extends OAuthConnector {
+  constructor(props: OAuthConnectorProps) {
     super(props);
   }
 

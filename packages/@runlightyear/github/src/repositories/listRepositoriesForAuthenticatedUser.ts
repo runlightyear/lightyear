@@ -1,4 +1,4 @@
-import { Github } from "../Github";
+import { GitHub } from "../GitHub";
 
 export interface ListRepositoriesForAuthenticatedUserProps {
   /**
@@ -52,7 +52,7 @@ export interface ListRepositoriesForAuthenticatedUserProps {
 }
 
 const listRepositoriesForAuthenticatedUser =
-  (self: Github) =>
+  (self: GitHub) =>
   async (props: ListRepositoriesForAuthenticatedUserProps) => {
     const {
       visibility,

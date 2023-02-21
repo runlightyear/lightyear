@@ -1,5 +1,5 @@
 import { WebhookDeliveryData } from "@runlightyear/lightyear";
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 import WebhookEvent from "../../types/WebhookEvent";
 
 export interface CommonPayload {
@@ -152,6 +152,6 @@ export default function commonPayload(
     throw new Error(`Expected event: ${expectedEvent}, got: ${event}`);
   }
 
-  const data = Github.processDelivery(deliveryData);
+  const data = GitHub.processDelivery(deliveryData);
   return data.body as CommonPayload;
 }

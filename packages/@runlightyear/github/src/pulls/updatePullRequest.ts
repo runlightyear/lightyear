@@ -1,4 +1,4 @@
-import { Github } from "../Github";
+import { GitHub } from "../GitHub";
 
 /**
  * This is a description of these props
@@ -39,7 +39,7 @@ export interface UpdatePullRequestProps {
 }
 
 const updatePullRequest =
-  (self: Github) => async (props: UpdatePullRequestProps) => {
+  (self: GitHub) => async (props: UpdatePullRequestProps) => {
     const {
       owner,
       repo,

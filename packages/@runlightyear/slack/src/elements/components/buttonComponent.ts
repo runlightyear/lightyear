@@ -1,7 +1,7 @@
 import { PlainText } from "../objects/plainText";
 import { SlackObject } from "../objects";
 
-interface ButtonComponentOptions {
+interface ButtonComponentProps {
   text: PlainText;
   actionId: string;
   url?: string;
@@ -11,13 +11,13 @@ interface ButtonComponentOptions {
   accessibilityLabel?: string;
 }
 
-export interface ButtonComponent extends ButtonComponentOptions {
+export interface ButtonComponent extends ButtonComponentProps {
   type: "button";
 }
 
-export default function buttonComponent(options: ButtonComponentOptions) {
+export default function buttonComponent(props: ButtonComponentProps) {
   const { text, actionId, url, value, style, confirm, accessibilityLabel } =
-    options;
+    props;
 
   return {
     type: "button",

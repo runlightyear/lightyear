@@ -31,7 +31,7 @@ export interface OpenAIProps extends AuthConnectorProps {}
  * }
  * ```
  *
- * @example Crate an issue
+ * @example Create a completion
  * ```typescript
  * await openAI.createCompletion({
  *   model: "gpt3",
@@ -39,6 +39,21 @@ export interface OpenAIProps extends AuthConnectorProps {}
  * });
  */
 export class OpenAI extends RestConnector {
+  /**
+   * @example
+   * ```typescript
+   * defineAction({
+   *   name: "openAIExample",
+   *   title: "OpenAI Example"
+   *   apps: ["openai"],
+   *   run: async ({ auths }) => {
+   *     const openai = new OpenAI({ auth: auths.openai });
+   *   }
+   * }
+   * ```
+   *
+   * @param props
+   */
   constructor(props: OpenAIProps) {
     super({ ...props, baseUrl: "https://api.openai.com/v1" });
   }

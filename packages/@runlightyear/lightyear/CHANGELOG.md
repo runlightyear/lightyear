@@ -1,5 +1,14 @@
 # @runlightyear/lightyear
 
+## 0.17.0
+
+### Minor Changes
+
+- 6fb536f: Standardize on the term props for parameters passed as an object
+- Support for Smtp
+- 6fb536f: Migrate terminology from Oauth to OAuth
+- 6fb536f: Updated documentation
+
 ## 0.16.0
 
 ### Minor Changes

@@ -1,7 +1,7 @@
 import {
   base64ToBase64Url,
-  OauthConnector,
-  OauthConnectorProps,
+  OAuthConnector,
+  OAuthConnectorProps,
 } from "@runlightyear/lightyear";
 import { AirtableScope } from "./types/AirtableScope";
 import crypto from "crypto";
@@ -10,17 +10,17 @@ import invariant from "tiny-invariant";
 /**
  * @beta
  */
-export interface AirtableOauthProps extends OauthConnectorProps {
+export interface AirtableOAuthProps extends OAuthConnectorProps {
   scopes?: AirtableScope[];
 }
 
 /**
  * @beta
  */
-export class AirtableOauth extends OauthConnector {
+export class AirtableOAuth extends OAuthConnector {
   scopes: AirtableScope[];
 
-  constructor(props: AirtableOauthProps) {
+  constructor(props: AirtableOAuthProps) {
     const {
       scopes = [
         "data.records:read",

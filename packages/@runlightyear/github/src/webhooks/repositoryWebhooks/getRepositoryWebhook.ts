@@ -1,4 +1,4 @@
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 
 export interface GetRepositoryWebhookProps {
   /**
@@ -22,7 +22,7 @@ export interface GetRepositoryWebhookProps {
  */
 
 const getRepositoryWebhook =
-  (self: Github) => async (props: GetRepositoryWebhookProps) => {
+  (self: GitHub) => async (props: GetRepositoryWebhookProps) => {
     const { owner, repo, hookId } = props;
 
     return self.get({

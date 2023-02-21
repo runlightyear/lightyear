@@ -1,6 +1,6 @@
 import { PlainText } from "../objects/plainText";
 
-export interface ImageOptions {
+export interface ImageProps {
   /**
    * The URL of the image to be displayed. Maximum length for this field is 3000 characters.
    */
@@ -19,12 +19,12 @@ export interface ImageOptions {
   blockId?: string;
 }
 
-export interface Image extends ImageOptions {
+export interface Image extends ImageProps {
   type: "image";
 }
 
-export default function image(options: ImageOptions) {
-  const { imageUrl, altText, title, blockId } = options;
+export default function image(props: ImageProps) {
+  const { imageUrl, altText, title, blockId } = props;
 
   return {
     type: "image",

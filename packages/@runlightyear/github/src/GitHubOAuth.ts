@@ -1,17 +1,13 @@
-import {
-  AuthConnectorProps,
-  OauthConnector,
-  OauthConnectorProps,
-} from "@runlightyear/lightyear";
-import { GithubScope } from "./types/GithubScope";
+import { OAuthConnector, OAuthConnectorProps } from "@runlightyear/lightyear";
+import { GitHubScope } from "./types/GitHubScope";
 
-export interface GithubOauthProps extends OauthConnectorProps {}
+export interface GitHubOAuthProps extends OAuthConnectorProps {}
 
 /**
- * Connector to the Github Oauth2 API
+ * Connector to the GitHub OAuth2 API
  */
-export class GithubOauth extends OauthConnector {
-  constructor(props: GithubOauthProps) {
+export class GitHubOAuth extends OAuthConnector {
+  constructor(props: GitHubOAuthProps) {
     super(props);
   }
 
@@ -20,7 +16,7 @@ export class GithubOauth extends OauthConnector {
   }
 
   getAuthRequestUrlParams(): Record<string, string> {
-    const scopes: Array<GithubScope> = [
+    const scopes: Array<GitHubScope> = [
       "public_repo",
       "repo",
       "notifications",
