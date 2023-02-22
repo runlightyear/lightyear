@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.17.0
+
+### Minor Changes
+
+- Added separate "signup" command to reduce confusion with "login"
+
 ## 0.16.2
 
 ### Patch Changes

@@ -7,24 +7,31 @@ import getAccountType from "./getAccountType";
 import { terminal } from "terminal-kit";
 
 export const login = new Command("login");
+export const signup = new Command("signup");
 
-login
-  .description(
-    "Login to get credentials, which are stored in .env in project root"
-  )
-  .addOption(new Option("--dev").hideHelp())
-  .action(async (options) => {
-    let authUrl = "https://app.runlightyear.com";
-    let baseUrl = "https://app.runlightyear.com";
-    if (options.dev) {
-      terminal.red("In dev mode, using http://localhost:3000\n");
-      authUrl = "http://localhost:3000";
-      baseUrl = "http://localhost:3000";
-    }
+const obj: { [name: string]: Command } = { login: login, signup: signup };
 
-    const accountType = await getAccountType();
+for (const name in obj) {
+  obj[name]
+    .description(
+      `${
+        name === "login" ? "Log in" : "Sign up"
+      } to get credentials, which are stored in .env in project root`
+    )
+    .addOption(new Option("--dev").hideHelp())
+    .action(async (options) => {
+      let authUrl = "https://app.runlightyear.com";
+      let baseUrl = "https://app.runlightyear.com";
+      if (options.dev) {
+        terminal.red("In dev mode, using http://localhost:3000\n");
+        authUrl = "http://localhost:3000";
+        baseUrl = "http://localhost:3000";
+      }
 
-    const localPort = await startServer(getRequestHandler(baseUrl));
+      const accountType = name === "login" ? "existing" : "new";
 
-    await openBrowser(authUrl, baseUrl, accountType, localPort);
-  });
+      const localPort = await startServer(getRequestHandler(baseUrl));
+
+      await openBrowser(authUrl, baseUrl, accountType, localPort);
+    });
+}
