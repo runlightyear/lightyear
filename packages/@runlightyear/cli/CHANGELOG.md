@@ -1,5 +1,21 @@
 # @runlightyear/cli
 
+## 0.17.0
+
+### Minor Changes
+
+- Added separate "signup" command to reduce confusion with "login"
+
+## 0.16.2
+
+### Patch Changes
+
+- Updated dependencies [6fb536f]
+- Updated dependencies
+- Updated dependencies [6fb536f]
+- Updated dependencies [6fb536f]
+  - @runlightyear/lightyear@0.17.0
+
 ## 0.16.1
 
 ### Patch Changes

@@ -3,7 +3,7 @@ import { program } from "commander";
 import * as dotenv from "dotenv";
 import packageJson from "../package.json";
 import { create } from "./commands/create";
-import { login } from "./commands/login";
+import { login, signup } from "./commands/login";
 import { dev } from "./commands/dev";
 import { deploy } from "./commands/deploy";
 import { run } from "./commands/run";
@@ -21,6 +21,7 @@ program
   .description("Lightyear CLI")
   .version(packageJson.version)
   .addCommand(create)
+  .addCommand(signup)
   .addCommand(login)
   .addCommand(dev)
   .addCommand(deploy)
