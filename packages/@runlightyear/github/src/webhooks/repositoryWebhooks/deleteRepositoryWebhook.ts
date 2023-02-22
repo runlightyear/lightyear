@@ -1,6 +1,6 @@
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 
-export interface DeleteRepositoryWebhookOptions {
+export interface DeleteRepositoryWebhookProps {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
@@ -19,8 +19,8 @@ export interface DeleteRepositoryWebhookOptions {
  * Delete a repository webhook
  */
 const deleteRepositoryWebhook =
-  (self: Github) => async (options: DeleteRepositoryWebhookOptions) => {
-    const { owner, repo, hookId } = options;
+  (self: GitHub) => async (props: DeleteRepositoryWebhookProps) => {
+    const { owner, repo, hookId } = props;
 
     return self.delete({
       url: `/repos/${owner}/${repo}/hooks/${hookId}`,

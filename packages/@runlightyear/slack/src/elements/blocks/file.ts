@@ -1,4 +1,4 @@
-export interface FileOptions {
+export interface FileProps {
   /**
    * The external unique ID for this file.
    */
@@ -13,12 +13,12 @@ export interface FileOptions {
   blockId?: string;
 }
 
-export interface File extends FileOptions {
+export interface File extends FileProps {
   type: "file";
 }
 
-export default function file(options: FileOptions) {
-  const { externalId, source, blockId } = options;
+export default function file(props: FileProps) {
+  const { externalId, source, blockId } = props;
 
   return {
     type: "file",

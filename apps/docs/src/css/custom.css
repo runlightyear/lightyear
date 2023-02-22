@@ -38,3 +38,7 @@
   --ifm-color-primary-lighter: #f9f9fb;
   --ifm-color-primary-lightest: #ffffff;
 }
+
+header {
+    display: none;
+}

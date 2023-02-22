@@ -29,10 +29,6 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
         },
         blog: {
           showReadingTime: true,
@@ -58,12 +54,12 @@ const config = {
           src: "img/logo.svg",
         },
         items: [
-          {
-            type: "doc",
-            docId: "api/index",
-            position: "left",
-            label: "API",
-          },
+          // {
+          //   type: "doc",
+          //   href: "/lightyear/docs/api",
+          //   position: "left",
+          //   label: "API",
+          // },
           {
             href: "https://github.com/runlightyear/lightyear",
             label: "GitHub",

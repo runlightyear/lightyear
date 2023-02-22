@@ -1,7 +1,7 @@
 import { SlackObject, TextObject } from "../objects";
 import markdownText from "../objects/markdownText";
 
-export interface SectionOptions {
+export interface SectionProps {
   /**
    * The text for the block, in the form of a text object. Maximum length for the text in this field is 3000 characters. This field is not required if a valid array of fields objects is provided instead.
    */
@@ -17,21 +17,19 @@ export interface SectionOptions {
   accessory?: SlackObject;
 }
 
-export interface Section extends SectionOptions {
+export interface Section extends SectionProps {
   type: "section";
 }
 
-export default function section(
-  optionsOrText: SectionOptions | string
-): Section {
-  if (typeof optionsOrText === "string") {
+export default function section(propsOrText: SectionProps | string): Section {
+  if (typeof propsOrText === "string") {
     return {
       type: "section",
-      text: markdownText(optionsOrText),
+      text: markdownText(propsOrText),
     };
   }
 
-  const { text, fields } = optionsOrText;
+  const { text, fields } = propsOrText;
 
   return {
     type: "section",

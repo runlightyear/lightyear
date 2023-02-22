@@ -1,6 +1,6 @@
-import { Github } from "../Github";
+import { GitHub } from "../GitHub";
 
-export interface ListOrganizationRepositoriesOptions {
+export interface ListOrganizationRepositoriesProps {
   /**
    * The organization name. The name is not case sensitive.
    */
@@ -41,8 +41,8 @@ export interface ListOrganizationRepositoriesOptions {
 }
 
 const listOrganizationRepositories =
-  (self: Github) => async (options: ListOrganizationRepositoriesOptions) => {
-    const { org, type, sort, direction, perPage, page } = options;
+  (self: GitHub) => async (props: ListOrganizationRepositoriesProps) => {
+    const { org, type, sort, direction, perPage, page } = props;
 
     return await self.get({
       url: `/orgs/${org}/repos`,

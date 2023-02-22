@@ -15,7 +15,10 @@ import { getEnvName } from "../util/getEnvName";
 import { getApiKey } from "../util/getApiKey";
 import { getBaseUrl } from "../util/getBaseUrl";
 
-interface RepoInvocation extends APIGatewayEvent {
+/**
+ * @internal
+ */
+export interface RepoInvocation extends APIGatewayEvent {
   operation: string;
   removed?: boolean;
   actionName?: string;
@@ -24,10 +27,18 @@ interface RepoInvocation extends APIGatewayEvent {
   logDisplayLevel?: "DEBUG" | "INFO";
 }
 
-export const handler = async (
+/**
+ * @internal
+ *
+ * The entry point for all operations
+ *
+ * @param event
+ * @param context
+ */
+export async function handler(
   event: RepoInvocation,
   context: Context
-): Promise<APIGatewayProxyResult> => {
+): Promise<APIGatewayProxyResult> {
   const { logDisplayLevel } = event;
 
   prepareConsole(logDisplayLevel || "DEBUG");
@@ -86,4 +97,4 @@ export const handler = async (
   }
 
   return handlerResult(500, "Unknown error");
-};
+}

@@ -1,56 +1,56 @@
 import {
-  AuthConnectorOptions,
+  AuthConnectorProps,
   HttpProxyResponse,
   RestConnector,
   WebhookDeliveryData,
 } from "@runlightyear/lightyear";
-import createGist, { CreateGistOptions } from "./gists/createGist";
-import createIssue, { CreateIssueOptions } from "./issues/createIssue";
-import updateIssue, { UpdateIssueOptions } from "./issues/updateIssue";
+import createGist, { CreateGistProps } from "./gists/createGist";
+import createIssue, { CreateIssueProps } from "./issues/createIssue";
+import updateIssue, { UpdateIssueProps } from "./issues/updateIssue";
 import createPullRequest, {
-  CreatePullRequestOptions,
+  CreatePullRequestProps,
 } from "./pulls/createPullRequest";
 import createReviewCommentForPullRequest, {
-  CreatePullRequestCommentOptions,
+  CreatePullRequestCommentProps,
 } from "./pulls/createReviewCommentForPullRequest";
 import updatePullRequest, {
-  UpdatePullRequestOptions,
+  UpdatePullRequestProps,
 } from "./pulls/updatePullRequest";
 import downloadRepoArchiveTar, {
-  DownloadRepoArchiveTarOptions,
+  DownloadRepoArchiveTarProps,
 } from "./repositories/contents/downloadRepoArchiveTar";
 import downloadRepoArchiveZip, {
-  DownloadRepoArchiveZipOptions,
+  DownloadRepoArchiveZipProps,
 } from "./repositories/contents/downloadRepoArchiveZip";
 import createRepositoryWebhook, {
-  CreateRepositoryWebhookOptions,
+  CreateRepositoryWebhookProps,
 } from "./webhooks/repositoryWebhooks/createRepositoryWebhook";
 import getRepositoryWebhook, {
-  GetRepositoryWebhookOptions,
+  GetRepositoryWebhookProps,
 } from "./webhooks/repositoryWebhooks/getRepositoryWebhook";
 import listRepositoryWebhooks, {
-  ListRepositoryWebhooksOptions,
+  ListRepositoryWebhooksProps,
 } from "./webhooks/repositoryWebhooks/listRepositoryWebhooks";
 import listRepositoriesForUser, {
-  ListRepositoriesForUserOptions,
+  ListRepositoriesForUserProps,
 } from "./repositories/listRepositoriesForUser";
 import listOrganizationRepositories, {
-  ListOrganizationRepositoriesOptions,
+  ListOrganizationRepositoriesProps,
 } from "./repositories/listOrganizationRepositories";
 import listRepositoriesForAuthenticatedUser, {
-  ListRepositoriesForAuthenticatedUserOptions,
+  ListRepositoriesForAuthenticatedUserProps,
 } from "./repositories/listRepositoriesForAuthenticatedUser";
 import updateRepositoryWebhook, {
-  UpdateRepositoryWebhookOptions,
+  UpdateRepositoryWebhookProps,
 } from "./webhooks/repositoryWebhooks/updateRepositoryWebhook";
 import deleteRepositoryWebhook, {
-  DeleteRepositoryWebhookOptions,
+  DeleteRepositoryWebhookProps,
 } from "./webhooks/repositoryWebhooks/deleteRepositoryWebhook";
 import pingRepositoryWebhook, {
-  PingRepositoryWebhookOptions,
+  PingRepositoryWebhookProps,
 } from "./webhooks/repositoryWebhooks/pingRepositoryWebhook";
 import testPushRepositoryWebhook, {
-  TestPushRepositoryWebhookOptions,
+  TestPushRepositoryWebhookProps,
 } from "./webhooks/repositoryWebhooks/testPushRepositoryWebhook";
 import pullRequestPayload from "./webhooks/payloads/pullRequestPayload";
 import pullRequestReviewPayload from "./webhooks/payloads/pullRequestReviewPayload";
@@ -58,14 +58,14 @@ import workflowRunPayload from "./webhooks/payloads/workflowRunPayload";
 import pingPayload from "./webhooks/payloads/pingPayload";
 import isWebhookEventType from "./webhooks/webhookEventType";
 import pushPayload from "./webhooks/payloads/pushPayload";
-import WebhookEvent from "./webhooks/WebhookEvent";
-import defineGithubWebhook, {
-  DefineGithubWebhookProps,
-} from "./webhooks/defineGithubWebhook";
+import WebhookEvent from "./types/WebhookEvent";
+import defineGitHubWebhook, {
+  DefineGitHubWebhookProps,
+} from "./webhooks/defineGitHubWebhook";
 
-export interface GithubConnectorOptions extends AuthConnectorOptions {}
+export interface GitHubConnectorProps extends AuthConnectorProps {}
 
-export interface GithubDefineAuthOptions {
+export interface GitHubDefineAuthProps {
   /**
    * The name of the auth
    */
@@ -73,27 +73,69 @@ export interface GithubDefineAuthOptions {
 }
 
 /**
- * Connector to the Github API
+ * @beta
+ *
+ * Connector to the GitHub API
  *
  * @example Import
  * ```typescript
- * import { Github } from "@runlightyear/github"
+ * import { GitHub } from "@runlightyear/github"
  * ```
  *
- * @example Define an auth
+ * @example Use in an action
  * ```typescript
- * const githubAuth = Github.defineAuth({ name: "github" });
+ * defineAction({
+ *   name: "githubExample",
+ *   title: "GitHub Example",
+ *   apps: ["github"],
+ *   run: ({ auths }) => {
+ *     const github = new GitHub({ auth: auths.github });
+ *   }
+ * })
  * ```
  *
- * @example List all github repos
+ * @example Create an issue
  * ```typescript
- * const github = new Github({ auth: githubAuth });
- * await github.listRepos();
+ * await github.createIssue({
+ *   owner: "<owner>",
+ *   repo: "<repo name>",
+ *   title: "New Issue",
+ * })
  * ```
- */
-export class Github extends RestConnector {
-  constructor(options: GithubConnectorOptions) {
-    super({ ...options, baseUrl: "https://api.github.com" });
+ *
+ * @example Subscribe to push events
+ * ```typescript
+ * GitHub.defineWebhook({
+ *   name: "githubPushes",
+ *   title: "GitHub Pushes",
+ *   subscribeProps: () => {
+ *     return {
+ *       owner: "<owner>",
+ *       repo: "<repo name>",
+ *       events: ["push"],
+ *     }
+ *   },
+ * });
+ *
+ * ``` */
+export class GitHub extends RestConnector {
+  /**
+   * @example
+   * ```typescript
+   * defineAction({
+   *   name: "githubExample",
+   *   title: "GitHub Example",
+   *   apps: ["github"],
+   *   run: ({ auths }) => {
+   *     const github = new GitHub({ auth: auths.github });
+   *   }
+   * })
+   * ```
+   *
+   * @param props
+   */
+  constructor(props: GitHubConnectorProps) {
+    super({ ...props, baseUrl: "https://api.github.com" });
   }
 
   /**
@@ -117,10 +159,10 @@ export class Github extends RestConnector {
    *
    * Note: Don't name your files "gistfile" with a numerical suffix. This is the format of the automatic naming scheme that Gist uses internally.
    *
-   * @param options options
+   * @param props props
    */
-  async createGist(options: CreateGistOptions): Promise<HttpProxyResponse> {
-    return createGist(this)(options);
+  async createGist(props: CreateGistProps): Promise<HttpProxyResponse> {
+    return createGist(this)(props);
   }
 
   /**
@@ -132,10 +174,10 @@ export class Github extends RestConnector {
    *
    * This endpoint triggers notifications. Creating content too quickly using this endpoint may result in secondary rate limiting. See "Secondary rate limits" and "Dealing with secondary rate limits" for details.
    *
-   * @param options options
+   * @param props props
    */
-  async createIssue(options: CreateIssueOptions): Promise<HttpProxyResponse> {
-    return createIssue(this)(options);
+  async createIssue(props: CreateIssueProps): Promise<HttpProxyResponse> {
+    return createIssue(this)(props);
   }
 
   /**
@@ -145,10 +187,10 @@ export class Github extends RestConnector {
    *
    * Issue owners and users with push access can edit an issue.
    *
-   * @param options options
+   * @param props props
    */
-  async updateIssue(options: UpdateIssueOptions): Promise<HttpProxyResponse> {
-    return updateIssue(this)(options);
+  async updateIssue(props: UpdateIssueProps): Promise<HttpProxyResponse> {
+    return updateIssue(this)(props);
   }
 
   /**
@@ -162,12 +204,12 @@ export class Github extends RestConnector {
    *
    * This endpoint triggers notifications. Creating content too quickly using this endpoint may result in secondary rate limiting. See "Secondary rate limits" and "Dealing with secondary rate limits" for details.
    *
-   * @param options options
+   * @param props props
    */
   async createPullRequest(
-    options: CreatePullRequestOptions
+    props: CreatePullRequestProps
   ): Promise<HttpProxyResponse> {
-    return createPullRequest(this)(options);
+    return createPullRequest(this)(props);
   }
 
   /**
@@ -183,12 +225,12 @@ export class Github extends RestConnector {
    *
    * This endpoint triggers notifications. Creating content too quickly using this endpoint may result in secondary rate limiting. See "Secondary rate limits" and "Dealing with secondary rate limits" for details.
    *
-   * @param options options
+   * @param props props
    */
   async createReviewCommentForPullRequest(
-    options: CreatePullRequestCommentOptions
+    props: CreatePullRequestCommentProps
   ) {
-    return createReviewCommentForPullRequest(this)(options);
+    return createReviewCommentForPullRequest(this)(props);
   }
 
   /**
@@ -200,10 +242,10 @@ export class Github extends RestConnector {
    *
    * To open or update a pull request in a public repository, you must have write access to the head or the source branch. For organization-owned repositories, you must be a member of the organization that owns the repository to open or update a pull request.
    *
-   * @param options options
+   * @param props props
    */
-  async updatePullRequest(options: UpdatePullRequestOptions) {
-    return updatePullRequest(this)(options);
+  async updatePullRequest(props: UpdatePullRequestProps) {
+    return updatePullRequest(this)(props);
   }
 
   /**
@@ -213,12 +255,10 @@ export class Github extends RestConnector {
    *
    * Lists repositories for the specified organization.
    *
-   * @param options options
+   * @param props props
    */
-  async listOrganizationRepositories(
-    options: ListOrganizationRepositoriesOptions
-  ) {
-    return listOrganizationRepositories(this)(options);
+  async listOrganizationRepositories(props: ListOrganizationRepositoriesProps) {
+    return listOrganizationRepositories(this)(props);
   }
 
   /**
@@ -228,10 +268,10 @@ export class Github extends RestConnector {
    *
    * Lists public repositories for the specified user. Note: For GitHub AE, this endpoint will list internal repositories for the specified user.
    *
-   * @param options options
+   * @param props props
    */
-  async listRepositoriesForUser(options: ListRepositoriesForUserOptions) {
-    return listRepositoriesForUser(this)(options);
+  async listRepositoriesForUser(props: ListRepositoriesForUserProps) {
+    return listRepositoriesForUser(this)(props);
   }
 
   /**
@@ -243,12 +283,12 @@ export class Github extends RestConnector {
    *
    * The authenticated user has explicit permission to access repositories they own, repositories where they are a collaborator, and repositories that they can access through an organization membership.
    *
-   * @param options options
+   * @param props props
    */
   async listRepositoriesForAuthenticatedUser(
-    options: ListRepositoriesForAuthenticatedUserOptions
+    props: ListRepositoriesForAuthenticatedUserProps
   ) {
-    return listRepositoriesForAuthenticatedUser(this)(options);
+    return listRepositoriesForAuthenticatedUser(this)(props);
   }
 
   /**
@@ -260,10 +300,10 @@ export class Github extends RestConnector {
    *
    * Note: For private repositories, these links are temporary and expire after five minutes.
    *
-   * @param options options
+   * @param props props
    */
-  async downloadRepoArchiveTar(options: DownloadRepoArchiveTarOptions) {
-    return downloadRepoArchiveTar(this)(options);
+  async downloadRepoArchiveTar(props: DownloadRepoArchiveTarProps) {
+    return downloadRepoArchiveTar(this)(props);
   }
 
   /**
@@ -275,17 +315,32 @@ export class Github extends RestConnector {
    *
    * Note: For private repositories, these links are temporary and expire after five minutes. If the repository is empty, you will receive a 404 when you follow the redirect.
    *
-   * @param options options
+   * @param props props
    */
-  async downloadRepoArchiveZip(options: DownloadRepoArchiveZipOptions) {
-    return downloadRepoArchiveZip(this)(options);
+  async downloadRepoArchiveZip(props: DownloadRepoArchiveZipProps) {
+    return downloadRepoArchiveZip(this)(props);
   }
 
   /**
    * Define a GitHub repository webhook
+   *
+   * @example Subscribe to push events
+   * ```typescript
+   * GitHub.defineWebhook({
+   *   name: "githubPushes",
+   *   title: "GitHub Pushes",
+   *   subscribeProps: () => {
+   *     return {
+   *       owner: "<owner>",
+   *       repo: "<repo>",
+   *       events: ["push"],
+   *     }
+   *   },
+   * });
+   * ```
    */
-  static defineWebhook(props: DefineGithubWebhookProps) {
-    return defineGithubWebhook(props);
+  static defineWebhook(props: DefineGitHubWebhookProps) {
+    return defineGitHubWebhook(props);
   }
 
   /**
@@ -295,10 +350,10 @@ export class Github extends RestConnector {
    *
    * Lists webhooks for a repository. last response may return null if there have not been any deliveries within 30 days.
    *
-   * @param options options
+   * @param props props
    */
-  async listRepositoryWebhooks(options: ListRepositoryWebhooksOptions) {
-    return listRepositoryWebhooks(this)(options);
+  async listRepositoryWebhooks(props: ListRepositoryWebhooksProps) {
+    return listRepositoryWebhooks(this)(props);
   }
 
   /**
@@ -308,10 +363,10 @@ export class Github extends RestConnector {
    *
    * Repositories can have multiple webhooks installed. Each webhook should have a unique config. Multiple webhooks can share the same config as long as those webhooks do not have any events that overlap.
    *
-   * @param options options
+   * @param props props
    */
-  async createRepositoryWebhook(options: CreateRepositoryWebhookOptions) {
-    return createRepositoryWebhook(this)(options);
+  async createRepositoryWebhook(props: CreateRepositoryWebhookProps) {
+    return createRepositoryWebhook(this)(props);
   }
 
   /**
@@ -321,10 +376,10 @@ export class Github extends RestConnector {
    *
    * Returns a webhook configured in a repository.
    *
-   * @param options options
+   * @param props props
    */
-  async getRepositoryWebhook(options: GetRepositoryWebhookOptions) {
-    return getRepositoryWebhook(this)(options);
+  async getRepositoryWebhook(props: GetRepositoryWebhookProps) {
+    return getRepositoryWebhook(this)(props);
   }
 
   /**
@@ -334,10 +389,10 @@ export class Github extends RestConnector {
    *
    * Updates a webhook configured in a repository. If you previously had a secret set, you must provide the same secret or set a new secret or the secret will be removed.
    *
-   * @param options options
+   * @param props props
    */
-  async updateRepositoryWebhook(options: UpdateRepositoryWebhookOptions) {
-    return updateRepositoryWebhook(this)(options);
+  async updateRepositoryWebhook(props: UpdateRepositoryWebhookProps) {
+    return updateRepositoryWebhook(this)(props);
   }
 
   /**
@@ -345,10 +400,10 @@ export class Github extends RestConnector {
    *
    * @group Webhook
    *
-   * @param options options
+   * @param props props
    */
-  async deleteRepositoryWebhook(options: DeleteRepositoryWebhookOptions) {
-    return deleteRepositoryWebhook(this)(options);
+  async deleteRepositoryWebhook(props: DeleteRepositoryWebhookProps) {
+    return deleteRepositoryWebhook(this)(props);
   }
 
   /**
@@ -358,10 +413,10 @@ export class Github extends RestConnector {
    *
    * This will trigger a ping event to be sent to the hook.
    *
-   * @param options options
+   * @param props props
    */
-  async pingRepositoryWebhook(options: PingRepositoryWebhookOptions) {
-    return pingRepositoryWebhook(this)(options);
+  async pingRepositoryWebhook(props: PingRepositoryWebhookProps) {
+    return pingRepositoryWebhook(this)(props);
   }
 
   /**
@@ -371,10 +426,10 @@ export class Github extends RestConnector {
    *
    * This will trigger the hook with the latest push to the current repository if the hook is subscribed to push events. If the hook is not subscribed to push events, the server will respond with 204 but no test POST will be generated.
    *
-   * @param options options
+   * @param props props
    */
-  async testPushRepositoryWebhook(options: TestPushRepositoryWebhookOptions) {
-    return testPushRepositoryWebhook(this)(options);
+  async testPushRepositoryWebhook(props: TestPushRepositoryWebhookProps) {
+    return testPushRepositoryWebhook(this)(props);
   }
 
   /**

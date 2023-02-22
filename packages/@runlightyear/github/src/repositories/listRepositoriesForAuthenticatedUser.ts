@@ -1,6 +1,6 @@
-import { Github } from "../Github";
+import { GitHub } from "../GitHub";
 
-export interface ListRepositoriesForAuthenticatedUserOptions {
+export interface ListRepositoriesForAuthenticatedUserProps {
   /**
    * Limit results to repositories with the specified visibility.
    *
@@ -52,8 +52,8 @@ export interface ListRepositoriesForAuthenticatedUserOptions {
 }
 
 const listRepositoriesForAuthenticatedUser =
-  (self: Github) =>
-  async (options: ListRepositoriesForAuthenticatedUserOptions) => {
+  (self: GitHub) =>
+  async (props: ListRepositoriesForAuthenticatedUserProps) => {
     const {
       visibility,
       affiliation,
@@ -64,7 +64,7 @@ const listRepositoriesForAuthenticatedUser =
       page,
       since,
       before,
-    } = options;
+    } = props;
 
     return await self.get({
       url: `/user/repos`,

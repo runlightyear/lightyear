@@ -1,5 +1,5 @@
 import { WebhookDeliveryData } from "@runlightyear/lightyear";
-import WebhookEvent from "./WebhookEvent";
+import WebhookEvent from "../types/WebhookEvent";
 
 export default function isWebhookEventType(
   expectedEvent: WebhookEvent,

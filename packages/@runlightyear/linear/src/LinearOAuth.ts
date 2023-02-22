@@ -1,7 +1,10 @@
-import { OauthConnector, OauthConnectorProps } from "@runlightyear/lightyear";
+import { OAuthConnector, OAuthConnectorProps } from "@runlightyear/lightyear";
 import { LinearScope } from "./types/LinearScope";
 
-export interface LinearOauthProps extends OauthConnectorProps {
+/**
+ * @beta
+ */
+export interface LinearOAuthProps extends OAuthConnectorProps {
   /**
    * List of scopes
    */
@@ -23,12 +26,15 @@ export interface LinearOauthProps extends OauthConnectorProps {
     | "application";
 }
 
-export class LinearOauth extends OauthConnector {
+/**
+ * @beta
+ */
+export class LinearOAuth extends OAuthConnector {
   scope: LinearScope[];
   prompt: "consent" | undefined;
   actor: "user" | "application";
 
-  constructor(props: LinearOauthProps) {
+  constructor(props: LinearOAuthProps) {
     const {
       scope = ["read", "issues:create", "comments:create"],
       prompt,

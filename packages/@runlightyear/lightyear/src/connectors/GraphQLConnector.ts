@@ -1,7 +1,13 @@
-import { RestConnector, RestConnectorOptions } from "./RestConnector";
+import { RestConnector, RestConnectorProps } from "./RestConnector";
 
-export interface GraphQLConnectorProps extends RestConnectorOptions {}
+/**
+ * @beta
+ */
+export interface GraphQLConnectorProps extends RestConnectorProps {}
 
+/**
+ * @beta
+ */
 export interface GraphQLConnectorQueryProps {
   query: string;
   variables: {
@@ -9,6 +15,13 @@ export interface GraphQLConnectorQueryProps {
   };
 }
 
+/**
+ * @beta
+ *
+ * GraphQL Connector
+ *
+ * The base for making calls to GraphQL APIs
+ */
 export class GraphQLConnector extends RestConnector {
   constructor(props: GraphQLConnectorProps) {
     super(props);

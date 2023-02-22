@@ -1,6 +1,6 @@
 import { SlackObject } from "../objects";
 
-export interface ContextOptions {
+export interface ContextProps {
   /**
    * An array of image elements and text objects. Maximum number of items is 10.
    */
@@ -11,12 +11,12 @@ export interface ContextOptions {
   blockId?: string;
 }
 
-export interface Context extends ContextOptions {
+export interface Context extends ContextProps {
   type: "context";
 }
 
-export default function context(options: ContextOptions) {
-  const { elements, blockId } = options;
+export default function context(props: ContextProps) {
+  const { elements, blockId } = props;
 
   return {
     type: "context",

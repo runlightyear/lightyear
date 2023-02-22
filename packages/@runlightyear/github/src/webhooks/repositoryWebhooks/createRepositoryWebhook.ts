@@ -1,9 +1,9 @@
 import { HttpProxyResponse } from "@runlightyear/lightyear";
-import { Github } from "../../Github";
-import WebhookEvent from "../WebhookEvent";
-import WebhookConfig from "../WebhookConfig";
+import { GitHub } from "../../GitHub";
+import WebhookEvent from "../../types/WebhookEvent";
+import WebhookConfig from "../../types/WebhookConfig";
 
-export interface CreateRepositoryWebhookOptions {
+export interface CreateRepositoryWebhookProps {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
@@ -67,11 +67,11 @@ export interface CreateRepositoryWebhookResponse extends HttpProxyResponse {
  */
 
 const createRepositoryWebhook =
-  (self: Github) =>
+  (self: GitHub) =>
   async (
-    options: CreateRepositoryWebhookOptions
+    props: CreateRepositoryWebhookProps
   ): Promise<CreateRepositoryWebhookResponse> => {
-    const { owner, repo, name, config, events, active } = options;
+    const { owner, repo, name, config, events, active } = props;
 
     return self.post({
       url: `/repos/${owner}/${repo}/hooks`,

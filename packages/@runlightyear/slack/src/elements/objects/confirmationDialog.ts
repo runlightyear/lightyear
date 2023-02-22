@@ -9,8 +9,8 @@ export interface ConfirmationDialog {
   style?: "primary" | "danger";
 }
 
-export default function confirmationDialog(options: ConfirmationDialog) {
-  const { title, text, confirm, deny, style } = options;
+export default function confirmationDialog(props: ConfirmationDialog) {
+  const { title, text, confirm, deny, style } = props;
 
   return { title, text, confirm, deny, style };
 }

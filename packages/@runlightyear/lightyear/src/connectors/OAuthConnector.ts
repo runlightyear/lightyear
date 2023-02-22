@@ -3,29 +3,43 @@ import { AuthData } from "../base/auth";
 import dayjsUtc from "../util/dayjsUtc";
 import inDevelopment from "../util/inDevelopment";
 
-export interface OauthConnectorProps {
+/**
+ * @public
+ */
+export interface OAuthConnectorProps {
   appName?: string;
   customAppName?: string;
-  oauthConfigData: OauthConfigData;
+  oauthConfigData: OAuthConfigData;
   authData: AuthData;
 }
 
-export interface OauthConfigData {
+/**
+ * @public
+ */
+export interface OAuthConfigData {
   clientId: string | null;
   clientSecret: string | null;
   authRequestUrl: string | null;
 }
 
 /**
- * Oauth2 token management
+ * @public
+ *
+ * OAuth2 Connector
+ *
+ * Creates the input to the 3 essential OAuth tasks:
+ *
+ * 1. Generates a url to request an access token
+ * 2. Converts the oauth callback parameters into the https call to request an access token
+ * 3. Provides the https params to refresh an access token
  */
-export abstract class OauthConnector {
+export abstract class OAuthConnector {
   appName?: string;
   customAppName?: string;
-  oauthConfigData: OauthConfigData;
+  oauthConfigData: OAuthConfigData;
   authData?: AuthData;
 
-  protected constructor(props: OauthConnectorProps) {
+  protected constructor(props: OAuthConnectorProps) {
     const { oauthConfigData, appName, customAppName, authData } = props;
     this.oauthConfigData = oauthConfigData;
 
@@ -152,7 +166,15 @@ export abstract class OauthConnector {
       expiresAt = dayjsUtc().add(parseInt(expiresIn), "seconds").format();
     }
 
-    return { tokenType, accessToken, refreshToken, expiresAt, apiKey: null };
+    return {
+      tokenType,
+      accessToken,
+      refreshToken,
+      expiresAt,
+      apiKey: null,
+      username: null,
+      password: null,
+    };
   }
 
   getRefreshAccessTokenHeaders() {

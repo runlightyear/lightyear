@@ -1,4 +1,7 @@
+/* OpenAI */
 import { OpenAI } from "./OpenAI";
+
+/* Create Completion */
 import type {
   CreateCompletionProps,
   CreateCompletionResponse,

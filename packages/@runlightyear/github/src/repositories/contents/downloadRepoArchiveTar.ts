@@ -1,6 +1,6 @@
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 
-export interface DownloadRepoArchiveTarOptions {
+export interface DownloadRepoArchiveTarProps {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
@@ -13,8 +13,8 @@ export interface DownloadRepoArchiveTarOptions {
 }
 
 const downloadRepoArchiveTar =
-  (self: Github) => async (options: DownloadRepoArchiveTarOptions) => {
-    const { owner, repo, ref } = options;
+  (self: GitHub) => async (props: DownloadRepoArchiveTarProps) => {
+    const { owner, repo, ref } = props;
 
     return await self.get({
       url: `/repos/${owner}/${repo}/tarball/${ref}`,

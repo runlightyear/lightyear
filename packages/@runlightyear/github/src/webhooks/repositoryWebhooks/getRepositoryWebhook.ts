@@ -1,6 +1,6 @@
-import { Github } from "../../Github";
+import { GitHub } from "../../GitHub";
 
-export interface GetRepositoryWebhookOptions {
+export interface GetRepositoryWebhookProps {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
@@ -22,8 +22,8 @@ export interface GetRepositoryWebhookOptions {
  */
 
 const getRepositoryWebhook =
-  (self: Github) => async (options: GetRepositoryWebhookOptions) => {
-    const { owner, repo, hookId } = options;
+  (self: GitHub) => async (props: GetRepositoryWebhookProps) => {
+    const { owner, repo, hookId } = props;
 
     return self.get({
       url: `/repos/${owner}/${repo}/hooks/${hookId}`,

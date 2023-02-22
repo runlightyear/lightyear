@@ -3,9 +3,9 @@ import { Slack } from "../Slack";
 import { Block } from "../elements/blocks";
 
 /**
- * Options for postMessage
+ * Props for postMessage
  */
-export interface PostMessageOptions {
+export interface PostMessageProps {
   /**
    * Channel, private group, or IM channel to send message to. Can be an encoded ID, or a name.
    */
@@ -81,7 +81,7 @@ export interface PostMessageOptions {
   username?: string;
 }
 
-const postMessage = (self: Slack) => async (options: PostMessageOptions) => {
+const postMessage = (self: Slack) => async (props: PostMessageProps) => {
   const {
     channel,
     text,
@@ -99,7 +99,7 @@ const postMessage = (self: Slack) => async (options: PostMessageOptions) => {
     unfurlLinks,
     unfurlMedia,
     username,
-  } = options;
+  } = props;
 
   return self.post({
     url: "chat.postMessage",

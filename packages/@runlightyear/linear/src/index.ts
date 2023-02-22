@@ -1,4 +1,16 @@
+/* Linear */
 import { Linear } from "./Linear";
-import { LinearOauth } from "./LinearOauth";
+import type { LinearProps } from "./Linear";
 
-export { Linear, LinearOauth };
+/* Linear OAuth */
+import { LinearOAuth } from "./LinearOAuth";
+import type { LinearOAuthProps } from "./LinearOAuth";
+
+/* Types */
+import type { LinearScope } from "./types/LinearScope";
+
+/* Create Issue */
+import type { CreateIssueProps } from "./issues/createIssue";
+
+export { Linear, LinearOAuth };
+export type { LinearProps, LinearOAuthProps, LinearScope, CreateIssueProps };

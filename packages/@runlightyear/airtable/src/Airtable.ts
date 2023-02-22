@@ -1,11 +1,64 @@
-import { AuthConnectorOptions, RestConnector } from "@runlightyear/lightyear";
+import { AuthConnectorProps, RestConnector } from "@runlightyear/lightyear";
 import { listRecords, ListRecordsProps } from "./records/listRecords";
 import { whoami } from "./meta/whoami";
 import { createRecords, CreateRecordsProps } from "./records/createRecords";
 
-export interface AirtableProps extends AuthConnectorOptions {}
+/**
+ * @beta
+ */
+export interface AirtableProps extends AuthConnectorProps {}
 
+/**
+ * @beta
+ *
+ * Connector to the Airtable API
+ *
+ * @example Import
+ * ```typescript
+ * import { Airtable } from "@runlightyear/airtable"
+ * ```
+ *
+ * @example Use in an action
+ * ```typescript
+ * defineAction({
+ *   name: "airtableExample",
+ *   title: "Airtable Example"
+ *   apps: ["airtable"],
+ *   run: async ({ auths }) => {
+ *     const airtable = new Airtable({ auth: auths.airtable });
+ *   }
+ * }
+ * ```
+ *
+ * @example Create a record
+ * ```typescript
+ * await airtable.createRecords({
+ *   baseId: "<base id>",
+ *   tableIdOrName: "<table id or name>",
+ *   fields: {
+ *     "Column 1": "value1",
+ *     "Column 2": "value2",
+ *     "Column 3": "value3",
+ *   },
+ * });
+ * ```
+ */
 export class Airtable extends RestConnector {
+  /**
+   * @example Use in an action
+   * ```typescript
+   * defineAction({
+   *   name: "airtableExample",
+   *   title: "Airtable Example"
+   *   apps: ["airtable"],
+   *   run: async ({ auths }) => {
+   *     const airtable = new Airtable({ auth: auths.airtable });
+   *   }
+   * }
+   * ```
+   *
+   * @param props
+   */
   constructor(props: AirtableProps) {
     super({
       ...props,
@@ -30,7 +83,7 @@ export class Airtable extends RestConnector {
    *
    * You can filter, sort, and format the results with query parameters. Note that these parameters need to be URL encoded. You can use our API URL encoder tool to help with this. If you are using a helper library like Airtable.js, these parameters will be automatically encoded.
    *
-   * Note Airtable's API only accepts request with a URL shorter than 16,000 characters. Encoded formulas may cause your requests to exceed this limit. To fix this issue you can instead make a POST request to /v0/{baseId}/{tableIdOrName}/listRecords while passing the parameters within the body of the request instead of the query parameters.
+   * Note Airtable's API only accepts request with a URL shorter than 16,000 characters. Encoded formulas may cause your requests to exceed this limit. To fix this issue you can instead make a POST request to /v0/\{baseId\}/\{tableIdOrName\}/listRecords while passing the parameters within the body of the request instead of the query parameters.
    *
    * @param props
    */

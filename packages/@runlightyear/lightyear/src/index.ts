@@ -4,19 +4,58 @@
  * @packageDocumentation
  */
 
-import { getAuthData, AuthData, AuthProps } from "./base/auth";
-import {
-  HttpProxyRequestOptions,
+/** Base Functions **/
+
+/* Action */
+import { defineAction } from "./base/action";
+import type { DefineActionProps } from "./base/action";
+
+/* Auth */
+import { getAuthData } from "./base/auth";
+import type { AuthData, AuthProps } from "./base/auth";
+
+/* Base Request */
+import baseRequest from "./base/baseRequest";
+import type { BaseRequestProps } from "./base/baseRequest";
+
+/* Cache */
+import { getCache, saveCache } from "./base/cache";
+import type { GetCacheProps, SaveCacheProps, CacheData } from "./base/cache";
+
+/* Deploy */
+import { deploy, getDeployData } from "./base/deploy";
+import type { DeployFuncProps, DeployFunc } from "./base/deploy";
+
+/* Http Proxy */
+import type {
+  HttpProxyRequestProps,
   HttpProxyResponse,
   HttpProxyResponseError,
 } from "./base/http";
+
+/* Runs */
+import { run } from "./run";
+import type { RunFunc, RunFuncProps } from "./run";
+// TODO: where should these live?
+import { PollingData, WebhookDeliveryData } from "./base/runData";
+
+/* Secrets */
 import { SecretData } from "./base/secret";
-import { defineAction, DefineActionOptions } from "./base/action";
-import { RunFunc, RunFuncProps } from "./run";
+
+/* Smtp Proxy */
+import type {
+  SmtpProxyRequestProps,
+  SmtpProxyResponse,
+  EmailAddress,
+} from "./base/smtp";
+
+/* Variables */
 import { getVariableData, VariableData } from "./base/variable";
-import {
-  defineWebhook,
-  getWebhookData,
+
+/* Webhooks */
+import { defineWebhook, getWebhookData } from "./base/webhook";
+import type {
+  DefineWebhookProps,
   SubscribePropsFunc,
   SubscribePropsFuncProps,
   SubscribeFunc,
@@ -24,35 +63,59 @@ import {
   UnsubscribeFunc,
   UnsubscribeFuncProps,
 } from "./base/webhook";
-import {
-  BaseConnector,
-  BaseConnectorOptions,
-} from "./connectors/BaseConnector";
-import {
-  AuthConnector,
-  AuthConnectorOptions,
-} from "./connectors/AuthConnector";
-import {
-  OauthConnector,
-  OauthConnectorProps,
-  OauthConfigData,
-} from "./connectors/OauthConnector";
-import {
-  RestConnector,
-  RestConnectorOptions,
-} from "./connectors/RestConnector";
-import { deploy } from "./base/deploy";
-import { run } from "./run";
+
+/** Connectors **/
+
+/* Base Connector */
+import { BaseConnector } from "./connectors/BaseConnector";
+import type { BaseConnectorProps } from "./connectors/BaseConnector";
+
+/* Auth Connector */
+import { AuthConnector } from "./connectors/AuthConnector";
+import type { AuthConnectorProps } from "./connectors/AuthConnector";
+
+/* OAuth Connector */
+import { OAuthConnector } from "./connectors/OAuthConnector";
+import type {
+  OAuthConnectorProps,
+  OAuthConfigData,
+} from "./connectors/OAuthConnector";
+
+/* Rest Connector */
+import { RestConnector } from "./connectors/RestConnector";
+import type { RestConnectorProps } from "./connectors/RestConnector";
+
+/* GraphQL Connector */
+import { GraphQLConnector } from "./connectors/GraphQLConnector";
+import type { GraphQLConnectorProps } from "./connectors/GraphQLConnector";
+
+/* Smtp Connector */
+import { SmtpConnector } from "./connectors/SmtpConnector";
+import { SmtpConnectorProps } from "./connectors/SmtpConnector";
+
+/** Logging **/
+
 import { PrefixedRedactedConsole } from "./logging/PrefixedRedactedConsole";
-import { handler } from "./handler";
-import toTimestamp from "./util/toTimestamp";
-import { PollingData, WebhookDeliveryData } from "./base/runData";
+
+/** Utilities **/
+import { base64ToBase64Url } from "./util/base64ToBase64Url";
+import camelize from "./util/camelize";
 import deCamelize from "./util/deCamelize";
 import { getApiKey } from "./util/getApiKey";
 import { getBaseUrl } from "./util/getBaseUrl";
 import { getEnvName } from "./util/getEnvName";
-import { base64ToBase64Url } from "./util/base64ToBase64Url";
+import toTimestamp from "./util/toTimestamp";
 
+/** Handler **/
+import { handler } from "./handler";
+
+/** Action Results */
+
+/**
+ * @public
+ *
+ * This can be thrown inside a RunFunc to end execution and mark the run as Skipped.
+ */
 const SKIPPED = "SKIPPED";
 
 export {
@@ -63,13 +126,16 @@ export {
   getWebhookData,
   BaseConnector,
   AuthConnector,
-  OauthConnector,
+  OAuthConnector,
   RestConnector,
+  GraphQLConnector,
+  SmtpConnector,
   deploy,
   run,
   PrefixedRedactedConsole,
   handler,
   toTimestamp,
+  camelize,
   deCamelize,
   HttpProxyResponseError,
   SKIPPED,
@@ -82,20 +148,26 @@ export {
 export type {
   AuthData,
   AuthProps,
-  DefineActionOptions,
+  DefineActionProps,
   VariableData,
   SecretData,
-  BaseConnectorOptions,
-  AuthConnectorOptions,
-  HttpProxyRequestOptions,
+  BaseConnectorProps,
+  AuthConnectorProps,
+  HttpProxyRequestProps,
   HttpProxyResponse,
-  OauthConnectorProps,
-  OauthConfigData,
-  RestConnectorOptions,
+  SmtpProxyRequestProps,
+  SmtpProxyResponse,
+  EmailAddress,
+  OAuthConnectorProps,
+  OAuthConfigData,
+  RestConnectorProps,
+  GraphQLConnectorProps,
+  SmtpConnectorProps,
   PollingData,
   WebhookDeliveryData,
   RunFunc,
   RunFuncProps,
+  DefineWebhookProps,
   SubscribePropsFunc,
   SubscribePropsFuncProps,
   SubscribeFunc,

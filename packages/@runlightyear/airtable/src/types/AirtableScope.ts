@@ -1,3 +1,6 @@
+/**
+ * @beta
+ */
 export type AirtableScope =
   /**
    * See the data in records
@@ -58,7 +61,7 @@ export type AirtableScope =
   /**
    * View, create, delete webhooks for a base, as well as fetch webhook payloads.
    *
-   *   List webhooks
+   * List webhooks
    * Create a webhook
    * Delete a webhook
    * Enable/disable webhook notifications

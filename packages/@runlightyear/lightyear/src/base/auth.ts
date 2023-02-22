@@ -4,7 +4,7 @@ import { prefixedRedactedConsole } from "../logging";
 import { getEnvName } from "../util/getEnvName";
 
 /**
- * @public
+ * @internal
  */
 export interface AuthProps {
   name: string;
@@ -13,9 +13,17 @@ export interface AuthProps {
 }
 
 /**
- * @public
+ * @internal
  */
 export type AuthData = {
+  /**
+   * The username for basic authentication
+   */
+  username: string | null;
+  /**
+   * The password for basic authentication
+   */
+  password: string | null;
   /**
    * The api key
    */
@@ -42,7 +50,7 @@ export type AuthData = {
 };
 
 /**
- * @public
+ * @internal
  *
  * @param name - the name of the auth
  */
@@ -57,16 +65,19 @@ export async function getAuthData(name: string): Promise<AuthData> {
 
   const data = (await response.json()) as AuthData;
 
-  const { accessToken, refreshToken, apiKey } = data;
+  const { accessToken, refreshToken, apiKey, username, password } = data;
 
   accessToken && prefixedRedactedConsole.addSecrets([accessToken]);
   refreshToken && prefixedRedactedConsole.addSecrets([refreshToken]);
   apiKey && prefixedRedactedConsole.addSecrets([apiKey]);
+  apiKey && prefixedRedactedConsole.addSecrets([password]);
 
   return {
     accessToken,
     refreshToken,
     apiKey,
+    username,
+    password,
   };
 }
 

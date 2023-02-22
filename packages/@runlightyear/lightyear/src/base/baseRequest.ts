@@ -4,7 +4,10 @@ import { BaseRequestError } from "./BaseRequestError";
 import { getBaseUrl } from "../util/getBaseUrl";
 import { getApiKey } from "../util/getApiKey";
 
-interface BaseRequestProps {
+/**
+ * @internal
+ */
+export interface BaseRequestProps {
   uri: string;
   method?: string;
   params?: any;
@@ -13,6 +16,14 @@ interface BaseRequestProps {
   };
 }
 
+/**
+ * @internal
+ *
+ * @param method
+ * @param uri
+ * @param params
+ * @param data
+ */
 export default async function baseRequest({
   method = "POST",
   uri,
@@ -31,20 +42,8 @@ export default async function baseRequest({
     queryString = "?" + new URLSearchParams(params).toString();
   }
 
-  // // In order to run properly in a Vm2 for dev environments, we need to
-  // // proxy the host fetch implementation
-  // // @ts-ignore
-  // if (global.fetchProxy) {
-  //   console.info("preparing to fetch with fetchProxy");
-  // } else {
-  //   // console.info("preparing to fetch with regular fetch");
-  // }
-  //
-  // // @ts-ignore
-  // const fetchFn = <any>global.fetchProxy || fetch;
-
   const url = `${baseUrl}${uri}${queryString}`;
-  const options = {
+  const props = {
     method,
     headers: {
       Authorization: `apiKey ${apiKey}`,
@@ -54,9 +53,9 @@ export default async function baseRequest({
   };
 
   console.debug(`baseRequest url: ${url}`);
-  console.debug("baseRequest options", options);
+  console.debug("baseRequest props", props);
 
-  const response = await fetch(url, options);
+  const response = await fetch(url, props);
 
   if (!response.ok) {
     console.error(

@@ -5,6 +5,9 @@ import * as process from "process";
 
 export type LogDisplayLevel = "DEBUG" | "INFO";
 
+/**
+ * @internal
+ */
 export class PrefixedRedactedConsole {
   globalPrefix: string = "";
   secrets: Array<string> = [];

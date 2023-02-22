@@ -1,8 +1,14 @@
 import baseRequest from "./baseRequest";
 
+/**
+ * @public
+ */
 export type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
 
-export interface HttpProxyRequestOptions {
+/**
+ * @public
+ */
+export interface HttpProxyRequestProps {
   method?: HttpMethod;
   url: string;
   params?: Record<string, any>;
@@ -13,6 +19,9 @@ export interface HttpProxyRequestOptions {
   body?: string;
 }
 
+/**
+ * @public
+ */
 export type HttpProxyResponse = {
   /**
    * The http status of the proxied response
@@ -32,6 +41,9 @@ export type HttpProxyResponse = {
   data: any;
 };
 
+/**
+ * @public
+ */
 export class HttpProxyResponseError extends Error {
   response: HttpProxyResponse;
 
@@ -42,15 +54,15 @@ export class HttpProxyResponseError extends Error {
 }
 
 export interface HttpRequest {
-  (options: HttpProxyRequestOptions): Promise<HttpProxyResponse>;
+  (props: HttpProxyRequestProps): Promise<HttpProxyResponse>;
 }
 
-export const httpRequest: HttpRequest = async (options) => {
-  console.debug("httpRequest with options", JSON.stringify(options, null, 2));
+export const httpRequest: HttpRequest = async (props) => {
+  console.debug("httpRequest with props", JSON.stringify(props, null, 2));
 
   const response = await baseRequest({
     uri: "/api/v1/httpRequest",
-    data: options,
+    data: props,
   });
 
   console.debug(`response.status`, response.status);

@@ -1,20 +1,35 @@
 import queryString from "query-string";
-import { AuthConnector, AuthConnectorOptions } from "./AuthConnector";
+import { AuthConnector, AuthConnectorProps } from "./AuthConnector";
 import { HttpProxyResponse, httpRequest } from "../base/http";
-import { HttpProxyRequestOptions } from "../base/http";
+import { HttpProxyRequestProps } from "../base/http";
 import camelize from "../util/camelize";
 import { WebhookDeliveryData } from "../base/runData";
 
-export interface RestConnectorOptions extends AuthConnectorOptions {
+/**
+ * @public
+ */
+export interface RestConnectorProps extends AuthConnectorProps {
   baseUrl: string;
+  /**
+   * Whether to automatically convert calls to and from camelCase to snake_case
+   */
   camelize?: boolean;
 }
 
+/**
+ * @public
+ *
+ * Rest Connector
+ *
+ * The base for making calls to REST APIs
+ *
+ * @param props
+ */
 export class RestConnector extends AuthConnector {
   baseUrl: string;
   camelize: boolean;
 
-  constructor(props: RestConnectorOptions) {
+  constructor(props: RestConnectorProps) {
     const { baseUrl, camelize = true, ...rest } = props;
     super(rest);
     this.baseUrl = baseUrl;
@@ -41,11 +56,11 @@ export class RestConnector extends AuthConnector {
   /**
    * Make a proxied http request
    */
-  async request(options: HttpProxyRequestOptions): Promise<HttpProxyResponse> {
+  async request(props: HttpProxyRequestProps): Promise<HttpProxyResponse> {
     console.debug("in RestConnector.request");
-    const { method, url, params, headers, data } = options;
+    const { method, url, params, headers, data } = props;
 
-    const proxyOptions = {
+    const proxyProps = {
       method,
       url: this.buildUrl(url, params),
       headers: {
@@ -55,7 +70,7 @@ export class RestConnector extends AuthConnector {
       body: data && JSON.stringify(data),
     };
 
-    const response = await httpRequest(proxyOptions);
+    const response = await httpRequest(proxyProps);
 
     const processedData = this.camelize
       ? camelize(response.data)
@@ -64,24 +79,24 @@ export class RestConnector extends AuthConnector {
     return { ...response, data: processedData };
   }
 
-  async get(options: HttpProxyRequestOptions) {
-    return await this.request({ ...options, method: "get" });
+  async get(props: HttpProxyRequestProps) {
+    return await this.request({ ...props, method: "get" });
   }
 
-  async post(options: HttpProxyRequestOptions) {
-    return await this.request({ ...options, method: "post" });
+  async post(props: HttpProxyRequestProps) {
+    return await this.request({ ...props, method: "post" });
   }
 
-  async put(options: HttpProxyRequestOptions) {
-    return await this.request({ ...options, method: "put" });
+  async put(props: HttpProxyRequestProps) {
+    return await this.request({ ...props, method: "put" });
   }
 
-  async patch(options: HttpProxyRequestOptions) {
-    return await this.request({ ...options, method: "patch" });
+  async patch(props: HttpProxyRequestProps) {
+    return await this.request({ ...props, method: "patch" });
   }
 
-  async delete(options: HttpProxyRequestOptions) {
-    return await this.request({ ...options, method: "delete" });
+  async delete(props: HttpProxyRequestProps) {
+    return await this.request({ ...props, method: "delete" });
   }
 
   static processDelivery(delivery: WebhookDeliveryData): WebhookDeliveryData {

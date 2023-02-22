@@ -373,7 +373,7 @@ export class MarkdownDocumenter {
 
     if (apiItem instanceof ApiClass) {
       if (apiItem.extendsType) {
-        const extendsParagraph: DocParagraph = new DocParagraph(
+        const extendsParagraphHeader: DocParagraph = new DocParagraph(
           { configuration },
           [
             new DocEmphasisSpan({ configuration, bold: false }, [
@@ -381,20 +381,29 @@ export class MarkdownDocumenter {
             ]),
           ]
         );
+        const extendsParagraph: DocParagraph = new DocParagraph(
+          { configuration },
+          []
+        );
         this._appendExcerptWithHyperlinks(
           extendsParagraph,
           apiItem.extendsType.excerpt
         );
+        output.appendNode(extendsParagraphHeader);
         output.appendNode(extendsParagraph);
       }
       if (apiItem.implementsTypes.length > 0) {
-        const implementsParagraph: DocParagraph = new DocParagraph(
+        const implementsParagraphHeader: DocParagraph = new DocParagraph(
           { configuration },
           [
             new DocEmphasisSpan({ configuration, bold: true }, [
               new DocPlainText({ configuration, text: "Implements: " }),
             ]),
           ]
+        );
+        const implementsParagraph: DocParagraph = new DocParagraph(
+          { configuration },
+          []
         );
         let needsComma: boolean = false;
         for (const implementsType of apiItem.implementsTypes) {
@@ -409,19 +418,24 @@ export class MarkdownDocumenter {
           );
           needsComma = true;
         }
+        output.appendNode(implementsParagraphHeader);
         output.appendNode(implementsParagraph);
       }
     }
 
     if (apiItem instanceof ApiInterface) {
       if (apiItem.extendsTypes.length > 0) {
-        const extendsParagraph: DocParagraph = new DocParagraph(
+        const extendsParagraphHeader: DocParagraph = new DocParagraph(
           { configuration },
           [
             new DocEmphasisSpan({ configuration, bold: true }, [
               new DocPlainText({ configuration, text: "Extends: " }),
             ]),
           ]
+        );
+        const extendsParagraph: DocParagraph = new DocParagraph(
+          { configuration },
+          []
         );
         let needsComma: boolean = false;
         for (const extendsType of apiItem.extendsTypes) {
@@ -436,6 +450,7 @@ export class MarkdownDocumenter {
           );
           needsComma = true;
         }
+        output.appendNode(extendsParagraphHeader);
         output.appendNode(extendsParagraph);
       }
     }
@@ -451,7 +466,7 @@ export class MarkdownDocumenter {
           ).resolvedApiItem
       );
       if (refs.length > 0) {
-        const referencesParagraph: DocParagraph = new DocParagraph(
+        const referencesHeaderParagraph: DocParagraph = new DocParagraph(
           { configuration },
           [
             new DocEmphasisSpan({ configuration, bold: true }, [
@@ -459,6 +474,11 @@ export class MarkdownDocumenter {
             ]),
           ]
         );
+        const referencesParagraph: DocParagraph = new DocParagraph(
+          { configuration },
+          []
+        );
+
         let needsComma: boolean = false;
         const visited: Set<string> = new Set();
         for (const ref of refs) {
@@ -476,6 +496,8 @@ export class MarkdownDocumenter {
           this._appendExcerptTokenWithHyperlinks(referencesParagraph, ref);
           needsComma = true;
         }
+
+        output.appendNode(referencesHeaderParagraph);
         output.appendNode(referencesParagraph);
       }
     }
@@ -1513,7 +1535,19 @@ export class MarkdownDocumenter {
   }
 
   private _getLinkFilenameForApiItem(apiItem: ApiItem): string {
-    return "./" + this._getFilenameForApiItem(apiItem);
+    const withExtension = "/docs/api/" + this._getFilenameForApiItem(apiItem);
+    const withoutExtension = withExtension.slice(0, -3);
+    if (withoutExtension.slice(-6) === "/index") {
+      const withoutIndex = withoutExtension.slice(0, -6);
+
+      if (withoutIndex === ".") {
+        return "/docs";
+      }
+
+      return withoutIndex;
+    }
+
+    return withoutExtension;
   }
 
   private _deleteOldOutputFiles(): void {

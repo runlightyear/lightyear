@@ -1,3 +1,6 @@
+/**
+ * @beta
+ */
 export type LinearScope =
   /**
    *  (Default) Read access for the user's account. This scope will always be present.

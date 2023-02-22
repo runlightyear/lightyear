@@ -1,14 +1,14 @@
 import { getCache, saveCache } from "./cache";
 
-export interface InitializerOptions {
+export interface InitializerProps {
   name: string;
 }
 
 export class Initializer {
   name: string;
 
-  constructor(options: InitializerOptions) {
-    const { name } = options;
+  constructor(props: InitializerProps) {
+    const { name } = props;
     console.log("Constructing an initializer", name);
     this.name = name;
   }
