@@ -8,11 +8,19 @@ import execSubscribeAfterDeploy from "./execSubscribeAfterDeploy";
 import { terminal } from "terminal-kit";
 import updateDeploy from "./updateDeploy";
 import getPreviouslyDeployedCode from "./getPreviouslyDeployedCode";
+import runInContext from "./runInContext";
 
 export default async function execDeployAndSubscribe() {
   const pkg = readPackage();
   const compiledCode = getCompiledCode(pkg.main);
   // const previousCompiledCode = await getPreviouslyDeployedCode();
+
+  try {
+    runInContext(compiledCode);
+  } catch (error) {
+    console.error(String(error));
+    return;
+  }
 
   const deployId = await createDeploy({ compiledCode });
 
