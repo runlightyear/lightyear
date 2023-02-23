@@ -52,14 +52,14 @@ const config = {
         logo: {
           alt: "Lightyear Logo",
           src: "img/logo.svg",
+          href: "https://www.runlightyear.com",
         },
         items: [
-          // {
-          //   type: "doc",
-          //   href: "/lightyear/docs/api",
-          //   position: "left",
-          //   label: "API",
-          // },
+          {
+            href: "https://docs.runlightyear.com",
+            label: "Lightyear Docs",
+            position: "right",
+          },
           {
             href: "https://github.com/runlightyear/lightyear",
             label: "GitHub",
