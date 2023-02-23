@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.17.1
+
+### Patch Changes
+
+- Fixed: CLI terminates after some compilation errors
+
 ## 0.17.0
 
 ### Minor Changes

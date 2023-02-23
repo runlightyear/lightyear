@@ -24,25 +24,44 @@ export default async function runAction({
   const pkg = readPackage();
 
   const compiledCode = getCompiledCode(pkg.main);
-  const handler = runInContext(compiledCode);
 
-  const handlerResult = await handler({
-    operation: "run",
-    actionName,
-    data,
-    logDisplayLevel,
-  });
+  let handler;
+  let status;
+  let logs;
 
-  prepareConsole();
+  try {
+    handler = runInContext(compiledCode);
+  } catch (error) {
+    console.error(String(error));
+    status = "FAILED";
+    logs = [`[ERROR]: ${String(error)}`];
+  }
 
-  const { statusCode, body } = handlerResult;
+  if (handler) {
+    const handlerResult = await handler({
+      operation: "run",
+      actionName,
+      data,
+      logDisplayLevel,
+    });
 
-  const responseData = JSON.parse(body);
+    prepareConsole();
 
-  const { logs } = responseData;
+    const { statusCode, body } = handlerResult;
 
-  const status =
-    statusCode === 202 ? "SKIPPED" : statusCode >= 300 ? "FAILED" : "SUCCEEDED";
+    const responseData = JSON.parse(body);
+
+    const { logs: logsFromVm } = responseData;
+
+    status =
+      statusCode === 202
+        ? "SKIPPED"
+        : statusCode >= 300
+        ? "FAILED"
+        : "SUCCEEDED";
+
+    logs = logsFromVm;
+  }
 
   const response = await fetch(
     `${baseUrl}/api/v1/envs/${envName}/runs/${runId}`,
@@ -70,6 +89,4 @@ export default async function runAction({
     );
     console.error(await response.text());
   }
-
-  return handlerResult;
 }
