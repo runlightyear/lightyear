@@ -6,6 +6,13 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
+  scripts: [
+    {
+      src: "https://plausible.io/js/script.js",
+      defer: true,
+      "data-domain": "connectors.runlightyear.com",
+    },
+  ],
   title: "Lightyear API Docs",
   tagline: "Use some code to build integrations",
   url: "https://connectors.runlightyear.com",
