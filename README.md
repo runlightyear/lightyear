@@ -28,8 +28,15 @@ npm install
 ### Authenticate
 
 ```shell
+npm run signup
+```
+
+or if you already have a Lightyear account
+
+```shell
 npm run login
 ```
+
 
 ### Run the development server
 
