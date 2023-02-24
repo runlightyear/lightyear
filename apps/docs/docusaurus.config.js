@@ -8,8 +8,8 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 const config = {
   title: "Lightyear API Docs",
   tagline: "Use some code to build integrations",
-  url: "https://api-docs.runlightyear.com",
-  baseUrl: "/lightyear/",
+  url: "https://connectors.runlightyear.com",
+  baseUrl: "/",
   trailingSlash: false,
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
