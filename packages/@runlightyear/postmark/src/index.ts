@@ -1,3 +1,9 @@
+/**
+ * @alpha
+ *
+ * @packageDocumentation
+ */
+
 /** Postmark **/
 import { Postmark } from "./Postmark";
 import type { PostmarkProps } from "./Postmark";
