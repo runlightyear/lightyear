@@ -1,6 +1,9 @@
 import { Postmark } from "../Postmark";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 
+/**
+ * @alpha
+ */
 export interface SendSingleEmailProps {
   /**
    * The sender email address. Must have a registered and confirmed Sender Signature.
@@ -85,6 +88,9 @@ export interface SendSingleEmailProps {
   messageStream: string;
 }
 
+/**
+ * @alpha
+ */
 export interface SendSingleEmailResponse extends HttpProxyResponse {
   data: {
     /**
