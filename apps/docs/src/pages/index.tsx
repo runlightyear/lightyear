@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 
 export default function Home() {
   useEffect(() => {
-    window.location.href = "/lightyear/docs/api";
+    window.location.href = "/docs/api";
   }, []);
 
   return null;

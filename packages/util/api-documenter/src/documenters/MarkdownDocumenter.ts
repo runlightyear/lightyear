@@ -163,7 +163,7 @@ export class MarkdownDocumenter {
         break;
       case ApiItemKind.Model:
         output.appendNode(
-          new DocHeading({ configuration, title: `API Reference` })
+          new DocHeading({ configuration, title: `Connector Reference` })
         );
         break;
       case ApiItemKind.Namespace:
