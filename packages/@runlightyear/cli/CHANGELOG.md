@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.18.0
+
+### Minor Changes
+
+- Clean up the commands and add our ASCII logo to the help screen
+
 ## 0.17.1
 
 ### Patch Changes

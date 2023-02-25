@@ -14,9 +14,7 @@ const obj: { [name: string]: Command } = { login: login, signup: signup };
 for (const name in obj) {
   obj[name]
     .description(
-      `${
-        name === "login" ? "Log in" : "Sign up"
-      } to get credentials, which are stored in .env in project root`
+      `${name === "login" ? "Log in" : "Sign up"} to get credentials`
     )
     .addOption(new Option("--dev").hideHelp())
     .action(async (options) => {
