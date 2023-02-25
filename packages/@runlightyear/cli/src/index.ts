@@ -2,15 +2,15 @@
 import { program } from "commander";
 import * as dotenv from "dotenv";
 import packageJson from "../package.json";
+import { setLogDisplayLevel } from "./shared/setLogDisplayLevel";
 import { create } from "./commands/create";
 import { login, signup } from "./commands/login";
 import { dev } from "./commands/dev";
 import { deploy } from "./commands/deploy";
-import { run } from "./commands/run";
-import { test } from "./commands/test";
 import { prepareConsole } from "./logging";
-import { setLogDisplayLevel } from "./shared/setLogDisplayLevel";
-import { terminal } from "terminal-kit";
+import { largeLogo } from "./largeLogo";
+// import { run } from "./commands/run";
+// import { test } from "./commands/test";
 
 dotenv.config();
 
@@ -25,8 +25,9 @@ program
   .addCommand(login)
   .addCommand(dev)
   .addCommand(deploy)
-  .addCommand(run)
-  .option("-d, --debug", "output extra debugging");
+  // .addCommand(run)
+  .option("-d, --debug", "output extra debugging")
+  .addHelpText("beforeAll", largeLogo);
 
 async function main() {
   await program.parseAsync();

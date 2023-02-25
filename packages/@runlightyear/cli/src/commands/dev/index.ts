@@ -8,22 +8,16 @@ import { setLogDisplayLevel } from "../../shared/setLogDisplayLevel";
 import { prepareConsole } from "../../logging";
 import handleResubscribe from "./handleResubscribe";
 import execDeployAndSubscribe from "../../shared/execDeployAndSubscribe";
+import { largeLogo } from "../../largeLogo";
 
 export const dev = new Command("dev");
-
-const largeLogo = `
-  _ _       _     _                         
- | (_) __ _| |__ | |_ _   _  ___  __ _ _ __ 
- | | |/ _\` | '_ \\| __| | | |/ _ \\/ _\` | '__|
- | | | (_| | | | | |_| |_| |  __/ (_| | |   
- |_|_|\\__, |_| |_|\\__|\\__, |\\___|\\__,_|_|   
-      |___/           |___/                 
-`;
 
 let firstDeploy = true;
 
 dev
-  .description("Automatically compile and deploy on changes to source")
+  .description(
+    "Automatically deploy changes, run actions, and respond to webhooks in your dev environment"
+  )
   .addOption(new Option("--dev").hideHelp())
   .action(async () => {
     terminal(largeLogo);

@@ -9,7 +9,7 @@ import addAllFilesToGit from "./addAllFilesToGit";
 export const create = new Command("create");
 
 create
-  .description("Create a new integration repo from template and clone it")
+  .description("Create a new integration project from the starter template")
   .argument("<name>", "Name of project")
   .action(async (name) => {
     await checkGitInstalled();
