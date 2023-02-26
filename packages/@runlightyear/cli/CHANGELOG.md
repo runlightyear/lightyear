@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.19.0
+
+### Minor Changes
+
+- Build locally for production deploy
+
 ## 0.18.0
 
 ### Minor Changes

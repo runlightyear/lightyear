@@ -17,7 +17,7 @@ export default async function execResubscribe(props: ExecResubscribeProps) {
   const pkg = readPackage();
   const compiledCode = getCompiledCode(pkg.main);
 
-  const deployId = await createDeploy({ compiledCode });
+  const deployId = await createDeploy({ status: "RUNNING", compiledCode });
 
   let message;
   if (manual) {
