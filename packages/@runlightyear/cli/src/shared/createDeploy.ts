@@ -2,16 +2,17 @@ import fetch from "node-fetch";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export interface CreateDeployProps {
+  envName?: "dev" | "prod";
+  status: "QUEUED" | "RUNNING" | "SUCCEEDED" | "FAILED";
   compiledCode: Buffer;
 }
 
 export default async function createDeploy(
   props: CreateDeployProps
 ): Promise<string> {
-  const { compiledCode } = props;
+  const { envName = getEnvName(), status, compiledCode } = props;
 
   const baseUrl = getBaseUrl();
-  const envName = getEnvName();
   const apiKey = getApiKey();
 
   let response;
@@ -24,7 +25,7 @@ export default async function createDeploy(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        status: "RUNNING",
+        status,
         compiledCode,
       }),
     });

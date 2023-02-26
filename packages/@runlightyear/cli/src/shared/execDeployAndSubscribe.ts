@@ -22,7 +22,7 @@ export default async function execDeployAndSubscribe() {
     return;
   }
 
-  const deployId = await createDeploy({ compiledCode });
+  const deployId = await createDeploy({ status: "RUNNING", compiledCode });
 
   const handlerResult = await execDeploy({ deployId, compiledCode });
   await execSubscribeProps({ deployId, compiledCode });
