@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.19.1
+
+### Patch Changes
+
+- Clean up deploy log output
+
 ## 0.19.0
 
 ### Minor Changes

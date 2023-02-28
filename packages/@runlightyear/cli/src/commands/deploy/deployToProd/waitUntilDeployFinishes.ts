@@ -1,8 +1,6 @@
 import getPusher from "../../../shared/getPusher";
 import getPusherCredentials from "../../../shared/getPusherCredentials";
 import fetchDeploy from "./fetchDeploy";
-import { program } from "commander";
-import countLines from "./countLines";
 import { terminal } from "terminal-kit";
 import { logDisplayLevel } from "../../../shared/setLogDisplayLevel";
 
@@ -28,8 +26,7 @@ export default async function waitUntilDeployFinishes(deployId: string) {
   const credentials = await getPusherCredentials();
   const pusher = await getPusher(credentials);
 
-  terminal("Waiting for logs...\n");
-  let prevLogLineCount: number = 1;
+  let lineOutputCounter = 0;
 
   const handleUpdate = async () => {
     const deploy = (await fetchDeploy(
@@ -37,12 +34,12 @@ export default async function waitUntilDeployFinishes(deployId: string) {
       deployId
     )) as GetDeployDetailResponseBody;
 
-    terminal.up(prevLogLineCount);
-
     const { status, logs } = deploy;
 
+    const newLogs = logs.slice(lineOutputCounter);
+
     const logOutput =
-      logs
+      newLogs
         .filter((log) =>
           logDisplayLevel === "DEBUG" ? true : log.level !== "DEBUG"
         )
@@ -56,7 +53,7 @@ export default async function waitUntilDeployFinishes(deployId: string) {
         .join("\n") + "\n";
     terminal(logOutput);
 
-    prevLogLineCount = countLines(logOutput);
+    lineOutputCounter = newLogs.length;
 
     if (status === "SUCCEEDED") {
       terminal.green("Deploy succeeded! 🚀\n");
