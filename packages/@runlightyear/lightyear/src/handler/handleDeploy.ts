@@ -6,7 +6,7 @@ export interface handleDeployProps {
 }
 
 export async function handleDeploy({ envName }: handleDeployProps) {
-  console.info("Starting deploy");
+  console.debug("Starting deploy");
   try {
     await deploy({ envName });
     return handlerResult(200, "Deploy successful");

@@ -3,6 +3,7 @@ import getPusherCredentials from "../../../shared/getPusherCredentials";
 import fetchDeploy from "./fetchDeploy";
 import { terminal } from "terminal-kit";
 import { logDisplayLevel } from "../../../shared/setLogDisplayLevel";
+import throttle from "lodash/throttle";
 
 export type Log = {
   id: string;
@@ -64,8 +65,10 @@ export default async function waitUntilDeployFinishes(deployId: string) {
     }
   };
 
-  const subscription = pusher.subscribe(credentials.userId);
-  subscription.bind("deployUpdated", handleUpdate);
+  const throttledHandleUpdate = throttle(handleUpdate, 1000);
 
-  await handleUpdate();
+  const subscription = pusher.subscribe(credentials.userId);
+  subscription.bind("deployUpdated", throttledHandleUpdate);
+
+  await throttledHandleUpdate();
 }
