@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.17.1
+
+### Patch Changes
+
+- Cleaned up deploy logging
+
 ## 0.17.0
 
 ### Minor Changes
