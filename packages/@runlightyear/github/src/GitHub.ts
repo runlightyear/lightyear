@@ -62,6 +62,19 @@ import WebhookEvent from "./types/WebhookEvent";
 import defineGitHubWebhook, {
   DefineGitHubWebhookProps,
 } from "./webhooks/defineGitHubWebhook";
+import {
+  createIssueComment,
+  CreateIssueCommentProps,
+} from "./issues/createIssueComment";
+import {
+  searchIssuesAndPullRequests,
+  SearchIssuesAndPullRequestsProps,
+} from "./search/searchIssuesAndPullRequests";
+import {
+  searchRepositories,
+  SearchRepositoriesProps,
+} from "./search/searchRepositories";
+import { searchUsers, SearchUsersProps } from "./search/searchUsers";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -194,6 +207,17 @@ export class GitHub extends RestConnector {
   }
 
   /**
+   * You can use the REST API to create comments on issues and pull requests. Every pull request is an issue, but not every issue is a pull request.
+   *
+   * This endpoint triggers notifications. Creating content too quickly using this endpoint may result in secondary rate limiting. See "Secondary rate limits" and "Dealing with secondary rate limits" for details.
+   *
+   * @param props
+   */
+  async createIssueComment(props: CreateIssueCommentProps) {
+    return createIssueComment(this)(props);
+  }
+
+  /**
    * Create a pull request
    *
    * @group Pull Request
@@ -319,6 +343,59 @@ export class GitHub extends RestConnector {
    */
   async downloadRepoArchiveZip(props: DownloadRepoArchiveZipProps) {
     return downloadRepoArchiveZip(this)(props);
+  }
+
+  /**
+   * Search issues and pull requests
+   *
+   * Find issues by state and keyword. This method returns up to 100 results per page.
+   *
+   * When searching for issues, you can get text match metadata for the issue title, issue body, and issue comment body fields when you pass the text-match media type. For more details about how to receive highlighted search results, see Text match metadata.
+   *
+   * For example, if you want to find the oldest unresolved Python bugs on Windows. Your query might look something like this.
+   *
+   * q=windows+label:bug+language:python+state:open&sort=created&order=asc
+   *
+   * This query searches for the keyword windows, within any open issue that is labeled as bug. The search runs across repositories whose primary language is Python. The results are sorted by creation date in ascending order, which means the oldest issues appear first in the search results.
+   *
+   * Note: For user-to-server GitHub App requests, you can't retrieve a combination of issues and pull requests in a single query. Requests that don't include the is:issue or is:pull-request qualifier will receive an HTTP 422 Unprocessable Entity response. To get results for both issues and pull requests, you must send separate queries for issues and pull requests. For more information about the is qualifier, see "Searching only issues or pull requests."
+   */
+  async searchIssuesAndPullRequests(props: SearchIssuesAndPullRequestsProps) {
+    return searchIssuesAndPullRequests(this)(props);
+  }
+
+  /**
+   * Search repositories
+   *
+   * Find repositories via various criteria. This method returns up to 100 results per page.
+   *
+   * When searching for repositories, you can get text match metadata for the name and description fields when you pass the text-match media type. For more details about how to receive highlighted search results, see Text match metadata.
+   *
+   * For example, if you want to search for popular Tetris repositories written in assembly code, your query might look like this:
+   *
+   * q=tetris+language:assembly&sort=stars&order=desc
+   *
+   * This query searches for repositories with the word tetris in the name, the description, or the README. The results are limited to repositories where the primary language is assembly. The results are sorted by stars in descending order, so that the most popular repositories appear first in the search results.
+   */
+  async searchRepositories(props: SearchRepositoriesProps) {
+    return searchRepositories(this)(props);
+  }
+
+  /**
+   * Search users
+   *
+   * Find users via various criteria. This method returns up to 100 results per page.
+   *
+   * When searching for users, you can get text match metadata for the issue login, public email, and name fields when you pass the text-match media type. For more details about highlighting search results, see Text match metadata. For more details about how to receive highlighted search results, see Text match metadata.
+   *
+   * For example, if you're looking for a list of popular users, you might try this query:
+   *
+   * q=tom+repos:%3E42+followers:%3E1000
+   *
+   * This query searches for users with the name tom. The results are restricted to users with more than 42 repositories and over 1,000 followers.
+   */
+  async searchUsers(props: SearchUsersProps) {
+    return searchUsers(this)(props);
   }
 
   /**
