@@ -75,6 +75,9 @@ import {
   SearchRepositoriesProps,
 } from "./search/searchRepositories";
 import { searchUsers, SearchUsersProps } from "./search/searchUsers";
+import { createPayload } from "./webhooks/payloads/createPayload";
+import { deletePayload } from "./webhooks/payloads/deletePayload";
+import { issuesPayload } from "./webhooks/payloads/issuesPayload";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -517,6 +520,50 @@ export class GitHub extends RestConnector {
     deliveryData: WebhookDeliveryData
   ) {
     return isWebhookEventType(expectedEvent, deliveryData);
+  }
+
+  /**
+   * Create Payload
+   *
+   * This event occurs when a Git branch or tag is created.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Contents" repository permission.
+   *
+   * Note: This event will not occur when more than three tags are created at once.
+   */
+  static createPayload(data: WebhookDeliveryData) {
+    return createPayload(data);
+  }
+
+  /**
+   * Delete Payload
+   *
+   * This event occurs when a Git branch or tag is deleted.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Contents" repository permission.
+   *
+   * Note: This event will not occur when more than three tags are deleted at once.
+   *
+   * @param data
+   */
+
+  static deletePayload(data: WebhookDeliveryData) {
+    return deletePayload(data);
+  }
+
+  /**
+   * Issues Payload
+   *
+   * This event occurs when there is activity relating to an issue. For more information about issues, see "About issues." For information about the APIs to manage issues, see the GraphQL documentation or "Issues" in the REST API documentation.
+   *
+   * For activity relating to a comment on an issue, use the issue_comment event.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Issues" repository permission.
+   *
+   * @param data
+   */
+  static issuesPayload(data: WebhookDeliveryData) {
+    return issuesPayload(data);
   }
 
   /**
