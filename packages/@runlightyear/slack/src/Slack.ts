@@ -17,6 +17,20 @@ import image from "./elements/blocks/image";
 import video from "./elements/blocks/video";
 import confirmationDialog from "./elements/objects/confirmationDialog";
 import { SlackScope } from "./types/SlackScope";
+import { scheduleMessage, ScheduleMessageProps } from "./chat/scheduleMessage";
+import {
+  createConversation,
+  CreateConversationProps,
+} from "./conversations/createConversation";
+import {
+  inviteToConversation,
+  InviteToConversationProps,
+} from "./conversations/inviteToConversation";
+import {
+  lookupUserByEmail,
+  LookupUserByEmailProps,
+} from "./users/lookupUserByEmail";
+import { getUser, GetUserProps } from "./users/getUser";
 
 /**
  * Connector to the Slack API
@@ -130,6 +144,79 @@ export class Slack extends RestConnector {
    */
   async postMessage(props: PostMessageProps): Promise<HttpProxyResponse> {
     return postMessage(this)(props);
+  }
+
+  /**
+   * Schedules a message to be sent to a channel.
+   *
+   * This method schedules a message for delivery to a public channel, private channel, or direct message/IM channel at a specified time in the future.
+   *
+   * The post_at argument is a Unix timestamp, representing the time the message should post to Slack in the future.
+   *
+   * Think of chat.scheduleMessage and chat.postMessage as two siblings in the Slack family. They share a lot of similarities, like their ability to send messages and include various features like attachments and emojis. But just like siblings, they also have their differences.
+   *
+   * The usage of the text field changes depending on whether you're using blocks. If you are using blocks, this is used as a fallback string to display in notifications. If you aren't, this is the main body text of the message. It can be formatted as plain text, or with mrkdwn.
+   *
+   * Restrictions
+   * You will only be able to schedule a message up to 120 days into the future. If you specify a post_at timestamp beyond this limit, you’ll receive a time_too_far error response. Additionally, you cannot schedule more than 30 messages to post within a 5-minute window to the same channel. Exceeding this will result in a restricted_too_many error.
+   *
+   * The response includes the scheduled_message_id assigned to your message. Use it with the chat.deleteScheduledMessage method to delete the message before it is sent.
+   *
+   * For details on formatting, usage in threads, and rate limiting, check out chat.postMessage documentation.
+   *
+   * Channels
+   * You must specify a public channel, private channel, or IM channel with the channel argument. Each one behaves slightly differently based on the authenticated user's permissions and additional arguments:
+   *
+   * Post to a channel
+   * You can either pass the channel's name (#general) or encoded ID (C123456), and the message will be posted to that channel. The channel's ID can be retrieved through the channels.list API method.
+   *
+   * Post to a DM
+   * Pass the IM channel's ID (D123456) or a user's ID (U123456) as the value of channel to post to that IM channel as the app. The IM channel's ID can be retrieved through the im.list API method.
+   *
+   * You might receive a channel_not_found error if your app doesn't have permission to enter into an IM with the intended user.
+   */
+  async scheduleMessage(props: ScheduleMessageProps) {
+    return scheduleMessage(this)(props);
+  }
+
+  /**
+   * Initiates a public or private channel-based conversation
+   *
+   * @example Create a new conversation
+   *
+   * ```typescript
+   * await slack.createConversation({ name: "newchannel" });
+   * ```
+   */
+  async createConversation(props: CreateConversationProps) {
+    return createConversation(this)(props);
+  }
+
+  /**
+   * Invites users to a channel.
+   *
+   * @param props
+   */
+  async inviteToConversation(props: InviteToConversationProps) {
+    return inviteToConversation(this)(props);
+  }
+
+  /**
+   * Gets information about a user.
+   *
+   * @param props
+   */
+  async getUser(props: GetUserProps) {
+    return getUser(this)(props);
+  }
+
+  /**
+   * Find a user with an email address.
+   *
+   * @param props
+   */
+  async lookupUserByEmail(props: LookupUserByEmailProps) {
+    return lookupUserByEmail(this)(props);
   }
 
   static blocks = {
