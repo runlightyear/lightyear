@@ -1,5 +1,16 @@
 # @runlightyear/github
 
+## 0.9.0
+
+### Minor Changes
+
+- Added remaining api calls planned for v1, started to expand list of webhooks supported
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.17.2
+
 ## 0.8.1
 
 ### Patch Changes

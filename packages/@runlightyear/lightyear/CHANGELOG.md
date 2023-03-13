@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.17.2
+
+### Patch Changes
+
+- Added some debugging for webhooks
+
 ## 0.17.1
 
 ### Patch Changes
