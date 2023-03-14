@@ -1,3 +1,6 @@
+/**
+ * Documentation: Several places, including: https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#issues
+ */
 export type User = {
   login: string;
   id: number;

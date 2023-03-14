@@ -4,16 +4,19 @@ import WebhookEvent from "../../types/WebhookEvent";
 import { User } from "../../types/User";
 import { Repository } from "../../types/Repository";
 
+/**
+ * Documentation: https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#webhook-payload-object-common-properties
+ */
 export interface CommonPayload {
   /**
-   * The user that triggered the event.
+   * An enterprise on GitHub.
    */
-  sender: User;
+  enterprise?: object;
 
   /**
-   * The repository where the event occurred.
+   * The GitHub App installation.
    */
-  repository: Repository;
+  installation?: object;
 
   /**
    * Webhook payloads contain the organization object when the webhook is configured for an organization or the event occurs from activity in a repository owned by an organization.
@@ -21,9 +24,14 @@ export interface CommonPayload {
   organization?: object;
 
   /**
-   * The GitHub App installation.
+   * The repository where the event occurred.
    */
-  installation?: object;
+  repository: Repository;
+
+  /**
+   * The user that triggered the event.
+   */
+  sender: User;
 }
 
 export default function commonPayload(

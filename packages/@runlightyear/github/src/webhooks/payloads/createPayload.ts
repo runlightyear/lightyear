@@ -1,6 +1,9 @@
 import { WebhookDeliveryData } from "@runlightyear/lightyear";
 import commonPayload, { CommonPayload } from "./commonPayload";
 
+/**
+ * Documentation: https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#create
+ */
 export interface CreatePayload extends CommonPayload {
   /**
    * The repository's current description.

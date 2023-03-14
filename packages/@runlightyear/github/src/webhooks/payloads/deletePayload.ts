@@ -1,6 +1,9 @@
 import { WebhookDeliveryData } from "@runlightyear/lightyear";
 import commonPayload, { CommonPayload } from "./commonPayload";
 
+/**
+ * Documentation: https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#delete
+ */
 export interface DeletePayload extends CommonPayload {
   /**
    * The pusher type for the event. Can be either user or a deploy key.

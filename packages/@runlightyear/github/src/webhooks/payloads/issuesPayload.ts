@@ -92,6 +92,9 @@ export interface IssueUnpinnedPayload extends CommonPayload {
   issue: Issue;
 }
 
+/**
+ * Documentation: https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#issues
+ */
 export type IssuesPayload =
   | IssueAssignedPayload
   | IssueClosedPayload

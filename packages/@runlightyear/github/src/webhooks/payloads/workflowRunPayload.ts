@@ -1,27 +1,17 @@
 import { WebhookDeliveryData } from "@runlightyear/lightyear";
 import commonPayload, { CommonPayload } from "./commonPayload";
+import { WorkflowRun } from "../../types/WorkflowRun";
+import { Workflow } from "../../types/Workflow";
 
+/**
+ * Documentation: https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#workflow_run
+ */
 export interface WorkflowRunPayload extends CommonPayload {
   action: "requested" | "in_progress" | "completed";
-  /**
-   * An enterprise on GitHub.
-   */
-  enterprise?: object;
-  /**
-   * The workflow that generated the workflow run.
-   */
-  workflow: object;
-  /**
-   * The workflow run. Includes information such as artifacts_url, check_suite_id, conclusion, head_branch, and head_sha.
-   */
-  workflowRun: {
-    artifactsUrl: string;
-    checkSuiteId: string;
-    conclusion?: "success" | "cancelled" | string;
-    headBranch: string;
-    headSha: string;
-    [name: string]: any;
-  };
+
+  workflow: Workflow;
+
+  workflowRun: WorkflowRun;
 }
 
 export default function workflowRunPayload(

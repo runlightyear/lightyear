@@ -1,5 +1,15 @@
 # @runlightyear/github
 
+## 0.10.0
+
+### Minor Changes
+
+- Added remaining webhooks planned for v1
+
+### Patch Changes
+
+- b46f3ec: Issue.performedViaGithubApp is now optional to conform with spec
+
 ## 0.9.0
 
 ### Minor Changes

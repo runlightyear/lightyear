@@ -1,3 +1,7 @@
+/**
+ * Documentation: https://docs.github.com/en/webhooks-and-events/webhooks/webhook-events-and-payloads
+ */
+
 type WebhookEvent =
   /**
    * Activity related to a branch protection rule.

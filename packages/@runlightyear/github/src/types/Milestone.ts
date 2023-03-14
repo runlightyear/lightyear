@@ -1,5 +1,8 @@
 import { User } from "./User";
 
+/**
+ * Documentation: https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#milestone
+ */
 export type Milestone = {
   closedAt: string | null;
 
@@ -26,7 +29,7 @@ export type Milestone = {
    */
   number: number;
 
-  open_issues: number;
+  openIssues: number;
 
   /**
    * The state of the milestone.
@@ -41,7 +44,7 @@ export type Milestone = {
    */
   title: string;
 
-  updated_at: string;
+  updatedAt: string;
 
   url: string;
 };

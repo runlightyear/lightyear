@@ -1,7 +1,11 @@
 import { User } from "./User";
 import { Label } from "./Label";
 import { Milestone } from "./Milestone";
+import { Reactions } from "./Reactions";
 
+/**
+ * Documentation: https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#issues
+ */
 export type Issue = {
   /**
    * Can be one of: resolved, off-topic, too heated, spam, null
@@ -75,18 +79,9 @@ export type Issue = {
     patchUrl: string;
     url: string;
   };
-  reactions: {
-    "+1": number;
-    "-1": number;
-    confused: number;
-    eyes: number;
-    heart: number;
-    hooray: number;
-    laugh: number;
-    rocket: number;
-    totalCount: number;
-    url: string;
-  };
+
+  reactions: Reactions;
+
   repositoryUrl: string;
 
   /**

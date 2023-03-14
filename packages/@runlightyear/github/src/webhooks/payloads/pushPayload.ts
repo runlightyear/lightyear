@@ -1,6 +1,9 @@
 import { WebhookDeliveryData } from "@runlightyear/lightyear";
 import commonPayload, { CommonPayload } from "./commonPayload";
 
+/**
+ * Documentation: https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#push
+ */
 export interface PushPayload extends CommonPayload {
   /**
    * The full git ref that was pushed. Example: refs/heads/main or refs/tags/v3.14.1.
