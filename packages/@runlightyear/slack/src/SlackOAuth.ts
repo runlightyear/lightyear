@@ -20,6 +20,7 @@ export class SlackOAuth extends OAuthConnector {
 
   getAuthRequestUrlParams() {
     const scopes: SlackScope[] = [
+      "channels:history",
       "channels:manage",
       "channels:read",
       "channels:join",
@@ -27,6 +28,7 @@ export class SlackOAuth extends OAuthConnector {
       "chat:write.customize",
       "chat:write.public",
       "files:write",
+      "groups:history",
       "im:history",
       "im:read",
       "im:write",

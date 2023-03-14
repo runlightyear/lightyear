@@ -1,5 +1,11 @@
 # @runlightyear/slack
 
+## 0.7.1
+
+### Patch Changes
+
+- Additional scopes added
+
 ## 0.7.0
 
 ### Minor Changes
