@@ -1,5 +1,11 @@
 # @runlightyear/slack
 
+## 0.7.0
+
+### Minor Changes
+
+- Expanded the default scope to include permissions to support message reading
+
 ## 0.6.0
 
 ### Minor Changes
