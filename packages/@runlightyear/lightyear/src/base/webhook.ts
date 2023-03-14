@@ -124,6 +124,8 @@ function validateWebhookProps({ name }: DefineWebhookProps) {
  * @param props
  */
 export function defineWebhook(props: DefineWebhookProps) {
+  console.debug("in defineWebhook");
+
   deployList.push({
     type: "webhook",
     webhookProps: props,

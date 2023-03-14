@@ -33,6 +33,8 @@ export interface DefineGitHubWebhookProps {
 const defineGitHubWebhook = (props: DefineGitHubWebhookProps) => {
   const { name, title, variables, secrets, subscribeProps } = props;
 
+  console.debug("in defineGitHubWebhook");
+
   return defineWebhook({
     name,
     title,

@@ -62,6 +62,30 @@ import WebhookEvent from "./types/WebhookEvent";
 import defineGitHubWebhook, {
   DefineGitHubWebhookProps,
 } from "./webhooks/defineGitHubWebhook";
+import {
+  createIssueComment,
+  CreateIssueCommentProps,
+} from "./issues/createIssueComment";
+import {
+  searchIssuesAndPullRequests,
+  SearchIssuesAndPullRequestsProps,
+} from "./search/searchIssuesAndPullRequests";
+import {
+  searchRepositories,
+  SearchRepositoriesProps,
+} from "./search/searchRepositories";
+import { searchUsers, SearchUsersProps } from "./search/searchUsers";
+import { createPayload } from "./webhooks/payloads/createPayload";
+import { deletePayload } from "./webhooks/payloads/deletePayload";
+import { issuesPayload } from "./webhooks/payloads/issuesPayload";
+import { commitCommentPayload } from "./webhooks/payloads/commitCommentPayload";
+import { issueCommentPayload } from "./webhooks/payloads/issueCommentPayload";
+import { labelPayload } from "./webhooks/payloads/labelPayload";
+import { memberPayload } from "./webhooks/payloads/memberPayload";
+import { repositoryPayload } from "./webhooks/payloads/repositoryPayload";
+import { statusPayload } from "./webhooks/payloads/statusPayload";
+import workflowDispatchPayload from "./webhooks/payloads/workflowDispatchPayload";
+import workflowJobPayload from "./webhooks/payloads/workflowJobPayload";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -194,6 +218,21 @@ export class GitHub extends RestConnector {
   }
 
   /**
+   * Create an issue comment
+   *
+   * @group Issue
+   *
+   * You can use the REST API to create comments on issues and pull requests. Every pull request is an issue, but not every issue is a pull request.
+   *
+   * This endpoint triggers notifications. Creating content too quickly using this endpoint may result in secondary rate limiting. See "Secondary rate limits" and "Dealing with secondary rate limits" for details.
+   *
+   * @param props
+   */
+  async createIssueComment(props: CreateIssueCommentProps) {
+    return createIssueComment(this)(props);
+  }
+
+  /**
    * Create a pull request
    *
    * @group Pull Request
@@ -251,7 +290,7 @@ export class GitHub extends RestConnector {
   /**
    * List organization repositories
    *
-   * @group Repo
+   * @group Repository
    *
    * Lists repositories for the specified organization.
    *
@@ -262,22 +301,9 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * List repositories for a user
-   *
-   * @group Repo
-   *
-   * Lists public repositories for the specified user. Note: For GitHub AE, this endpoint will list internal repositories for the specified user.
-   *
-   * @param props props
-   */
-  async listRepositoriesForUser(props: ListRepositoriesForUserProps) {
-    return listRepositoriesForUser(this)(props);
-  }
-
-  /**
    * List repositories for the authenticated user
    *
-   * @group Repo
+   * @group Repository
    *
    * Lists repositories that the authenticated user has explicit permission (:read, :write, or :admin) to access.
    *
@@ -292,9 +318,22 @@ export class GitHub extends RestConnector {
   }
 
   /**
+   * List repositories for a user
+   *
+   * @group Repository
+   *
+   * Lists public repositories for the specified user. Note: For GitHub AE, this endpoint will list internal repositories for the specified user.
+   *
+   * @param props props
+   */
+  async listRepositoriesForUser(props: ListRepositoriesForUserProps) {
+    return listRepositoriesForUser(this)(props);
+  }
+
+  /**
    * Download a repository archive (tar)
    *
-   * @group Repo Content
+   * @group Repository Content
    *
    * Gets a redirect URL to download a tar archive for a repository. If you omit :ref, the repository’s default branch (usually master) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use the Location header to make a second GET request.
    *
@@ -309,7 +348,7 @@ export class GitHub extends RestConnector {
   /**
    * Download a repository archive (zip)
    *
-   * @group Repo Content
+   * @group Repository Content
    *
    * Gets a redirect URL to download a zip archive for a repository. If you omit :ref, the repository’s default branch (usually master) will be used. Please make sure your HTTP framework is configured to follow redirects or you will need to use the Location header to make a second GET request.
    *
@@ -322,7 +361,68 @@ export class GitHub extends RestConnector {
   }
 
   /**
+   * Search issues and pull requests
+   *
+   * @group Search
+   *
+   * Find issues by state and keyword. This method returns up to 100 results per page.
+   *
+   * When searching for issues, you can get text match metadata for the issue title, issue body, and issue comment body fields when you pass the text-match media type. For more details about how to receive highlighted search results, see Text match metadata.
+   *
+   * For example, if you want to find the oldest unresolved Python bugs on Windows. Your query might look something like this.
+   *
+   * q=windows+label:bug+language:python+state:open&sort=created&order=asc
+   *
+   * This query searches for the keyword windows, within any open issue that is labeled as bug. The search runs across repositories whose primary language is Python. The results are sorted by creation date in ascending order, which means the oldest issues appear first in the search results.
+   *
+   * Note: For user-to-server GitHub App requests, you can't retrieve a combination of issues and pull requests in a single query. Requests that don't include the is:issue or is:pull-request qualifier will receive an HTTP 422 Unprocessable Entity response. To get results for both issues and pull requests, you must send separate queries for issues and pull requests. For more information about the is qualifier, see "Searching only issues or pull requests."
+   */
+  async searchIssuesAndPullRequests(props: SearchIssuesAndPullRequestsProps) {
+    return searchIssuesAndPullRequests(this)(props);
+  }
+
+  /**
+   * Search repositories
+   *
+   * @group Search
+   *
+   * Find repositories via various criteria. This method returns up to 100 results per page.
+   *
+   * When searching for repositories, you can get text match metadata for the name and description fields when you pass the text-match media type. For more details about how to receive highlighted search results, see Text match metadata.
+   *
+   * For example, if you want to search for popular Tetris repositories written in assembly code, your query might look like this:
+   *
+   * q=tetris+language:assembly&sort=stars&order=desc
+   *
+   * This query searches for repositories with the word tetris in the name, the description, or the README. The results are limited to repositories where the primary language is assembly. The results are sorted by stars in descending order, so that the most popular repositories appear first in the search results.
+   */
+  async searchRepositories(props: SearchRepositoriesProps) {
+    return searchRepositories(this)(props);
+  }
+
+  /**
+   * Search users
+   *
+   * @group Search
+   *
+   * Find users via various criteria. This method returns up to 100 results per page.
+   *
+   * When searching for users, you can get text match metadata for the issue login, public email, and name fields when you pass the text-match media type. For more details about highlighting search results, see Text match metadata. For more details about how to receive highlighted search results, see Text match metadata.
+   *
+   * For example, if you're looking for a list of popular users, you might try this query:
+   *
+   * q=tom+repos:%3E42+followers:%3E1000
+   *
+   * This query searches for users with the name tom. The results are restricted to users with more than 42 repositories and over 1,000 followers.
+   */
+  async searchUsers(props: SearchUsersProps) {
+    return searchUsers(this)(props);
+  }
+
+  /**
    * Define a GitHub repository webhook
+   *
+   * @group Webhook
    *
    * @example Subscribe to push events
    * ```typescript
@@ -434,12 +534,132 @@ export class GitHub extends RestConnector {
 
   /**
    * Verify type of webhook event
+   *
+   * @internal
    */
   static isWebhookEventType(
     expectedEvent: WebhookEvent,
     deliveryData: WebhookDeliveryData
   ) {
     return isWebhookEventType(expectedEvent, deliveryData);
+  }
+
+  /**
+   * Commit Comment Payload
+   *
+   * @group Webhook Payload
+   *
+   * This event occurs when there is activity relating to commit comments. For more information about commit comments, see "Commenting on a pull request." For information about the APIs to manage commit comments, see the GraphQL API documentation or "Commit comments" in the REST API documentation.
+   *
+   * For activity relating to comments on pull request reviews, use the pull_request_review_comment event. For activity relating to issue comments, use the issue_comment event. For activity relating to discussion comments, use the discussion_comment event.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Contents" repository permission.
+   *
+   * Availability for commit_comment
+   * Repositories
+   * Organizations
+   * GitHub Apps
+   */
+  static commitCommentPayload(data: WebhookDeliveryData) {
+    return commitCommentPayload(data);
+  }
+
+  /**
+   * Create Payload
+   *
+   * @group Webhook Payload
+   *
+   * This event occurs when a Git branch or tag is created.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Contents" repository permission.
+   *
+   * Note: This event will not occur when more than three tags are created at once.
+   */
+  static createPayload(data: WebhookDeliveryData) {
+    return createPayload(data);
+  }
+
+  /**
+   * Delete Payload
+   *
+   * @group Webhook Payload
+   *
+   * This event occurs when a Git branch or tag is deleted.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Contents" repository permission.
+   *
+   * Note: This event will not occur when more than three tags are deleted at once.
+   *
+   * @param data
+   */
+  static deletePayload(data: WebhookDeliveryData) {
+    return deletePayload(data);
+  }
+
+  /**
+   * Issue Comment Payload
+   *
+   * @group Webhook Payload
+   *
+   * This event occurs when there is activity relating to a comment on an issue or pull request. For more information about issues and pull requests, see "About issues" and "About pull requests." For information about the APIs to manage issue comments, see the GraphQL documentation or "Issue comments" in the REST API documentation.
+   *
+   * For activity relating to an issue as opposed to comments on an issue, use the issue event. For activity related to pull request reviews or pull request review comments, use the pull_request_review or pull_request_review_comment events. For more information about the different types of pull request comments, see "Working with comments."
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Issues" or "Pull requests" repository permissions.
+   *
+   * @param data
+   */
+  static issueCommentPayload(data: WebhookDeliveryData) {
+    return issueCommentPayload(data);
+  }
+
+  /**
+   * Issues Payload
+   *
+   * @group Webhook Payload
+   *
+   * This event occurs when there is activity relating to an issue. For more information about issues, see "About issues." For information about the APIs to manage issues, see the GraphQL documentation or "Issues" in the REST API documentation.
+   *
+   * For activity relating to a comment on an issue, use the issue_comment event.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Issues" repository permission.
+   *
+   * @param data
+   */
+  static issuesPayload(data: WebhookDeliveryData) {
+    return issuesPayload(data);
+  }
+
+  /**
+   * Label Payload
+   *
+   * @group Webhook Payload
+   *
+   * This event occurs when there is activity relating to labels. For more information, see "Managing labels." For information about the APIs to manage labels, see the GraphQL documentation or "Labels" in the REST API documentation.
+   *
+   * If you want to receive an event when a label is added to or removed from an issue, pull request, or discussion, use the labeled or unlabeled action type for the issues, pull_request, or discussion events instead.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Metadata" repository permission.
+   *
+   * @param data
+   */
+  static labelPayload(data: WebhookDeliveryData) {
+    return labelPayload(data);
+  }
+
+  /**
+   * Member Payload
+   *
+   * @group Webhook Payload
+   *
+   * This event occurs when there is activity relating to collaborators in a repository. For more information, see "Adding outside collaborators to repositories in your organization." For more information about the API to manage repository collaborators, see the GraphQL API documentation or "Collaborators" in the REST API documentation.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Members" organization permission.
+   *
+   * @param data
+   */
+  static memberPayload(data: WebhookDeliveryData) {
+    return memberPayload(data);
   }
 
   /**
@@ -506,13 +726,71 @@ export class GitHub extends RestConnector {
   }
 
   /**
+   * Repository Payload
+   *
+   * @group Webhook Payload
+   *
+   * This event occurs when there is activity relating to repositories. For more information, see "About repositories." For information about the APIs to manage repositories, see the GraphQL documentation or "Repositories" in the REST API documentation.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Metadata" repository permission.
+   */
+  static repositoryPayload(data: WebhookDeliveryData) {
+    return repositoryPayload(data);
+  }
+
+  /**
+   * Status Payload
+   *
+   * @group Webhook Payload
+   *
+   * This event occurs when the status of a Git commit changes. For example, commits can be marked as error, failure, pending, or success. For more information, see "About status checks." For information about the APIs to manage commit statuses, see the GraphQL documentation or "Statuses" in the REST API documentation.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Commit statuses" repository permission.
+   */
+  static statusPayload(data: WebhookDeliveryData) {
+    return statusPayload(data);
+  }
+
+  /**
+   * Workflow Dispatch Payload
+   *
+   * @group Webhook Payload
+   *
+   * This event occurs when a GitHub Actions workflow is manually triggered. For more information, see "Manually running a workflow."
+   *
+   * For activity relating to workflow runs, use the workflow_run event.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Contents" repository permission.
+   */
+  static workflowDispatchPayload(data: WebhookDeliveryData) {
+    return workflowDispatchPayload(data);
+  }
+
+  /**
+   * Workflow Job Payload
+   *
+   * @group Webhook Payload
+   *
+   * This event occurs when there is activity relating to a job in a GitHub Actions workflow. For more information, see "Using jobs in a workflow." For information about the API to manage workflow jobs, see "Workflow jobs" in the REST API documentation.
+   *
+   * For activity relating to a workflow run instead of a job in a workflow run, use the workflow_run event.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Actions" repository permission.
+   */
+  static workflowJobPayload(data: WebhookDeliveryData) {
+    return workflowJobPayload(data);
+  }
+
+  /**
    * Workflow Run Payload
    *
    * @group Webhook Payload
    *
-   * When a GitHub Actions workflow run is requested or completed.
+   * This event occurs when there is activity relating to a run of a GitHub Actions workflow. For more information, see "About workflows." For information about the APIs to manage workflow runs, see the GraphQL documentation or "Workflow runs" in the REST API documentation.
    *
-   * @param data webhook delivery data
+   * For activity relating to a job in a workflow run, use the workflow_job event.
+   *
+   * To subscribe to this event, a GitHub App must have at least read-level access for the "Actions" repository permission.
    */
   static workflowRunPayload(data: WebhookDeliveryData) {
     return workflowRunPayload(data);

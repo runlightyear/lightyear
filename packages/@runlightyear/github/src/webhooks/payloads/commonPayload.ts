@@ -1,142 +1,37 @@
 import { WebhookDeliveryData } from "@runlightyear/lightyear";
 import { GitHub } from "../../GitHub";
 import WebhookEvent from "../../types/WebhookEvent";
+import { User } from "../../types/User";
+import { Repository } from "../../types/Repository";
 
+/**
+ * Documentation: https://docs.github.com/webhooks-and-events/webhooks/webhook-events-and-payloads#webhook-payload-object-common-properties
+ */
 export interface CommonPayload {
   /**
-   * The user that triggered the event.
+   * An enterprise on GitHub.
    */
-  sender: {
-    login: string;
-    id: number;
-    nodeId: string;
-    avatarUrl: string;
-    gravatarId: string;
-    url: string;
-    htmlUrl: string;
-    followersUrl: string;
-    followingUrl: string;
-    gistsUrl: string;
-    starredUrl: string;
-    subscriptionsUrl: string;
-    organizationsUrl: string;
-    reposUrl: string;
-    eventsUrl: string;
-    receivedEventsUrl: string;
-    type: string;
-    siteAdmin: boolean;
-  };
-  /**
-   * The repository where the event occurred.
-   */
-  repository: {
-    id: number;
-    nodeId: string;
-    name: string;
-    fullName: string;
-    private: boolean;
-    owner: {
-      login: string;
-      id: number;
-      nodeId: string;
-      avatarUrl: string;
-      gravatarId: string;
-      url: string;
-      htmlUrl: string;
-      followersUrl: string;
-      followingUrl: string;
-      gistsUrl: string;
-      starredUrl: string;
-      subscriptionsUrl: string;
-      organizationsUrl: string;
-      reposUrl: string;
-      eventsUrl: string;
-      receivedEventsUrl: string;
-      type: string;
-      siteAdmin: boolean;
-    };
-    htmlUrl: string;
-    description: string | null;
-    fork: boolean;
-    url: string;
-    forksUrl: string;
-    keysUrl: string;
-    collaboratorsUrl: string;
-    teamsUrl: string;
-    hooksUrl: string;
-    issueEventsUrl: string;
-    eventsUrl: string;
-    assigneesUrl: string;
-    branchesUrl: string;
-    tagsUrl: string;
-    blobsUrl: string;
-    gitTagsUrl: string;
-    gitRefsUrl: string;
-    treesUrl: string;
-    statusesUrl: string;
-    languagesUrl: string;
-    stargazersUrl: string;
-    contributorsUrl: string;
-    subscribersUrl: string;
-    subscriptionUrl: string;
-    commitsUrl: string;
-    gitCommitsUrl: string;
-    commentsUrl: string;
-    issueCommentUrl: string;
-    contentsUrl: string;
-    compareUrl: string;
-    mergesUrl: string;
-    archiveUrl: string;
-    downloadsUrl: string;
-    issuesUrl: string;
-    pullsUrl: string;
-    milestonesUrl: string;
-    notificationsUrl: string;
-    labelsUrl: string;
-    releasesUrl: string;
-    deploymentsUrl: string;
-    createdAt: string;
-    updatedAt: string;
-    pushedAt: string;
-    gitUrl: string;
-    sshUrl: string;
-    cloneUrl: string;
-    svnUrl: string;
-    homepage: string | null;
-    size: number;
-    stargazersCount: number;
-    watchersCount: number;
-    language: string | null;
-    hasIssues: boolean;
-    hasProjects: boolean;
-    hasDownloads: boolean;
-    hasWiki: boolean;
-    hasPages: boolean;
-    hasDiscussions: boolean;
-    forksCount: number;
-    mirrorUrl: string | null;
-    archived: boolean;
-    disabled: boolean;
-    openIssuesCount: number;
-    license: string | null;
-    allowForking: boolean;
-    isTemplate: boolean;
-    webCommitSignoffRequired: boolean;
-    topics: string[];
-    visibility: string;
-    forks: number;
-    openIssues: number;
-    watchers: number;
-    defaultBranch: string;
-  };
-  /**
-   * Webhook payloads contain the organization object when the webhook is configured for an organization or the event occurs from activity in a repository owned by an organization.
-   */
-  organization?: object;
+  enterprise?: object;
+
   /**
    * The GitHub App installation.
    */
   installation?: object;
+
+  /**
+   * Webhook payloads contain the organization object when the webhook is configured for an organization or the event occurs from activity in a repository owned by an organization.
+   */
+  organization?: object;
+
+  /**
+   * The repository where the event occurred.
+   */
+  repository: Repository;
+
+  /**
+   * The user that triggered the event.
+   */
+  sender: User;
 }
 
 export default function commonPayload(
