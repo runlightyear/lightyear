@@ -31,6 +31,18 @@ import {
   LookupUserByEmailProps,
 } from "./users/lookupUserByEmail";
 import { getUser, GetUserProps } from "./users/getUser";
+import {
+  leaveConversation,
+  LeaveConversationProps,
+} from "./conversations/leaveConversation";
+import {
+  joinConversation,
+  JoinConversationProps,
+} from "./conversations/joinConversation";
+import {
+  defineSlackWebhook,
+  DefineSlackWebhookProps,
+} from "./webhooks/defineSlackWebhook";
 
 /**
  * Connector to the Slack API
@@ -182,6 +194,8 @@ export class Slack extends RestConnector {
   /**
    * Initiates a public or private channel-based conversation
    *
+   * @group Conversations
+   *
    * @example Create a new conversation
    *
    * ```typescript
@@ -195,6 +209,8 @@ export class Slack extends RestConnector {
   /**
    * Invites users to a channel.
    *
+   * @group Conversations
+   *
    * @param props
    */
   async inviteToConversation(props: InviteToConversationProps) {
@@ -202,7 +218,27 @@ export class Slack extends RestConnector {
   }
 
   /**
+   * Join an existing conversation
+   *
+   * @group Conversations
+   */
+  async joinConversation(props: JoinConversationProps) {
+    return joinConversation(this)(props);
+  }
+
+  /**
+   * Leave a conversation
+   *
+   * @group Conversations
+   */
+  async leaveConversation(props: LeaveConversationProps) {
+    return leaveConversation(this)(props);
+  }
+
+  /**
    * Gets information about a user.
+   *
+   * @group Users
    *
    * @param props
    */
@@ -212,6 +248,8 @@ export class Slack extends RestConnector {
 
   /**
    * Find a user with an email address.
+   *
+   * @group Users
    *
    * @param props
    */
@@ -235,4 +273,27 @@ export class Slack extends RestConnector {
     markdownText: markdownText,
     confirmationDialog: confirmationDialog,
   };
+
+  /**
+   * Define a Slack webhook
+   *
+   * @group Webhooks
+   *
+   * @example Subscribe to events on a channel
+   * ```typescript
+   * Slack.defineWebhook({
+   *   name: "slackEventsOnGeneral",
+   *   title: "Slack Events on General",
+   *   subscribeProps: () => {
+   *     return {
+   *       channel: "#general",
+   *       events: ["message"],
+   *     }
+   *   }
+   * });
+   * ```
+   */
+  static defineWebhook(props: DefineSlackWebhookProps) {
+    return defineSlackWebhook(props);
+  }
 }

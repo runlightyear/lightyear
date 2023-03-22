@@ -47,6 +47,10 @@ export type AuthData = {
    * Data/time when oauth access token was last refreshed
    */
   refreshedAt?: string | null;
+  /**
+   * Store app-specific data beyond the OAuth spec
+   */
+  extraData?: string | null;
 };
 
 /**
