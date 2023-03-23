@@ -1,11 +1,33 @@
 /* OpenAI */
 import { OpenAI } from "./OpenAI";
 
-/* Create Completion */
+/** Chat **/
+
+import type {
+  CreateChatCompletionProps,
+  CreateChatCompletionResponse,
+} from "./chat/createChatCompletion";
+
+/** Completion **/
+
 import type {
   CreateCompletionProps,
   CreateCompletionResponse,
 } from "./completions/createCompletion";
 
+/** Images **/
+
+import type {
+  CreateImageProps,
+  CreateImageResponse,
+} from "./images/createImage";
+
 export { OpenAI };
-export type { CreateCompletionProps, CreateCompletionResponse };
+export type {
+  CreateChatCompletionProps,
+  CreateChatCompletionResponse,
+  CreateCompletionProps,
+  CreateCompletionResponse,
+  CreateImageProps,
+  CreateImageResponse,
+};

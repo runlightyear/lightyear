@@ -1,5 +1,11 @@
 # @runlightyear/openai
 
+## 0.3.0
+
+### Minor Changes
+
+- Added listModels, createChatCompletion, and createImage methods
+
 ## 0.2.2
 
 ### Patch Changes

@@ -3,6 +3,12 @@ import {
   createCompletion,
   CreateCompletionProps,
 } from "./completions/createCompletion";
+import {
+  createChatCompletion,
+  CreateChatCompletionProps,
+} from "./chat/createChatCompletion";
+import { createImage, CreateImageProps } from "./images/createImage";
+import { listModels } from "./models/listModels";
 
 /**
  * @beta
@@ -67,7 +73,39 @@ export class OpenAI extends RestConnector {
     };
   }
 
+  /**
+   * List and describe the various models available in the API. You can refer to the Models documentation to understand what models are available and the differences between them.
+   *
+   * @param props
+   */
+  async listModels() {
+    return listModels(this)();
+  }
+
+  /**
+   * Given a chat conversation, the model will return a chat completion response.
+   *
+   * @param props
+   */
+  async createChatCompletion(props: CreateChatCompletionProps) {
+    return createChatCompletion(this)(props);
+  }
+
+  /**
+   * Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+   *
+   * @param props
+   */
   async createCompletion(props: CreateCompletionProps) {
     return createCompletion(this)(props);
+  }
+
+  /**
+   * Given a prompt and/or an input image, the model will generate a new image.
+   *
+   * @param props
+   */
+  async createImage(props: CreateImageProps) {
+    return createImage(this)(props);
   }
 }
