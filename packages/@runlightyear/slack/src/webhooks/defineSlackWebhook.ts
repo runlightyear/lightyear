@@ -3,6 +3,8 @@ import {
   SubscribePropsFuncProps,
 } from "@runlightyear/lightyear";
 import { Slack } from "../Slack";
+import { EventType } from "../types/EventType";
+import { MessageEventSubtype } from "../types/MessageEventSubtype";
 
 export type SlackWebhookSubscribeProps = {
   /**
@@ -13,6 +15,20 @@ export type SlackWebhookSubscribeProps = {
    * Note: the Lightyear bot must be joined to the channel in order to receive events. If you are not receiving events, double check to make sure the bot is in the channel.
    */
   channel: string;
+
+  /**
+   * Slack events to listen for
+   *
+   * Default: ["message"]
+   */
+  events?: Array<EventType>;
+
+  /**
+   * Slack message subevents to listen for
+   *
+   * Default: []
+   */
+  subevents?: Array<MessageEventSubtype>;
 
   /**
    * Receive bot events.
