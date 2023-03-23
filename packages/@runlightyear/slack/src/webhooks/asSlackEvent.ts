@@ -1,5 +1,5 @@
 import { SlackEvent } from "../events/SlackEvent";
 
-export const parseSlackEvent = (data: unknown) => {
+export const asSlackEvent = (data: unknown) => {
   return data as SlackEvent;
 };
