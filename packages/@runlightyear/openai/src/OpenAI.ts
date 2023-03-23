@@ -43,6 +43,7 @@ export interface OpenAIProps extends AuthConnectorProps {}
  *   model: "gpt3",
  *   prompt: "I love AI because it"
  * });
+ * ```
  */
 export class OpenAI extends RestConnector {
   /**
