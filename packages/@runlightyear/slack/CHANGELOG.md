@@ -1,5 +1,11 @@
 # @runlightyear/slack
 
+## 0.10.0
+
+### Minor Changes
+
+- Updated event terminology and fixed type definition of MessageEvent
+
 ## 0.9.0
 
 ### Minor Changes

@@ -3,6 +3,7 @@ export interface SlackMessageEvent {
   subtype: never;
   user: string;
   ts: string;
+  text: string;
   blocks: Array<object>;
   team: string;
   channel: string;
