@@ -25,6 +25,11 @@ import type {
   LeaveConversationResponse,
 } from "./conversations/leaveConversation";
 
+/** Events **/
+import type { ChannelJoinEvent } from "./events/ChannelJoinEvent";
+import type { ChannelLeaveEvent } from "./events/ChannelLeaveEvent";
+import type { ChannelTopicEvent } from "./events/ChannelTopicEvent";
+
 /** Types **/
 
 import type { Channel } from "./types/Channel";
@@ -66,6 +71,9 @@ export type {
   JoinConversationResponse,
   LeaveConversationProps,
   LeaveConversationResponse,
+  ChannelJoinEvent,
+  ChannelLeaveEvent,
+  ChannelTopicEvent,
   Channel,
   EventType,
   MessageEventSubtype,

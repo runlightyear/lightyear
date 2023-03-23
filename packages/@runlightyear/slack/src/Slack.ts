@@ -43,6 +43,8 @@ import {
   defineSlackWebhook,
   DefineSlackWebhookProps,
 } from "./webhooks/defineSlackWebhook";
+import { parseSlackEvent } from "./webhooks/parseSlackEvent";
+import { parseSlackMessageEvent } from "./webhooks/parseSlackMessageEvent";
 
 /**
  * Connector to the Slack API
@@ -295,5 +297,13 @@ export class Slack extends RestConnector {
    */
   static defineWebhook(props: DefineSlackWebhookProps) {
     return defineSlackWebhook(props);
+  }
+
+  static parseEvent(data: unknown) {
+    return parseSlackEvent(data);
+  }
+
+  static parseMessageEvent(data: unknown) {
+    return parseSlackMessageEvent(data);
   }
 }

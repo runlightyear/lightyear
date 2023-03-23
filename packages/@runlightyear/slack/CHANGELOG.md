@@ -1,5 +1,11 @@
 # @runlightyear/slack
 
+## 0.9.0
+
+### Minor Changes
+
+- Support for event and message subevent filtering on webhooks
+
 ## 0.8.0
 
 ### Minor Changes
