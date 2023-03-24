@@ -2,8 +2,6 @@
 
 Original API Reference: https://platform.openai.com/docs/api-reference
 
-Naming convention for files
-
 | File                                | Notes                                                                                                                                                                                                                                    |
 |-------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | src/index.ts                        | All the public exports for the OpenAI connector.                                                                                                                                                                                         |
