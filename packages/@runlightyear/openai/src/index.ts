@@ -1,4 +1,5 @@
 /* OpenAI */
+
 import { OpenAI } from "./OpenAI";
 
 /** Chat **/
@@ -22,6 +23,14 @@ import type {
   CreateImageResponse,
 } from "./images/createImage";
 
+/** Models **/
+
+import type { ListModelsResponse } from "./models/listModels";
+
+/** Types **/
+
+import type { ChatMessage } from "./types/ChatMessage";
+
 export { OpenAI };
 export type {
   CreateChatCompletionProps,
@@ -30,4 +39,6 @@ export type {
   CreateCompletionResponse,
   CreateImageProps,
   CreateImageResponse,
+  ListModelsResponse,
+  ChatMessage,
 };

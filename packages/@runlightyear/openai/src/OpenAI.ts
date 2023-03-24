@@ -43,6 +43,7 @@ export interface OpenAIProps extends AuthConnectorProps {}
  *   model: "gpt3",
  *   prompt: "I love AI because it"
  * });
+ * ```
  */
 export class OpenAI extends RestConnector {
   /**
@@ -74,6 +75,8 @@ export class OpenAI extends RestConnector {
   }
 
   /**
+   * @group Models
+   *
    * List and describe the various models available in the API. You can refer to the Models documentation to understand what models are available and the differences between them.
    *
    * @param props
@@ -83,6 +86,8 @@ export class OpenAI extends RestConnector {
   }
 
   /**
+   * @group Chat
+   *
    * Given a chat conversation, the model will return a chat completion response.
    *
    * @param props
@@ -92,6 +97,8 @@ export class OpenAI extends RestConnector {
   }
 
   /**
+   * @group Completions
+   *
    * Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
    *
    * @param props
@@ -101,6 +108,8 @@ export class OpenAI extends RestConnector {
   }
 
   /**
+   * @group Images
+   *
    * Given a prompt and/or an input image, the model will generate a new image.
    *
    * @param props
