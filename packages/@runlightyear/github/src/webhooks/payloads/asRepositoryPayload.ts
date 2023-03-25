@@ -108,9 +108,13 @@ export type RepositoryPayload =
   | RepositoryTransferredPayload
   | RepositoryUnarchivedPayload;
 
-export function repositoryPayload(
+export function asRepositoryPayload(
   data: WebhookDeliveryData
 ): RepositoryPayload {
-  const payload = commonPayload("repository", data) as unknown;
+  const payload = commonPayload(
+    "repository",
+    data,
+    "asRepositoryPayload"
+  ) as unknown;
   return payload as RepositoryPayload;
 }

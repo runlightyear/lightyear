@@ -52,12 +52,7 @@ import pingRepositoryWebhook, {
 import testPushRepositoryWebhook, {
   TestPushRepositoryWebhookProps,
 } from "./webhooks/repositoryWebhooks/testPushRepositoryWebhook";
-import pullRequestPayload from "./webhooks/payloads/pullRequestPayload";
-import pullRequestReviewPayload from "./webhooks/payloads/pullRequestReviewPayload";
-import workflowRunPayload from "./webhooks/payloads/workflowRunPayload";
-import pingPayload from "./webhooks/payloads/pingPayload";
 import isWebhookEventType from "./webhooks/webhookEventType";
-import pushPayload from "./webhooks/payloads/pushPayload";
 import WebhookEvent from "./types/WebhookEvent";
 import defineGitHubWebhook, {
   DefineGitHubWebhookProps,
@@ -75,17 +70,22 @@ import {
   SearchRepositoriesProps,
 } from "./search/searchRepositories";
 import { searchUsers, SearchUsersProps } from "./search/searchUsers";
-import { createPayload } from "./webhooks/payloads/createPayload";
-import { deletePayload } from "./webhooks/payloads/deletePayload";
-import { issuesPayload } from "./webhooks/payloads/issuesPayload";
-import { commitCommentPayload } from "./webhooks/payloads/commitCommentPayload";
-import { issueCommentPayload } from "./webhooks/payloads/issueCommentPayload";
-import { labelPayload } from "./webhooks/payloads/labelPayload";
-import { memberPayload } from "./webhooks/payloads/memberPayload";
-import { repositoryPayload } from "./webhooks/payloads/repositoryPayload";
-import { statusPayload } from "./webhooks/payloads/statusPayload";
-import workflowDispatchPayload from "./webhooks/payloads/workflowDispatchPayload";
-import workflowJobPayload from "./webhooks/payloads/workflowJobPayload";
+import { asCommitCommentPayload } from "./webhooks/payloads/asCommitCommentPayload";
+import { asCreatePayload } from "./webhooks/payloads/asCreatePayload";
+import { asDeletePayload } from "./webhooks/payloads/asDeletePayload";
+import { asIssueCommentPayload } from "./webhooks/payloads/asIssueCommentPayload";
+import { asIssuesPayload } from "./webhooks/payloads/asIssuesPayload";
+import { asLabelPayload } from "./webhooks/payloads/asLabelPayload";
+import { asMemberPayload } from "./webhooks/payloads/asMemberPayload";
+import { asPingPayload } from "./webhooks/payloads/asPingPayload";
+import { asPullRequestPayload } from "./webhooks/payloads/asPullRequestPayload";
+import { asPullRequestReviewPayload } from "./webhooks/payloads/asPullRequestReviewPayload";
+import { asPushPayload } from "./webhooks/payloads/asPushPayload";
+import { asRepositoryPayload } from "./webhooks/payloads/asRepositoryPayload";
+import { asStatusPayload } from "./webhooks/payloads/asStatusPayload";
+import { asWorkflowDispatchPayload } from "./webhooks/payloads/asWorkflowDispatchPayload";
+import { asWorkflowJobPayload } from "./webhooks/payloads/asWorkflowJobPayload";
+import { asWorkflowRunPayload } from "./webhooks/payloads/asWorkflowRunPayload";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -560,8 +560,8 @@ export class GitHub extends RestConnector {
    * Organizations
    * GitHub Apps
    */
-  static commitCommentPayload(data: WebhookDeliveryData) {
-    return commitCommentPayload(data);
+  static asCommitCommentPayload(data: WebhookDeliveryData) {
+    return asCommitCommentPayload(data);
   }
 
   /**
@@ -575,8 +575,8 @@ export class GitHub extends RestConnector {
    *
    * Note: This event will not occur when more than three tags are created at once.
    */
-  static createPayload(data: WebhookDeliveryData) {
-    return createPayload(data);
+  static asCreatePayload(data: WebhookDeliveryData) {
+    return asCreatePayload(data);
   }
 
   /**
@@ -592,8 +592,8 @@ export class GitHub extends RestConnector {
    *
    * @param data
    */
-  static deletePayload(data: WebhookDeliveryData) {
-    return deletePayload(data);
+  static asDeletePayload(data: WebhookDeliveryData) {
+    return asDeletePayload(data);
   }
 
   /**
@@ -609,8 +609,8 @@ export class GitHub extends RestConnector {
    *
    * @param data
    */
-  static issueCommentPayload(data: WebhookDeliveryData) {
-    return issueCommentPayload(data);
+  static asIssueCommentPayload(data: WebhookDeliveryData) {
+    return asIssueCommentPayload(data);
   }
 
   /**
@@ -626,8 +626,8 @@ export class GitHub extends RestConnector {
    *
    * @param data
    */
-  static issuesPayload(data: WebhookDeliveryData) {
-    return issuesPayload(data);
+  static asIssuesPayload(data: WebhookDeliveryData) {
+    return asIssuesPayload(data);
   }
 
   /**
@@ -643,8 +643,8 @@ export class GitHub extends RestConnector {
    *
    * @param data
    */
-  static labelPayload(data: WebhookDeliveryData) {
-    return labelPayload(data);
+  static asLabelPayload(data: WebhookDeliveryData) {
+    return asLabelPayload(data);
   }
 
   /**
@@ -658,8 +658,8 @@ export class GitHub extends RestConnector {
    *
    * @param data
    */
-  static memberPayload(data: WebhookDeliveryData) {
-    return memberPayload(data);
+  static asMemberPayload(data: WebhookDeliveryData) {
+    return asMemberPayload(data);
   }
 
   /**
@@ -673,8 +673,8 @@ export class GitHub extends RestConnector {
    *
    * @param data webhook delivery data
    */
-  static pingPayload(data: WebhookDeliveryData) {
-    return pingPayload(data);
+  static asPingPayload(data: WebhookDeliveryData) {
+    return asPingPayload(data);
   }
 
   /**
@@ -688,8 +688,8 @@ export class GitHub extends RestConnector {
    *
    * @param data webhook delivery data
    */
-  static pullRequestPayload(data: WebhookDeliveryData) {
-    return pullRequestPayload(data);
+  static asPullRequestPayload(data: WebhookDeliveryData) {
+    return asPullRequestPayload(data);
   }
 
   /**
@@ -701,8 +701,8 @@ export class GitHub extends RestConnector {
    *
    * @param data webhook delivery data
    */
-  static pullRequestReviewPayload(data: WebhookDeliveryData) {
-    return pullRequestReviewPayload(data);
+  static asPullRequestReviewPayload(data: WebhookDeliveryData) {
+    return asPullRequestReviewPayload(data);
   }
 
   /**
@@ -721,8 +721,8 @@ export class GitHub extends RestConnector {
    *
    * @param data webhook delivery data
    */
-  static pushPayload(data: WebhookDeliveryData) {
-    return pushPayload(data);
+  static asPushPayload(data: WebhookDeliveryData) {
+    return asPushPayload(data);
   }
 
   /**
@@ -734,8 +734,8 @@ export class GitHub extends RestConnector {
    *
    * To subscribe to this event, a GitHub App must have at least read-level access for the "Metadata" repository permission.
    */
-  static repositoryPayload(data: WebhookDeliveryData) {
-    return repositoryPayload(data);
+  static asRepositoryPayload(data: WebhookDeliveryData) {
+    return asRepositoryPayload(data);
   }
 
   /**
@@ -747,8 +747,8 @@ export class GitHub extends RestConnector {
    *
    * To subscribe to this event, a GitHub App must have at least read-level access for the "Commit statuses" repository permission.
    */
-  static statusPayload(data: WebhookDeliveryData) {
-    return statusPayload(data);
+  static asStatusPayload(data: WebhookDeliveryData) {
+    return asStatusPayload(data);
   }
 
   /**
@@ -762,8 +762,8 @@ export class GitHub extends RestConnector {
    *
    * To subscribe to this event, a GitHub App must have at least read-level access for the "Contents" repository permission.
    */
-  static workflowDispatchPayload(data: WebhookDeliveryData) {
-    return workflowDispatchPayload(data);
+  static asWorkflowDispatchPayload(data: WebhookDeliveryData) {
+    return asWorkflowDispatchPayload(data);
   }
 
   /**
@@ -777,8 +777,8 @@ export class GitHub extends RestConnector {
    *
    * To subscribe to this event, a GitHub App must have at least read-level access for the "Actions" repository permission.
    */
-  static workflowJobPayload(data: WebhookDeliveryData) {
-    return workflowJobPayload(data);
+  static asWorkflowJobPayload(data: WebhookDeliveryData) {
+    return asWorkflowJobPayload(data);
   }
 
   /**
@@ -792,7 +792,7 @@ export class GitHub extends RestConnector {
    *
    * To subscribe to this event, a GitHub App must have at least read-level access for the "Actions" repository permission.
    */
-  static workflowRunPayload(data: WebhookDeliveryData) {
-    return workflowRunPayload(data);
+  static asWorkflowRunPayload(data: WebhookDeliveryData) {
+    return asWorkflowRunPayload(data);
   }
 }

@@ -39,7 +39,7 @@ export type MemberPayload =
   | MemberEditedPayload
   | MemberRemovedPayload;
 
-export function memberPayload(data: WebhookDeliveryData): MemberPayload {
-  const payload = commonPayload("member", data) as unknown;
+export function asMemberPayload(data: WebhookDeliveryData): MemberPayload {
+  const payload = commonPayload("member", data, "asMemberPayload") as unknown;
   return payload as MemberPayload;
 }

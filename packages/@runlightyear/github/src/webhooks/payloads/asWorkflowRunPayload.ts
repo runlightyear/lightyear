@@ -14,9 +14,13 @@ export interface WorkflowRunPayload extends CommonPayload {
   workflowRun: WorkflowRun;
 }
 
-export default function workflowRunPayload(
+export function asWorkflowRunPayload(
   data: WebhookDeliveryData
 ): WorkflowRunPayload {
-  const payload = commonPayload("workflow_run", data) as unknown;
+  const payload = commonPayload(
+    "workflow_run",
+    data,
+    "asWorkflowRunPayload"
+  ) as unknown;
   return payload as WorkflowRunPayload;
 }
