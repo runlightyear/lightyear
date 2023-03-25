@@ -10,9 +10,13 @@ export interface WorkflowDispatchPayload extends CommonPayload {
   workflow: string;
 }
 
-export default function workflowDispatchPayload(
+export function asWorkflowDispatchPayload(
   data: WebhookDeliveryData
 ): WorkflowDispatchPayload {
-  const payload = commonPayload("workflow_dispatch", data) as unknown;
+  const payload = commonPayload(
+    "workflow_dispatch",
+    data,
+    "asWorkflowDispatchPayload"
+  ) as unknown;
   return payload as WorkflowDispatchPayload;
 }

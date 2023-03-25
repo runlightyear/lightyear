@@ -36,7 +36,8 @@ export interface CommonPayload {
 
 export default function commonPayload(
   expectedEvent: WebhookEvent,
-  deliveryData: WebhookDeliveryData
+  deliveryData: WebhookDeliveryData,
+  name: string
 ): CommonPayload {
   const event = deliveryData.headers && deliveryData.headers["x-github-event"];
   if (event === "ping") {
@@ -44,7 +45,9 @@ export default function commonPayload(
   }
 
   if (event !== expectedEvent) {
-    throw new Error(`Expected event: ${expectedEvent}, got: ${event}`);
+    throw new Error(
+      `GitHub.${name} expected event: ${expectedEvent}, instead got: ${event}`
+    );
   }
 
   const data = GitHub.processDelivery(deliveryData);

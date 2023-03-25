@@ -61,16 +61,16 @@ import type {
 
 /** Webhooks Payloads **/
 
-import type { CommitCommentPayload } from "./webhooks/payloads/commitCommentPayload";
+import type { CommitCommentPayload } from "./webhooks/payloads/asCommitCommentPayload";
 import type { CommonPayload } from "./webhooks/payloads/commonPayload";
-import type { CreatePayload } from "./webhooks/payloads/createPayload";
-import type { DeletePayload } from "./webhooks/payloads/deletePayload";
+import type { CreatePayload } from "./webhooks/payloads/asCreatePayload";
+import type { DeletePayload } from "./webhooks/payloads/asDeletePayload";
 import type {
   IssueCommentPayload,
   IssueCommentCreatedPayload,
   IssueCommentDeletedPayload,
   IssueCommentEditedPayload,
-} from "./webhooks/payloads/issueCommentPayload";
+} from "./webhooks/payloads/asIssueCommentPayload";
 import type {
   IssuesPayload,
   IssueAssignedPayload,
@@ -89,23 +89,23 @@ import type {
   IssueUnlabeledPayload,
   IssueUnlockedPayload,
   IssueUnpinnedPayload,
-} from "./webhooks/payloads/issuesPayload";
+} from "./webhooks/payloads/asIssuesPayload";
 import type {
   LabelPayload,
   LabelCreatedPayload,
   LabelDeletedPayload,
   LabelEditedPayload,
-} from "./webhooks/payloads/labelPayload";
+} from "./webhooks/payloads/asLabelPayload";
 import type {
   MemberPayload,
   MemberAddedPayload,
   MemberEditedPayload,
   MemberRemovedPayload,
-} from "./webhooks/payloads/memberPayload";
-import type { PingPayload } from "./webhooks/payloads/pingPayload";
-import type { PullRequestPayload } from "./webhooks/payloads/pullRequestPayload";
-import type { PullRequestReviewPayload } from "./webhooks/payloads/pullRequestReviewPayload";
-import type { PushPayload } from "./webhooks/payloads/pushPayload";
+} from "./webhooks/payloads/asMemberPayload";
+import type { PingPayload } from "./webhooks/payloads/asPingPayload";
+import type { PullRequestPayload } from "./webhooks/payloads/asPullRequestPayload";
+import type { PullRequestReviewPayload } from "./webhooks/payloads/asPullRequestReviewPayload";
+import type { PushPayload } from "./webhooks/payloads/asPushPayload";
 import type {
   RepositoryPayload,
   RepositoryArchivedPayload,
@@ -117,11 +117,11 @@ import type {
   RepositoryRenamedPayload,
   RepositoryTransferredPayload,
   RepositoryUnarchivedPayload,
-} from "./webhooks/payloads/repositoryPayload";
-import type { StatusPayload } from "./webhooks/payloads/statusPayload";
-import type { WorkflowDispatchPayload } from "./webhooks/payloads/workflowDispatchPayload";
-import type { WorkflowJobPayload } from "./webhooks/payloads/workflowJobPayload";
-import type { WorkflowRunPayload } from "./webhooks/payloads/workflowRunPayload";
+} from "./webhooks/payloads/asRepositoryPayload";
+import type { StatusPayload } from "./webhooks/payloads/asStatusPayload";
+import type { WorkflowDispatchPayload } from "./webhooks/payloads/asWorkflowDispatchPayload";
+import type { WorkflowJobPayload } from "./webhooks/payloads/asWorkflowJobPayload";
+import type { WorkflowRunPayload } from "./webhooks/payloads/asWorkflowRunPayload";
 
 /** Webhooks Repositories **/
 

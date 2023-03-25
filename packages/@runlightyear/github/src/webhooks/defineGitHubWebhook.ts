@@ -6,16 +6,24 @@ import { GitHub } from "../GitHub";
 export type GitHubWebhookSubscribeProps = {
   /**
    * The account owner of the repository. The name is not case sensitive.
+   *
+   * Lightyear note: If the url of the GitHub repo is https://github.com/the-owner/repo-name then the repo would be `the-owner`
    */
   owner: string;
+
   /**
    * The name of the repository. The name is not case sensitive.
+   *
+   * Lightyear note: If the url of the GitHub repo is https://github.com/theOwner/repo-name then the repo would be `repo-name`
    */
   repo: string;
+
   /**
-   * Determines what events the hook is triggered for. Default: push
+   * Determines which event the hook is triggered for. Default: push
+   *
+   * Lightyear Note: Even though GitHub allows listening to multiple event types, we have chosen to support listening to just one event per GitHub webhook for now because we feel it results in simpler run functions on actions. If you have a use case that would benefit greatly from listening to multiple events on one webhook, please let us know about it.
    */
-  events?: Array<WebhookEvent>;
+  event?: WebhookEvent;
 };
 
 export type GitHubWebhookSubscribePropsFunc = (
@@ -51,7 +59,7 @@ const defineGitHubWebhook = (props: DefineGitHubWebhookProps) => {
       const response = await github.createRepositoryWebhook({
         owner: subscribeProps.owner,
         repo: subscribeProps.repo,
-        events: subscribeProps.events,
+        events: [subscribeProps.event],
         config: {
           url: endpoint,
         },

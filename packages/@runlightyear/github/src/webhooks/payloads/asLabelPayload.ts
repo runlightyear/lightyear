@@ -36,7 +36,7 @@ export type LabelPayload =
   | LabelDeletedPayload
   | LabelEditedPayload;
 
-export function labelPayload(data: WebhookDeliveryData): LabelPayload {
-  const payload = commonPayload("label", data) as unknown;
+export function asLabelPayload(data: WebhookDeliveryData): LabelPayload {
+  const payload = commonPayload("label", data, "asLabelPayload") as unknown;
   return payload as LabelPayload;
 }

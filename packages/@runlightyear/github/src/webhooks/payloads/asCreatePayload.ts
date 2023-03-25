@@ -38,7 +38,7 @@ export interface CreatePayload extends CommonPayload {
   refType: "tag" | "branch";
 }
 
-export function createPayload(data: WebhookDeliveryData): CreatePayload {
-  const payload = commonPayload("create", data) as unknown;
+export function asCreatePayload(data: WebhookDeliveryData): CreatePayload {
+  const payload = commonPayload("create", data, "asCreatePayload") as unknown;
   return payload as CreatePayload;
 }
