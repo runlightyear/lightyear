@@ -136,7 +136,7 @@ export interface GitHubDefineAuthProps {
  *     return {
  *       owner: "<owner>",
  *       repo: "<repo name>",
- *       event: "push",
+ *       events: ["push"],
  *     }
  *   },
  * });
@@ -422,8 +422,6 @@ export class GitHub extends RestConnector {
   /**
    * Define a GitHub repository webhook
    *
-   * Lightyear Note: Even though GitHub allows listening to multiple event types, we have chosen to support listening to just one event per GitHub webhook for now because we feel it results in simpler run functions on actions. If you have a use case that would benefit greatly from listening to multiple events on one webhook, please let us know about it.
-   *
    * @group Webhook
    *
    * @example Subscribe to push events
@@ -435,7 +433,7 @@ export class GitHub extends RestConnector {
    *     return {
    *       owner: "<owner>",
    *       repo: "<repo>",
-   *       event: "push",
+   *       events: ["push"],
    *     }
    *   },
    * });
