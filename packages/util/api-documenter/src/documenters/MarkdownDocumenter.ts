@@ -706,10 +706,10 @@ export class MarkdownDocumenter {
       output.appendNode(functionsTable);
     }
 
-    if (interfacesTable.rows.length > 0) {
-      output.appendNode(new DocHeading({ configuration, title: "Interfaces" }));
-      output.appendNode(interfacesTable);
-    }
+    // if (interfacesTable.rows.length > 0) {
+    //   output.appendNode(new DocHeading({ configuration, title: "Interfaces" }));
+    //   output.appendNode(interfacesTable);
+    // }
 
     if (namespacesTable.rows.length > 0) {
       output.appendNode(new DocHeading({ configuration, title: "Namespaces" }));

@@ -1,18 +1,18 @@
-import { Actions } from "./actions";
-import { Context } from "./context";
-import { Section } from "./section";
-import { Divider } from "./divider";
-import { File } from "./file";
-import { Header } from "./header";
-import { Image } from "./image";
-import { Video } from "./video";
+import { ActionsBlock } from "./actionsBlock";
+import { ContextBlock } from "./contextBlock";
+import { SectionBlock } from "./sectionBlock";
+import { DividerBlock } from "./dividerBlock";
+import { FileBlock } from "./fileBlock";
+import { HeaderBlock } from "./headerBlock";
+import { ImageBlock } from "./imageBlock";
+import { VideoBlock } from "./videoBlock";
 
 export type Block =
-  | Actions
-  | Context
-  | Divider
-  | File
-  | Header
-  | Image
-  | Section
-  | Video;
+  | ActionsBlock
+  | ContextBlock
+  | DividerBlock
+  | FileBlock
+  | HeaderBlock
+  | ImageBlock
+  | SectionBlock
+  | VideoBlock;

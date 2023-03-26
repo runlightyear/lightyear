@@ -13,11 +13,11 @@ export interface FileProps {
   blockId?: string;
 }
 
-export interface File extends FileProps {
+export interface FileBlock extends FileProps {
   type: "file";
 }
 
-export default function file(props: FileProps) {
+export function fileBlock(props: FileProps) {
   const { externalId, source, blockId } = props;
 
   return {

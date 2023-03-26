@@ -1,8 +1,8 @@
-import { PlainText } from "../objects/plainText";
+import { PlainTextObject } from "../objects/plainTextObject";
 import { SlackObject } from "../objects";
 
-interface ButtonComponentProps {
-  text: PlainText;
+export interface ButtonComponentProps {
+  text: PlainTextObject;
   actionId: string;
   url?: string;
   value?: string;
@@ -15,7 +15,7 @@ export interface ButtonComponent extends ButtonComponentProps {
   type: "button";
 }
 
-export default function buttonComponent(props: ButtonComponentProps) {
+export function buttonComponent(props: ButtonComponentProps) {
   const { text, actionId, url, value, style, confirm, accessibilityLabel } =
     props;
 

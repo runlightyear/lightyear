@@ -11,11 +11,11 @@ export interface ContextProps {
   blockId?: string;
 }
 
-export interface Context extends ContextProps {
+export interface ContextBlock extends ContextProps {
   type: "context";
 }
 
-export default function context(props: ContextProps) {
+export function contextBlock(props: ContextProps): ContextBlock {
   const { elements, blockId } = props;
 
   return {

@@ -5,18 +5,6 @@ import {
   HttpProxyResponse,
 } from "@runlightyear/lightyear";
 import postMessage, { PostMessageProps } from "./chat/postMessage";
-import section from "./elements/blocks/section";
-import plainText from "./elements/objects/plainText";
-import markdownText from "./elements/objects/markdownText";
-import actions from "./elements/blocks/actions";
-import context from "./elements/blocks/context";
-import divider from "./elements/blocks/divider";
-import file from "./elements/blocks/file";
-import header from "./elements/blocks/header";
-import image from "./elements/blocks/image";
-import video from "./elements/blocks/video";
-import confirmationDialog from "./elements/objects/confirmationDialog";
-import { SlackScope } from "./types/SlackScope";
 import { scheduleMessage, ScheduleMessageProps } from "./chat/scheduleMessage";
 import {
   createConversation,
@@ -45,6 +33,40 @@ import {
 } from "./webhooks/defineSlackWebhook";
 import { asSlackEvent } from "./webhooks/asSlackEvent";
 import { asSlackMessageEvent } from "./webhooks/asSlackMessageEvent";
+import { actionsBlock, ActionsProps } from "./elements/blocks/actionsBlock";
+import {
+  ContextBlock,
+  contextBlock,
+  ContextProps,
+} from "./elements/blocks/contextBlock";
+import {
+  DividerBlock,
+  dividerBlock,
+  DividerProps,
+} from "./elements/blocks/dividerBlock";
+import { fileBlock, FileProps } from "./elements/blocks/fileBlock";
+import { headerBlock, HeaderProps } from "./elements/blocks/headerBlock";
+import {
+  ImageBlock,
+  imageBlock,
+  ImageProps,
+} from "./elements/blocks/imageBlock";
+import { sectionBlock, SectionProps } from "./elements/blocks/sectionBlock";
+import { videoBlock, VideoProps } from "./elements/blocks/videoBlock";
+import {
+  plainTextObject,
+  PlainTextProps,
+} from "./elements/objects/plainTextObject";
+import {
+  markdownTextObject,
+  MarkdownTextProps,
+} from "./elements/objects/markdownTextObject";
+import {
+  ConfirmationDialogObject,
+  confirmationDialogObject,
+} from "./elements/objects/confirmationDialogObject";
+import { ButtonComponentProps } from "./elements/components/buttonComponent";
+import { buttonComponent } from "./elements/components/buttonComponent";
 
 /**
  * Connector to the Slack API
@@ -142,16 +164,36 @@ export class Slack extends RestConnector {
    * slack.postMessage({
    *   channel: "#general",
    *   blocks: [
-   *     Slack.blocks.section("Title section"),
-   *     Slack.blocks.section({
+   *     Slack.sectionBlock("Title section"),
+   *     Slack.sectionBlock({
    *       fields: [
-   *         Slack.objects.markdownText("*Data 1*\nvalue A"),
-   *         Slack.objects.markdownText("*Data 2*\nvalue B"),
+   *         Slack.markdownTextObject("*Data 1*\nvalue A"),
+   *         Slack.markdownTextObject("*Data 2*\nvalue B"),
    *       ]
    *     }),
    *   ],
    *   text: "Use text as a fallback for notifications that can't display blocks",
-   * })
+   * });
+   * ```
+   *
+   * @example Use blocks to structure display - alternate
+   *
+   * ```typescript
+   * import { sectionBlock, markdownTextObject } from "@runlightyear/slack";
+   *
+   * slack.postMessage({
+   *   channel: "#general",
+   *   blocks: [
+   *     sectionBlock("Title section"),
+   *     sectionBlock({
+   *       fields: [
+   *         markdownTextObject("*Data 1*\nvalue A"),
+   *         markdownTextObject("*Data 2*\nvalue B"),
+   *       ]
+   *     }),
+   *   ],
+   *   text: "Use text as a fallback for notifications that can't display blocks",
+   * });
    * ```
    *
    * @param props
@@ -163,31 +205,7 @@ export class Slack extends RestConnector {
   /**
    * Schedules a message to be sent to a channel.
    *
-   * This method schedules a message for delivery to a public channel, private channel, or direct message/IM channel at a specified time in the future.
-   *
-   * The post_at argument is a Unix timestamp, representing the time the message should post to Slack in the future.
-   *
-   * Think of chat.scheduleMessage and chat.postMessage as two siblings in the Slack family. They share a lot of similarities, like their ability to send messages and include various features like attachments and emojis. But just like siblings, they also have their differences.
-   *
-   * The usage of the text field changes depending on whether you're using blocks. If you are using blocks, this is used as a fallback string to display in notifications. If you aren't, this is the main body text of the message. It can be formatted as plain text, or with mrkdwn.
-   *
-   * Restrictions
-   * You will only be able to schedule a message up to 120 days into the future. If you specify a post_at timestamp beyond this limit, you’ll receive a time_too_far error response. Additionally, you cannot schedule more than 30 messages to post within a 5-minute window to the same channel. Exceeding this will result in a restricted_too_many error.
-   *
-   * The response includes the scheduled_message_id assigned to your message. Use it with the chat.deleteScheduledMessage method to delete the message before it is sent.
-   *
-   * For details on formatting, usage in threads, and rate limiting, check out chat.postMessage documentation.
-   *
-   * Channels
-   * You must specify a public channel, private channel, or IM channel with the channel argument. Each one behaves slightly differently based on the authenticated user's permissions and additional arguments:
-   *
-   * Post to a channel
-   * You can either pass the channel's name (#general) or encoded ID (C123456), and the message will be posted to that channel. The channel's ID can be retrieved through the channels.list API method.
-   *
-   * Post to a DM
-   * Pass the IM channel's ID (D123456) or a user's ID (U123456) as the value of channel to post to that IM channel as the app. The IM channel's ID can be retrieved through the im.list API method.
-   *
-   * You might receive a channel_not_found error if your app doesn't have permission to enter into an IM with the intended user.
+   * @group Chat
    */
   async scheduleMessage(props: ScheduleMessageProps) {
     return scheduleMessage(this)(props);
@@ -259,23 +277,6 @@ export class Slack extends RestConnector {
     return lookupUserByEmail(this)(props);
   }
 
-  static blocks = {
-    actions: actions,
-    context: context,
-    divider: divider,
-    file: file,
-    header: header,
-    image: image,
-    section: section,
-    video: video,
-  };
-
-  static objects = {
-    plainText: plainText,
-    markdownText: markdownText,
-    confirmationDialog: confirmationDialog,
-  };
-
   /**
    * Define a Slack webhook
    *
@@ -299,11 +300,179 @@ export class Slack extends RestConnector {
     return defineSlackWebhook(props);
   }
 
+  /**
+   * Treat incoming action data as a Slack Event
+   *
+   * @group Webhooks
+   *
+   * @param data
+   */
   static asEvent(data: unknown) {
     return asSlackEvent(data);
   }
 
+  /**
+   * Treat incoming action data as a Slack Message Event
+   *
+   * @group Webhooks
+   *
+   * @param data
+   */
   static asMessageEvent(data: unknown) {
     return asSlackMessageEvent(data);
+  }
+
+  /**
+   * A block that is used to hold interactive elements.
+   *
+   * @group Elements: Blocks
+   *
+   * @param props
+   */
+  static actionsBlock(props: ActionsProps) {
+    return actionsBlock(props);
+  }
+
+  /**
+   * Displays message context, which can include both images and text.
+   *
+   * @group Elements: Blocks
+   *
+   * @param props
+   */
+  static contextBlock(props: ContextProps) {
+    return contextBlock(props);
+  }
+
+  /**
+   * A content divider, like an html hr tag, to split up different blocks inside of a message. The divider block is nice and neat, requiring only a type.
+   *
+   * @group Elements: Blocks
+   *
+   * @param props
+   */
+  static dividerBlock(props: DividerProps) {
+    return dividerBlock(props);
+  }
+
+  /**
+   * Displays a remote file. You can't add this block to app surfaces directly, but it will show up when retrieving messages that contain remote files.
+   *
+   * If you want to add remote files to messages, follow our guide.
+   *
+   * @group Elements: Blocks
+   *
+   * @param props
+   */
+  static fileBlock(props: FileProps) {
+    return fileBlock(props);
+  }
+
+  /**
+   * A header is a plain-text block that displays in a larger, bold font. Use it to delineate between different groups of content in your app's surfaces.
+   *
+   * @group Elements: Blocks
+   *
+   * @example Simple text header
+   * ```typescript
+   * Slack.headerBlock("The Header");
+   * ```
+   *
+   * @param propsOrText
+   */
+  static headerBlock(propsOrText: HeaderProps | string) {
+    return headerBlock(propsOrText);
+  }
+
+  /**
+   * A simple image block, designed to make those cat photos really pop.
+   *
+   * @group Elements: Blocks
+   *
+   * @param props
+   */
+  static imageBlock(props: ImageProps) {
+    return imageBlock(props);
+  }
+
+  /**
+   * A section is one of the most flexible blocks available - it can be used as a simple text block, in combination with text fields, or side-by-side with any of the available block elements.
+   *
+   * @group Elements: Blocks
+   *
+   * @example Simple text block
+   * ```typescript
+   * Slack.sectionBlock("Title");
+   * ```
+   *
+   * @example Section with fields
+   * ```typescript
+   * Slack.sectionBlock({
+   *   fields: [
+   *     Slack.markdownTextObject("*Data 1*\nvalue A"),
+   *     Slack.markdownTextObject("*Data 2*\nvalue B"),
+   *   ],
+   * });
+   * ```
+   *
+   * @param propsOrText
+   */
+  static sectionBlock(propsOrText: SectionProps | string) {
+    return sectionBlock(propsOrText);
+  }
+
+  /**
+   * A video block is designed to embed videos in all app surfaces (e.g. link unfurls, messages, modals, App Home) — anywhere you can put blocks! To use the video block within your app, you must have the links.embed:write scope.
+   *
+   * @group Elements: Blocks
+   *
+   * @param props
+   */
+  static videoBlock(props: VideoProps) {
+    return videoBlock(props);
+  }
+
+  /**
+   * An interactive component that inserts a button. The button can be a trigger for anything from opening a simple link to starting a complex workflow.
+   *
+   * To use interactive components, you will need to make some changes to prepare your app. Read our guide to enabling interactivity.
+   *
+   * @group Elements: Components
+   *
+   * @param props
+   */
+  static buttonComponent(props: ButtonComponentProps) {
+    return buttonComponent(props);
+  }
+
+  // /**
+  //  * @group Objects
+  //  *
+  //  * @param props
+  //  */
+  // static confirmationDialogObject(props: ConfirmationDialogObject) {
+  //   return confirmationDialogObject(props);
+  // }
+
+  /**
+   * A text object containing markdown formatting.
+   *
+   * @group Elements: Objects
+   *
+   * @param propsOrText
+   */
+  static markdownTextObject(propsOrText: MarkdownTextProps | string) {
+    return markdownTextObject(propsOrText);
+  }
+
+  /**
+   * A plain text object.
+   *
+   * @group Elements: Objects
+   *
+   * @param propsOrText
+   */
+  static plainTextObject(propsOrText: PlainTextProps | string) {
+    return plainTextObject(propsOrText);
   }
 }

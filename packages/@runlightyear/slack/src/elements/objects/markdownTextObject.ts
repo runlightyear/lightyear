@@ -1,4 +1,4 @@
-interface PlainTextProps {
+export interface MarkdownTextProps {
   /**
    * The text for the block. This field accepts any of the standard text formatting markup when type is mrkdwn. The maximum length is 3000 characters.
    */
@@ -14,24 +14,24 @@ interface PlainTextProps {
   verbatim?: boolean;
 }
 
-export interface PlainText extends PlainTextProps {
-  type: "plain_text";
+export interface MarkdownTextObject extends MarkdownTextProps {
+  type: "mrkdwn";
 }
 
-export default function plainText(
-  textOrProps: PlainTextProps | string
-): PlainText {
-  if (typeof textOrProps === "string") {
+export function markdownTextObject(
+  propsOrText: MarkdownTextProps | string
+): MarkdownTextObject {
+  if (typeof propsOrText === "string") {
     return {
-      type: "plain_text",
-      text: textOrProps,
+      type: "mrkdwn",
+      text: propsOrText,
     };
   }
 
-  const { text, emoji, verbatim } = textOrProps;
+  const { text, emoji, verbatim } = propsOrText;
 
   return {
-    type: "plain_text",
+    type: "mrkdwn",
     text,
     emoji,
     verbatim,
