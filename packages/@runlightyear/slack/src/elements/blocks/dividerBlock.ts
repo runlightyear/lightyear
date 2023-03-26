@@ -9,7 +9,7 @@ export interface DividerBlock extends DividerProps {
   type: "divider";
 }
 
-export function dividerBlock(props: DividerProps | undefined) {
+export function dividerBlock(props: DividerProps | undefined): DividerBlock {
   const { blockId } = props || {};
 
   return {

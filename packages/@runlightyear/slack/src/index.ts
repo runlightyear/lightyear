@@ -73,7 +73,9 @@ import type {
   ButtonComponent,
 } from "./elements/components/buttonComponent";
 
-/* Elements > Objects */
+/* Elements: Objects */
+
+import type { SlackObject, TextObject } from "./elements/objects";
 
 import { confirmationDialogObject } from "./elements/objects/confirmationDialogObject";
 import type { ConfirmationDialogObject } from "./elements/objects/confirmationDialogObject";
@@ -170,6 +172,8 @@ export type {
   VideoBlock,
   ButtonComponentProps,
   ButtonComponent,
+  SlackObject,
+  TextObject,
   ConfirmationDialogObject,
   MarkdownTextProps,
   MarkdownTextObject,

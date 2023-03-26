@@ -1,4 +1,5 @@
-import { PlainTextObject } from "../objects/plainTextObject";
+import { plainTextObject, PlainTextObject } from "../objects/plainTextObject";
+import { markdownTextObject } from "../objects/markdownTextObject";
 
 export interface HeaderProps {
   /**
@@ -15,8 +16,15 @@ export interface HeaderBlock extends HeaderProps {
   type: "header";
 }
 
-export function headerBlock(props: HeaderProps) {
-  const { text, blockId } = props;
+export function headerBlock(propsOrText: HeaderProps | string): HeaderBlock {
+  if (typeof propsOrText === "string") {
+    return {
+      type: "header",
+      text: plainTextObject(propsOrText),
+    };
+  }
+
+  const { text, blockId } = propsOrText;
 
   return {
     type: "header",

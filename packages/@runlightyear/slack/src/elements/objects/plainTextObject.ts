@@ -19,16 +19,16 @@ export interface PlainTextObject extends PlainTextProps {
 }
 
 export function plainTextObject(
-  textOrProps: PlainTextProps | string
+  propsOrText: PlainTextProps | string
 ): PlainTextObject {
-  if (typeof textOrProps === "string") {
+  if (typeof propsOrText === "string") {
     return {
       type: "plain_text",
-      text: textOrProps,
+      text: propsOrText,
     };
   }
 
-  const { text, emoji, verbatim } = textOrProps;
+  const { text, emoji, verbatim } = propsOrText;
 
   return {
     type: "plain_text",

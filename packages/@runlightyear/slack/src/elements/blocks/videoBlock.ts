@@ -47,8 +47,8 @@ export interface VideoBlock extends VideoProps {
   type: "video";
 }
 
-export function videoBlock(props: VideoProps) {
-  const { videoUrl, altText, title, blockId } = props;
+export function videoBlock(props: VideoProps): VideoBlock {
+  const { videoUrl, altText, title, blockId, thumbnailUrl } = props;
 
   return {
     type: "video",
@@ -56,5 +56,6 @@ export function videoBlock(props: VideoProps) {
     altText,
     title,
     blockId,
+    thumbnailUrl,
   };
 }

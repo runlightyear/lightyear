@@ -51,6 +51,7 @@ export interface DefineSlackWebhookProps {
 }
 
 export const defineSlackWebhook = (props: DefineSlackWebhookProps) => {
+  console.log("in defineSlackWebhook", props);
   const { name, title, variables, secrets, subscribeProps } = props;
 
   return defineWebhook({

@@ -23,7 +23,7 @@ export interface ImageBlock extends ImageProps {
   type: "image";
 }
 
-export function imageBlock(props: ImageProps) {
+export function imageBlock(props: ImageProps): ImageBlock {
   const { imageUrl, altText, title, blockId } = props;
 
   return {

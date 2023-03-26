@@ -15,7 +15,7 @@ export interface ActionsBlock extends ActionsProps {
   type: "actions";
 }
 
-export function actionsBlock(props: ActionsProps) {
+export function actionsBlock(props: ActionsProps): ActionsBlock {
   const { elements, blockId } = props;
 
   return {

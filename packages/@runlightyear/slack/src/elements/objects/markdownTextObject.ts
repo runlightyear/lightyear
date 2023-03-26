@@ -19,16 +19,16 @@ export interface MarkdownTextObject extends MarkdownTextProps {
 }
 
 export function markdownTextObject(
-  textOrProps: MarkdownTextProps | string
+  propsOrText: MarkdownTextProps | string
 ): MarkdownTextObject {
-  if (typeof textOrProps === "string") {
+  if (typeof propsOrText === "string") {
     return {
       type: "mrkdwn",
-      text: textOrProps,
+      text: propsOrText,
     };
   }
 
-  const { text, emoji, verbatim } = textOrProps;
+  const { text, emoji, verbatim } = propsOrText;
 
   return {
     type: "mrkdwn",

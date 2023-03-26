@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.18.0
+
+### Minor Changes
+
+- Support for Slack webhooks
+
 ## 0.17.2
 
 ### Patch Changes

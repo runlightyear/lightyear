@@ -33,17 +33,40 @@ import {
 } from "./webhooks/defineSlackWebhook";
 import { asSlackEvent } from "./webhooks/asSlackEvent";
 import { asSlackMessageEvent } from "./webhooks/asSlackMessageEvent";
-import { actionsBlock } from "./elements/blocks/actionsBlock";
-import { contextBlock } from "./elements/blocks/contextBlock";
-import { dividerBlock } from "./elements/blocks/dividerBlock";
-import { fileBlock } from "./elements/blocks/fileBlock";
-import { headerBlock } from "./elements/blocks/headerBlock";
-import { imageBlock } from "./elements/blocks/imageBlock";
-import { sectionBlock } from "./elements/blocks/sectionBlock";
-import { videoBlock } from "./elements/blocks/videoBlock";
-import { plainTextObject } from "./elements/objects/plainTextObject";
-import { markdownTextObject } from "./elements/objects/markdownTextObject";
-import { confirmationDialogObject } from "./elements/objects/confirmationDialogObject";
+import { actionsBlock, ActionsProps } from "./elements/blocks/actionsBlock";
+import {
+  ContextBlock,
+  contextBlock,
+  ContextProps,
+} from "./elements/blocks/contextBlock";
+import {
+  DividerBlock,
+  dividerBlock,
+  DividerProps,
+} from "./elements/blocks/dividerBlock";
+import { fileBlock, FileProps } from "./elements/blocks/fileBlock";
+import { headerBlock, HeaderProps } from "./elements/blocks/headerBlock";
+import {
+  ImageBlock,
+  imageBlock,
+  ImageProps,
+} from "./elements/blocks/imageBlock";
+import { sectionBlock, SectionProps } from "./elements/blocks/sectionBlock";
+import { videoBlock, VideoProps } from "./elements/blocks/videoBlock";
+import {
+  plainTextObject,
+  PlainTextProps,
+} from "./elements/objects/plainTextObject";
+import {
+  markdownTextObject,
+  MarkdownTextProps,
+} from "./elements/objects/markdownTextObject";
+import {
+  ConfirmationDialogObject,
+  confirmationDialogObject,
+} from "./elements/objects/confirmationDialogObject";
+import { ButtonComponentProps } from "./elements/components/buttonComponent";
+import { buttonComponent } from "./elements/components/buttonComponent";
 
 /**
  * Connector to the Slack API
@@ -141,11 +164,11 @@ export class Slack extends RestConnector {
    * slack.postMessage({
    *   channel: "#general",
    *   blocks: [
-   *     Slack.blocks.section("Title section"),
-   *     Slack.blocks.section({
+   *     Slack.sectionBlock("Title section"),
+   *     Slack.sectionBlock({
    *       fields: [
-   *         Slack.objects.markdownText("*Data 1*\nvalue A"),
-   *         Slack.objects.markdownText("*Data 2*\nvalue B"),
+   *         Slack.markdownTextObject("*Data 1*\nvalue A"),
+   *         Slack.markdownTextObject("*Data 2*\nvalue B"),
    *       ]
    *     }),
    *   ],
@@ -254,23 +277,6 @@ export class Slack extends RestConnector {
     return lookupUserByEmail(this)(props);
   }
 
-  static blocks = {
-    actions: actionsBlock,
-    context: contextBlock,
-    divider: dividerBlock,
-    file: fileBlock,
-    header: headerBlock,
-    image: imageBlock,
-    section: sectionBlock,
-    video: videoBlock,
-  };
-
-  static objects = {
-    plainText: plainTextObject,
-    markdownText: markdownTextObject,
-    confirmationDialog: confirmationDialogObject,
-  };
-
   /**
    * Define a Slack webhook
    *
@@ -291,14 +297,183 @@ export class Slack extends RestConnector {
    * ```
    */
   static defineWebhook(props: DefineSlackWebhookProps) {
+    console.log("in Slack.defineWebhook", props);
     return defineSlackWebhook(props);
   }
 
+  /**
+   * Treat incoming action data as a Slack Event
+   *
+   * @group Webhooks
+   *
+   * @param data
+   */
   static asEvent(data: unknown) {
     return asSlackEvent(data);
   }
 
+  /**
+   * Treat incoming action data as a Slack Message Event
+   *
+   * @group Webhooks
+   *
+   * @param data
+   */
   static asMessageEvent(data: unknown) {
     return asSlackMessageEvent(data);
+  }
+
+  /**
+   * A block that is used to hold interactive elements.
+   *
+   * @group Elements: Blocks
+   *
+   * @param props
+   */
+  static actionsBlock(props: ActionsProps) {
+    return actionsBlock(props);
+  }
+
+  /**
+   * Displays message context, which can include both images and text.
+   *
+   * @group Elements: Blocks
+   *
+   * @param props
+   */
+  static contextBlock(props: ContextProps) {
+    return contextBlock(props);
+  }
+
+  /**
+   * A content divider, like an html hr tag, to split up different blocks inside of a message. The divider block is nice and neat, requiring only a type.
+   *
+   * @group Elements: Blocks
+   *
+   * @param props
+   */
+  static dividerBlock(props: DividerProps) {
+    return dividerBlock(props);
+  }
+
+  /**
+   * Displays a remote file. You can't add this block to app surfaces directly, but it will show up when retrieving messages that contain remote files.
+   *
+   * If you want to add remote files to messages, follow our guide.
+   *
+   * @group Elements: Blocks
+   *
+   * @param props
+   */
+  static fileBlock(props: FileProps) {
+    return fileBlock(props);
+  }
+
+  /**
+   * A header is a plain-text block that displays in a larger, bold font. Use it to delineate between different groups of content in your app's surfaces.
+   *
+   * @group Elements: Blocks
+   *
+   * @example Simple text header
+   * ```typescript
+   * Slack.headerBlock("The Header");
+   * ```
+   *
+   * @param propsOrText
+   */
+  static headerBlock(propsOrText: HeaderProps | string) {
+    return headerBlock(propsOrText);
+  }
+
+  /**
+   * A simple image block, designed to make those cat photos really pop.
+   *
+   * @group Elements: Blocks
+   *
+   * @param props
+   */
+  static imageBlock(props: ImageProps) {
+    return imageBlock(props);
+  }
+
+  /**
+   * A section is one of the most flexible blocks available - it can be used as a simple text block, in combination with text fields, or side-by-side with any of the available block elements.
+   *
+   * @group Elements: Blocks
+   *
+   * @example Simple text block
+   * ```typescript
+   * Slack.sectionBlock("Title");
+   * ```
+   *
+   * @example Section with fields
+   * ```typescript
+   * Slack.sectionBlock({
+   *   fields: [
+   *     Slack.markdownTextObject("*Data 1*\nvalue A"),
+   *     Slack.markdownTextObject("*Data 2*\nvalue B"),
+   *   ],
+   * });
+   * ```
+   *
+   * @param propsOrText
+   */
+  static sectionBlock(propsOrText: SectionProps | string) {
+    return sectionBlock(propsOrText);
+  }
+
+  /**
+   * A video block is designed to embed videos in all app surfaces (e.g. link unfurls, messages, modals, App Home) — anywhere you can put blocks! To use the video block within your app, you must have the links.embed:write scope.
+   *
+   * @group Elements: Blocks
+   *
+   * @param props
+   */
+  static videoBlock(props: VideoProps) {
+    return videoBlock(props);
+  }
+
+  /**
+   * An interactive component that inserts a button. The button can be a trigger for anything from opening a simple link to starting a complex workflow.
+   *
+   * To use interactive components, you will need to make some changes to prepare your app. Read our guide to enabling interactivity.
+   *
+   * @group Elements: Components
+   *
+   * @param props
+   */
+  static buttonComponent(props: ButtonComponentProps) {
+    return buttonComponent(props);
+  }
+
+  // /**
+  //  * @group Objects
+  //  *
+  //  * @param props
+  //  */
+  // static confirmationDialogObject(props: ConfirmationDialogObject) {
+  //   return confirmationDialogObject(props);
+  // }
+
+  /**
+   * A text object containing markdown formatting.
+   *
+   * @group Elements: Objects
+   *
+   * @param propsOrText
+   */
+  static markdownTextObject(propsOrText: MarkdownTextProps | string) {
+    return markdownTextObject(propsOrText);
+  }
+
+  /**
+   * A plain text object.
+   *
+   * @group Elements: Objects
+   *
+   * @param propsOrText
+   */
+  static plainTextObject(propsOrText: PlainTextProps | string) {
+    return plainTextObject(propsOrText);
   }
 }

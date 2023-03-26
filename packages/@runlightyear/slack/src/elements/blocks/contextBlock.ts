@@ -15,7 +15,7 @@ export interface ContextBlock extends ContextProps {
   type: "context";
 }
 
-export function contextBlock(props: ContextProps) {
+export function contextBlock(props: ContextProps): ContextBlock {
   const { elements, blockId } = props;
 
   return {
