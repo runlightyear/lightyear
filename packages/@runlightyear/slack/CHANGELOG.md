@@ -1,5 +1,11 @@
 # @runlightyear/slack
 
+## 0.12.0
+
+### Minor Changes
+
+- Removed a number of more obscure message elements
+
 ## 0.11.1
 
 ### Patch Changes
