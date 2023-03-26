@@ -33,26 +33,11 @@ import {
 } from "./webhooks/defineSlackWebhook";
 import { asSlackEvent } from "./webhooks/asSlackEvent";
 import { asSlackMessageEvent } from "./webhooks/asSlackMessageEvent";
-import { actionsBlock, ActionsProps } from "./elements/blocks/actionsBlock";
-import {
-  ContextBlock,
-  contextBlock,
-  ContextProps,
-} from "./elements/blocks/contextBlock";
-import {
-  DividerBlock,
-  dividerBlock,
-  DividerProps,
-} from "./elements/blocks/dividerBlock";
-import { fileBlock, FileProps } from "./elements/blocks/fileBlock";
+import { contextBlock, ContextProps } from "./elements/blocks/contextBlock";
+import { dividerBlock, DividerProps } from "./elements/blocks/dividerBlock";
 import { headerBlock, HeaderProps } from "./elements/blocks/headerBlock";
-import {
-  ImageBlock,
-  imageBlock,
-  ImageProps,
-} from "./elements/blocks/imageBlock";
+import { imageBlock, ImageProps } from "./elements/blocks/imageBlock";
 import { sectionBlock, SectionProps } from "./elements/blocks/sectionBlock";
-import { videoBlock, VideoProps } from "./elements/blocks/videoBlock";
 import {
   plainTextObject,
   PlainTextProps,
@@ -61,12 +46,6 @@ import {
   markdownTextObject,
   MarkdownTextProps,
 } from "./elements/objects/markdownTextObject";
-import {
-  ConfirmationDialogObject,
-  confirmationDialogObject,
-} from "./elements/objects/confirmationDialogObject";
-import { ButtonComponentProps } from "./elements/components/buttonComponent";
-import { buttonComponent } from "./elements/components/buttonComponent";
 
 /**
  * Connector to the Slack API
@@ -169,26 +148,6 @@ export class Slack extends RestConnector {
    *       fields: [
    *         Slack.markdownTextObject("*Data 1*\nvalue A"),
    *         Slack.markdownTextObject("*Data 2*\nvalue B"),
-   *       ]
-   *     }),
-   *   ],
-   *   text: "Use text as a fallback for notifications that can't display blocks",
-   * });
-   * ```
-   *
-   * @example Use blocks to structure display - alternate
-   *
-   * ```typescript
-   * import { sectionBlock, markdownTextObject } from "@runlightyear/slack";
-   *
-   * slack.postMessage({
-   *   channel: "#general",
-   *   blocks: [
-   *     sectionBlock("Title section"),
-   *     sectionBlock({
-   *       fields: [
-   *         markdownTextObject("*Data 1*\nvalue A"),
-   *         markdownTextObject("*Data 2*\nvalue B"),
    *       ]
    *     }),
    *   ],
@@ -323,17 +282,6 @@ export class Slack extends RestConnector {
   }
 
   /**
-   * A block that is used to hold interactive elements.
-   *
-   * @group Elements: Blocks
-   *
-   * @param props
-   */
-  static actionsBlock(props: ActionsProps) {
-    return actionsBlock(props);
-  }
-
-  /**
    * Displays message context, which can include both images and text.
    *
    * @group Elements: Blocks
@@ -351,21 +299,8 @@ export class Slack extends RestConnector {
    *
    * @param props
    */
-  static dividerBlock(props: DividerProps) {
+  static dividerBlock(props?: DividerProps) {
     return dividerBlock(props);
-  }
-
-  /**
-   * Displays a remote file. You can't add this block to app surfaces directly, but it will show up when retrieving messages that contain remote files.
-   *
-   * If you want to add remote files to messages, follow our guide.
-   *
-   * @group Elements: Blocks
-   *
-   * @param props
-   */
-  static fileBlock(props: FileProps) {
-    return fileBlock(props);
   }
 
   /**
@@ -420,39 +355,6 @@ export class Slack extends RestConnector {
   static sectionBlock(propsOrText: SectionProps | string) {
     return sectionBlock(propsOrText);
   }
-
-  /**
-   * A video block is designed to embed videos in all app surfaces (e.g. link unfurls, messages, modals, App Home) — anywhere you can put blocks! To use the video block within your app, you must have the links.embed:write scope.
-   *
-   * @group Elements: Blocks
-   *
-   * @param props
-   */
-  static videoBlock(props: VideoProps) {
-    return videoBlock(props);
-  }
-
-  /**
-   * An interactive component that inserts a button. The button can be a trigger for anything from opening a simple link to starting a complex workflow.
-   *
-   * To use interactive components, you will need to make some changes to prepare your app. Read our guide to enabling interactivity.
-   *
-   * @group Elements: Components
-   *
-   * @param props
-   */
-  static buttonComponent(props: ButtonComponentProps) {
-    return buttonComponent(props);
-  }
-
-  // /**
-  //  * @group Objects
-  //  *
-  //  * @param props
-  //  */
-  // static confirmationDialogObject(props: ConfirmationDialogObject) {
-  //   return confirmationDialogObject(props);
-  // }
 
   /**
    * A text object containing markdown formatting.
