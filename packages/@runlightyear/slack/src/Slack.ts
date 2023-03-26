@@ -297,7 +297,6 @@ export class Slack extends RestConnector {
    * ```
    */
   static defineWebhook(props: DefineSlackWebhookProps) {
-    console.log("in Slack.defineWebhook", props);
     return defineSlackWebhook(props);
   }
 
