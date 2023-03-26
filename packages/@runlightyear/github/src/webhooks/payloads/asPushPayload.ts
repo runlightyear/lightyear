@@ -102,7 +102,6 @@ export interface PushPayload extends CommonPayload {
   };
 }
 
-export function asPushPayload(data: WebhookDeliveryData): PushPayload {
-  const payload = commonPayload("push", data, "asPushPayload") as unknown;
-  return payload as PushPayload;
+export function asPushPayload(data: WebhookDeliveryData) {
+  return commonPayload<PushPayload>("push", data);
 }

@@ -33,13 +33,6 @@ export type IssueCommentPayload =
   | IssueCommentDeletedPayload
   | IssueCommentEditedPayload;
 
-export function asIssueCommentPayload(
-  data: WebhookDeliveryData
-): IssueCommentPayload {
-  const payload = commonPayload(
-    "issue_comment",
-    data,
-    "asIssueCommentPayload"
-  ) as unknown;
-  return payload as IssueCommentPayload;
+export function asIssueCommentPayload(data: WebhookDeliveryData) {
+  return commonPayload<IssueCommentPayload>("issue_comment", data);
 }

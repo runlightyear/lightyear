@@ -13,13 +13,6 @@ export interface WorkflowJobPayload extends CommonPayload {
   deployment: Deployment;
 }
 
-export function asWorkflowJobPayload(
-  data: WebhookDeliveryData
-): WorkflowJobPayload {
-  const payload = commonPayload(
-    "workflow_job",
-    data,
-    "asWorkflowJobPayload"
-  ) as unknown;
-  return payload as WorkflowJobPayload;
+export function asWorkflowJobPayload(data: WebhookDeliveryData) {
+  return commonPayload<WorkflowJobPayload>("workflow_job", data);
 }

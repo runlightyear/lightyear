@@ -113,7 +113,6 @@ export type IssuesPayload =
   | IssueUnlockedPayload
   | IssueUnpinnedPayload;
 
-export function asIssuesPayload(data: WebhookDeliveryData): IssuesPayload {
-  const payload = commonPayload("issues", data, "asIssuesPayload") as unknown;
-  return payload as IssuesPayload;
+export function asIssuesPayload(data: WebhookDeliveryData) {
+  return commonPayload<IssuesPayload>("issues", data);
 }

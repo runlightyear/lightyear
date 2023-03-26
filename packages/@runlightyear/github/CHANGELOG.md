@@ -1,5 +1,11 @@
 # @runlightyear/github
 
+## 0.12.0
+
+### Minor Changes
+
+- Updates to make webhook processing more intuitive
+
 ## 0.11.0
 
 ### Minor Changes

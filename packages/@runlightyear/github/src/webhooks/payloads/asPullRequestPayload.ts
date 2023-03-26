@@ -62,13 +62,6 @@ export interface PullRequestPayload extends CommonPayload {
    */
 }
 
-export function asPullRequestPayload(
-  data: WebhookDeliveryData
-): PullRequestPayload {
-  const payload = commonPayload(
-    "pull_request",
-    data,
-    "asPullRequestPayload"
-  ) as unknown;
-  return payload as PullRequestPayload;
+export function asPullRequestPayload(data: WebhookDeliveryData) {
+  return commonPayload<PullRequestPayload>("pull_request", data);
 }

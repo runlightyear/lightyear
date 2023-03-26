@@ -19,11 +19,9 @@ export type GitHubWebhookSubscribeProps = {
   repo: string;
 
   /**
-   * Determines which event the hook is triggered for. Default: push
-   *
-   * Lightyear Note: Even though GitHub allows listening to multiple event types, we have chosen to support listening to just one event per GitHub webhook for now because we feel it results in simpler run functions on actions. If you have a use case that would benefit greatly from listening to multiple events on one webhook, please let us know about it.
+   * Determines which events the hook is triggered for. Default: ["push"]
    */
-  event?: WebhookEvent;
+  events: Array<WebhookEvent>;
 };
 
 export type GitHubWebhookSubscribePropsFunc = (
@@ -59,7 +57,7 @@ const defineGitHubWebhook = (props: DefineGitHubWebhookProps) => {
       const response = await github.createRepositoryWebhook({
         owner: subscribeProps.owner,
         repo: subscribeProps.repo,
-        events: [subscribeProps.event],
+        events: subscribeProps.events,
         config: {
           url: endpoint,
         },

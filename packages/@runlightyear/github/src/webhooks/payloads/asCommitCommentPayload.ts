@@ -14,13 +14,6 @@ export interface CommitCommentPayload extends CommonPayload {
   comment: CommitComment;
 }
 
-export function asCommitCommentPayload(
-  data: WebhookDeliveryData
-): CommitCommentPayload {
-  const payload = commonPayload(
-    "commit_comment",
-    data,
-    "asCommitCommentPayload"
-  ) as unknown;
-  return payload as CommitCommentPayload;
+export function asCommitCommentPayload(data: WebhookDeliveryData) {
+  commonPayload<CommitCommentPayload>("commit_comment", data);
 }

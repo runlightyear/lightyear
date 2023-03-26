@@ -34,22 +34,23 @@ export interface CommonPayload {
   sender: User;
 }
 
-export default function commonPayload(
+export default function commonPayload<Payload>(
   expectedEvent: WebhookEvent,
-  deliveryData: WebhookDeliveryData,
-  name: string
-): CommonPayload {
+  deliveryData: WebhookDeliveryData
+): Payload | null {
   const event = deliveryData.headers && deliveryData.headers["x-github-event"];
   if (event === "ping") {
+    console.debug("Skipping ping event");
     throw "SKIPPED";
   }
 
   if (event !== expectedEvent) {
-    throw new Error(
-      `GitHub.${name} expected event: ${expectedEvent}, instead got: ${event}`
+    console.info(
+      `Attempt to cast GitHub event ${event} to ${expectedEvent} failed, returning null`
     );
+    return null;
   }
 
   const data = GitHub.processDelivery(deliveryData);
-  return data.body as CommonPayload;
+  return data.body as Payload;
 }
