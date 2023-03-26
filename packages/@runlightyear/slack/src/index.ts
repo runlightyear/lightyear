@@ -29,64 +29,34 @@ import type {
 
 /* Elements > Blocks */
 
-import { actionsBlock } from "./elements/blocks/actionsBlock";
-import type {
-  ActionsProps,
-  ActionsBlock,
-} from "./elements/blocks/actionsBlock";
-
-import { contextBlock } from "./elements/blocks/contextBlock";
 import type {
   ContextProps,
   ContextBlock,
 } from "./elements/blocks/contextBlock";
 
-import { dividerBlock } from "./elements/blocks/dividerBlock";
 import type {
   DividerProps,
   DividerBlock,
 } from "./elements/blocks/dividerBlock";
 
-import { fileBlock } from "./elements/blocks/fileBlock";
-import type { FileProps, FileBlock } from "./elements/blocks/fileBlock";
-
-import { headerBlock } from "./elements/blocks/headerBlock";
 import type { HeaderProps, HeaderBlock } from "./elements/blocks/headerBlock";
 
-import { imageBlock } from "./elements/blocks/imageBlock";
 import type { ImageProps, ImageBlock } from "./elements/blocks/imageBlock";
 
-import { sectionBlock } from "./elements/blocks/sectionBlock";
 import type {
   SectionProps,
   SectionBlock,
 } from "./elements/blocks/sectionBlock";
 
-import { videoBlock } from "./elements/blocks/videoBlock";
-import type { VideoProps, VideoBlock } from "./elements/blocks/videoBlock";
-
-/* Elements > Components */
-
-import { buttonComponent } from "./elements/components/buttonComponent";
-import type {
-  ButtonComponentProps,
-  ButtonComponent,
-} from "./elements/components/buttonComponent";
-
 /* Elements: Objects */
 
 import type { SlackObject, TextObject } from "./elements/objects";
 
-import { confirmationDialogObject } from "./elements/objects/confirmationDialogObject";
-import type { ConfirmationDialogObject } from "./elements/objects/confirmationDialogObject";
-
-import { markdownTextObject } from "./elements/objects/markdownTextObject";
 import type {
   MarkdownTextProps,
   MarkdownTextObject,
 } from "./elements/objects/markdownTextObject";
 
-import { plainTextObject } from "./elements/objects/plainTextObject";
 import type {
   PlainTextProps,
   PlainTextObject,
@@ -96,6 +66,8 @@ import type {
 import type { ChannelJoinEvent } from "./events/ChannelJoinEvent";
 import type { ChannelLeaveEvent } from "./events/ChannelLeaveEvent";
 import type { ChannelTopicEvent } from "./events/ChannelTopicEvent";
+import type { SlackEvent } from "./events/SlackEvent";
+import type { SlackMessageEvent } from "./events/SlackMessageEvent";
 
 /** Types **/
 
@@ -128,23 +100,7 @@ import type {
   HttpProxyResponse,
 } from "@runlightyear/lightyear";
 
-export {
-  Slack,
-  SlackOAuth,
-  RestConnector,
-  actionsBlock,
-  contextBlock,
-  dividerBlock,
-  fileBlock,
-  headerBlock,
-  imageBlock,
-  sectionBlock,
-  videoBlock,
-  buttonComponent,
-  confirmationDialogObject,
-  markdownTextObject,
-  plainTextObject,
-};
+export { Slack, SlackOAuth, RestConnector };
 export type {
   PostMessageProps,
   ScheduleMessageProps,
@@ -154,27 +110,18 @@ export type {
   JoinConversationResponse,
   LeaveConversationProps,
   LeaveConversationResponse,
-  ActionsProps,
-  ActionsBlock,
   ContextProps,
   ContextBlock,
   DividerProps,
   DividerBlock,
-  FileProps,
-  FileBlock,
   HeaderProps,
   HeaderBlock,
   ImageProps,
   ImageBlock,
   SectionProps,
   SectionBlock,
-  VideoProps,
-  VideoBlock,
-  ButtonComponentProps,
-  ButtonComponent,
   SlackObject,
   TextObject,
-  ConfirmationDialogObject,
   MarkdownTextProps,
   MarkdownTextObject,
   PlainTextProps,
@@ -182,6 +129,8 @@ export type {
   ChannelJoinEvent,
   ChannelLeaveEvent,
   ChannelTopicEvent,
+  SlackEvent,
+  SlackMessageEvent,
   Channel,
   EventType,
   MessageEventSubtype,
