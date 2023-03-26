@@ -23,7 +23,6 @@ export interface DeletePayload extends CommonPayload {
   refType: "tag" | "branch";
 }
 
-export function asDeletePayload(data: WebhookDeliveryData): DeletePayload {
-  const payload = commonPayload("delete", data, "asDeletePayload") as unknown;
-  return payload as DeletePayload;
+export function asDeletePayload(data: WebhookDeliveryData) {
+  return commonPayload<DeletePayload>("delete", data);
 }

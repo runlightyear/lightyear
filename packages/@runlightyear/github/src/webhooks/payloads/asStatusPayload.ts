@@ -58,7 +58,6 @@ export interface StatusPayload extends CommonPayload {
   updatedAt: string;
 }
 
-export function asStatusPayload(data: WebhookDeliveryData): StatusPayload {
-  const payload = commonPayload("status", data, "asStatusPayload") as unknown;
-  return payload as StatusPayload;
+export function asStatusPayload(data: WebhookDeliveryData) {
+  return commonPayload<StatusPayload>("status", data);
 }

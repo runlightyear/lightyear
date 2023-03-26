@@ -38,13 +38,6 @@ export interface PullRequestReviewPayload extends CommonPayload {
   };
 }
 
-export function asPullRequestReviewPayload(
-  data: WebhookDeliveryData
-): PullRequestReviewPayload {
-  const payload = commonPayload(
-    "pull_request_review",
-    data,
-    "asPullRequestReviewPayload"
-  ) as unknown;
-  return payload as PullRequestReviewPayload;
+export function asPullRequestReviewPayload(data: WebhookDeliveryData) {
+  return commonPayload<PullRequestReviewPayload>("pull_request_review", data);
 }

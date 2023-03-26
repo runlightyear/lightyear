@@ -24,7 +24,6 @@ export interface PingPayload extends CommonPayload {
   };
 }
 
-export function asPingPayload(data: WebhookDeliveryData): PingPayload {
-  const payload = commonPayload("ping", data, "asPingPayload") as unknown;
-  return payload as PingPayload;
+export function asPingPayload(data: WebhookDeliveryData) {
+  return commonPayload<PingPayload>("ping", data);
 }
