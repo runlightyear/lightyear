@@ -1,4 +1,4 @@
-import { PlainText } from "../objects/plainText";
+import { PlainTextObject } from "../objects/plainTextObject";
 
 export interface VideoProps {
   /**
@@ -12,7 +12,7 @@ export interface VideoProps {
   /**
    * Description for video in plain text format.
    */
-  description?: PlainText;
+  description?: PlainTextObject;
   /**
    * Icon for the video provider - ex. Youtube icon
    */
@@ -24,7 +24,7 @@ export interface VideoProps {
   /**
    * Video title in plain text format. Must be less than 200 characters.
    */
-  title: PlainText;
+  title: PlainTextObject;
   /**
    * Hyperlink for the title text. Must correspond to the non-embeddable URL for the video. Must go to an HTTPS URL.
    */
@@ -43,11 +43,11 @@ export interface VideoProps {
   blockId?: string;
 }
 
-export interface Video extends VideoProps {
+export interface VideoBlock extends VideoProps {
   type: "video";
 }
 
-export default function video(props: VideoProps) {
+export function videoBlock(props: VideoProps) {
   const { videoUrl, altText, title, blockId } = props;
 
   return {

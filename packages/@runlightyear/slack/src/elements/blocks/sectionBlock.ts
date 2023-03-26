@@ -1,5 +1,5 @@
 import { SlackObject, TextObject } from "../objects";
-import markdownText from "../objects/markdownText";
+import { markdownTextObject } from "../objects/markdownTextObject";
 
 export interface SectionProps {
   /**
@@ -17,15 +17,15 @@ export interface SectionProps {
   accessory?: SlackObject;
 }
 
-export interface Section extends SectionProps {
+export interface SectionBlock extends SectionProps {
   type: "section";
 }
 
-export default function section(propsOrText: SectionProps | string): Section {
+export function sectionBlock(propsOrText: SectionProps | string): SectionBlock {
   if (typeof propsOrText === "string") {
     return {
       type: "section",
-      text: markdownText(propsOrText),
+      text: markdownTextObject(propsOrText),
     };
   }
 
@@ -33,7 +33,7 @@ export default function section(propsOrText: SectionProps | string): Section {
 
   return {
     type: "section",
-    text: typeof text === "string" ? markdownText(text) : text,
+    text: typeof text === "string" ? markdownTextObject(text) : text,
     fields,
   };
 }

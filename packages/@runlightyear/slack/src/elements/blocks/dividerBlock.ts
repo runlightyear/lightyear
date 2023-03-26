@@ -5,11 +5,11 @@ export interface DividerProps {
   blockId?: string;
 }
 
-export interface Divider extends DividerProps {
+export interface DividerBlock extends DividerProps {
   type: "divider";
 }
 
-export default function divider(props: DividerProps | undefined) {
+export function dividerBlock(props: DividerProps | undefined) {
   const { blockId } = props || {};
 
   return {

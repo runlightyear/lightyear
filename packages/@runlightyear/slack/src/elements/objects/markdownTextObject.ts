@@ -1,4 +1,4 @@
-interface MarkdownTextProps {
+export interface MarkdownTextProps {
   /**
    * The text for the block. This field accepts any of the standard text formatting markup when type is mrkdwn. The maximum length is 3000 characters.
    */
@@ -14,13 +14,13 @@ interface MarkdownTextProps {
   verbatim?: boolean;
 }
 
-export interface MarkdownText extends MarkdownTextProps {
+export interface MarkdownTextObject extends MarkdownTextProps {
   type: "mrkdwn";
 }
 
-export default function markdownText(
+export function markdownTextObject(
   textOrProps: MarkdownTextProps | string
-): MarkdownText {
+): MarkdownTextObject {
   if (typeof textOrProps === "string") {
     return {
       type: "mrkdwn",

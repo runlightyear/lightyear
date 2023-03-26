@@ -1,5 +1,11 @@
 # @runlightyear/slack
 
+## 0.11.0
+
+### Minor Changes
+
+- Minor updates to Slack elements and documentation
+
 ## 0.10.0
 
 ### Minor Changes
