@@ -1,7 +1,15 @@
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { Linear } from "../Linear";
+import { IssueFilter } from "../types/IssueFilter";
+import { PageInfo } from "../types/PageInfo";
+import { IssueResponse, issueResponseFields } from "./IssueResponse";
 
 export interface ListIssuesProps {
+  /**
+   * Filter returned issues.
+   */
+  filter?: IssueFilter;
+
   /**
    * A cursor to be used with last for backward pagination.
    */
@@ -34,102 +42,38 @@ export interface ListIssuesProps {
 }
 
 const query = `
-query ListIssues {
-  issues {
-    nodes {
-      archivedAt
-      assignee {
-        id
-      }
-      completedAt
-      createdAt
-      creator {
-        id
-      }
-      customerTicketCount
-      cycle {
-        id
-      }
-      description
-      descriptionData
-      dueDate
-      estimate
-      id
-      identifier
-      number
-      parent {
-        id
-      }
-      priority
-      priorityLabel
-      project {
-        id 
-      }
-      projectMilestone {
-        id
-      }
-      title
-      updatedAt
-      url
-    }
+query ListIssues($filter: IssueFilter, $before: String, $after: String, $first: Int, $last: Int, $includeArchived: Boolean, $orderBy: PaginationOrderBy) {
+  issues(filter: $filter, before: $before, after: $after, first: $first, last: $last, includeArchived: $includeArchived, orderBy: $orderBy) {
     pageInfo {
       endCursor
       hasNextPage
       hasPreviousPage
       startCursor
     }
+    nodes {
+      ${issueResponseFields}
+    }
   }
 }
 `;
 
 export interface ListIssuesResponse extends HttpProxyResponse {
-  data: Array<{
-    archivedAt: string;
-    assignee: {
-      id: string;
-    };
-    completedAt: string;
-    createdAt: string;
-    creator: {
-      id: string;
-    };
-    customerTicketCount: number;
-    cycle: {
-      id: string;
-    };
-    description: string;
-    descriptionData: object;
-    dueDate: string;
-    estimate: number;
-    id: string;
-    identifier: string;
-    number: number;
-    parent: {
-      id: string;
-    };
-    priority: number;
-    priorityLabel: string;
-    project: {
-      id: string;
-    };
-    projectMilestone: {
-      id: string;
-    };
-    title: string;
-    updatedAt: string;
-    url: string;
-  }>;
+  data: {
+    pageInfo: PageInfo;
+    issues: Array<IssueResponse>;
+  };
 }
 
 export const listIssues =
   (self: Linear) =>
   async (props?: ListIssuesProps): Promise<ListIssuesResponse> => {
-    const { before, after, first, last, includeArchived, orderBy } =
+    const { filter, before, after, first, last, includeArchived, orderBy } =
       props || {};
 
     const response = await self.execute({
       query,
       variables: {
+        filter,
         before,
         after,
         first,
@@ -139,5 +83,11 @@ export const listIssues =
       },
     });
 
-    return { ...response, data: response.data.data.issues.nodes };
+    return {
+      ...response,
+      data: {
+        pageInfo: response.data.data.pageInfo,
+        issues: response.data.data.issues.nodes,
+      },
+    };
   };

@@ -4,9 +4,15 @@ import {
   GraphQLConnectorQueryProps,
 } from "@runlightyear/lightyear";
 import { createIssue, CreateIssueProps } from "./issues/createIssue";
-import { listTeams } from "./teams/listTeams";
+import { listTeams, ListTeamsProps } from "./teams/listTeams";
 import { createComment, CreateCommentProps } from "./comments/createComment";
 import { listIssues, ListIssuesProps } from "./issues/listIssues";
+import { getTeam, GetTeamProps } from "./teams/getTeam";
+import { getIssue, GetIssueProps } from "./issues/getIssue";
+import { getComment, GetCommentProps } from "./comments/getComment";
+import { listComments, ListCommentsProps } from "./comments/listComments";
+import { listUsers, ListUsersProps } from "./users/listUsers";
+import { getUser, GetUserProps } from "./users/getUser";
 
 /**
  * @beta
@@ -45,6 +51,11 @@ export class Linear extends GraphQLConnector {
     super({ ...props, baseUrl: "https://api.linear.app/graphql" });
   }
 
+  /**
+   * @group GraphQL
+   *
+   * @param props
+   */
   async execute(props: GraphQLConnectorQueryProps) {
     const response = await super.execute(props);
 
@@ -59,19 +70,115 @@ export class Linear extends GraphQLConnector {
     return response;
   }
 
-  async listTeams() {
-    return listTeams(this)();
+  /**
+   * List teams
+   *
+   * All teams whose issues can be accessed by the user. This might be different from administrableTeams, which also includes teams whose settings can be changed by the user.
+   *
+   * @group Team
+   *
+   * @param props
+   */
+  async listTeams(props?: ListTeamsProps) {
+    return listTeams(this)(props);
   }
 
+  /**
+   * Get a team
+   *
+   * @group Team
+   *
+   * @param props
+   */
+  async getTeam(props: GetTeamProps) {
+    return getTeam(this)(props);
+  }
+
+  /**
+   * List issues
+   *
+   * @group Issue
+   *
+   * @param props
+   */
   async listIssues(props?: ListIssuesProps) {
     return listIssues(this)(props);
   }
 
+  /**
+   * Get an issue
+   *
+   * @group Issue
+   *
+   * @param props
+   */
+  async getIssue(props: GetIssueProps) {
+    return getIssue(this)(props);
+  }
+
+  /**
+   * Create an issue
+   *
+   * @group Issue
+   *
+   * @param props
+   */
   async createIssue(props: CreateIssueProps) {
     return createIssue(this)(props);
   }
 
+  /**
+   * List comments
+   *
+   * @group Comment
+   *
+   * @param props
+   */
+  async listComments(props: ListCommentsProps) {
+    return listComments(this)(props);
+  }
+
+  /**
+   * Get a comment
+   *
+   * @group Comment
+   *
+   * @param props
+   */
+  async getComment(props: GetCommentProps) {
+    return getComment(this)(props);
+  }
+
+  /**
+   * Create a comment
+   *
+   * @group Comment
+   *
+   * @param props
+   */
   async createComment(props: CreateCommentProps) {
     return createComment(this)(props);
+  }
+
+  /**
+   * List users
+   *
+   * @group User
+   *
+   * @param props
+   */
+  async listUsers(props: ListUsersProps) {
+    return listUsers(this)(props);
+  }
+
+  /**
+   * Get a user
+   *
+   * @group User
+   *
+   * @param props
+   */
+  async getUser(props: GetUserProps) {
+    return getUser(this)(props);
   }
 }
