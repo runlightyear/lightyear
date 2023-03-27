@@ -1,5 +1,16 @@
 # @runlightyear/linear
 
+## 0.2.0
+
+### Minor Changes
+
+- OAuth working + initial methods
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.19.0
+
 ## 0.1.3
 
 ### Patch Changes

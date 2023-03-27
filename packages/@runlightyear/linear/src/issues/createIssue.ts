@@ -116,14 +116,6 @@ export interface CreateIssueProps {
   title: string;
 }
 
-export interface CreateIssueResponse extends HttpProxyResponse {
-  data: {
-    issue: {
-      id: string;
-    };
-  };
-}
-
 const query = `
 mutation IssueCreate($input: IssueCreateInput!) {
   issueCreate(input: $input) {
@@ -134,7 +126,13 @@ mutation IssueCreate($input: IssueCreateInput!) {
 }
 `;
 
-const createIssue =
+export interface CreateIssueResponse extends HttpProxyResponse {
+  data: {
+    id: string;
+  };
+}
+
+export const createIssue =
   (self: Linear) =>
   async (props: CreateIssueProps): Promise<CreateIssueResponse> => {
     const {
@@ -162,7 +160,7 @@ const createIssue =
       title,
     } = props;
 
-    return self.execute({
+    const response = await self.execute({
       query,
       variables: {
         input: {
@@ -191,4 +189,6 @@ const createIssue =
         },
       },
     });
+
+    return { ...response, data: response.data.data.issueCreate.issue };
   };

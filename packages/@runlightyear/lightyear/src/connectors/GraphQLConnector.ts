@@ -1,4 +1,5 @@
 import { RestConnector, RestConnectorProps } from "./RestConnector";
+import { HttpProxyResponse } from "../base/http";
 
 /**
  * @beta
@@ -10,7 +11,7 @@ export interface GraphQLConnectorProps extends RestConnectorProps {}
  */
 export interface GraphQLConnectorQueryProps {
   query: string;
-  variables: {
+  variables?: {
     [name: string]: unknown;
   };
 }
@@ -27,15 +28,17 @@ export class GraphQLConnector extends RestConnector {
     super(props);
   }
 
-  async execute(props: GraphQLConnectorQueryProps) {
+  async execute(props: GraphQLConnectorQueryProps): Promise<HttpProxyResponse> {
     const { query, variables } = props;
 
+    console.debug("in execute", query, variables);
+
     return await this.post({
-      url: this.baseUrl,
-      body: JSON.stringify({
+      url: "",
+      data: {
         query,
         variables,
-      }),
+      },
     });
   }
 }

@@ -8,7 +8,7 @@ export interface LinearOAuthProps extends OAuthConnectorProps {
   /**
    * List of scopes
    */
-  scope: LinearScope[];
+  scope?: LinearScope[];
   /**
    * The consent screen is displayed every time, even if all scopes were previously granted. This can be useful if you want to give users the opportunity to connect multiple workspaces.
    */
@@ -56,6 +56,7 @@ export class LinearOAuth extends OAuthConnector {
   getAuthRequestUrlParams() {
     const result: Record<string, string> = {
       ...super.getAuthRequestUrlParams(),
+      response_type: "code",
       scope: this.scope.join(","),
       actor: this.actor,
     };

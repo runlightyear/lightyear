@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.19.0
+
+### Minor Changes
+
+- Updated support for GraphQL
+
 ## 0.18.0
 
 ### Minor Changes
