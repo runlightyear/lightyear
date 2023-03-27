@@ -87,7 +87,10 @@ import type { RestConnectorProps } from "./connectors/RestConnector";
 
 /* GraphQL Connector */
 import { GraphQLConnector } from "./connectors/GraphQLConnector";
-import type { GraphQLConnectorProps } from "./connectors/GraphQLConnector";
+import type {
+  GraphQLConnectorProps,
+  GraphQLConnectorQueryProps,
+} from "./connectors/GraphQLConnector";
 
 /* Smtp Connector */
 import { SmtpConnector } from "./connectors/SmtpConnector";
@@ -162,6 +165,7 @@ export type {
   OAuthConfigData,
   RestConnectorProps,
   GraphQLConnectorProps,
+  GraphQLConnectorQueryProps,
   SmtpConnectorProps,
   PollingData,
   WebhookDeliveryData,

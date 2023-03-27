@@ -10,6 +10,7 @@ import { getEnvName } from "../util/getEnvName";
 export type AppName =
   | "airtable"
   | "github"
+  | "linear"
   | "openai"
   | "postmark"
   | "slack"

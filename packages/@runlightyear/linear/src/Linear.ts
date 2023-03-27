@@ -1,4 +1,12 @@
-import { GraphQLConnector, AuthConnectorProps } from "@runlightyear/lightyear";
+import {
+  GraphQLConnector,
+  AuthConnectorProps,
+  GraphQLConnectorQueryProps,
+} from "@runlightyear/lightyear";
+import { createIssue, CreateIssueProps } from "./issues/createIssue";
+import { listTeams } from "./teams/listTeams";
+import { createComment, CreateCommentProps } from "./comments/createComment";
+import { listIssues, ListIssuesProps } from "./issues/listIssues";
 
 /**
  * @beta
@@ -35,5 +43,35 @@ export interface LinearProps extends AuthConnectorProps {}
 export class Linear extends GraphQLConnector {
   constructor(props: LinearProps) {
     super({ ...props, baseUrl: "https://api.linear.app/graphql" });
+  }
+
+  async execute(props: GraphQLConnectorQueryProps) {
+    const response = await super.execute(props);
+
+    if (response.data.errors) {
+      console.error(
+        "Linear error(s)",
+        JSON.stringify(response.data.errors, null, 2)
+      );
+      throw new Error("Errors in linear response");
+    }
+
+    return response;
+  }
+
+  async listTeams() {
+    return listTeams(this)();
+  }
+
+  async listIssues(props?: ListIssuesProps) {
+    return listIssues(this)(props);
+  }
+
+  async createIssue(props: CreateIssueProps) {
+    return createIssue(this)(props);
+  }
+
+  async createComment(props: CreateCommentProps) {
+    return createComment(this)(props);
   }
 }
