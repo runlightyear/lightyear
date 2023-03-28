@@ -1,16 +1,12 @@
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { Linear } from "../Linear";
+import { CommentResponse, commentResponseFields } from "./CommentResponse";
 
 export interface CreateCommentProps {
   /**
    * The comment content in markdown format.
    */
   body?: string;
-
-  /**
-   * The comment content as a Prosemirror document.
-   */
-  bodyData?: object;
 
   /**
    * Create comment as a user with the provided name. This option is only available to OAuth applications creating comments in actor=application mode.
@@ -52,18 +48,14 @@ const query = `
 mutation CommentCreate($input: CommentCreateInput!) {
   commentCreate(input: $input) {
     comment {
-      id
+      ${commentResponseFields}
     }    
   }
 }
 `;
 
 export interface CreateCommentResponse extends HttpProxyResponse {
-  data: {
-    comment: {
-      id: string;
-    };
-  };
+  data: CommentResponse;
 }
 
 export const createComment =
@@ -71,7 +63,6 @@ export const createComment =
   async (props: CreateCommentProps): Promise<CreateCommentResponse> => {
     const {
       body,
-      bodyData,
       createAsUser,
       createdAt,
       displayIconUrl,
@@ -81,12 +72,11 @@ export const createComment =
       parentId,
     } = props;
 
-    return self.execute({
+    const response = await self.execute({
       query,
       variables: {
         input: {
           body,
-          bodyData,
           createAsUser,
           createdAt,
           displayIconUrl,
@@ -97,4 +87,9 @@ export const createComment =
         },
       },
     });
+
+    return {
+      ...response,
+      data: response.data.data.commentCreate.comment,
+    };
   };

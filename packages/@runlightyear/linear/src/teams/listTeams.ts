@@ -3,6 +3,7 @@ import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { TeamFilter } from "../types/TeamFilter";
 import { PaginationOrderBy } from "../types/PaginationOrderBy";
 import { ID } from "../types/ID";
+import { TeamResponse, teamResponseFields } from "./TeamResponse";
 
 export interface ListTeamsProps {
   /**
@@ -42,21 +43,17 @@ export interface ListTeamsProps {
 }
 
 const query = `
-query ListTeams($filter: CommentFilter, $before: String, $after: String, $first: Int, $last: Int, $includeArchived: Boolean, $orderBy: PaginationOrderBy) {
+query ListTeams($filter: TeamFilter, $before: String, $after: String, $first: Int, $last: Int, $includeArchived: Boolean, $orderBy: PaginationOrderBy) {
   teams(filter: $filter, before: $before, after: $after, first: $first, last: $last, includeArchived: $includeArchived, orderBy: $orderBy) {
     nodes {
-      id
-      name
+      ${teamResponseFields}
     }
   }
 }
 `;
 
 export interface ListTeamsResponse extends HttpProxyResponse {
-  data: Array<{
-    id: ID;
-    name: string;
-  }>;
+  data: Array<TeamResponse>;
 }
 
 export const listTeams =

@@ -1,4 +1,5 @@
 /* Comments */
+import type { CommentResponse } from "./comments/CommentResponse";
 import type {
   CreateCommentProps,
   CreateCommentResponse,
@@ -79,9 +80,11 @@ import type { WorkflowStateFilter } from "./types/WorkflowStateFilter";
 /* Users */
 import type { GetUserProps, GetUserResponse } from "./users/getUser";
 import type { ListUsersProps, ListUsersResponse } from "./users/listUsers";
+import type { UserResponse } from "./users/UserResponse";
 
 export { Linear, LinearOAuth };
 export type {
+  CommentResponse,
   CreateCommentProps,
   CreateCommentResponse,
   GetCommentProps,
@@ -146,4 +149,5 @@ export type {
   GetUserResponse,
   ListUsersProps,
   ListUsersResponse,
+  UserResponse,
 };

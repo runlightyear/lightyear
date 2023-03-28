@@ -1,6 +1,7 @@
 import { ID } from "../types/ID";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { Linear } from "../Linear";
+import { TeamResponse, teamResponseFields } from "./TeamResponse";
 
 export interface GetTeamProps {
   id: ID;
@@ -9,17 +10,13 @@ export interface GetTeamProps {
 const query = `
 query GetTeam($id: ID) {
   team(id: $id) {
-    id: ID;
-    name: string;
+    ${teamResponseFields}
   }
 }
 `;
 
 export interface GetTeamResponse extends HttpProxyResponse {
-  data: {
-    id: ID;
-    name: string;
-  };
+  data: TeamResponse;
 }
 
 export const getTeam =

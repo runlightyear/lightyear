@@ -99,6 +99,27 @@ export class Linear extends GraphQLConnector {
    *
    * @group Issue
    *
+   * @example List issues created since date
+   * ```typescript
+   * const response = await linear.listIssues({
+   *   filter: { createdAt: { gt: '<date>> } }
+   * });
+   *
+   * const issues = response.data.issues;
+   * ```
+   *
+   * @example Get issue with identifier LY-123
+   * ```typescript
+   * const response = await linear.listIssues({
+   *   filter: {
+   *     team: { key: { eq: "LY" } },
+   *     number: { eq: 123 },
+   *   },
+   * });
+   *
+   * const issue = response.data.issues[0];
+   * ```
+   *
    * @param props
    */
   async listIssues(props?: ListIssuesProps) {
