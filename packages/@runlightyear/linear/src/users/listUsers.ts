@@ -1,49 +1,50 @@
+import { PaginationOrderBy } from "../types/PaginationOrderBy";
+import { UserFilter } from "../types/UserFilter";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
-import { Linear } from "../Linear";
-import { IssueFilter } from "../types/IssueFilter";
 import { PageInfo } from "../types/PageInfo";
-import { IssueResponse, issueResponseFields } from "./IssueResponse";
+import { Linear } from "../Linear";
+import { UserResponse, userResponseFields } from "./UserResponse";
 
-export interface ListIssuesProps {
+export interface ListUsersProps {
   /**
-   * Filter returned issues.
+   * Filter returned users.
    */
-  filter?: IssueFilter;
+  filter: UserFilter;
 
   /**
    * A cursor to be used with last for backward pagination.
    */
-  before?: string;
+  before: string;
 
   /**
    * A cursor to be used with first for forward pagination
    */
-  after?: string;
+  after: string;
 
   /**
    * The number of items to forward paginate (used with after). Defaults to 50.
    */
-  first?: number;
+  first: number;
 
   /**
    * The number of items to backward paginate (used with before). Defaults to 50.
    */
-  last?: number;
+  last: number;
 
   /**
    * Should archived resources be included (default: false)
    */
-  includeArchived?: boolean;
+  includeArchived: boolean;
 
   /**
    * By which field should the pagination order by. Available options are createdAt (default) and updatedAt.
    */
-  orderBy?: "createdAt" | "updatedAt";
+  orderBy: PaginationOrderBy;
 }
 
 const query = `
-query ListIssues($filter: IssueFilter, $before: String, $after: String, $first: Int, $last: Int, $includeArchived: Boolean, $orderBy: PaginationOrderBy) {
-  issues(filter: $filter, before: $before, after: $after, first: $first, last: $last, includeArchived: $includeArchived, orderBy: $orderBy) {
+query ListComments($filter: UserFilter, $before: String, $after: String, $first: Int, $last: Int, $includeArchived: Boolean, $orderBy: PaginationOrderBy) {
+  comments(filter: $filter, before: $before, after: $after, first: $first, last: $last, includeArchived: $includeArchived, orderBy: $orderBy) {
     pageInfo {
       endCursor
       hasNextPage
@@ -51,22 +52,22 @@ query ListIssues($filter: IssueFilter, $before: String, $after: String, $first: 
       startCursor
     }
     nodes {
-      ${issueResponseFields}
+      ${userResponseFields}
     }
   }
 }
 `;
 
-export interface ListIssuesResponse extends HttpProxyResponse {
+export interface ListUsersResponse extends HttpProxyResponse {
   data: {
     pageInfo: PageInfo;
-    issues: Array<IssueResponse>;
+    users: Array<UserResponse>;
   };
 }
 
-export const listIssues =
+export const listUsers =
   (self: Linear) =>
-  async (props?: ListIssuesProps): Promise<ListIssuesResponse> => {
+  async (props: ListUsersProps): Promise<ListUsersResponse> => {
     const { filter, before, after, first, last, includeArchived, orderBy } =
       props || {};
 
@@ -87,7 +88,7 @@ export const listIssues =
       ...response,
       data: {
         pageInfo: response.data.data.pageInfo,
-        issues: response.data.data.issues.nodes,
+        users: response.data.data.users.nodes,
       },
     };
   };

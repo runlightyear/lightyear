@@ -1,10 +1,16 @@
 # @runlightyear/linear
 
+## 0.3.0
+
+### Minor Changes
+
+- Added rest of initial methods and types
+
 ## 0.2.0
 
 ### Minor Changes
 
-- OAuth working + initial methods
+- OAuth working + some initial methods
 
 ### Patch Changes
 

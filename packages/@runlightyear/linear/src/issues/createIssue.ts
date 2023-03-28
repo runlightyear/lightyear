@@ -1,5 +1,6 @@
 import { Linear } from "../Linear";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
+import { IssueResponse, issueResponseFields } from "./IssueResponse";
 
 /**
  * @beta
@@ -120,16 +121,14 @@ const query = `
 mutation IssueCreate($input: IssueCreateInput!) {
   issueCreate(input: $input) {
     issue {
-      id
+      ${issueResponseFields}
     }    
   }
 }
 `;
 
 export interface CreateIssueResponse extends HttpProxyResponse {
-  data: {
-    id: string;
-  };
+  data: IssueResponse;
 }
 
 export const createIssue =
