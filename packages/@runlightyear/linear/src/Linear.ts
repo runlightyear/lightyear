@@ -102,7 +102,7 @@ export class Linear extends GraphQLConnector {
    * @example List issues created since date
    * ```typescript
    * const response = await linear.listIssues({
-   *   filter: { createdAt: { gt: '<date>> } }
+   *   filter: { createdAt: { gt: "<date>" } }
    * });
    *
    * const issues = response.data.issues;
