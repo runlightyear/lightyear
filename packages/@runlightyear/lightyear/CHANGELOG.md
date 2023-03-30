@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.20.0
+
+### Minor Changes
+
+- Set variables and secrets from runs and subscribe/unsubscribes
+
 ## 0.19.0
 
 ### Minor Changes

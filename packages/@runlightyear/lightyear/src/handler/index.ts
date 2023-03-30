@@ -14,6 +14,7 @@ import { handleSubscribeProps } from "./handleSubscribeProps";
 import { getEnvName } from "../util/getEnvName";
 import { getApiKey } from "../util/getApiKey";
 import { getBaseUrl } from "../util/getBaseUrl";
+import { setContext } from "../base/context";
 
 /**
  * @internal
@@ -41,6 +42,7 @@ export async function handler(
 ): Promise<APIGatewayProxyResult> {
   const { logDisplayLevel } = event;
 
+  setContext({});
   prepareConsole(logDisplayLevel || "DEBUG");
   prefixedRedactedConsole.initialize();
   console.debug("Initialized console");
@@ -83,6 +85,8 @@ export async function handler(
       `Invalid operation, must be 'deploy', 'subscribe', 'unsubscribe', or 'run': ${operation}`
     );
   }
+
+  setContext({ operation, actionName, webhookName });
 
   if (operation === "deploy") {
     return handleDeploy({ envName });
