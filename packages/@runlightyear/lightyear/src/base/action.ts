@@ -2,15 +2,19 @@ import invariant from "tiny-invariant";
 import isFunction from "../util/isFunction";
 import baseRequest from "./baseRequest";
 import { RunFunc, actionIndex } from "../run";
-import { InitializerSpec, deployList } from "./deploy";
+import { deployList } from "./deploy";
 import { prefixedRedactedConsole } from "../logging";
 import { AuthData } from "./auth";
 import { getEnvName } from "../util/getEnvName";
 
 export type AppName =
   | "airtable"
+  | "gcal"
   | "github"
+  | "gmail"
+  | "gsheets"
   | "linear"
+  | "notion"
   | "openai"
   | "postmark"
   | "slack"
