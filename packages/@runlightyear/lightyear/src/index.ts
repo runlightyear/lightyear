@@ -40,7 +40,8 @@ import type { RunFunc, RunFuncProps } from "./run";
 import { PollingData, WebhookDeliveryData } from "./base/runData";
 
 /* Secrets */
-import { SecretData } from "./base/secret";
+import { setSecret } from "./base/secret";
+import type { SecretData } from "./base/secret";
 
 /* Smtp Proxy */
 import type {
@@ -50,7 +51,7 @@ import type {
 } from "./base/smtp";
 
 /* Variables */
-import { getVariableData, VariableData } from "./base/variable";
+import { getVariableData, setVariable, VariableData } from "./base/variable";
 
 /* Webhooks */
 import { defineWebhook, getWebhookData } from "./base/webhook";
@@ -146,6 +147,8 @@ export {
   getBaseUrl,
   getEnvName,
   base64ToBase64Url,
+  setVariable,
+  setSecret,
 };
 
 export type {
