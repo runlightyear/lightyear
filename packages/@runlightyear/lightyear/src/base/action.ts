@@ -2,7 +2,7 @@ import invariant from "tiny-invariant";
 import isFunction from "../util/isFunction";
 import baseRequest from "./baseRequest";
 import { RunFunc, actionIndex } from "../run";
-import { deployList } from "./deploy";
+import { pushToDeployList } from "./deploy";
 import { prefixedRedactedConsole } from "../logging";
 import { AuthData } from "./auth";
 import { getEnvName } from "../util/getEnvName";
@@ -105,12 +105,14 @@ function validateActionProps({ name, title, trigger }: DeployActionProps) {
  * @param props
  */
 export function defineAction(props: DefineActionProps) {
+  console.debug("in defineAction", props);
+
   const { run, ...rest } = props;
   validateActionProps(rest);
   invariant(run, "Run function missing");
   invariant(isFunction(run), "Run must be a function");
 
-  deployList.push({ type: "action", actionProps: rest });
+  pushToDeployList({ type: "action", actionProps: rest });
   actionIndex[rest.name] = run;
 
   return rest.name;

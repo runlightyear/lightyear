@@ -40,7 +40,16 @@ export type DeployItem = {
   deploy?: (props: DeployFuncProps) => Promise<string>;
 };
 
-export const deployList: DeployItem[] = [];
+const deployList: DeployItem[] = [];
+
+export function getDeployList() {
+  return deployList;
+}
+
+export function pushToDeployList(item: DeployItem) {
+  console.debug("pushing item to deployList", item);
+  deployList.push(item);
+}
 
 /**
  * @internal

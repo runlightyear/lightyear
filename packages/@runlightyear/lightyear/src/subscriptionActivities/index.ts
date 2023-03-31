@@ -5,7 +5,7 @@ import {
   unsubscribeIndex,
 } from "../base/webhook";
 import { setSubscribeProps } from "../base/subscription";
-import { deployList, getDeployData } from "../base/deploy";
+import { getDeployData, getDeployList } from "../base/deploy";
 
 export interface SubscribePropsProps {
   envName: string;
@@ -16,6 +16,7 @@ export async function subscribeProps(props: SubscribePropsProps) {
 
   const deployData = await getDeployData();
 
+  const deployList = getDeployList();
   for (const item of deployList) {
     if (item.type === "webhook") {
       const { webhookProps } = item;
