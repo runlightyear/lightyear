@@ -21,6 +21,10 @@ import type {
 import type { GetIssueProps, GetIssueResponse } from "./issues/getIssue";
 import type { ListIssuesProps, ListIssuesResponse } from "./issues/listIssues";
 import type { IssueResponse } from "./issues/IssueResponse";
+import type {
+  UpdateIssueProps,
+  UpdateIssueResponse,
+} from "./issues/updateIssue";
 
 /* Linear */
 import { Linear } from "./Linear";
@@ -97,6 +101,8 @@ export type {
   GetIssueResponse,
   ListIssuesProps,
   ListIssuesResponse,
+  UpdateIssueProps,
+  UpdateIssueResponse,
   IssueResponse,
   LinearProps,
   LinearOAuthProps,

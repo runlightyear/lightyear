@@ -1,17 +1,22 @@
+import { WorkflowStateFilter } from "../types/WorkflowStateFilter";
 import { PaginationOrderBy } from "../types/PaginationOrderBy";
-import { CommentFilter } from "../types/CommentFilter";
+import {
+  CommentResponse,
+  commentResponseFields,
+} from "../comments/CommentResponse";
+import {
+  WorkflowStateResponse,
+  workflowStateResponseFields,
+} from "./WorkflowStateResponse";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
-import { DateTime } from "../types/DateTime";
-import { LinearID } from "../types/LinearID";
-import { Linear } from "../Linear";
 import { PageInfo } from "../types/PageInfo";
-import { CommentResponse, commentResponseFields } from "./CommentResponse";
+import { Linear } from "../Linear";
 
-export interface ListCommentsProps {
+export interface ListWorkflowStatesProps {
   /**
-   * Filter returned comments.
+   * Filter returned workflow states.
    */
-  filter?: CommentFilter;
+  filter?: WorkflowStateFilter;
 
   /**
    * A cursor to be used with last for backward pagination.
@@ -45,8 +50,8 @@ export interface ListCommentsProps {
 }
 
 const query = `
-query ListComments($filter: CommentFilter, $before: String, $after: String, $first: Int, $last: Int, $includeArchived: Boolean, $orderBy: PaginationOrderBy) {
-  comments(filter: $filter, before: $before, after: $after, first: $first, last: $last, includeArchived: $includeArchived, orderBy: $orderBy) {
+query ListWorkflowStates($filter: WorkflowStateFilter, $before: String, $after: String, $first: Int, $last: Int, $includeArchived: Boolean, $orderBy: PaginationOrderBy) {
+  workflowStates(filter: $filter, before: $before, after: $after, first: $first, last: $last, includeArchived: $includeArchived, orderBy: $orderBy) {
     pageInfo {
       endCursor
       hasNextPage
@@ -54,22 +59,24 @@ query ListComments($filter: CommentFilter, $before: String, $after: String, $fir
       startCursor
     }
     nodes {
-      ${commentResponseFields}
+      ${workflowStateResponseFields}
     }
   }
 }
 `;
 
-export interface ListCommentsResponse extends HttpProxyResponse {
+export interface ListWorkflowStatesResponse extends HttpProxyResponse {
   data: {
     pageInfo: PageInfo;
-    comments: Array<CommentResponse>;
+    workflowStates: Array<WorkflowStateResponse>;
   };
 }
 
-export const listComments =
+export const listWorkflowStates =
   (self: Linear) =>
-  async (props?: ListCommentsProps): Promise<ListCommentsResponse> => {
+  async (
+    props?: ListWorkflowStatesProps
+  ): Promise<ListWorkflowStatesResponse> => {
     const { filter, before, after, first, last, includeArchived, orderBy } =
       props || {};
 
@@ -90,7 +97,7 @@ export const listComments =
       ...response,
       data: {
         pageInfo: response.data.data.pageInfo,
-        comments: response.data.data.comments.nodes,
+        workflowStates: response.data.data.workflowStates.nodes,
       },
     };
   };

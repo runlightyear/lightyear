@@ -13,6 +13,11 @@ import { getComment, GetCommentProps } from "./comments/getComment";
 import { listComments, ListCommentsProps } from "./comments/listComments";
 import { listUsers, ListUsersProps } from "./users/listUsers";
 import { getUser, GetUserProps } from "./users/getUser";
+import { updateIssue, UpdateIssueProps } from "./issues/updateIssue";
+import {
+  listWorkflowStates,
+  ListWorkflowStatesProps,
+} from "./workflowStates/listWorkflowStates";
 
 /**
  * @beta
@@ -149,6 +154,17 @@ export class Linear extends GraphQLConnector {
   }
 
   /**
+   * Update an issue
+   *
+   * @group Issue
+   *
+   * @param props
+   */
+  async updateIssue(props: UpdateIssueProps) {
+    return updateIssue(this)(props);
+  }
+
+  /**
    * List comments
    *
    * @group Comment
@@ -201,5 +217,16 @@ export class Linear extends GraphQLConnector {
    */
   async getUser(props: GetUserProps) {
     return getUser(this)(props);
+  }
+
+  /**
+   * List workflow states
+   *
+   * @group Workflow State
+   *
+   * @param props
+   */
+  async listWorkflowStates(props?: ListWorkflowStatesProps) {
+    return listWorkflowStates(this)(props);
   }
 }
