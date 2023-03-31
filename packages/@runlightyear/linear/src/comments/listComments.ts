@@ -2,7 +2,7 @@ import { PaginationOrderBy } from "../types/PaginationOrderBy";
 import { CommentFilter } from "../types/CommentFilter";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { DateTime } from "../types/DateTime";
-import { ID } from "../types/ID";
+import { LinearID } from "../types/LinearID";
 import { Linear } from "../Linear";
 import { PageInfo } from "../types/PageInfo";
 import { CommentResponse, commentResponseFields } from "./CommentResponse";

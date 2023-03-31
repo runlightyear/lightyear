@@ -1,5 +1,5 @@
 import { DateTime } from "../types/DateTime";
-import { ID } from "../types/ID";
+import { LinearID } from "../types/LinearID";
 
 export const userResponseFields = `
 active
@@ -95,7 +95,7 @@ export interface UserResponse {
   /**
    * The unique identifier of the entity.
    */
-  id: ID;
+  id: LinearID;
 
   /**
    * Unique hash for the user to be used in invite URLs.
@@ -121,7 +121,7 @@ export interface UserResponse {
    * Organization the user belongs to.
    */
   organization: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 

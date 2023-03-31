@@ -43,7 +43,7 @@ import type { CommentFilter } from "./types/CommentFilter";
 import type { DateComparator } from "./types/DateComparator";
 import type { DateTime } from "./types/DateTime";
 import type { EstimateComparator } from "./types/EstimateComparator";
-import type { ID } from "./types/ID";
+import type { LinearID } from "./types/LinearID";
 import type { IDComparator } from "./types/IDComparator";
 import type { IssueCollectionFilter } from "./types/IssueCollectionFilter";
 import type { IssueFilter } from "./types/IssueFilter";
@@ -113,7 +113,7 @@ export type {
   DateComparator,
   DateTime,
   EstimateComparator,
-  ID,
+  LinearID,
   IDComparator,
   IssueCollectionFilter,
   IssueFilter,

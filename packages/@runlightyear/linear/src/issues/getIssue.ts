@@ -1,10 +1,10 @@
-import { ID } from "../types/ID";
+import { LinearID } from "../types/LinearID";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { Linear } from "../Linear";
 import { IssueResponse, issueResponseFields } from "./IssueResponse";
 
 export interface GetIssueProps {
-  id: ID;
+  id: LinearID;
 }
 
 const query = `

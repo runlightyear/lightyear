@@ -1,5 +1,5 @@
 import { DateTime } from "../types/DateTime";
-import { ID } from "../types/ID";
+import { LinearID } from "../types/LinearID";
 import { TimelessDate } from "../types/TimelessDate";
 
 export const issueResponseFields = `
@@ -82,7 +82,7 @@ export interface IssueResponse {
    * The user to whom the issue is assigned to.
    */
   assignee: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -120,7 +120,7 @@ export interface IssueResponse {
    * The user who created the issue.
    */
   creator: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -133,7 +133,7 @@ export interface IssueResponse {
    * The cycle that the issue is associated with.
    */
   cycle: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -156,14 +156,14 @@ export interface IssueResponse {
    * [ALPHA] The external user who created the issue.
    */
   externalUserCreator: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
   /**
    * The unique identifier of the entity.
    */
-  id: ID;
+  id: LinearID;
 
   /**
    * Issue's human readable identifier (e.g. ENG-123).
@@ -179,7 +179,7 @@ export interface IssueResponse {
    * The parent of the issue.
    */
   parent: {
-    id: ID;
+    id: LinearID;
     title: string;
   };
 
@@ -202,7 +202,7 @@ export interface IssueResponse {
    * The project that the issue is associated with.
    */
   project: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -210,7 +210,7 @@ export interface IssueResponse {
    * [ALPHA] The projectMilestone that the issue is associated with.
    */
   projectMilestone: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -218,7 +218,7 @@ export interface IssueResponse {
    * The user who snoozed the issue.
    */
   snoozedBy: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -246,7 +246,7 @@ export interface IssueResponse {
    * The workflow state that the issue is associated with.
    */
   state: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -259,7 +259,7 @@ export interface IssueResponse {
    * The team that the issue is associated with.
    */
   team: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 

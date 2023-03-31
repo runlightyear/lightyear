@@ -1,11 +1,11 @@
-import { ID } from "../types/ID";
+import { LinearID } from "../types/LinearID";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { DateTime } from "../types/DateTime";
 import { Linear } from "../Linear";
 import { CommentResponse, commentResponseFields } from "./CommentResponse";
 
 export interface GetCommentProps {
-  id: ID;
+  id: LinearID;
 }
 
 const query = `

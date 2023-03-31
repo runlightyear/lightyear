@@ -1,5 +1,5 @@
 import { DateTime } from "../types/DateTime";
-import { ID } from "../types/ID";
+import { LinearID } from "../types/LinearID";
 
 export const commentResponseFields = `
 archivedAt
@@ -68,14 +68,14 @@ export interface CommentResponse {
    * [ALPHA] The external user who wrote the comment.
    */
   externalUser: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
   /**
    * The unique identifier of the entity.
    */
-  id: ID;
+  id: LinearID;
 
   /**
    * The issue that the comment is associated with.
@@ -86,7 +86,7 @@ export interface CommentResponse {
    * The parent comment under which the current comment is nested.
    */
   parent: {
-    id: ID;
+    id: LinearID;
   };
 
   /**
@@ -105,7 +105,7 @@ export interface CommentResponse {
   url: string;
 
   user: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 }
