@@ -21,6 +21,10 @@ import type {
 import type { GetIssueProps, GetIssueResponse } from "./issues/getIssue";
 import type { ListIssuesProps, ListIssuesResponse } from "./issues/listIssues";
 import type { IssueResponse } from "./issues/IssueResponse";
+import type {
+  UpdateIssueProps,
+  UpdateIssueResponse,
+} from "./issues/updateIssue";
 
 /* Linear */
 import { Linear } from "./Linear";
@@ -43,7 +47,7 @@ import type { CommentFilter } from "./types/CommentFilter";
 import type { DateComparator } from "./types/DateComparator";
 import type { DateTime } from "./types/DateTime";
 import type { EstimateComparator } from "./types/EstimateComparator";
-import type { ID } from "./types/ID";
+import type { LinearID } from "./types/LinearID";
 import type { IDComparator } from "./types/IDComparator";
 import type { IssueCollectionFilter } from "./types/IssueCollectionFilter";
 import type { IssueFilter } from "./types/IssueFilter";
@@ -97,6 +101,8 @@ export type {
   GetIssueResponse,
   ListIssuesProps,
   ListIssuesResponse,
+  UpdateIssueProps,
+  UpdateIssueResponse,
   IssueResponse,
   LinearProps,
   LinearOAuthProps,
@@ -113,7 +119,7 @@ export type {
   DateComparator,
   DateTime,
   EstimateComparator,
-  ID,
+  LinearID,
   IDComparator,
   IssueCollectionFilter,
   IssueFilter,

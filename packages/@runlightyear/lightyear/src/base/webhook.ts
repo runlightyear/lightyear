@@ -1,6 +1,6 @@
 import invariant from "tiny-invariant";
 import baseRequest from "./baseRequest";
-import { deployList } from "./deploy";
+import { pushToDeployList } from "./deploy";
 import { AppName } from "./action";
 import { Auths, Secrets, Variables } from "../run";
 import { AuthData } from "./auth";
@@ -124,9 +124,9 @@ function validateWebhookProps({ name }: DefineWebhookProps) {
  * @param props
  */
 export function defineWebhook(props: DefineWebhookProps) {
-  console.debug("in defineWebhook");
+  console.debug("in defineWebhook", props);
 
-  deployList.push({
+  pushToDeployList({
     type: "webhook",
     webhookProps: props,
   });

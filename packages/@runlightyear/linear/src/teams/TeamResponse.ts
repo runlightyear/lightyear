@@ -1,5 +1,5 @@
 import { DateTime } from "../types/DateTime";
-import { ID } from "../types/ID";
+import { LinearID } from "../types/LinearID";
 
 export const teamResponseFields = `
 activeCycle {
@@ -82,7 +82,7 @@ export interface TeamResponse {
    * Team's currently active cycle.
    */
   activeCycle: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -165,7 +165,7 @@ export interface TeamResponse {
    * The default workflow state into which issues are set when they are opened by team members.
    */
   defaultIssueState: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -173,7 +173,7 @@ export interface TeamResponse {
    * The default template to use for new issues created by members of the team.
    */
   defaultTemplateForMembers: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -181,7 +181,7 @@ export interface TeamResponse {
    * The default template to use for new issues created by non-members of the team.
    */
   defaultTemplateForNonMembers: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -194,7 +194,7 @@ export interface TeamResponse {
    * The workflow state into which issues are moved when a PR has been opened as draft.
    */
   draftWorkflowState: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -211,7 +211,7 @@ export interface TeamResponse {
   /**
    * The unique identifier of the entity.
    */
-  id: ID;
+  id: LinearID;
 
   /**
    * Unique hash for the team to be used in invite URLs.
@@ -252,7 +252,7 @@ export interface TeamResponse {
    * The workflow state into which issues are moved when they are marked as a duplicate of another issue. Defaults to the first canceled state.
    */
   markedAsDuplicateWorkflowState: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -260,7 +260,7 @@ export interface TeamResponse {
    * The workflow state into which issues are moved when a PR has been merged.
    */
   mergeWorkflowState: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -273,7 +273,7 @@ export interface TeamResponse {
    * The organization that the team is associated with.
    */
   organization: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -291,7 +291,7 @@ export interface TeamResponse {
    * The workflow state into which issues are moved when a review has been requested for the PR.
    */
   reviewWorkflowState: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -299,7 +299,7 @@ export interface TeamResponse {
    * The workflow state into which issues are moved when a PR has been opened.
    */
   startWorkflowState: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 
@@ -317,7 +317,7 @@ export interface TeamResponse {
    * The workflow state into which issues are set when they are opened by non-team members or integrations if triage is enabled.
    */
   triageIssueState: {
-    id: ID;
+    id: LinearID;
     name: string;
   };
 

@@ -1,11 +1,11 @@
-import { ID } from "../types/ID";
+import { LinearID } from "../types/LinearID";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { DateTime } from "../types/DateTime";
 import { Linear } from "../Linear";
 import { UserResponse, userResponseFields } from "./UserResponse";
 
 export interface GetUserProps {
-  id: ID;
+  id: LinearID;
 }
 
 const query = `

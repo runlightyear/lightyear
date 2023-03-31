@@ -36,7 +36,7 @@ export class LinearOAuth extends OAuthConnector {
 
   constructor(props: LinearOAuthProps) {
     const {
-      scope = ["read", "issues:create", "comments:create"],
+      scope = ["read", "write", "issues:create", "comments:create"],
       prompt,
       actor = "user",
       ...rest

@@ -1,5 +1,13 @@
 # @runlightyear/github
 
+## 0.12.4
+
+### Patch Changes
+
+- 820276f3: Added some debugging around action and webhook defintions
+- Updated dependencies [820276f3]
+  - @runlightyear/lightyear@0.20.1
+
 ## 0.12.3
 
 ### Patch Changes

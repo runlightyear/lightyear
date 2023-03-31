@@ -2,7 +2,7 @@ import { Linear } from "../Linear";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { TeamFilter } from "../types/TeamFilter";
 import { PaginationOrderBy } from "../types/PaginationOrderBy";
-import { ID } from "../types/ID";
+import { LinearID } from "../types/LinearID";
 import { TeamResponse, teamResponseFields } from "./TeamResponse";
 
 export interface ListTeamsProps {
