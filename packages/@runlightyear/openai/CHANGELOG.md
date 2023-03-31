@@ -1,5 +1,12 @@
 # @runlightyear/openai
 
+## 0.3.5
+
+### Patch Changes
+
+- Updated dependencies [820276f3]
+  - @runlightyear/lightyear@0.20.1
+
 ## 0.3.4
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.20.1
+
+### Patch Changes
+
+- 820276f3: Added some debugging around action and webhook defintions
+
 ## 0.20.0
 
 ### Minor Changes

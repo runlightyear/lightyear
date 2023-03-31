@@ -1,5 +1,18 @@
 # @runlightyear/linear
 
+## 0.4.0
+
+### Minor Changes
+
+- 80cd8274: Added updateIssue and listWorkflowStates methods
+- 80cd8274: Added the "write" scope to support the updateIssue
+
+### Patch Changes
+
+- 80cd8274: Changed ID -> LinearID for clarity
+- Updated dependencies [820276f3]
+  - @runlightyear/lightyear@0.20.1
+
 ## 0.3.1
 
 ### Patch Changes
