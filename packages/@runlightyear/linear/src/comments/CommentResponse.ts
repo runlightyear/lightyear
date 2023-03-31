@@ -5,9 +5,6 @@ export const commentResponseFields = `
 archivedAt
 body
 bodyData
-children {
-  id
-}
 createdAt
 editedAt
 externalUser {
@@ -46,13 +43,6 @@ export interface CommentResponse {
    * The comment content as a Prosemirror document.
    */
   bodyData: string;
-
-  /**
-   * The children of the comment.
-   */
-  children: {
-    id: string;
-  };
 
   /**
    * The time at which the entity was created.

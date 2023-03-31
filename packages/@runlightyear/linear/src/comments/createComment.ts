@@ -47,15 +47,21 @@ export interface CreateCommentProps {
 const query = `
 mutation CommentCreate($input: CommentCreateInput!) {
   commentCreate(input: $input) {
+    success
     comment {
       ${commentResponseFields}
-    }    
+    }
   }
 }
 `;
 
+export interface CreateCommentResponseData {
+  success: boolean;
+  comment: CommentResponse;
+}
+
 export interface CreateCommentResponse extends HttpProxyResponse {
-  data: CommentResponse;
+  data: CreateCommentResponseData;
 }
 
 export const createComment =
@@ -90,6 +96,9 @@ export const createComment =
 
     return {
       ...response,
-      data: response.data.data.commentCreate.comment,
+      data: {
+        success: response.data.data.commentCreate.success,
+        comment: response.data.data.commentCreate.comment,
+      },
     };
   };

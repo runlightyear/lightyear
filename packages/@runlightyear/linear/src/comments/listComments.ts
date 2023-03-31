@@ -1,8 +1,6 @@
 import { PaginationOrderBy } from "../types/PaginationOrderBy";
 import { CommentFilter } from "../types/CommentFilter";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
-import { DateTime } from "../types/DateTime";
-import { LinearID } from "../types/LinearID";
 import { Linear } from "../Linear";
 import { PageInfo } from "../types/PageInfo";
 import { CommentResponse, commentResponseFields } from "./CommentResponse";
@@ -60,11 +58,13 @@ query ListComments($filter: CommentFilter, $before: String, $after: String, $fir
 }
 `;
 
+export interface ListCommentsResponseData {
+  pageInfo: PageInfo;
+  comments: Array<CommentResponse>;
+}
+
 export interface ListCommentsResponse extends HttpProxyResponse {
-  data: {
-    pageInfo: PageInfo;
-    comments: Array<CommentResponse>;
-  };
+  data: ListCommentsResponseData;
 }
 
 export const listComments =

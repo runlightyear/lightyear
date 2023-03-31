@@ -1,5 +1,11 @@
 # @runlightyear/linear
 
+## 0.5.0
+
+### Minor Changes
+
+- createIssue and createComment now return both success and the issue or comment
+
 ## 0.4.0
 
 ### Minor Changes

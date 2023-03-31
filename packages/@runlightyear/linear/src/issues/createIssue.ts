@@ -120,6 +120,7 @@ export interface CreateIssueProps {
 const query = `
 mutation IssueCreate($input: IssueCreateInput!) {
   issueCreate(input: $input) {
+    success
     issue {
       ${issueResponseFields}
     }    
@@ -127,8 +128,13 @@ mutation IssueCreate($input: IssueCreateInput!) {
 }
 `;
 
+export interface CreateIssueResponseData {
+  success: boolean;
+  issue: IssueResponse;
+}
+
 export interface CreateIssueResponse extends HttpProxyResponse {
-  data: IssueResponse;
+  data: CreateIssueResponseData;
 }
 
 export const createIssue =
@@ -189,5 +195,11 @@ export const createIssue =
       },
     });
 
-    return { ...response, data: response.data.data.issueCreate.issue };
+    return {
+      ...response,
+      data: {
+        success: response.data.data.issueCreate.success,
+        issue: response.data.data.issueCreate.issue,
+      },
+    };
   };
