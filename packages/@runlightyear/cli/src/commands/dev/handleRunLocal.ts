@@ -1,5 +1,5 @@
-import runAction from "../../shared/runAction";
 import pako from "pako";
+import { pushOperation } from "../../shared/operationQueue";
 
 export default async function handleRunLocal(props: any) {
   console.debug("in handleRunLocal");
@@ -11,10 +11,13 @@ export default async function handleRunLocal(props: any) {
 
   console.debug("payload", payload);
 
-  await runAction({
-    actionName: payload.actionName,
-    runId: payload.runId,
-    data: payload.data,
-    deliveryId: payload.deliveryId,
+  await pushOperation({
+    operation: "run",
+    params: {
+      actionName: payload.actionName,
+      runId: payload.runId,
+      data: payload.data,
+      deliveryId: payload.deliveryId,
+    },
   });
 }

@@ -1,6 +1,6 @@
 {
   "name": "@runlightyear/cli",
-  "version": "0.19.7",
+  "version": "0.20.0",
   "publishConfig": {
     "access": "public"
   },
@@ -35,7 +35,8 @@
     "pako": "^2.0.4",
     "pusher-js": "^7.3.0",
     "tar": "^6.1.11",
-    "terminal-kit": "^3.0.0"
+    "terminal-kit": "^3.0.0",
+    "tiny-invariant": "^1.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.18.9",
