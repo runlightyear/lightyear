@@ -6,17 +6,19 @@ import { prepareConsole } from "../logging";
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
+export interface RunActionProps {
+  actionName: string;
+  runId: string;
+  data?: object;
+  deliveryId?: string;
+}
+
 export default async function runAction({
   actionName,
   runId,
   data,
   deliveryId,
-}: {
-  actionName: string;
-  runId: string;
-  data?: object;
-  deliveryId?: string;
-}) {
+}: RunActionProps) {
   const baseUrl = getBaseUrl();
   const envName = getEnvName();
   const apiKey = getApiKey();

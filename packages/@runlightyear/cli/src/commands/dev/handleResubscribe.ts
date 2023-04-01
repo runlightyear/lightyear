@@ -1,5 +1,5 @@
 import pako from "pako";
-import execResubscribe from "../../shared/execResubscribe";
+import { pushOperation } from "../../shared/operationQueue";
 
 export default async function handleResubscribe(props: any) {
   console.debug("in handleResubscribe");
@@ -11,8 +11,11 @@ export default async function handleResubscribe(props: any) {
 
   console.debug("payload", payload);
 
-  await execResubscribe({
-    webhookName: payload.webhookName,
-    manual: payload.manual,
+  await pushOperation({
+    operation: "resubscribe",
+    params: {
+      webhookName: payload.webhookName,
+      manual: payload.manual,
+    },
   });
 }

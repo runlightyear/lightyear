@@ -7,8 +7,8 @@ import { terminal } from "terminal-kit";
 import { setLogDisplayLevel } from "../../shared/setLogDisplayLevel";
 import { prepareConsole } from "../../logging";
 import handleResubscribe from "./handleResubscribe";
-import execDeployAndSubscribe from "../../shared/execDeployAndSubscribe";
 import { largeLogo } from "../../largeLogo";
+import { pushOperation } from "../../shared/operationQueue";
 
 export const dev = new Command("dev");
 
@@ -45,7 +45,7 @@ dev
           process.exit();
         }, 100);
       } else if (data.code === "d") {
-        await execDeployAndSubscribe();
+        await pushOperation({ operation: "deploy", params: undefined });
 
         terminal("\n\nWaiting for file changes...\n");
         terminal("press h for help, press q to quit\n");
@@ -72,7 +72,7 @@ dev
     });
 
     nodemon.on("exit", async () => {
-      await execDeployAndSubscribe();
+      await pushOperation({ operation: "deploy", params: undefined });
 
       if (firstDeploy) {
         terminal(

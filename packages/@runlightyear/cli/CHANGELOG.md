@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.20.0
+
+### Minor Changes
+
+- Run VM operations sequentially to prevent runs from clobbering each other
+
 ## 0.19.7
 
 ### Patch Changes
