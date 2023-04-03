@@ -8,6 +8,14 @@ import type { GitHubConnectorProps, GitHubDefineAuthProps } from "./GitHub";
 import { GitHubOAuth } from "./GitHubOAuth";
 import type { GitHubOAuthProps } from "./GitHubOAuth";
 
+/** Commits **/
+
+import type {
+  CompareTwoCommitsProps,
+  CompareTwoCommitsResponse,
+  CompareTwoCommitsResponseData,
+} from "./commits/compareTwoCommits";
+
 /** Gists **/
 
 import { CreateGistProps } from "./gists/createGist";
@@ -42,6 +50,7 @@ import type { IssueComment } from "./types/IssueComment";
 import type { Label } from "./types/Label";
 import type { Member } from "./types/Member";
 import type { Milestone } from "./types/Milestone";
+import type { PushCommit } from "./types/PushCommit";
 import type { Reactions } from "./types/Reactions";
 import type { Repository } from "./types/Repository";
 import type { User } from "./types/User";
@@ -147,6 +156,9 @@ export type {
   GitHubConnectorProps,
   GitHubOAuthProps,
   GitHubDefineAuthProps,
+  CompareTwoCommitsProps,
+  CompareTwoCommitsResponse,
+  CompareTwoCommitsResponseData,
   CreateGistProps,
   CreateIssueProps,
   UpdateIssueProps,
@@ -167,6 +179,7 @@ export type {
   Label,
   Member,
   Milestone,
+  PushCommit,
   Reactions,
   Repository,
   User,
