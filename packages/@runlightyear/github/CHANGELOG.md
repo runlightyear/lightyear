@@ -1,5 +1,12 @@
 # @runlightyear/github
 
+## 0.13.0
+
+### Minor Changes
+
+- Modified pushPayload to reflect how commits are represented
+- Added method compareTwoCommits
+
 ## 0.12.4
 
 ### Patch Changes

@@ -5,7 +5,7 @@ import { User } from "./User";
  */
 export type Commit = {
   author: User | null;
-  comments_url: string;
+  commentsUrl: string;
   commit: {
     author: User;
     commentCount: number;

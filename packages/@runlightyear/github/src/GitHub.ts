@@ -86,6 +86,10 @@ import { asStatusPayload } from "./webhooks/payloads/asStatusPayload";
 import { asWorkflowDispatchPayload } from "./webhooks/payloads/asWorkflowDispatchPayload";
 import { asWorkflowJobPayload } from "./webhooks/payloads/asWorkflowJobPayload";
 import { asWorkflowRunPayload } from "./webhooks/payloads/asWorkflowRunPayload";
+import {
+  compareTwoCommits,
+  CompareTwoCommitsProps,
+} from "./commits/compareTwoCommits";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -172,6 +176,17 @@ export class GitHub extends RestConnector {
       Authorization: `Bearer ${accessToken}`,
       Accept: "application/vnd.github+json",
     };
+  }
+
+  /**
+   * Compare two commits
+   *
+   * @group Commit
+   *
+   * @param props
+   */
+  async compareTwoCommits(props: CompareTwoCommitsProps) {
+    return compareTwoCommits(this)(props);
   }
 
   /**
