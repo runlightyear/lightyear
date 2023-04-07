@@ -17,6 +17,7 @@ export type AppName =
   | "notion"
   | "openai"
   | "postmark"
+  | "salesforce"
   | "slack"
   | "smtp";
 

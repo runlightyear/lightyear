@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.21.0
+
+### Minor Changes
+
+- Added salesforce
+
 ## 0.20.1
 
 ### Patch Changes
