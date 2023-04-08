@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.22.0
+
+### Minor Changes
+
+- 44796238: Export dayjsUtc
+
 ## 0.21.0
 
 ### Minor Changes

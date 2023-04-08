@@ -1,5 +1,12 @@
 # @runlightyear/airtable
 
+## 0.2.8
+
+### Patch Changes
+
+- Updated dependencies [44796238]
+  - @runlightyear/lightyear@0.22.0
+
 ## 0.2.7
 
 ### Patch Changes
