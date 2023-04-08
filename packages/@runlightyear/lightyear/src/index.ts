@@ -109,6 +109,7 @@ import { getApiKey } from "./util/getApiKey";
 import { getBaseUrl } from "./util/getBaseUrl";
 import { getEnvName } from "./util/getEnvName";
 import toTimestamp from "./util/toTimestamp";
+export { dayjsUtc } from "./util/dayjsUtc";
 
 /** Handler **/
 import { handler } from "./handler";

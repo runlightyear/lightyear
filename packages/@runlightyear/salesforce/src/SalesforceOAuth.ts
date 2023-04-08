@@ -3,7 +3,7 @@ import {
   OAuthConnector,
   OAuthConnectorProps,
 } from "@runlightyear/lightyear";
-import dayjsUtc from "@runlightyear/lightyear/src/util/dayjsUtc";
+import { dayjsUtc } from "@runlightyear/lightyear";
 
 /**
  * @beta

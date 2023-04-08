@@ -1,5 +1,13 @@
 # @runlightyear/salesforce
 
+## 0.2.1
+
+### Patch Changes
+
+- 44796238: Fixed import error which caused OAuth2 authorization to fail
+- Updated dependencies [44796238]
+  - @runlightyear/lightyear@0.22.0
+
 ## 0.2.0
 
 ### Minor Changes

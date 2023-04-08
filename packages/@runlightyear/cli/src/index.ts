@@ -9,7 +9,6 @@ import { dev } from "./commands/dev";
 import { deploy } from "./commands/deploy";
 import { prepareConsole } from "./logging";
 import { largeLogo } from "./largeLogo";
-// import { run } from "./commands/run";
 // import { test } from "./commands/test";
 
 dotenv.config();
@@ -25,7 +24,6 @@ program
   .addCommand(login)
   .addCommand(dev)
   .addCommand(deploy)
-  // .addCommand(run)
   .option("-d, --debug", "output extra debugging")
   .addHelpText("beforeAll", largeLogo);
 

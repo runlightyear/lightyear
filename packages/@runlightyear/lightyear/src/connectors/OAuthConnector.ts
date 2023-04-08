@@ -1,6 +1,6 @@
 import invariant from "tiny-invariant";
 import { AuthData } from "../base/auth";
-import dayjsUtc from "../util/dayjsUtc";
+import { dayjsUtc } from "../util/dayjsUtc";
 import inDevelopment from "../util/inDevelopment";
 
 /**
