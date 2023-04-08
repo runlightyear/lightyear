@@ -1,4 +1,4 @@
-import dayjsUtc from "./dayjsUtc";
+import { dayjsUtc } from "./dayjsUtc";
 
 /**
  * @internal
