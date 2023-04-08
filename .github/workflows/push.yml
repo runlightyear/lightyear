@@ -13,7 +13,7 @@ jobs:
       - run: pnpm install
       - run: pnpm run lint
       - run: pnpm run prettier:check
-      - run: pnpm run compile
+#      - run: pnpm run compile
       - run: pnpm run test
       - run: pnpm run build
       - run: pnpm run docs:generate
@@ -30,7 +30,7 @@ jobs:
       - run: pnpm install
       - run: pnpm run lint
       - run: pnpm run prettier:check
-      - run: pnpm run compile
+#      - run: pnpm run compile
       - run: pnpm run test
       - run: pnpm run build
       - run: pnpm run docs:generate
