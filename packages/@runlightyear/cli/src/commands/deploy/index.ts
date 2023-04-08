@@ -1,5 +1,4 @@
 import { Command, program } from "commander";
-import deployToDev from "./deployToDev";
 import deployToProd from "./deployToProd";
 
 export const deploy = new Command("deploy");
