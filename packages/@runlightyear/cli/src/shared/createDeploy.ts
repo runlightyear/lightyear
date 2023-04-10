@@ -26,6 +26,7 @@ export default async function createDeploy(
       },
       body: JSON.stringify({
         status,
+        startedAt: "now",
         compiledCode,
       }),
     });

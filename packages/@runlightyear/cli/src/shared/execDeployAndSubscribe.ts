@@ -43,5 +43,6 @@ export default async function execDeployAndSubscribe() {
   await updateDeploy({
     deployId,
     status,
+    endedAt: "now",
   });
 }

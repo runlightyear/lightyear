@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.21.0
+
+### Minor Changes
+
+- Support for deploy and run timing
+
 ## 0.20.2
 
 ### Patch Changes
