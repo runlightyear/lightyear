@@ -4,11 +4,13 @@ import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 export default async function updateDeploy({
   deployId,
   status,
+  endedAt,
   logs,
   compiledCode,
 }: {
   deployId: string;
   status?: string;
+  endedAt?: "now";
   logs?: any;
   compiledCode?: any;
 }) {
@@ -29,6 +31,7 @@ export default async function updateDeploy({
         },
         body: JSON.stringify({
           status,
+          endedAt,
           logs,
           compiledCode:
             compiledCode && Buffer.from(compiledCode).toString("base64"),

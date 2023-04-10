@@ -23,6 +23,22 @@ export default async function runAction({
   const envName = getEnvName();
   const apiKey = getApiKey();
 
+  const startResponse = await fetch(
+    `${baseUrl}/api/v1/envs/${envName}/runs/${runId}`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `apiKey ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status: "RUNNING",
+        startedAt: "now",
+        // deliveryId,
+      }),
+    }
+  );
+
   const pkg = readPackage();
 
   const compiledCode = getCompiledCode(pkg.main);
@@ -76,6 +92,7 @@ export default async function runAction({
       body: JSON.stringify({
         status,
         logs,
+        endedAt: "now",
         // deliveryId,
       }),
     }
