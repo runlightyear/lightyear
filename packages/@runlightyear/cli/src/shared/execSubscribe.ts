@@ -1,7 +1,8 @@
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { prepareConsole } from "../logging";
-import uploadSubscribeResult from "./uploadSubscribeResult";
+import updateSubscribeResult from "./updateSubscribeResult";
 import runInContext from "./runInContext";
+import createSubscribeActivity from "./createSubscribeActivity";
 
 export interface ExecSubscribeProps {
   webhookName: string;
@@ -11,6 +12,11 @@ export interface ExecSubscribeProps {
 
 export default async function execSubscribe(props: ExecSubscribeProps) {
   const { webhookName, compiledCode, deployId } = props;
+
+  const activityId = await createSubscribeActivity({
+    webhookName,
+    deployId,
+  });
 
   const handler = runInContext(compiledCode);
 
@@ -31,7 +37,8 @@ export default async function execSubscribe(props: ExecSubscribeProps) {
   console.debug("about to upload subscribe result");
   console.debug("deployId", deployId);
 
-  await uploadSubscribeResult({
+  await updateSubscribeResult({
+    subscriptionActivityId: activityId,
     webhookName,
     status,
     logs,

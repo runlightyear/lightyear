@@ -3,6 +3,7 @@ import { terminal } from "terminal-kit";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export interface UploadSubscribeResultProps {
+  subscriptionActivityId: string;
   webhookName: string;
   status: string;
   unsubscribeProps: any;
@@ -10,26 +11,33 @@ export interface UploadSubscribeResultProps {
   logs: any;
 }
 
-export default async function uploadSubscribeResult(
+export default async function updateSubscribeResult(
   props: UploadSubscribeResultProps
 ) {
-  const { webhookName, status, unsubscribeProps, logs, deployId } = props;
+  const {
+    webhookName,
+    subscriptionActivityId,
+    status,
+    unsubscribeProps,
+    logs,
+    deployId,
+  } = props;
 
   const baseUrl = getBaseUrl();
   const envName = getEnvName();
   const apiKey = getApiKey();
 
   const activityResponse = await fetch(
-    `${baseUrl}/api/v1/envs/${envName}/webhooks/${webhookName}/subscription/activities`,
+    `${baseUrl}/api/v1/envs/${envName}/webhooks/${webhookName}/subscription/activities/${subscriptionActivityId}`,
     {
-      method: "POST",
+      method: "PATCH",
       headers: {
         Authorization: `apiKey ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        type: "SUBSCRIBE",
         status,
+        unsubscribeProps,
         logs,
       }),
     }
