@@ -1,33 +1,32 @@
 import fetch from "node-fetch";
-import { terminal } from "terminal-kit";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
-export interface UploadUnsubscribeResultProps {
+export interface UpdateUnsubscribeResultProps {
+  subscriptionActivityId: string;
   webhookName: string;
   status: string;
   logs: any;
   removed: boolean;
 }
 
-export default async function uploadUnsubscribeResult(
-  props: UploadUnsubscribeResultProps
+export default async function updateUnsubscribeResult(
+  props: UpdateUnsubscribeResultProps
 ) {
-  const { webhookName, status, logs, removed } = props;
+  const { subscriptionActivityId, webhookName, status, logs, removed } = props;
 
   const baseUrl = getBaseUrl();
   const envName = getEnvName();
   const apiKey = getApiKey();
 
   const activityResponse = await fetch(
-    `${baseUrl}/api/v1/envs/${envName}/webhooks/${webhookName}/subscription/activities`,
+    `${baseUrl}/api/v1/envs/${envName}/webhooks/${webhookName}/subscription/activities/${subscriptionActivityId}`,
     {
-      method: "POST",
+      method: "PATCH",
       headers: {
         Authorization: `apiKey ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        type: "UNSUBSCRIBE",
         status,
         logs,
       }),
@@ -35,10 +34,10 @@ export default async function uploadUnsubscribeResult(
   );
 
   if (activityResponse.ok) {
-    console.debug("Uploaded unsubscribe activity\n");
+    console.debug("Updated unsubscribe activity\n");
   } else {
     console.error(
-      "Failed to upload unsubscribe activity:",
+      "Failed to update unsubscribe activity:",
       activityResponse.status,
       activityResponse.statusText
     );

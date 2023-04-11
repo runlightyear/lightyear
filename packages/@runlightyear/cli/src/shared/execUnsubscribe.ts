@@ -1,8 +1,9 @@
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { prepareConsole } from "../logging";
 import runInContext from "./runInContext";
-import uploadUnsubscribeResult from "./uploadUnsubscribeResult";
+import updateUnsubscribeResult from "./updateUnsubscribeResult";
 import getPreviouslyDeployedCode from "./getPreviouslyDeployedCode";
+import createUnsubscribeActivity from "./createUnsubscribeActivity";
 
 export interface ExecUnsubscribeProps {
   webhookName: string;
@@ -13,6 +14,11 @@ export default async function execUnsubscribe(props: ExecUnsubscribeProps) {
   const { webhookName, removed } = props;
 
   console.debug("Unsubscribing", webhookName);
+
+  const activityId = await createUnsubscribeActivity({
+    webhookName,
+    removed,
+  });
 
   const compiledCode = await getPreviouslyDeployedCode({ webhookName });
 
@@ -47,10 +53,11 @@ export default async function execUnsubscribe(props: ExecUnsubscribeProps) {
 
   console.debug("about to upload unsubscribe result");
 
-  await uploadUnsubscribeResult({
+  await updateUnsubscribeResult({
     webhookName,
     status,
     logs,
     removed,
+    subscriptionActivityId: activityId,
   });
 }
