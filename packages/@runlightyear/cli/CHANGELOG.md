@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.22.0
+
+### Minor Changes
+
+- e3fe177d: Better support for subscribe/unsubscribe
+
 ## 0.21.0
 
 ### Minor Changes
