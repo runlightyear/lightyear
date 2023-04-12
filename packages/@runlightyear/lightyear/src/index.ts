@@ -97,6 +97,10 @@ import type {
 import { SmtpConnector } from "./connectors/SmtpConnector";
 import { SmtpConnectorProps } from "./connectors/SmtpConnector";
 
+/* Webhook Connector */
+export { WebhookConnector } from "./connectors/WebhookConnector";
+export type { WebhookConnectorProps } from "./connectors/WebhookConnector";
+
 /** Logging **/
 
 import { PrefixedRedactedConsole } from "./logging/PrefixedRedactedConsole";
