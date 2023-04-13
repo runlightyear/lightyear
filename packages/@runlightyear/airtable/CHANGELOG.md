@@ -1,5 +1,13 @@
 # @runlightyear/airtable
 
+## 0.2.9
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @runlightyear/lightyear@0.23.0
+
 ## 0.2.8
 
 ### Patch Changes

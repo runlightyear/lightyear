@@ -1,5 +1,15 @@
 # @runlightyear/lightyear
 
+## 0.23.0
+
+### Minor Changes
+
+- Support for Zoom
+
+### Patch Changes
+
+- First version
+
 ## 0.22.0
 
 ### Minor Changes
