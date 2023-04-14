@@ -19,7 +19,8 @@ export type AppName =
   | "postmark"
   | "salesforce"
   | "slack"
-  | "smtp";
+  | "smtp"
+  | "zoom";
 
 export type ActionTrigger = {
   webhook?: string;

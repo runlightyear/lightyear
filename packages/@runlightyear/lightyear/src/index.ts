@@ -110,6 +110,7 @@ import { getBaseUrl } from "./util/getBaseUrl";
 import { getEnvName } from "./util/getEnvName";
 import toTimestamp from "./util/toTimestamp";
 export { dayjsUtc } from "./util/dayjsUtc";
+export { isFunction } from "./util/isFunction";
 
 /** Handler **/
 import { handler } from "./handler";
