@@ -72,7 +72,7 @@ export interface ListMeetingsResponse extends HttpProxyResponse {
 
 export const listMeetings =
   (self: Zoom) =>
-  async (props: ListMeetingsProps): Promise<ListMeetingsResponse> => {
+  async (props?: ListMeetingsProps): Promise<ListMeetingsResponse> => {
     const {
       userId = "me",
       type,
@@ -81,7 +81,7 @@ export const listMeetings =
       pageNumber,
       from,
       to,
-    } = props;
+    } = props || {};
 
     return await self.get({
       url: `/users/${userId}/meetings`,

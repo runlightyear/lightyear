@@ -9,7 +9,7 @@ export interface Meeting {
   /**
    * Time of creation.
    */
-  created_at: ZoomDate;
+  createdAt: ZoomDate;
 
   /**
    * Meeting duration.
@@ -19,7 +19,7 @@ export interface Meeting {
   /**
    * ID of the user who is set as the host of the meeting.
    */
-  host_id: string;
+  hostId: string;
 
   /**
    * Meeting ID - also known as the meeting number in long (int64) format.
@@ -29,7 +29,7 @@ export interface Meeting {
   /**
    * URL using which participants can join a meeting.
    */
-  join_url: string;
+  joinUrl: string;
 
   /**
    * Personal meeting ID. This field is only returned if PMI was used to schedule the meeting.
@@ -39,7 +39,7 @@ export interface Meeting {
   /**
    * Meeting start time.
    */
-  start_time: ZoomDate;
+  startTime: ZoomDate;
 
   /**
    * Timezone to format the meeting start time.
@@ -56,7 +56,7 @@ export interface Meeting {
    *   1 - Instant meeting.
    *   2 - Scheduled meeting.
    *   3 - Recurring meeting with no fixed time.
-   *   8 - Recurring meeting with fixed time.Allowed: 1┃2┃3┃8
+   *   8 - Recurring meeting with fixed time.
    */
   type: 1 | 2 | 3 | 8;
 

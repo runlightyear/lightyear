@@ -1,3 +1,7 @@
+import { RecordingType } from "./RecordingType";
+import { RecordingStatus } from "./RecordingStatus";
+import { FileType } from "./FileType";
+
 export interface RecordingFile {
   /**
    * The time at which recording was deleted. Returned in the response only for trash query.
@@ -37,15 +41,7 @@ export interface RecordingFile {
    *
    *   SUMMARY: Summary file of the recording in JSON file format.
    */
-  fileType:
-    | "MP4"
-    | "M4A"
-    | "TIMELINE"
-    | "TRANSCRIPT"
-    | "CHAT"
-    | "CC"
-    | "CSV"
-    | "SUMMARY";
+  fileType: FileType;
 
   /**
    * The file extension type of the recording file.
@@ -80,29 +76,10 @@ export interface RecordingFile {
   /**
    * The recording type.
    */
-  recordingType:
-    | "shared_screen_with_speaker_view(CC)"
-    | "shared_screen_with_speaker_view"
-    | "shared_screen_with_gallery_view"
-    | "active_speaker"
-    | "gallery_view"
-    | "shared_screen"
-    | "audio_only"
-    | "audio_transcript"
-    | "chat_file"
-    | "poll"
-    | "host_video"
-    | "closed_caption"
-    | "timeline"
-    | "thumbnail"
-    | "audio_interpretation"
-    | "summary"
-    | "summary_next_steps"
-    | "summary_smart_chapters"
-    | "sign_interpretation";
+  recordingType: RecordingType;
 
   /**
    * The recording status.
    */
-  status: "completed";
+  status: RecordingStatus;
 }
