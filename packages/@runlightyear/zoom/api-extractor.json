@@ -2,5 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "extends": "api-extractor-config/connector.json",
   "projectFolder": ".",
-  "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts"
+  "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
+  "messages": {
+    "extractorMessageReporting": {
+      "ae-wrong-input-file-type": {
+        "logLevel": "none"
+      }
+    }
+  }
 }

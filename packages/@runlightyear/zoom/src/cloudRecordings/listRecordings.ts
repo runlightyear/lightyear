@@ -1,6 +1,5 @@
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { Zoom } from "../Zoom";
-import { ZoomDate } from "../types/ZoomDate";
 import { ListMetadata } from "../types/ListMetadata";
 import { RecordingMeeting } from "../types/RecordingMeeting";
 

@@ -1,6 +1,5 @@
 import {
   defineAction,
-  RunFunc,
   RunFuncProps,
   setVariable,
   SKIPPED,
@@ -8,7 +7,6 @@ import {
 import { Zoom } from "../Zoom";
 import { RecordingMeeting } from "../types/RecordingMeeting";
 import { AppName } from "@runlightyear/lightyear/src/base/action";
-import { RecordingType } from "../types/RecordingType";
 import { RecordingStatus } from "../types/RecordingStatus";
 import { FileType } from "../types/FileType";
 
