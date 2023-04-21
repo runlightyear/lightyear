@@ -2,6 +2,7 @@ import invariant from "tiny-invariant";
 import baseRequest from "./baseRequest";
 import { prefixedRedactedConsole } from "../logging";
 import { getEnvName } from "../util/getEnvName";
+import { OAuthConfigData } from "../connectors/OAuthConnector";
 
 /**
  * @internal
@@ -51,38 +52,122 @@ export type AuthData = {
    * Store app-specific data beyond the OAuth spec
    */
   extraData?: string | null;
+  /**
+   * Custom app data
+   */
+  customAppData?: {
+    oAuthConfigData: OAuthConfigData;
+    extraData: object;
+    extraSecrets: object;
+  };
 };
 
 /**
  * @internal
- *
- * @param name - the name of the auth
  */
-export async function getAuthData(name: string): Promise<AuthData> {
+export interface GetAuthDataProps {
+  appName?: string;
+  customAppName?: string;
+  authName: string;
+}
+
+/**
+ * @internal
+ *
+ * @param props
+ */
+export async function getAuthData(props: GetAuthDataProps): Promise<AuthData> {
+  console.debug("in getAuthData");
+
+  const { customAppName, authName } = props;
+
   const envName = getEnvName();
   invariant(envName, "Missing ENV_NAME");
 
   const response = await baseRequest({
     method: "GET",
-    uri: `/api/v1/envs/${envName}/auths/${name}/data`,
+    uri: `/api/v1/envs/${envName}/custom-apps/${customAppName}/auths/${authName}/data`,
   });
 
   const data = (await response.json()) as AuthData;
 
-  const { accessToken, refreshToken, apiKey, username, password } = data;
+  const {
+    accessToken,
+    refreshToken,
+    apiKey,
+    username,
+    password,
+    customAppData,
+  } = data;
+
+  const clientSecret = customAppData?.oAuthConfigData?.clientSecret;
 
   accessToken && prefixedRedactedConsole.addSecrets([accessToken]);
   refreshToken && prefixedRedactedConsole.addSecrets([refreshToken]);
   apiKey && prefixedRedactedConsole.addSecrets([apiKey]);
   apiKey && prefixedRedactedConsole.addSecrets([password]);
 
-  return {
-    accessToken,
-    refreshToken,
-    apiKey,
-    username,
-    password,
-  };
+  clientSecret && prefixedRedactedConsole.addSecrets([clientSecret]);
+
+  return data;
+}
+
+/**
+ * @internal
+ */
+export interface UpdateAuthDataProps {
+  appName?: string;
+  customAppName?: string;
+  authName: string;
+  authData: AuthData;
+}
+
+/**
+ * @internal
+ *
+ * @param props
+ */
+export async function updateAuthData(props: UpdateAuthDataProps) {
+  console.debug("in updateAuthData");
+
+  const { customAppName, authName, authData } = props;
+
+  const envName = getEnvName();
+  invariant(envName, "Missing ENV_NAME");
+
+  const response = await baseRequest({
+    method: "PATCH",
+    uri: `/api/v1/envs/${envName}/custom-apps/${customAppName}/auths/${authName}/data`,
+    data: authData,
+  });
+}
+
+/**
+ * @internal
+ */
+export interface UpdateAuthDataStateProps {
+  appName?: string;
+  customAppName?: string;
+  authName: string;
+}
+
+/**
+ * @internal
+ *
+ * @param props
+ */
+export async function updateAuthDataState(props: UpdateAuthDataStateProps) {
+  console.debug("in updateAuthDataState");
+
+  const { customAppName, authName } = props;
+
+  const envName = getEnvName();
+  invariant(envName, "Missing ENV_NAME");
+
+  await baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/custom-apps/${customAppName}/auths/${authName}/data`,
+  });
 }
 
 export async function refreshToken(name: string) {

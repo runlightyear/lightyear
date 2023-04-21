@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.24.0
+
+### Minor Changes
+
+- Custom apps supported
+
 ## 0.23.0
 
 ### Minor Changes

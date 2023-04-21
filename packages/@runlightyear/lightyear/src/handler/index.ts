@@ -15,6 +15,9 @@ import { getEnvName } from "../util/getEnvName";
 import { getApiKey } from "../util/getApiKey";
 import { getBaseUrl } from "../util/getBaseUrl";
 import { setContext } from "../base/context";
+import { handleGetAuthRequestUrl } from "./handleGetAuthRequestUrl";
+import { handleRequestAccessToken } from "./handleRequestAccessToken";
+import { handleProcessAccessTokenResponse } from "./handleProcessAccessTokenResponse";
 
 /**
  * @internal
@@ -24,6 +27,9 @@ export interface RepoInvocation extends APIGatewayEvent {
   removed?: boolean;
   actionName?: string;
   webhookName?: string;
+  customAppName?: string;
+  authName?: string;
+  code?: string;
   data?: any;
   logDisplayLevel?: "DEBUG" | "INFO";
 }
@@ -69,21 +75,34 @@ export async function handler(
   console.debug(`Event: ${JSON.stringify(event, null, 2)}`);
   console.debug(`Context: ${JSON.stringify(context, null, 2)}`);
 
-  const { operation, webhookName, removed, actionName, data } = event;
+  const {
+    operation,
+    webhookName,
+    removed,
+    actionName,
+    customAppName,
+    authName,
+    code,
+    data,
+  } = event;
 
   if (!operation) {
     return handlerResult(400, "Required operation missing");
   }
 
   if (
-    !["deploy", "subscribeProps", "subscribe", "unsubscribe", "run"].includes(
-      operation
-    )
+    ![
+      "deploy",
+      "subscribeProps",
+      "subscribe",
+      "unsubscribe",
+      "run",
+      "getAuthRequestUrl",
+      "requestAccessToken",
+      "refreshAccessToken",
+    ].includes(operation)
   ) {
-    return handlerResult(
-      400,
-      `Invalid operation, must be 'deploy', 'subscribe', 'unsubscribe', or 'run': ${operation}`
-    );
+    return handlerResult(400, `Invalid operation: ${operation}`);
   }
 
   setContext({ operation, actionName, webhookName });
@@ -98,6 +117,20 @@ export async function handler(
     return handleSubscribe({ envName, webhookName });
   } else if (operation === "run") {
     return handleRun({ actionName, data, context });
+  } else if (operation === "getAuthRequestUrl") {
+    if (!customAppName) {
+      return handlerResult(400, "Missing customAppName");
+    }
+    if (!authName) {
+      return handlerResult(400, "Missing authName");
+    }
+    return handleGetAuthRequestUrl({ customApp: customAppName, authName });
+  } else if (operation === "requestAccessToken") {
+    return handleRequestAccessToken({
+      customAppName,
+      authName,
+      code,
+    });
   }
 
   return handlerResult(500, "Unknown error");
