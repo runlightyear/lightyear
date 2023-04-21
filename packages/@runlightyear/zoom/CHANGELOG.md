@@ -1,5 +1,11 @@
 # @runlightyear/zoom
 
+## 0.2.0
+
+### Minor Changes
+
+- Polling action can accept custom app and alternate auth
+
 ## 0.1.1
 
 ### Patch Changes
