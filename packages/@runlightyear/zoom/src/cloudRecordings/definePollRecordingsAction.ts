@@ -35,8 +35,10 @@ export interface DefinePollRecordingsActionProps {
    * Default: "completed"
    */
   status?: RecordingStatus;
-
+  customAppName?: string;
+  authName?: string;
   apps?: Array<AppName>;
+  customApps?: Array<string>;
   variables?: Array<string>;
   secrets?: Array<string>;
   run: (props: DefinePollRecordingsActionRunFuncProps) => void;
@@ -51,16 +53,27 @@ export const definePollRecordingsAction = (
     pollingFrequency,
     fileType = "MP4",
     status = "completed",
+    customAppName,
+    authName = "zoom",
     apps = [],
+    customApps = [],
     variables = [],
     secrets = [],
     run,
   } = props;
 
+  const combinedApps: AppName[] = customAppName ? apps : ["zoom", ...apps];
+  const combinedCustomApps = customAppName
+    ? [customAppName, ...customApps]
+    : customApps;
+
+  console.warn("In definePollRecordingsAction");
+
   return defineAction({
     name,
     title,
-    apps: [...apps, "zoom"],
+    apps: combinedApps,
+    customApps: combinedCustomApps,
     variables: [...variables, "recordings"],
     secrets,
     trigger: {
@@ -73,7 +86,7 @@ export const definePollRecordingsAction = (
         ? JSON.parse(variables.recordings)
         : [];
 
-      const zoom = new Zoom({ auth: auths.zoom });
+      const zoom = new Zoom({ auth: auths[authName] });
 
       const response = await zoom.listRecordings();
 
