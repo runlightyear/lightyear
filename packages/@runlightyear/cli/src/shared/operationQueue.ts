@@ -2,6 +2,14 @@ import runAction, { RunActionProps } from "./runAction";
 import execResubscribe, { ExecResubscribeProps } from "./execResubscribe";
 import invariant from "tiny-invariant";
 import execDeployAndSubscribe from "./execDeployAndSubscribe";
+import {
+  execGetAuthRequestUrl,
+  ExecGetAuthRequestUrlProps,
+} from "./execGetAuthRequestUrl";
+import {
+  execRequestAccessToken,
+  ExecRequestAccessTokenProps,
+} from "./execRequestAccessToken";
 
 export interface OperationQueueDeployItem {
   operation: "deploy";
@@ -18,8 +26,20 @@ export interface OperationQueueResubscribeItem {
   params: ExecResubscribeProps;
 }
 
+export interface OperationQueueGetAuthRequestUrlItem {
+  operation: "getAuthRequestUrl";
+  params: ExecGetAuthRequestUrlProps;
+}
+
+export interface OperationQueueRequestAccessTokenItem {
+  operation: "requestAccessToken";
+  params: ExecRequestAccessTokenProps;
+}
+
 export type OperationQueueItem =
   | OperationQueueDeployItem
+  | OperationQueueGetAuthRequestUrlItem
+  | OperationQueueRequestAccessTokenItem
   | OperationQueueRunItem
   | OperationQueueResubscribeItem;
 
@@ -41,12 +61,20 @@ async function processOperations() {
     const item = operationQueue.shift();
     invariant(item);
 
-    if (item.operation === "deploy") {
-      await execDeployAndSubscribe();
-    } else if (item.operation === "run") {
-      await runAction(item.params);
-    } else if (item.operation === "resubscribe") {
-      await execResubscribe(item.params);
+    try {
+      if (item.operation === "deploy") {
+        await execDeployAndSubscribe();
+      } else if (item.operation === "run") {
+        await runAction(item.params);
+      } else if (item.operation === "resubscribe") {
+        await execResubscribe(item.params);
+      } else if (item.operation === "getAuthRequestUrl") {
+        await execGetAuthRequestUrl(item.params);
+      } else if (item.operation === "requestAccessToken") {
+        await execRequestAccessToken(item.params);
+      }
+    } catch (error) {
+      console.error(String(error));
     }
   }
   console.debug("Finished processing operations");

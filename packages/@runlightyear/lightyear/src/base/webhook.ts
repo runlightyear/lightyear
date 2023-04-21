@@ -72,6 +72,7 @@ export interface DefineWebhookProps {
   name: string;
   title: string;
   apps?: Array<AppName>;
+  customApps?: Array<string>;
   variables?: Array<string>;
   secrets?: Array<string>;
   subscribeProps?: SubscribePropsFunc;

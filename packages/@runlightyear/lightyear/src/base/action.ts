@@ -37,6 +37,7 @@ export interface DefineActionProps {
   description?: string;
   trigger?: ActionTrigger;
   apps?: Array<AppName>;
+  customApps?: Array<string>;
   variables?: Array<string>;
   secrets?: Array<string>;
   run: RunFunc;

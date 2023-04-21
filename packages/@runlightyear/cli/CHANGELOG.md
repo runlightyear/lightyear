@@ -1,5 +1,16 @@
 # @runlightyear/cli
 
+## 0.23.0
+
+### Minor Changes
+
+- Custom apps supported
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.24.0
+
 ## 0.22.1
 
 ### Patch Changes

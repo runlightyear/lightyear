@@ -1,7 +1,13 @@
 import invariant from "tiny-invariant";
-import { AuthData } from "../base/auth";
+import { AuthData, getAuthData, updateAuthData } from "../base/auth";
 import { dayjsUtc } from "../util/dayjsUtc";
 import inDevelopment from "../util/inDevelopment";
+import {
+  HttpProxyRequestProps,
+  HttpProxyResponse,
+  httpRequest,
+} from "../base/http";
+import queryString from "query-string";
 
 /**
  * @public
@@ -11,6 +17,8 @@ export interface OAuthConnectorProps {
   customAppName?: string;
   oauthConfigData: OAuthConfigData;
   authData: AuthData;
+  inDevelopment?: boolean;
+  proxied?: boolean;
 }
 
 /**
@@ -38,19 +46,29 @@ export abstract class OAuthConnector {
   customAppName?: string;
   oauthConfigData: OAuthConfigData;
   authData?: AuthData;
+  inDevelopment?: boolean;
+  proxied?: boolean;
 
-  protected constructor(props: OAuthConnectorProps) {
-    const { oauthConfigData, appName, customAppName, authData } = props;
+  constructor(props: OAuthConnectorProps) {
+    const {
+      oauthConfigData,
+      appName,
+      customAppName,
+      authData,
+      inDevelopment = false,
+      proxied = true,
+    } = props;
     this.oauthConfigData = oauthConfigData;
 
     const { clientId, clientSecret, authRequestUrl } = this.oauthConfigData;
     invariant(clientId, "Missing clientId");
     invariant(clientSecret, "Missing clientSecret");
-    invariant(authRequestUrl, "Missing authRequestUrl");
 
     this.appName = appName;
     this.customAppName = customAppName;
     this.authData = authData;
+    this.inDevelopment = inDevelopment;
+    this.proxied = proxied;
   }
 
   abstract getAuthRequestUrlBase(): string;
@@ -85,13 +103,13 @@ export abstract class OAuthConnector {
   }
 
   redirectUri(): string {
-    const suffix = inDevelopment() ? "-local" : "";
+    const suffix = inDevelopment() || this.inDevelopment ? "-local" : "";
 
     if (this.appName) {
       return `https://app.runlightyear.com/api/v1/oauth2/${this.appName}/redirect${suffix}`;
     }
 
-    return `https://app.runlightyear.com/api/v1/oauth2-custom/${this.customAppName}/redirect${suffix}`;
+    return `https://app.runlightyear.com/api/v1/custom-oauth2/${this.customAppName}/redirect${suffix}`;
   }
 
   getRequestAccessTokenHeaders(): {
@@ -218,5 +236,68 @@ export abstract class OAuthConnector {
     });
     const refreshedAt = dayjsUtc().format();
     return { ...authData, refreshedAt };
+  }
+
+  buildUrl(url: string, params?: Record<string, any>) {
+    const queryStr = params ? `?${queryString.stringify(params)}` : "";
+
+    return url + queryStr;
+  }
+
+  /**
+   * Make a proxied http request
+   */
+  async request(props: HttpProxyRequestProps): Promise<HttpProxyResponse> {
+    console.debug("in RestConnector.request");
+    const { method, url, params, headers, data, body } = props;
+
+    const proxyProps = {
+      method,
+      url: this.buildUrl(url, params),
+      headers: {
+        ...headers,
+      },
+      body: data ? JSON.stringify(data) : body,
+    };
+
+    let response: HttpProxyResponse;
+
+    if (this.proxied) {
+      response = await httpRequest(proxyProps);
+    } else {
+      console.error("Only proxying supported for now...");
+      throw new Error("Only proxying supported for now...");
+    }
+
+    return { ...response, data: response.data };
+  }
+
+  async post(props: HttpProxyRequestProps) {
+    return await this.request({ ...props, method: "post" });
+  }
+
+  async requestAccessToken(code: string) {
+    const url = this.getAccessTokenUrl();
+    const headers = this.getRequestAccessTokenHeaders();
+    const body = this.getRequestAccessTokenBody(code);
+
+    const response = await this.post({ url, headers, body });
+
+    const newAuthData = await this.processRequestAccessTokenResponse({
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+      text: JSON.stringify(response.data),
+    });
+
+    const authName = this.appName || this.customAppName;
+    invariant(authName, "Need an auth name");
+
+    await updateAuthData({
+      appName: this.appName,
+      customAppName: this.customAppName,
+      authName,
+      authData: newAuthData,
+    });
   }
 }

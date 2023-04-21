@@ -9,6 +9,8 @@ import { prepareConsole } from "../../logging";
 import handleResubscribe from "./handleResubscribe";
 import { largeLogo } from "../../largeLogo";
 import { pushOperation } from "../../shared/operationQueue";
+import handleGetAuthRequestUrl from "./handleGetAuthRequestUrl";
+import handleRequestAccessToken from "./handleRequestAccessToken";
 
 export const dev = new Command("dev");
 
@@ -28,6 +30,14 @@ dev
     const subscription = pusher.subscribe(credentials.userId);
     subscription.bind("localRunTriggered", handleRunLocal);
     subscription.bind("localResubscribeTriggered", handleResubscribe);
+    subscription.bind(
+      "localGetAuthRequestUrlTriggered",
+      handleGetAuthRequestUrl
+    );
+    subscription.bind(
+      "localRequestAccessTokenTriggered",
+      handleRequestAccessToken
+    );
 
     nodemon({
       ignoreRoot: [".git"],

@@ -11,7 +11,7 @@ import { defineAction } from "./base/action";
 import type { DefineActionProps } from "./base/action";
 
 /* Auth */
-import { getAuthData } from "./base/auth";
+import { getAuthData, updateAuthData, updateAuthDataState } from "./base/auth";
 import type { AuthData, AuthProps } from "./base/auth";
 
 /* Base Request */
@@ -32,6 +32,10 @@ import type {
   HttpProxyResponse,
   HttpProxyResponseError,
 } from "./base/http";
+
+/* OAuth */
+export { defineOAuth } from "./base/oauth";
+export type { DefineOAuthProps } from "./base/oauth";
 
 /* Runs */
 import { run } from "./run";
@@ -98,7 +102,6 @@ import { SmtpConnector } from "./connectors/SmtpConnector";
 import { SmtpConnectorProps } from "./connectors/SmtpConnector";
 
 /** Logging **/
-
 import { PrefixedRedactedConsole } from "./logging/PrefixedRedactedConsole";
 
 /** Utilities **/
