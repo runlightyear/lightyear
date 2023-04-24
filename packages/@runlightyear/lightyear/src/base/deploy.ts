@@ -57,7 +57,7 @@ export function pushToDeployList(item: DeployItem) {
  * @param envName
  */
 export async function deploy({ envName }: Props) {
-  console.debug("deployList", JSON.stringify(deployList));
+  console.debug("deployList", JSON.stringify(deployList, null, 2));
 
   const names = deployList.map((item) => {
     if (item.type === "action") {

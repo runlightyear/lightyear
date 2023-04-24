@@ -17,7 +17,7 @@ import { getBaseUrl } from "../util/getBaseUrl";
 import { setContext } from "../base/context";
 import { handleGetAuthRequestUrl } from "./handleGetAuthRequestUrl";
 import { handleRequestAccessToken } from "./handleRequestAccessToken";
-import { handleProcessAccessTokenResponse } from "./handleProcessAccessTokenResponse";
+import { handleRefreshAccessToken } from "./handleRefreshAccessToken";
 
 /**
  * @internal
@@ -130,6 +130,11 @@ export async function handler(
       customAppName,
       authName,
       code,
+    });
+  } else if (operation === "refreshAccessToken") {
+    return handleRefreshAccessToken({
+      customAppName,
+      authName,
     });
   }
 

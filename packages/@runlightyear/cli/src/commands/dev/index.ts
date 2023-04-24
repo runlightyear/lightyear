@@ -11,6 +11,7 @@ import { largeLogo } from "../../largeLogo";
 import { pushOperation } from "../../shared/operationQueue";
 import handleGetAuthRequestUrl from "./handleGetAuthRequestUrl";
 import handleRequestAccessToken from "./handleRequestAccessToken";
+import handleRefreshAccessToken from "./handleRefreshAccessToken";
 
 export const dev = new Command("dev");
 
@@ -37,6 +38,10 @@ dev
     subscription.bind(
       "localRequestAccessTokenTriggered",
       handleRequestAccessToken
+    );
+    subscription.bind(
+      "localRefreshAccessTokenTriggered",
+      handleRefreshAccessToken
     );
 
     nodemon({
