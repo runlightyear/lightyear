@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.25.0
+
+### Minor Changes
+
+- Support for refreshing access tokens on custom apps
+
 ## 0.24.0
 
 ### Minor Changes
