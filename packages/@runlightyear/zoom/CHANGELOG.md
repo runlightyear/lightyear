@@ -1,5 +1,11 @@
 # @runlightyear/zoom
 
+## 0.3.0
+
+### Minor Changes
+
+- Use the uuid instead of the id for polling recordings
+
 ## 0.2.1
 
 ### Patch Changes
