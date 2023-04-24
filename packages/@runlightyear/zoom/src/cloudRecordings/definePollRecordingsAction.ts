@@ -95,7 +95,7 @@ export const definePollRecordingsAction = (
       console.debug("recordings", JSON.stringify(recordings, null, 2));
 
       const newRecordings = recordings.filter((recording) => {
-        if (previousRecordings.includes(recording.id)) {
+        if (previousRecordings.includes(recording.uuid)) {
           return false;
         }
 
@@ -115,7 +115,7 @@ export const definePollRecordingsAction = (
 
         const allRecordings = [
           ...previousRecordings,
-          ...newRecordings.map((recording) => recording.id),
+          ...newRecordings.map((recording) => recording.uuid),
         ];
 
         await setVariable("recordings", JSON.stringify(allRecordings));
