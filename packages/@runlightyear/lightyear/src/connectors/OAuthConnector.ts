@@ -300,4 +300,29 @@ export abstract class OAuthConnector {
       authData: newAuthData,
     });
   }
+
+  async refreshAccessToken() {
+    const url = this.getRefreshTokenUrl();
+    const headers = this.getRefreshAccessTokenHeaders();
+    const body = this.getRefreshAccessTokenBody();
+
+    const response = await this.post({ url, headers, body });
+
+    const newAuthData = await this.processRefreshAccessTokenResponse({
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+      text: JSON.stringify(response.data),
+    });
+
+    const authName = this.appName || this.customAppName;
+    invariant(authName, "Need an auth name");
+
+    await updateAuthData({
+      appName: this.appName,
+      customAppName: this.customAppName,
+      authName,
+      authData: newAuthData,
+    });
+  }
 }

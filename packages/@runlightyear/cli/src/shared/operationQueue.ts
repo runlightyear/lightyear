@@ -10,6 +10,10 @@ import {
   execRequestAccessToken,
   ExecRequestAccessTokenProps,
 } from "./execRequestAccessToken";
+import {
+  execRefreshAccessToken,
+  ExecRefreshAccessTokenProps,
+} from "./execRefreshAccessToken";
 
 export interface OperationQueueDeployItem {
   operation: "deploy";
@@ -36,10 +40,16 @@ export interface OperationQueueRequestAccessTokenItem {
   params: ExecRequestAccessTokenProps;
 }
 
+export interface OperationQueueRefreshAccessTokenItem {
+  operation: "refreshAccessToken";
+  params: ExecRefreshAccessTokenProps;
+}
+
 export type OperationQueueItem =
   | OperationQueueDeployItem
   | OperationQueueGetAuthRequestUrlItem
   | OperationQueueRequestAccessTokenItem
+  | OperationQueueRefreshAccessTokenItem
   | OperationQueueRunItem
   | OperationQueueResubscribeItem;
 
@@ -72,6 +82,8 @@ async function processOperations() {
         await execGetAuthRequestUrl(item.params);
       } else if (item.operation === "requestAccessToken") {
         await execRequestAccessToken(item.params);
+      } else if (item.operation === "refreshAccessToken") {
+        await execRefreshAccessToken(item.params);
       }
     } catch (error) {
       console.error(String(error));
