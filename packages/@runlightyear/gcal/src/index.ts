@@ -22,6 +22,11 @@ import type {
   CreateEventProps,
   CreateEventResponse,
 } from "./events/createEvent";
+export type {
+  DefineUpdatedEventsActionProps,
+  DefineUpdatedEventsActionRunFunc,
+  DefineUpdatedEventsActionRunFuncProps,
+} from "./events/defineUpdatedEventsAction";
 import type {
   DeleteEventProps,
   DeleteEventResponse,

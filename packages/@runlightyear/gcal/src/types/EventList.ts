@@ -1,5 +1,6 @@
 import { Etag } from "./Etag";
 import { DateTime } from "./DateTime";
+import { EventResource } from "./EventResource";
 
 export interface EventList {
   kind: "calendar#events";
@@ -17,5 +18,5 @@ export interface EventList {
   ];
   nextPageToken: string;
   nextSyncToken: string;
-  items: Array<Event>;
+  items: Array<EventResource>;
 }
