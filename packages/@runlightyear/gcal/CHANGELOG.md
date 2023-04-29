@@ -1,5 +1,11 @@
 # @runlightyear/gcal
 
+## 0.3.0
+
+### Minor Changes
+
+- db62f885: Added defineUpdatedEventsAction method
+
 ## 0.2.7
 
 ### Patch Changes
