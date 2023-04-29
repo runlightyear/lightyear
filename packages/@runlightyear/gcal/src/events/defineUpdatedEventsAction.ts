@@ -191,6 +191,11 @@ export const defineUpdatedEventsAction = (
 
         await setVariable("updatedMin", lastEvent.updated);
       } else {
+        if (!variables.updatedMin) {
+          console.info("Initializing updatedMin variable");
+          await setVariable("updatedMin", updatedMin);
+        }
+
         console.info("Found no updated events, skipping");
         throw SKIPPED;
       }
