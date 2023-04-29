@@ -12,12 +12,12 @@ import {
   defineUpdatedEventsAction,
   DefineUpdatedEventsActionProps,
 } from "./events/defineUpdatedEventsAction";
-// import { watchEvents, WatchEventsProps } from "./notifications/watchEvents";
-// import { stopChannel, StopChannelProps } from "./notifications/stopChannel";
-// import {
-//   defineEventsWebhook,
-//   DefineEventsWebhookProps,
-// } from "./events/defineEventsWebhook";
+import { watchEvents, WatchEventsProps } from "./notifications/watchEvents";
+import { stopChannel, StopChannelProps } from "./notifications/stopChannel";
+import {
+  defineEventsWebhook,
+  DefineEventsWebhookProps,
+} from "./events/defineEventsWebhook";
 
 /**
  * @beta
@@ -139,25 +139,36 @@ export class GoogleCalendar extends RestConnector {
     return deleteEvent(this)(props);
   }
 
-  // /**
-  //  * Watch for events.
-  //  *
-  //  * @group Notification
-  //  */
-  // async watchEvents(props: WatchEventsProps) {
-  //   return watchEvents(this)(props);
-  // }
-  //
-  // /**
-  //  * Stop notification channel
-  //  */
-  // async stopChannel(props: StopChannelProps) {
-  //   return stopChannel(this)(props);
-  // }
-  //
-  // static defineEventsWebhook(props: DefineEventsWebhookProps) {
-  //   return defineEventsWebhook(props);
-  // }
+  /**
+   * Watch for events.
+   *
+   * @group Notification
+   *
+   * @alpha
+   */
+  async watchEvents(props: WatchEventsProps) {
+    return watchEvents(this)(props);
+  }
+
+  /**
+   * Stop notification channel
+   *
+   * @group Notification
+   *
+   * @alpha
+   */
+  async stopChannel(props: StopChannelProps) {
+    return stopChannel(this)(props);
+  }
+
+  /**
+   * @alpha
+   *
+   * @param props
+   */
+  static defineEventsWebhook(props: DefineEventsWebhookProps) {
+    return defineEventsWebhook(props);
+  }
 
   /**
    * Define an action that gets events updated since the last run
