@@ -721,12 +721,12 @@ export class MarkdownDocumenter {
       output.appendNode(variablesTable);
     }
 
-    if (typeAliasesTable.rows.length > 0) {
-      output.appendNode(
-        new DocHeading({ configuration, title: "Type Aliases" })
-      );
-      output.appendNode(typeAliasesTable);
-    }
+    // if (typeAliasesTable.rows.length > 0) {
+    //   output.appendNode(
+    //     new DocHeading({ configuration, title: "Type Aliases" })
+    //   );
+    //   output.appendNode(typeAliasesTable);
+    // }
   }
 
   /**
