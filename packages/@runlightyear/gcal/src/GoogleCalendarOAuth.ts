@@ -24,6 +24,7 @@ export class GoogleCalendarOAuth extends OAuthConnector {
       ...super.getAuthRequestUrlParams(),
       response_type: "code",
       scope: this.scopes.join(" "),
+      prompt: "consent",
       access_type: "offline",
     };
   }

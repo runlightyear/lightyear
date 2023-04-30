@@ -1,5 +1,11 @@
 # @runlightyear/gsheets
 
+## 0.3.0
+
+### Minor Changes
+
+- Always prompt user on OAuth since this is the only way to guarantee that Google returns a refresh token
+
 ## 0.2.7
 
 ### Patch Changes
