@@ -19,7 +19,7 @@ export async function execGetAuthRequestUrl(props: ExecGetAuthRequestUrlProps) {
 
   let handler;
   try {
-    handler = runInContext(compiledCode);
+    handler = runInContext(compiledCode).handler;
   } catch (error) {
     prepareConsole();
     console.error(error);

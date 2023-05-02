@@ -48,7 +48,7 @@ export default async function runAction({
   let logs;
 
   try {
-    handler = runInContext(compiledCode);
+    handler = runInContext(compiledCode).handler;
   } catch (error) {
     console.error(String(error));
     status = "FAILED";

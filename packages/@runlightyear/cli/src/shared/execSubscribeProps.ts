@@ -13,7 +13,7 @@ export interface ExecSubscribeProps {
 export default async function execSubscribeProps(props: ExecSubscribeProps) {
   const { deployId, compiledCode } = props;
 
-  const handler = runInContext(compiledCode);
+  const handler = runInContext(compiledCode).handler;
 
   console.debug("Evaluating subscribe props");
   const handlerResult = await handler({

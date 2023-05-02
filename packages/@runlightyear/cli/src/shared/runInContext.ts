@@ -4,6 +4,7 @@ import { program } from "commander";
 interface OurContext {
   exports: {
     handler?: (options: any) => any;
+    getDeployList?: () => any;
   };
   [name: string]: unknown;
 }
@@ -32,5 +33,9 @@ export default function runInContext(code: any) {
     program.error("Can't find export 'handler'");
   }
 
-  return context.exports.handler;
+  // return context.exports.getDeployList;
+  return {
+    handler: context.exports.handler,
+    getDeployList: context.exports.getDeployList,
+  };
 }

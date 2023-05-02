@@ -15,12 +15,25 @@ export default async function execDeploy(props: ExecDeployProps) {
   const { deployId, compiledCode } = props;
 
   let handler;
+  let getDeployList;
+
   try {
-    handler = runInContext(compiledCode);
+    const runInContextResult = runInContext(compiledCode);
+    handler = runInContextResult.handler;
+    getDeployList = runInContextResult.getDeployList;
   } catch (error) {
     prepareConsole();
     console.error(error);
     return;
+  }
+
+  if (getDeployList) {
+    console.debug(
+      "Before the deploy operation, getDeployList()",
+      JSON.stringify(getDeployList(), null, 2)
+    );
+  } else {
+    console.debug("getDeployList not returned");
   }
 
   const handlerResult = await handler({

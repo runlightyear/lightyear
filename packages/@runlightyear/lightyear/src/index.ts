@@ -25,6 +25,7 @@ import type { GetCacheProps, SaveCacheProps, CacheData } from "./base/cache";
 /* Deploy */
 import { deploy, getDeployData } from "./base/deploy";
 import type { DeployFuncProps, DeployFunc } from "./base/deploy";
+export { getDeployList } from "./base/deploy";
 
 /* Http Proxy */
 import type {

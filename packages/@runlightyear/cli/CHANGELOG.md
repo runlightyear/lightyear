@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.24.2
+
+### Patch Changes
+
+- Add additional debugging statements for deploy
+
 ## 0.24.1
 
 ### Patch Changes
