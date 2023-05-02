@@ -17,6 +17,9 @@ export interface AuthProps {
  * @internal
  */
 export type AuthData = {
+  appName: string | null;
+  customAppName: string | null;
+  authName: string;
   /**
    * The username for basic authentication
    */
@@ -140,6 +143,56 @@ export async function updateAuthData(props: UpdateAuthDataProps) {
     uri: `/api/v1/envs/${envName}/custom-apps/${customAppName}/auths/${authName}/data`,
     data: authData,
   });
+}
+
+/**
+ * @internal
+ */
+export interface SetAuthErrorProps {
+  appName: string | null;
+  customAppName: string | null;
+  authName: string;
+  error: string;
+  errorResolution: "REAUTHORIZE" | "DEPLOY_PROD";
+}
+
+/**
+ * @internal
+ *
+ * @param props
+ */
+export async function setAuthError(props: SetAuthErrorProps) {
+  console.debug("setting Auth Error");
+
+  const { appName, customAppName, authName, error, errorResolution } = props;
+
+  invariant(appName || customAppName, "Must specifiy appName or customAppName");
+  invariant(
+    !(appName && customAppName),
+    "Only specify appName or customAppName"
+  );
+
+  const envName = getEnvName();
+  invariant(envName, "Missing ENV_NAME");
+
+  const uri = appName
+    ? `/api/v1/envs/${envName}/apps/${appName}/auths/${authName}`
+    : `/api/v1/envs/${envName}/custom-apps/${customAppName}/auths/${authName}`;
+
+  const response = await baseRequest({
+    method: "PATCH",
+    uri,
+    data: {
+      error,
+      errorResolution,
+    },
+  });
+
+  if (response.ok) {
+    console.info("Set auth error", error, errorResolution);
+  } else {
+    console.error("Unable to set auth error");
+  }
 }
 
 /**

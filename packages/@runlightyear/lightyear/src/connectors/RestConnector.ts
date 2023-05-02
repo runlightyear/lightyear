@@ -1,9 +1,14 @@
 import queryString from "query-string";
 import { AuthConnector, AuthConnectorProps } from "./AuthConnector";
-import { HttpProxyResponse, httpRequest } from "../base/http";
+import {
+  HttpProxyResponse,
+  HttpProxyResponseError,
+  httpRequest,
+} from "../base/http";
 import { HttpProxyRequestProps } from "../base/http";
 import camelize from "../util/camelize";
 import { WebhookDeliveryData } from "../base/runData";
+import { setAuthError } from "../base/auth";
 
 /**
  * @public
@@ -70,7 +75,29 @@ export class RestConnector extends AuthConnector {
       body: data && JSON.stringify(data),
     };
 
-    const response = await httpRequest(proxyProps);
+    let response;
+
+    try {
+      response = await httpRequest(proxyProps);
+    } catch (error) {
+      if (error instanceof HttpProxyResponseError) {
+        if (error.response.status === 401) {
+          const { appName, customAppName, authName } = this.getAuthData();
+
+          console.debug(this.getAuthData());
+
+          await setAuthError({
+            appName,
+            customAppName,
+            authName,
+            error: "Unauthorized",
+            errorResolution: "REAUTHORIZE",
+          });
+        }
+      }
+
+      throw error;
+    }
 
     const processedData = this.camelize
       ? camelize(response.data)
