@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.26.0
+
+### Minor Changes
+
+- RestConnector sets auth error after 401 response
+
 ## 0.25.0
 
 ### Minor Changes
