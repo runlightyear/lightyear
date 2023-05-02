@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.27.0
+
+### Minor Changes
+
+- Support for debugging deployList issues
+
 ## 0.26.0
 
 ### Minor Changes
