@@ -34,7 +34,7 @@ export default async function execUnsubscribe(props: ExecUnsubscribeProps) {
 
   console.debug("About to run unsubscribe in VM");
 
-  const handler = runInContext(compiledCode);
+  const handler = runInContext(compiledCode).handler;
 
   const handlerResult = await handler({
     operation: "unsubscribe",

@@ -18,7 +18,7 @@ export default async function execSubscribe(props: ExecSubscribeProps) {
     deployId,
   });
 
-  const handler = runInContext(compiledCode);
+  const handler = runInContext(compiledCode).handler;
 
   const handlerResult = await handler({
     operation: "subscribe",

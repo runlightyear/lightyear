@@ -22,7 +22,7 @@ export async function execRefreshAccessToken(
 
   let handler;
   try {
-    handler = runInContext(compiledCode);
+    handler = runInContext(compiledCode).handler;
   } catch (error) {
     prepareConsole();
     console.error(error);
