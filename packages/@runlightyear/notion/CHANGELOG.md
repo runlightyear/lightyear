@@ -1,5 +1,12 @@
 # @runlightyear/notion
 
+## 0.1.9
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.27.0
+
 ## 0.1.8
 
 ### Patch Changes
