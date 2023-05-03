@@ -8,9 +8,9 @@ export type { ZoomOAuthProps } from "./ZoomOAuth";
 
 /** Cloud Recordings **/
 export type {
-  DefinePollRecordingsActionRunFuncProps,
-  DefinePollRecordingsActionProps,
-} from "./cloudRecordings/definePollRecordingsAction";
+  OnNewRecordingsRunFuncProps,
+  OnNewRecordingsProps,
+} from "./listeners/onNewRecordings";
 export type {
   ListRecordingsProps,
   ListRecordingsResponse,

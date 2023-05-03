@@ -1,5 +1,11 @@
 # @runlightyear/zoom
 
+## 0.4.0
+
+### Minor Changes
+
+- Added onNewRecordings listener
+
 ## 0.3.2
 
 ### Patch Changes
