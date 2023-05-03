@@ -5,9 +5,9 @@ import {
   ListRecordingsProps,
 } from "./cloudRecordings/listRecordings";
 import {
-  definePollRecordingsAction,
-  DefinePollRecordingsActionProps,
-} from "./cloudRecordings/definePollRecordingsAction";
+  onNewRecordings,
+  OnNewRecordingsProps,
+} from "./listeners/onNewRecordings";
 
 /**
  * @beta
@@ -55,27 +55,16 @@ export interface ZoomProps extends AuthConnectorProps {}
  * const recordings = response.data.meetings;  // Not a typo...
  * ```
  *
- * @example Full example: Poll for completed cloud recordings every 15 minutes and post to Slack
+ * @example Poll for completed cloud recordings every minute
  * ```typescript
- * import { Zoom } from "@runlightyear/zoom";
- * import { Slack } from "@runlightyear/slack";
- *
- * Zoom.definePollRecordingsAction({
- *   name: "post-new-recordings-to-slack",
- *   title: "Post New Zoom Recordings to Slack",
- *   pollingFrequency: 15,
- *   apps: ["slack"],
- *   run: async ({ auths, data }) => {
- *     const slack = new Slack({ auth: auths.slack });
- *
- *     for (const recording of data) {
- *       await slack.postMessage({
- *         channel: "#general",
- *         text: `New recording: ${recording.shareUrl}`,
- *       });
- *     }
- *   },
- * });
+ * Zoom.onNewRecordings({
+ *   name: "poll-for-recordings",
+ *   title: "Poll for Recordings",
+ *   pollingFrequency: 1,
+ *   run: async ({ data }) => {
+ *     console.log("recordings", data);
+ *   }
+ * })
  * ```
  */
 export class Zoom extends RestConnector {
@@ -134,11 +123,11 @@ export class Zoom extends RestConnector {
   /**
    * Poll for new cloud recordings
    *
-   * @group Cloud Recording
+   * @group Listener
    *
    * @example Poll for completed cloud recordings every minute
    * ```typescript
-   * Zoom.definePollRecordingsAction({
+   * Zoom.onNewRecordings({
    *   name: "poll-for-recordings",
    *   title: "Poll for Recordings",
    *   pollingFrequency: 1,
@@ -153,7 +142,7 @@ export class Zoom extends RestConnector {
    * import { Zoom } from "@runlightyear/zoom";
    * import { Slack } from "@runlightyear/slack";
    *
-   * Zoom.definePollRecordingsAction({
+   * Zoom.onNewRecordings({
    *   name: "post-new-recordings-to-slack",
    *   title: "Post New Zoom Recordings to Slack",
    *   pollingFrequency: 15,
@@ -173,7 +162,7 @@ export class Zoom extends RestConnector {
    *
    * @param props
    */
-  static definePollRecordingsAction(props: DefinePollRecordingsActionProps) {
-    return definePollRecordingsAction(props);
+  static onNewRecordings(props: OnNewRecordingsProps) {
+    return onNewRecordings(props);
   }
 }

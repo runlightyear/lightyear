@@ -10,11 +10,11 @@ import { AppName } from "@runlightyear/lightyear/src/base/action";
 import { RecordingStatus } from "../types/RecordingStatus";
 import { FileType } from "../types/FileType";
 
-export interface DefinePollRecordingsActionRunFuncProps extends RunFuncProps {
+export interface OnNewRecordingsRunFuncProps extends RunFuncProps {
   data: Array<RecordingMeeting>;
 }
 
-export interface DefinePollRecordingsActionProps {
+export interface OnNewRecordingsProps {
   name: string;
   title: string;
   /**
@@ -41,12 +41,10 @@ export interface DefinePollRecordingsActionProps {
   customApps?: Array<string>;
   variables?: Array<string>;
   secrets?: Array<string>;
-  run: (props: DefinePollRecordingsActionRunFuncProps) => void;
+  run: (props: OnNewRecordingsRunFuncProps) => void;
 }
 
-export const definePollRecordingsAction = (
-  props: DefinePollRecordingsActionProps
-) => {
+export const onNewRecordings = (props: OnNewRecordingsProps) => {
   const {
     name,
     title,
@@ -66,8 +64,6 @@ export const definePollRecordingsAction = (
   const combinedCustomApps = customAppName
     ? [customAppName, ...customApps]
     : customApps;
-
-  console.warn("In definePollRecordingsAction");
 
   return defineAction({
     name,
