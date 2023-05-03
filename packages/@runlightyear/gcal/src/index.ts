@@ -23,10 +23,10 @@ import type {
   CreateEventResponse,
 } from "./events/createEvent";
 export type {
-  DefineUpdatedEventsActionProps,
-  DefineUpdatedEventsActionRunFunc,
-  DefineUpdatedEventsActionRunFuncProps,
-} from "./events/defineUpdatedEventsAction";
+  OnUpdatedEventsProps,
+  OnUpdatedEventsRunFunc,
+  OnUpdatedEventsRunFuncProps,
+} from "./listeners/onUpdatedEvents";
 import type {
   DeleteEventProps,
   DeleteEventResponse,
