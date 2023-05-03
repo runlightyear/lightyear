@@ -8,16 +8,16 @@ import {
 } from "./calendars/createCalendar";
 import { deleteEvent, DeleteEventProps } from "./events/deleteEvent";
 import { updateEvent, UpdateEventProps } from "./events/updateEvent";
-import {
-  defineUpdatedEventsAction,
-  DefineUpdatedEventsActionProps,
-} from "./events/defineUpdatedEventsAction";
 import { watchEvents, WatchEventsProps } from "./notifications/watchEvents";
 import { stopChannel, StopChannelProps } from "./notifications/stopChannel";
 import {
   defineEventsWebhook,
   DefineEventsWebhookProps,
 } from "./events/defineEventsWebhook";
+import {
+  onUpdatedEvents,
+  OnUpdatedEventsProps,
+} from "./listeners/onUpdatedEvents";
 
 /**
  * @beta
@@ -53,11 +53,11 @@ export interface GoogleCalendarProps extends AuthConnectorProps {}
  * });
  *```
  *
- * @example Poll for newly updated events
+ * @example Get updated events every minute
  * ```typescript
- * GoogleCalendar.defineUpdatedEventsAction({
- *   name: "pollUpdatedEvents",
- *   title: "Poll Updated Events",
+ * GoogleCalendar.onUpdatedEvents({
+ *   name: "updatedCalendarEvents",
+ *   title: "Updated Calendar Events",
  *   calendarId: "primary",
  *   trigger: {
  *     pollingFrequency: 1,  // Run once a minute
@@ -67,7 +67,7 @@ export interface GoogleCalendarProps extends AuthConnectorProps {}
  *   },
  * });
  * ```
- */
+ * */
 export class GoogleCalendar extends RestConnector {
   constructor(props: GoogleCalendarProps) {
     super({ ...props, baseUrl: "https://www.googleapis.com/calendar/v3" });
@@ -171,15 +171,15 @@ export class GoogleCalendar extends RestConnector {
   }
 
   /**
-   * Define an action that gets events updated since the last run
+   * Updated Events Listener
    *
-   * @group Action
+   * @group Listener
    *
-   * @example Poll for newly updated events
+   * @example Get updated events every minute
    * ```typescript
-   * GoogleCalendar.defineUpdatedEventsAction({
-   *   name: "pollUpdatedEvents",
-   *   title: "Poll Updated Events",
+   * GoogleCalendar.onUpdatedEvents({
+   *   name: "updatedCalendarEvents",
+   *   title: "Updated Calendar Events",
    *   calendarId: "primary",
    *   trigger: {
    *     pollingFrequency: 1,  // Run once a minute
@@ -192,7 +192,7 @@ export class GoogleCalendar extends RestConnector {
    *
    * @param props
    */
-  static defineUpdatedEventsAction(props: DefineUpdatedEventsActionProps) {
-    return defineUpdatedEventsAction(props);
+  static onUpdatedEvents(props: OnUpdatedEventsProps) {
+    return onUpdatedEvents(props);
   }
 }

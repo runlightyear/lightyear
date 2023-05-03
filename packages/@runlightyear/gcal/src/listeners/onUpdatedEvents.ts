@@ -14,15 +14,15 @@ import {
 import { GoogleCalendar } from "../GoogleCalendar";
 import { EventResource } from "../types/EventResource";
 
-export interface DefineUpdatedEventsActionRunFuncProps extends RunFuncProps {
+export interface OnUpdatedEventsRunFuncProps extends RunFuncProps {
   data: Array<EventResource>;
 }
 
-export type DefineUpdatedEventsActionRunFunc = (
-  props: DefineUpdatedEventsActionRunFuncProps
+export type OnUpdatedEventsRunFunc = (
+  props: OnUpdatedEventsRunFuncProps
 ) => void;
 
-export interface DefineUpdatedEventsActionProps {
+export interface OnUpdatedEventsProps {
   name: string;
   title: string;
   trigger?: ActionTrigger;
@@ -32,12 +32,14 @@ export interface DefineUpdatedEventsActionProps {
   customApps?: Array<string>;
   variables?: Array<string>;
   secrets?: Array<string>;
-  run: DefineUpdatedEventsActionRunFunc;
+  run: OnUpdatedEventsRunFunc;
 
   /**
    * Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
+   *
+   * Default is "primary"
    */
-  calendarId: "primary" | string;
+  calendarId?: "primary" | string;
 
   /**
    * Event types to return. Optional. The default is ["default", "outOfOffice", "focusTime"]. Only the default value is available, unless you're enrolled in the Working Locations developer preview.
@@ -106,9 +108,7 @@ export interface DefineUpdatedEventsActionProps {
   timeZone?: string;
 }
 
-export const defineUpdatedEventsAction = (
-  props: DefineUpdatedEventsActionProps
-) => {
+export const onUpdatedEvents = (props: OnUpdatedEventsProps) => {
   const {
     name,
     title,
@@ -120,7 +120,7 @@ export const defineUpdatedEventsAction = (
     variables = [],
     secrets = [],
     run,
-    calendarId,
+    calendarId = "primary",
     eventTypes,
     iCalUID,
     maxAttendees,
