@@ -46,6 +46,7 @@ import {
   markdownTextObject,
   MarkdownTextProps,
 } from "./elements/objects/markdownTextObject";
+import { setAuthError } from "@runlightyear/lightyear";
 
 /**
  * Connector to the Slack API
@@ -114,13 +115,28 @@ export class Slack extends RestConnector {
     const response = await super.request(props);
     let data = response.data;
 
-    if (!data.ok && data.error === "token_expired") {
-      await this.refreshToken();
-      const responseAfterRefresh = await super.request(props);
-      data = responseAfterRefresh.data;
-    }
-
     if (!data.ok) {
+      if (
+        [
+          "invalid_auth",
+          "not_authed",
+          "not_bearer_token",
+          "token_expired",
+          "token_revoked",
+          "token_rotation_error",
+        ].includes(data.error)
+      ) {
+        const { appName, customAppName, authName } = this.getAuthData();
+
+        await setAuthError({
+          appName,
+          customAppName,
+          authName,
+          error: "Unauthorized",
+          errorResolution: "REAUTHORIZE",
+        });
+      }
+
       throw new Error(data.error);
     }
     return response;
