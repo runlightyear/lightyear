@@ -105,8 +105,8 @@ export type {
 } from "./connectors/GraphQLConnector";
 
 /* Smtp Connector */
-// export { SmtpConnector } from "./connectors/SmtpConnector";
-// export type { SmtpConnectorProps } from "./connectors/SmtpConnector";
+export { SmtpConnector } from "./connectors/SmtpConnector";
+export type { SmtpConnectorProps } from "./connectors/SmtpConnector";
 
 /** Logging **/
 export { PrefixedRedactedConsole } from "./logging/PrefixedRedactedConsole";
