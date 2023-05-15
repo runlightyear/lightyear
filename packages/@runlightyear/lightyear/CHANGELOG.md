@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.28.0
+
+### Minor Changes
+
+- Refactor index.ts to just use exports
+
 ## 0.27.0
 
 ### Minor Changes

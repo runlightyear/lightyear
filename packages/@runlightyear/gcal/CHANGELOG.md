@@ -1,5 +1,12 @@
 # @runlightyear/gcal
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.28.0
+
 ## 0.5.0
 
 ### Minor Changes

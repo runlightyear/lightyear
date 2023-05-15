@@ -1,5 +1,16 @@
 # @runlightyear/slack
 
+## 0.13.0
+
+### Minor Changes
+
+- Set auth error when Slack api call encounters a 401 equivalent
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.28.0
+
 ## 0.12.10
 
 ### Patch Changes
