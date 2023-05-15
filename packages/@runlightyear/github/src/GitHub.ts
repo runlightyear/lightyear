@@ -90,6 +90,7 @@ import {
   compareTwoCommits,
   CompareTwoCommitsProps,
 } from "./commits/compareTwoCommits";
+import { onWorkflowRun, OnWorkflowRunProps } from "./listeners/onWorkflowRun";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -809,5 +810,9 @@ export class GitHub extends RestConnector {
    */
   static asWorkflowRunPayload(data: WebhookDeliveryData) {
     return asWorkflowRunPayload(data);
+  }
+
+  static onWorkflowRun(props: OnWorkflowRunProps) {
+    return onWorkflowRun(props);
   }
 }

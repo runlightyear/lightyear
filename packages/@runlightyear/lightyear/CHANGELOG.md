@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.28.1
+
+### Patch Changes
+
+- Bump version to cope with npm problem
+
 ## 0.28.0
 
 ### Minor Changes
