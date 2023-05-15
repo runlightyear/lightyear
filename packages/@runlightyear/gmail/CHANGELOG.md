@@ -1,5 +1,12 @@
 # @runlightyear/gmail
 
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.28.1
+
 ## 0.2.3
 
 ### Patch Changes
