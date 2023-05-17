@@ -2,6 +2,14 @@
 
 import { OpenAI } from "./OpenAI";
 
+/** Audio **/
+
+export type {
+  CreateTranscriptionProps,
+  CreateTranscriptionResponse,
+  CreateTranscriptionResponseData,
+} from "./audio/createTranscription";
+
 /** Chat **/
 
 import type {
