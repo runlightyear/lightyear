@@ -1,5 +1,11 @@
 # @runlightyear/github
 
+## 0.14.0
+
+### Minor Changes
+
+- Force prompt on oauth
+
 ## 0.13.9
 
 ### Patch Changes

@@ -23,7 +23,11 @@ export class GitHubOAuth extends OAuthConnector {
       "gist",
     ];
 
-    return { ...super.getAuthRequestUrlParams(), scope: scopes.join(",") };
+    return {
+      ...super.getAuthRequestUrlParams(),
+      scope: scopes.join(","),
+      login: "your user",
+    };
   }
 
   getAccessTokenUrl(): string {
