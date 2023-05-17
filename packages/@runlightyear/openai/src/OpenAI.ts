@@ -9,6 +9,10 @@ import {
 } from "./chat/createChatCompletion";
 import { createImage, CreateImageProps } from "./images/createImage";
 import { listModels } from "./models/listModels";
+import {
+  createTranscription,
+  CreateTranscriptionProps,
+} from "./audio/createTranscription";
 
 /**
  * @beta
@@ -116,5 +120,14 @@ export class OpenAI extends RestConnector {
    */
   async createImage(props: CreateImageProps) {
     return createImage(this)(props);
+  }
+
+  /**
+   * Transcribes audio into the input language.
+   *
+   * @group Audio
+   */
+  async createTranscription(props: CreateTranscriptionProps) {
+    return createTranscription(this)(props);
   }
 }

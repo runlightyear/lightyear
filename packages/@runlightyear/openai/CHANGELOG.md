@@ -1,5 +1,11 @@
 # @runlightyear/openai
 
+## 0.4.0
+
+### Minor Changes
+
+- 9881903d: Create transcription method
+
 ## 0.3.14
 
 ### Patch Changes
