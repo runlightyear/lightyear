@@ -8,7 +8,7 @@
 
 /* Action */
 export { defineAction } from "./base/action";
-export type { DefineActionProps } from "./base/action";
+export type { AppName, DefineActionProps } from "./base/action";
 
 /* Auth */
 export {

@@ -25,6 +25,14 @@ import { CreateGistProps } from "./gists/createGist";
 import { CreateIssueProps } from "./issues/createIssue";
 import { UpdateIssueProps } from "./issues/updateIssue";
 
+/** Listeners **/
+
+export type {
+  GitHubListenerProps,
+  GitHubListenerRunFunc,
+  GitHubListenerRunFuncProps,
+} from "./listeners/createListener";
+
 /** Pulls **/
 
 import { CreatePullRequestProps } from "./pulls/createPullRequest";
