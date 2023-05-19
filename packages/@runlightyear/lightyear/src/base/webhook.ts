@@ -69,11 +69,39 @@ export type SubscribePropsFunc = (props: SubscribePropsFuncProps) => object;
  * @public
  */
 export interface DefineWebhookProps {
+  /**
+   * The name of this webhook.
+   */
   name: string;
+  /**
+   * The title of this webhook.
+   */
   title: string;
+  /**
+   * An array of the system apps used by this webhook.
+   */
   apps?: Array<AppName>;
+  /**
+   * An array of the custom apps used by this webhook.
+   */
   customApps?: Array<string>;
+  /**
+   * An array of the variables on this webhook.
+   *
+   * Variables are required to have a value by default. If you append a "?" to the end of the name, the variable will be optional. For example:
+   *
+   * ["requiredVar", "optionalVar?"]
+   */
   variables?: Array<string>;
+  /**
+   * An array of the secrets on this webhook.
+   *
+   * Secrets are like variables, but they are stored more securely in the database and they are redacted in the console logs.
+   *
+   * Secrets are required to have a value by default. If you append a "?" to the end of the name, the secret will be optional. For example:
+   *
+   * ["requiredSecret", "optionalSecret?"]
+   */
   secrets?: Array<string>;
   subscribeProps?: SubscribePropsFunc;
   subscribe?: SubscribeFunc;

@@ -32,14 +32,45 @@ export type ActionTrigger = {
  * @public
  */
 export interface DefineActionProps {
+  /**
+   * The name of this action.
+   */
   name: string;
+  /**
+   * The title of this action.
+   */
   title: string;
   description?: string;
   trigger?: ActionTrigger;
+  /**
+   * An array of the system apps used by this action.
+   */
   apps?: Array<AppName>;
+  /**
+   * An array of the custom apps used by this action.
+   */
   customApps?: Array<string>;
+  /**
+   * An array of the variables on this action.
+   *
+   * Variables are required to have a value by default. If you append a "?" to the end of the name, the variable will be optional. For example:
+   *
+   * ["requiredVar", "optionalVar?"]
+   */
   variables?: Array<string>;
+  /**
+   * An array of the secrets on this action.
+   *
+   * Secrets are like variables, but they are stored more securely in the database and they are redacted in the console logs.
+   *
+   * Secrets are required to have a value by default. If you append a "?" to the end of the name, the secret will be optional. For example:
+   *
+   * ["requiredSecret", "optionalSecret?"]
+   */
   secrets?: Array<string>;
+  /**
+   * The function to run when this action is triggered.
+   */
   run: RunFunc;
 }
 
@@ -97,12 +128,25 @@ function validateActionProps({ name, title, trigger }: DeployActionProps) {
  *
  * ```typescript
  * defineAction({
- *   name: "hello world",
- *   description: "Prints hello world to the console",
+ *   name: "helloWorld",
+ *   title: "Hello World",
  *   run: async () => {
  *     console.log('Hello world');
  *   }
  * })
+ * ```
+ *
+ * @example Variables
+ * ```typescript
+ * defineAction({
+ *   name: "variables",
+ *   title: "Variables",
+ *   variables: ["var1", "var2?"],
+ *   run: async ({ variables }) => {
+ *     console.log("required variable", variables.var1);
+ *     console.log("optional variable", variables.var2);
+ *   }
+ * }
  * ```
  *
  * @param props

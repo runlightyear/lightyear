@@ -39,5 +39,5 @@ export interface CreatePayload extends CommonPayload {
 }
 
 export function asCreatePayload(data: WebhookDeliveryData) {
-  return commonPayload("create", data);
+  return commonPayload<CreatePayload>("create", data);
 }

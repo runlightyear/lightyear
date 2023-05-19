@@ -71,10 +71,16 @@ import {
 } from "./search/searchRepositories";
 import { searchUsers, SearchUsersProps } from "./search/searchUsers";
 import { asCommitCommentPayload } from "./webhooks/payloads/asCommitCommentPayload";
-import { asCreatePayload } from "./webhooks/payloads/asCreatePayload";
+import {
+  asCreatePayload,
+  CreatePayload,
+} from "./webhooks/payloads/asCreatePayload";
 import { asDeletePayload } from "./webhooks/payloads/asDeletePayload";
 import { asIssueCommentPayload } from "./webhooks/payloads/asIssueCommentPayload";
-import { asIssuesPayload } from "./webhooks/payloads/asIssuesPayload";
+import {
+  asIssuesPayload,
+  IssuesPayload,
+} from "./webhooks/payloads/asIssuesPayload";
 import { asLabelPayload } from "./webhooks/payloads/asLabelPayload";
 import { asMemberPayload } from "./webhooks/payloads/asMemberPayload";
 import { asPingPayload } from "./webhooks/payloads/asPingPayload";
@@ -85,12 +91,18 @@ import { asRepositoryPayload } from "./webhooks/payloads/asRepositoryPayload";
 import { asStatusPayload } from "./webhooks/payloads/asStatusPayload";
 import { asWorkflowDispatchPayload } from "./webhooks/payloads/asWorkflowDispatchPayload";
 import { asWorkflowJobPayload } from "./webhooks/payloads/asWorkflowJobPayload";
-import { asWorkflowRunPayload } from "./webhooks/payloads/asWorkflowRunPayload";
+import {
+  asWorkflowRunPayload,
+  WorkflowRunPayload,
+} from "./webhooks/payloads/asWorkflowRunPayload";
 import {
   compareTwoCommits,
   CompareTwoCommitsProps,
 } from "./commits/compareTwoCommits";
-import { onWorkflowRun, OnWorkflowRunProps } from "./listeners/onWorkflowRun";
+import { GitHubListenerProps } from "./listeners/createListener";
+import { onCreate } from "./listeners/onCreate";
+import { onIssues } from "./listeners/onIssues";
+import { onWorkflowRun } from "./listeners/onWorkflowRun";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -812,7 +824,36 @@ export class GitHub extends RestConnector {
     return asWorkflowRunPayload(data);
   }
 
-  static onWorkflowRun(props: OnWorkflowRunProps) {
+  /**
+   * On Create
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onCreate(props: GitHubListenerProps<CreatePayload>) {
+    return onCreate(props);
+  }
+
+  /**
+   * On Issues
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onIssues(props: GitHubListenerProps<IssuesPayload>) {
+    return onIssues(props);
+  }
+
+  /**
+   * On Workflow Run
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onWorkflowRun(props: GitHubListenerProps<WorkflowRunPayload>) {
     return onWorkflowRun(props);
   }
 }
