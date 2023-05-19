@@ -1,5 +1,17 @@
 # @runlightyear/github
 
+## 0.15.0
+
+### Minor Changes
+
+- 862932a7: onChange and onIssues listeners
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies [862932a7]
+  - @runlightyear/lightyear@0.29.0
+
 ## 0.14.0
 
 ### Minor Changes

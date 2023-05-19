@@ -1,5 +1,13 @@
 # @runlightyear/gsheets
 
+## 0.3.5
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies [862932a7]
+  - @runlightyear/lightyear@0.29.0
+
 ## 0.3.4
 
 ### Patch Changes

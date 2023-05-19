@@ -1,5 +1,15 @@
 # @runlightyear/lightyear
 
+## 0.29.0
+
+### Minor Changes
+
+- Updated documentation on defineAction and defineWebhook
+
+### Patch Changes
+
+- 862932a7: Added missing export
+
 ## 0.28.1
 
 ### Patch Changes
