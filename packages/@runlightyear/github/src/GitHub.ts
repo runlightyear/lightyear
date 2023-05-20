@@ -103,6 +103,10 @@ import { GitHubListenerProps } from "./listeners/createListener";
 import { onCreate } from "./listeners/onCreate";
 import { onIssues } from "./listeners/onIssues";
 import { onWorkflowRun } from "./listeners/onWorkflowRun";
+import {
+  matchAllCommits,
+  MatchAllCommitsProps,
+} from "./helpers/matchAllCommits";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -215,6 +219,28 @@ export class GitHub extends RestConnector {
    */
   async createGist(props: CreateGistProps): Promise<HttpProxyResponse> {
     return createGist(this)(props);
+  }
+
+  /**
+   * Match all commits
+   *
+   * @group Helper
+   *
+   * @example Match Linear identifiers in an array of commits
+   * ```typescript
+   * const response = await github.compareTwoCommits({
+   *   owner: "<owner>",
+   *   repo: "<repo>",
+   *   basehead: `${prevCommitId}...${newCommitId}`,
+   * });
+   *
+   * const { commits } = response.data;
+   *
+   * const matches = GitHub.matchAllCommits({ regex: /ENG-[0-9]+/, commits });
+   * ```
+   */
+  static matchAllCommits(props: MatchAllCommitsProps) {
+    return matchAllCommits(props);
   }
 
   /**

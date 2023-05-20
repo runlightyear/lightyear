@@ -1,5 +1,17 @@
 # @runlightyear/zoom
 
+## 0.5.0
+
+### Minor Changes
+
+- Updated the typescript target to es2020
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @runlightyear/lightyear@0.30.0
+
 ## 0.4.3
 
 ### Patch Changes

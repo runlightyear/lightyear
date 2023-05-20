@@ -1,6 +1,6 @@
 {
   "name": "@runlightyear/linear",
-  "version": "0.5.10",
+  "version": "0.6.0",
   "publishConfig": {
     "access": "public"
   },

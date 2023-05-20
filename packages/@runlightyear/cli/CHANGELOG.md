@@ -1,5 +1,17 @@
 # @runlightyear/cli
 
+## 0.25.0
+
+### Minor Changes
+
+- Updated the typescript target to es2020
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @runlightyear/lightyear@0.30.0
+
 ## 0.24.6
 
 ### Patch Changes

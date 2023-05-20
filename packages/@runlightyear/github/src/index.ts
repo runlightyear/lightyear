@@ -20,6 +20,10 @@ import type {
 
 import { CreateGistProps } from "./gists/createGist";
 
+/** Helpers **/
+
+export type { MatchAllCommitsProps } from "./helpers/matchAllCommits";
+
 /** Issues **/
 
 import { CreateIssueProps } from "./issues/createIssue";

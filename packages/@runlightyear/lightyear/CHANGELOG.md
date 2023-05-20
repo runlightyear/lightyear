@@ -1,5 +1,12 @@
 # @runlightyear/lightyear
 
+## 0.30.0
+
+### Minor Changes
+
+- Updated the typescript target to es2020
+- Added exports for RunFunc parameters
+
 ## 0.29.0
 
 ### Minor Changes

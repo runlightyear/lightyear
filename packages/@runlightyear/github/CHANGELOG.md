@@ -1,5 +1,19 @@
 # @runlightyear/github
 
+## 0.16.0
+
+### Minor Changes
+
+- Updated the typescript target to es2020
+- Added matchAllCommits helper
+
+### Patch Changes
+
+- Get onWorkflowRun to listen to the correct event
+- Updated dependencies
+- Updated dependencies
+  - @runlightyear/lightyear@0.30.0
+
 ## 0.15.0
 
 ### Minor Changes
