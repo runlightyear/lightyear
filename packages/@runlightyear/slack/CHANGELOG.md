@@ -1,5 +1,17 @@
 # @runlightyear/slack
 
+## 0.14.0
+
+### Minor Changes
+
+- Updated the typescript target to es2020
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @runlightyear/lightyear@0.30.0
+
 ## 0.13.2
 
 ### Patch Changes

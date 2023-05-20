@@ -18,6 +18,14 @@ import {
   listWorkflowStates,
   ListWorkflowStatesProps,
 } from "./workflowStates/listWorkflowStates";
+import {
+  findIssueByIdentifier,
+  FindIssueByIdentifierProps,
+} from "./helpers/findIssueByIdentifier";
+import {
+  findWorkflowStateByName,
+  FindWorkflowStateByNameProps,
+} from "./helpers/findWorkflowStateByName";
 
 /**
  * @beta
@@ -46,7 +54,7 @@ export interface LinearProps extends AuthConnectorProps {}
  * }
  * ```
  *
- * @example Crate an issue
+ * @example Create an issue
  * ```typescript
  * await linear.createIssue({ teamId: "<team id>", title: "New Issue" });
  * ```
@@ -228,5 +236,33 @@ export class Linear extends GraphQLConnector {
    */
   async listWorkflowStates(props?: ListWorkflowStatesProps) {
     return listWorkflowStates(this)(props);
+  }
+
+  /**
+   * Find issue by identifier
+   *
+   * @group Helper
+   *
+   * @example
+   * ```typescript
+   * const issue = await linear.findIssueByIdentifier({ identifier: "ENG-102" });
+   * ```
+   */
+  async findIssueByIdentifier(props: FindIssueByIdentifierProps) {
+    return findIssueByIdentifier(this)(props);
+  }
+
+  /**
+   * Find workflow state by name
+   *
+   * @group Helper
+   *
+   * @example
+   * ```typescript
+   * const workflowState = await linear.findWorkflowStateByName({ name: "Done" });
+   * ```
+   */
+  async findWorkflowStateByName(props: FindWorkflowStateByNameProps) {
+    return findWorkflowStateByName(this)(props);
   }
 }

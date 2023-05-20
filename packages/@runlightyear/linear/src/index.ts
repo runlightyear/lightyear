@@ -13,6 +13,10 @@ import type {
   ListCommentsResponse,
 } from "./comments/listComments";
 
+/* Helpers */
+export type { FindIssueByIdentifierProps } from "./helpers/findIssueByIdentifier";
+export type { FindWorkflowStateByNameProps } from "./helpers/findWorkflowStateByName";
+
 /* Issues */
 import type {
   CreateIssueProps,
@@ -85,6 +89,13 @@ import type { WorkflowStateFilter } from "./types/WorkflowStateFilter";
 import type { GetUserProps, GetUserResponse } from "./users/getUser";
 import type { ListUsersProps, ListUsersResponse } from "./users/listUsers";
 import type { UserResponse } from "./users/UserResponse";
+
+/* Workflow States */
+export type {
+  ListWorkflowStatesProps,
+  ListWorkflowStatesResponse,
+} from "./workflowStates/listWorkflowStates";
+export type { WorkflowStateResponse } from "./workflowStates/WorkflowStateResponse";
 
 export { Linear, LinearOAuth };
 export type {

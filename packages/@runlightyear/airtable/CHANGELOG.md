@@ -1,5 +1,17 @@
 # @runlightyear/airtable
 
+## 0.3.0
+
+### Minor Changes
+
+- Updated the typescript target to es2020
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @runlightyear/lightyear@0.30.0
+
 ## 0.2.16
 
 ### Patch Changes

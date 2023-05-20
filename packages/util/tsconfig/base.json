@@ -15,6 +15,7 @@
     "preserveWatchOutput": true,
     "skipLibCheck": true,
     "strict": true,
+    "target": "es2020",
     "types": ["node", "jest"]
   },
   "exclude": ["node_modules"]

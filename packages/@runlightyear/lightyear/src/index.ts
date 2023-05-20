@@ -45,7 +45,14 @@ export type { DefineOAuthProps } from "./base/oauth";
 
 /* Runs */
 export { run } from "./run";
-export type { RunFunc, RunFuncProps } from "./run";
+export type {
+  RunFunc,
+  RunFuncProps,
+  Auths,
+  Variables,
+  Secrets,
+  RunProps,
+} from "./run";
 // TODO: where should these live?
 export type { PollingData, WebhookDeliveryData } from "./base/runData";
 
