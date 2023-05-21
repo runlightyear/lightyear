@@ -70,27 +70,57 @@ import {
   SearchRepositoriesProps,
 } from "./search/searchRepositories";
 import { searchUsers, SearchUsersProps } from "./search/searchUsers";
-import { asCommitCommentPayload } from "./webhooks/payloads/asCommitCommentPayload";
+import {
+  asCommitCommentPayload,
+  CommitCommentPayload,
+} from "./webhooks/payloads/asCommitCommentPayload";
 import {
   asCreatePayload,
   CreatePayload,
 } from "./webhooks/payloads/asCreatePayload";
-import { asDeletePayload } from "./webhooks/payloads/asDeletePayload";
+import {
+  asDeletePayload,
+  DeletePayload,
+} from "./webhooks/payloads/asDeletePayload";
 import { asIssueCommentPayload } from "./webhooks/payloads/asIssueCommentPayload";
 import {
   asIssuesPayload,
   IssuesPayload,
 } from "./webhooks/payloads/asIssuesPayload";
-import { asLabelPayload } from "./webhooks/payloads/asLabelPayload";
-import { asMemberPayload } from "./webhooks/payloads/asMemberPayload";
+import {
+  asLabelPayload,
+  LabelPayload,
+} from "./webhooks/payloads/asLabelPayload";
+import {
+  asMemberPayload,
+  MemberPayload,
+} from "./webhooks/payloads/asMemberPayload";
 import { asPingPayload } from "./webhooks/payloads/asPingPayload";
-import { asPullRequestPayload } from "./webhooks/payloads/asPullRequestPayload";
-import { asPullRequestReviewPayload } from "./webhooks/payloads/asPullRequestReviewPayload";
+import {
+  asPullRequestPayload,
+  PullRequestPayload,
+} from "./webhooks/payloads/asPullRequestPayload";
+import {
+  asPullRequestReviewPayload,
+  PullRequestReviewPayload,
+} from "./webhooks/payloads/asPullRequestReviewPayload";
 import { asPushPayload } from "./webhooks/payloads/asPushPayload";
-import { asRepositoryPayload } from "./webhooks/payloads/asRepositoryPayload";
-import { asStatusPayload } from "./webhooks/payloads/asStatusPayload";
-import { asWorkflowDispatchPayload } from "./webhooks/payloads/asWorkflowDispatchPayload";
-import { asWorkflowJobPayload } from "./webhooks/payloads/asWorkflowJobPayload";
+import {
+  asRepositoryPayload,
+  RepositoryPayload,
+} from "./webhooks/payloads/asRepositoryPayload";
+import {
+  asStatusPayload,
+  StatusPayload,
+} from "./webhooks/payloads/asStatusPayload";
+import {
+  asWorkflowDispatchPayload,
+  WorkflowDispatchPayload,
+} from "./webhooks/payloads/asWorkflowDispatchPayload";
+import {
+  asWorkflowJobPayload,
+  WorkflowJobPayload,
+} from "./webhooks/payloads/asWorkflowJobPayload";
 import {
   asWorkflowRunPayload,
   WorkflowRunPayload,
@@ -107,6 +137,16 @@ import {
   matchAllCommits,
   MatchAllCommitsProps,
 } from "./helpers/matchAllCommits";
+import { onCommitComment } from "./listeners/onCommitComment";
+import { onDelete } from "./listeners/onDelete";
+import { onLabel } from "./listeners/onLabel";
+import { onMember } from "./listeners/onMember";
+import { onPullRequest } from "./listeners/onPullRequest";
+import { onPullRequestReview } from "./listeners/onPullRequestReview";
+import { onRepository } from "./listeners/onRepository";
+import { onStatus } from "./listeners/onStatus";
+import { onWorkflowDispatch } from "./listeners/onWorkflowDispatch";
+import { onWorkflowJob } from "./listeners/onWorkflowJob";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -851,6 +891,17 @@ export class GitHub extends RestConnector {
   }
 
   /**
+   * On Commit Comment
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onCommitComment(props: GitHubListenerProps<CommitCommentPayload>) {
+    return onCommitComment(props);
+  }
+
+  /**
    * On Create
    *
    * @group Listener
@@ -862,6 +913,17 @@ export class GitHub extends RestConnector {
   }
 
   /**
+   * On Delete
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onDelete(props: GitHubListenerProps<DeletePayload>) {
+    return onDelete(props);
+  }
+
+  /**
    * On Issues
    *
    * @group Listener
@@ -870,6 +932,98 @@ export class GitHub extends RestConnector {
    */
   static onIssues(props: GitHubListenerProps<IssuesPayload>) {
     return onIssues(props);
+  }
+
+  /**
+   * On Label
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onLabel(props: GitHubListenerProps<LabelPayload>) {
+    return onLabel(props);
+  }
+
+  /**
+   * On Member
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onMember(props: GitHubListenerProps<MemberPayload>) {
+    return onMember(props);
+  }
+
+  /**
+   * On Pull Request
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onPullRequest(props: GitHubListenerProps<PullRequestPayload>) {
+    return onPullRequest(props);
+  }
+
+  /**
+   * On Pull Request Review
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onPullRequestReview(
+    props: GitHubListenerProps<PullRequestReviewPayload>
+  ) {
+    return onPullRequestReview(props);
+  }
+
+  /**
+   * On Repository
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onRepository(props: GitHubListenerProps<RepositoryPayload>) {
+    return onRepository(props);
+  }
+
+  /**
+   * On Status
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onStatus(props: GitHubListenerProps<StatusPayload>) {
+    return onStatus(props);
+  }
+
+  /**
+   * On Workflow Dispatch
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onWorkflowDispatch(
+    props: GitHubListenerProps<WorkflowDispatchPayload>
+  ) {
+    return onWorkflowDispatch(props);
+  }
+
+  /**
+   * On Workflow Job
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onWorkflowJob(props: GitHubListenerProps<WorkflowJobPayload>) {
+    return onWorkflowJob(props);
   }
 
   /**
