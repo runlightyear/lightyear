@@ -104,7 +104,7 @@ import {
   asPullRequestReviewPayload,
   PullRequestReviewPayload,
 } from "./webhooks/payloads/asPullRequestReviewPayload";
-import { asPushPayload } from "./webhooks/payloads/asPushPayload";
+import { asPushPayload, PushPayload } from "./webhooks/payloads/asPushPayload";
 import {
   asRepositoryPayload,
   RepositoryPayload,
@@ -147,6 +147,7 @@ import { onRepository } from "./listeners/onRepository";
 import { onStatus } from "./listeners/onStatus";
 import { onWorkflowDispatch } from "./listeners/onWorkflowDispatch";
 import { onWorkflowJob } from "./listeners/onWorkflowJob";
+import { onPush } from "./listeners/onPushRequest";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -978,6 +979,17 @@ export class GitHub extends RestConnector {
     props: GitHubListenerProps<PullRequestReviewPayload>
   ) {
     return onPullRequestReview(props);
+  }
+
+  /**
+   * On Push
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onPush(props: GitHubListenerProps<PushPayload>) {
+    return onPush(props);
   }
 
   /**
