@@ -1,5 +1,11 @@
 # @runlightyear/github
 
+## 0.19.0
+
+### Minor Changes
+
+- Added support for matching commits from a push webhook
+
 ## 0.18.0
 
 ### Minor Changes
