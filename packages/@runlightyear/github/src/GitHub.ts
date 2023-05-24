@@ -82,7 +82,10 @@ import {
   asDeletePayload,
   DeletePayload,
 } from "./webhooks/payloads/asDeletePayload";
-import { asIssueCommentPayload } from "./webhooks/payloads/asIssueCommentPayload";
+import {
+  asIssueCommentPayload,
+  IssueCommentPayload,
+} from "./webhooks/payloads/asIssueCommentPayload";
 import {
   asIssuesPayload,
   IssuesPayload,
@@ -104,7 +107,7 @@ import {
   asPullRequestReviewPayload,
   PullRequestReviewPayload,
 } from "./webhooks/payloads/asPullRequestReviewPayload";
-import { asPushPayload } from "./webhooks/payloads/asPushPayload";
+import { asPushPayload, PushPayload } from "./webhooks/payloads/asPushPayload";
 import {
   asRepositoryPayload,
   RepositoryPayload,
@@ -147,6 +150,8 @@ import { onRepository } from "./listeners/onRepository";
 import { onStatus } from "./listeners/onStatus";
 import { onWorkflowDispatch } from "./listeners/onWorkflowDispatch";
 import { onWorkflowJob } from "./listeners/onWorkflowJob";
+import { onPush } from "./listeners/onPushRequest";
+import { onIssueComment } from "./listeners/onIssueComment";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -891,7 +896,9 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * On Commit Comment
+   * This event occurs when there is activity relating to commit comments.
+   *
+   * For activity relating to comments on pull request reviews, use the pull_request_review_comment event. For activity relating to issue comments, use the issue_comment event. For activity relating to discussion comments, use the discussion_comment event.
    *
    * @group Listener
    *
@@ -902,7 +909,9 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * On Create
+   * This event occurs when a Git branch or tag is created.
+   *
+   * Note: This event will not occur when more than three tags are created at once.
    *
    * @group Listener
    *
@@ -913,7 +922,9 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * On Delete
+   * This event occurs when a Git branch or tag is deleted.
+   *
+   * Note: This event will not occur when more than three tags are deleted at once.
    *
    * @group Listener
    *
@@ -924,7 +935,22 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * On Issues
+   * This event occurs when there is activity relating to a comment on an issue or pull request.
+   *
+   * For activity relating to an issue as opposed to comments on an issue, use the issue event. For activity related to pull request reviews or pull request review comments, use the pull_request_review or pull_request_review_comment events. For more information about the different types of pull request comments, see "Working with comments."
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onIssueComment(props: GitHubListenerProps<IssueCommentPayload>) {
+    return onIssueComment(props);
+  }
+
+  /**
+   * This event occurs when there is activity relating to an issue.
+   *
+   * For activity relating to a comment on an issue, use the issue_comment event.
    *
    * @group Listener
    *
@@ -935,7 +961,9 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * On Label
+   * This event occurs when there is activity relating to labels.
+   *
+   * If you want to receive an event when a label is added to or removed from an issue, pull request, or discussion, use the labeled or unlabeled action type for the issues, pull_request, or discussion events instead.
    *
    * @group Listener
    *
@@ -946,7 +974,7 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * On Member
+   * This event occurs when there is activity relating to collaborators in a repository.
    *
    * @group Listener
    *
@@ -968,7 +996,9 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * On Pull Request Review
+   * This event occurs when there is activity on a pull request.
+   *
+   * For activity related to pull request reviews, pull request review comments, pull request comments, or pull request review threads, use the pull_request_review, pull_request_review_comment, issue_comment, or pull_request_review_thread events instead.
    *
    * @group Listener
    *
@@ -981,7 +1011,20 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * On Repository
+   * This event occurs when a commit or tag is pushed.
+   *
+   * Note: An event will not be created when more than three tags are pushed at once.
+   *
+   * @group Listener
+   *
+   * @param props
+   */
+  static onPush(props: GitHubListenerProps<PushPayload>) {
+    return onPush(props);
+  }
+
+  /**
+   * This event occurs when there is activity relating to repositories.
    *
    * @group Listener
    *
@@ -992,7 +1035,7 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * On Status
+   * This event occurs when the status of a Git commit changes. For example, commits can be marked as error, failure, pending, or success.
    *
    * @group Listener
    *
@@ -1003,7 +1046,9 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * On Workflow Dispatch
+   * This event occurs when a GitHub Actions workflow is manually triggered.
+   *
+   * For activity relating to workflow runs, use the workflow_run event.
    *
    * @group Listener
    *
@@ -1016,7 +1061,9 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * On Workflow Job
+   * This event occurs when there is activity relating to a job in a GitHub Actions workflow.
+   *
+   * For activity relating to a workflow run instead of a job in a workflow run, use the workflow_run event.
    *
    * @group Listener
    *
@@ -1027,7 +1074,9 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * On Workflow Run
+   * This event occurs when there is activity relating to a run of a GitHub Actions workflow.
+   *
+   * For activity relating to a job in a workflow run, use the workflow_job event.
    *
    * @group Listener
    *

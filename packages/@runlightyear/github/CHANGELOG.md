@@ -1,5 +1,11 @@
 # @runlightyear/github
 
+## 0.18.0
+
+### Minor Changes
+
+- Added onPush
+
 ## 0.17.0
 
 ### Minor Changes
