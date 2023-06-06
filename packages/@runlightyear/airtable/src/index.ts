@@ -27,6 +27,12 @@ import type {
   CreateRecordsResponse,
 } from "./records/createRecords";
 
+/* Delete Record */
+import type {
+  DeleteRecordProps,
+  DeleteRecordResponse,
+} from "./records/deleteRecord";
+
 export { Airtable, AirtableOAuth };
 export type {
   AirtableProps,
