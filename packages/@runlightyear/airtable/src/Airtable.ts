@@ -2,6 +2,7 @@ import { AuthConnectorProps, RestConnector } from "@runlightyear/lightyear";
 import { listRecords, ListRecordsProps } from "./records/listRecords";
 import { whoami } from "./meta/whoami";
 import { createRecords, CreateRecordsProps } from "./records/createRecords";
+import { deleteRecord, DeleteRecordProps } from "./records/deleteRecord";
 
 /**
  * @beta
@@ -102,5 +103,14 @@ export class Airtable extends RestConnector {
    */
   async createRecords(props: CreateRecordsProps) {
     return createRecords(this)(props);
+  }
+
+  /**
+   * Deletes a single record.
+   *
+   * @param props
+   */
+  async deleteRecord(props: DeleteRecordProps) {
+    return deleteRecord(this)(props);
   }
 }
