@@ -36,6 +36,9 @@ yarn-error.log*
 # turbo
 .turbo
 
+# VS Code
+.vscode
+
 # IntelliJ
 .idea
 
