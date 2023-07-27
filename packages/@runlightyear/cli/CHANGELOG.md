@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.25.1
+
+### Patch Changes
+
+- Remove trailing '/' when opening browser to log in
+
 ## 0.25.0
 
 ### Minor Changes
