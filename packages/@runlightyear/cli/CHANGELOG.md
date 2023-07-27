@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.24.6
+
+### Patch Changes
+
+- Drop the trailing '/' when opening a browser window to log in
+
 ## 0.24.5
 
 ### Patch Changes

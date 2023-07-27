@@ -15,5 +15,5 @@ export default async function openBrowser(
 
   const pagePrefix = accountType === "new" ? "/sign-up#/?redirect_url=" : "";
 
-  await open(`${authUrl}${pagePrefix}/cli-login/port/${localPort}/`);
+  await open(`${authUrl}${pagePrefix}/cli-login/port/${localPort}`);
 }
