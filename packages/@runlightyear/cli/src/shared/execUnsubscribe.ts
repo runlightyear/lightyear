@@ -20,6 +20,14 @@ export default async function execUnsubscribe(props: ExecUnsubscribeProps) {
     removed,
   });
 
+  await updateUnsubscribeResult({
+    webhookName,
+    startedAt: "now",
+    status: "RUNNING",
+    removed,
+    subscriptionActivityId: activityId,
+  });
+
   const compiledCode = await getPreviouslyDeployedCode({ webhookName });
 
   console.debug("Back from getPreviouslyDeployedCode");
@@ -55,6 +63,7 @@ export default async function execUnsubscribe(props: ExecUnsubscribeProps) {
 
   await updateUnsubscribeResult({
     webhookName,
+    endedAt: "now",
     status,
     logs,
     removed,

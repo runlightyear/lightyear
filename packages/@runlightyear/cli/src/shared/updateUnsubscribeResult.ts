@@ -4,15 +4,25 @@ import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 export interface UpdateUnsubscribeResultProps {
   subscriptionActivityId: string;
   webhookName: string;
+  startedAt?: "now";
+  endedAt?: "now";
   status: string;
-  logs: any;
+  logs?: any;
   removed: boolean;
 }
 
 export default async function updateUnsubscribeResult(
   props: UpdateUnsubscribeResultProps
 ) {
-  const { subscriptionActivityId, webhookName, status, logs, removed } = props;
+  const {
+    subscriptionActivityId,
+    webhookName,
+    startedAt,
+    endedAt,
+    status,
+    logs,
+    removed,
+  } = props;
 
   const baseUrl = getBaseUrl();
   const envName = getEnvName();
@@ -28,6 +38,8 @@ export default async function updateUnsubscribeResult(
       },
       body: JSON.stringify({
         status,
+        startedAt,
+        endedAt,
         logs,
       }),
     }
