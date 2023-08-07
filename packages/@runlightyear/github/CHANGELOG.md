@@ -1,5 +1,11 @@
 # @runlightyear/github
 
+## 0.19.1
+
+### Patch Changes
+
+- Updated log message to clarify when we receive a ping message from GitHub
+
 ## 0.19.0
 
 ### Minor Changes
