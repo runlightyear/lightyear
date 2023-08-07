@@ -40,7 +40,7 @@ export default function commonPayload<Payload>(
 ): Payload | null {
   const event = deliveryData.headers && deliveryData.headers["x-github-event"];
   if (event === "ping") {
-    console.debug("Skipping ping event");
+    console.info("Received ping event, skipping...");
     throw "SKIPPED";
   }
 
