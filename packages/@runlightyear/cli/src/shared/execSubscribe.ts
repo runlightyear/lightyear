@@ -18,6 +18,14 @@ export default async function execSubscribe(props: ExecSubscribeProps) {
     deployId,
   });
 
+  await updateSubscribeResult({
+    subscriptionActivityId: activityId,
+    webhookName,
+    startedAt: "now",
+    status: "RUNNING",
+    deployId,
+  });
+
   const handler = runInContext(compiledCode).handler;
 
   const handlerResult = await handler({
@@ -40,6 +48,7 @@ export default async function execSubscribe(props: ExecSubscribeProps) {
   await updateSubscribeResult({
     subscriptionActivityId: activityId,
     webhookName,
+    endedAt: "now",
     status,
     logs,
     unsubscribeProps,

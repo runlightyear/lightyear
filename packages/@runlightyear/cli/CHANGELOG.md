@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.26.0
+
+### Minor Changes
+
+- Provide start and end times for subscription activities run in dev
+
 ## 0.25.1
 
 ### Patch Changes

@@ -5,10 +5,12 @@ import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 export interface UploadSubscribeResultProps {
   subscriptionActivityId: string;
   webhookName: string;
+  startedAt?: "now";
+  endedAt?: "now";
   status: string;
-  unsubscribeProps: any;
+  unsubscribeProps?: any;
   deployId: string;
-  logs: any;
+  logs?: any;
 }
 
 export default async function updateSubscribeResult(
@@ -17,6 +19,8 @@ export default async function updateSubscribeResult(
   const {
     webhookName,
     subscriptionActivityId,
+    startedAt,
+    endedAt,
     status,
     unsubscribeProps,
     logs,
@@ -37,6 +41,8 @@ export default async function updateSubscribeResult(
       },
       body: JSON.stringify({
         status,
+        startedAt,
+        endedAt,
         unsubscribeProps,
         logs,
       }),
