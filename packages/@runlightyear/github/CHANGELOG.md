@@ -1,5 +1,11 @@
 # @runlightyear/github
 
+## 0.19.2
+
+### Patch Changes
+
+- Updated console text to indicate what events are subscribed to
+
 ## 0.19.1
 
 ### Patch Changes

@@ -150,7 +150,7 @@ import { onRepository } from "./listeners/onRepository";
 import { onStatus } from "./listeners/onStatus";
 import { onWorkflowDispatch } from "./listeners/onWorkflowDispatch";
 import { onWorkflowJob } from "./listeners/onWorkflowJob";
-import { onPush } from "./listeners/onPushRequest";
+import { onPush } from "./listeners/onPush";
 import { onIssueComment } from "./listeners/onIssueComment";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
