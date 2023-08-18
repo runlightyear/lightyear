@@ -43,6 +43,10 @@ npx lightyear login
 npm run dev
 ```
 
+### Access the dashboard
+
+https://app.runlightyear.com
+
 ### Deploy to production
 
 ```shell
