@@ -1,6 +1,6 @@
 # Lightyear
 
-Use some code to build your integrations.
+Lightyear helps you to write powerful integrations in a few lines of code. With built-in authentications and serverless infrastructure, we help you take the complexity out of API automation.
 
 ## System Requirements
 
@@ -14,7 +14,7 @@ Use some code to build your integrations.
 Create your project directory from our template.
 
 ```shell
-npx @runlightyear/cli create my-integrations
+npx @runlightyear/cli create lightyear-integrations
 ```
 
 ### Install dependencies
@@ -28,15 +28,14 @@ npm install
 ### Authenticate
 
 ```shell
-npm run signup
+npx lightyear signup
 ```
 
 or if you already have a Lightyear account
 
 ```shell
-npm run login
+npx lightyear login
 ```
-
 
 ### Run the development server
 
