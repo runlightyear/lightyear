@@ -6,6 +6,7 @@ export interface PusherCredentials {
   pusherKey: string;
   pusherCluster: string;
   userId: string;
+  devEnvId: string;
 }
 
 export default async function getPusherCredentials(): Promise<PusherCredentials> {

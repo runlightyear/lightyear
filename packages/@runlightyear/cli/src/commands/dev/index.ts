@@ -28,6 +28,16 @@ dev
     const credentials = await getPusherCredentials();
     const pusher = await getPusher(credentials);
 
+    console.debug(
+      `Attempting to subscribe to presence channel ${credentials.devEnvId}\n`
+    );
+    const presenceSubscription = pusher.subscribe(
+      `presence-${credentials.devEnvId}`
+    );
+    presenceSubscription.bind("pusher:subscription_succeeded", () => {
+      console.debug("Subscribed to presence channel\n");
+    });
+
     const subscription = pusher.subscribe(credentials.userId);
     subscription.bind("localRunTriggered", handleRunLocal);
     subscription.bind("localResubscribeTriggered", handleResubscribe);
