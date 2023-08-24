@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.27.1
+
+### Patch Changes
+
+- Fix bug with production url for authorizing the presence channel
+
 ## 0.27.0
 
 ### Minor Changes
