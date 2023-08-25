@@ -6,6 +6,8 @@ import { pushToDeployList } from "./deploy";
 import { prefixedRedactedConsole } from "../logging";
 import { AuthData } from "./auth";
 import { getEnvName } from "../util/getEnvName";
+import { validNameRegex } from "../util/isValidName";
+import { z } from "zod";
 
 export type AppName =
   | "airtable"
@@ -87,35 +89,93 @@ export interface SetActionInitializedProps {
   status: boolean;
 }
 
-function validateActionProps({ name, title, trigger }: DeployActionProps) {
-  if (!name) {
+function validateActionProps(props: DefineActionProps) {
+  const { name, title, trigger, apps, variables, secrets } = props;
+
+  const NameSchema = z.string().min(1).regex(validNameRegex);
+  const TitleSchema = z.string().min(1);
+
+  const AppsSchema = z.array(NameSchema);
+
+  const VariablesSchema = z.array(NameSchema);
+  const SecretsSchema = z.array(NameSchema);
+
+  const WebhookSchema = NameSchema;
+  const PollingFrequencySchema = z.number().int().positive();
+
+  if (name === undefined) {
     throw new Error("Action missing name");
   }
 
-  if (typeof name !== "string") {
+  if (!NameSchema.safeParse(name).success) {
     throw new Error(`Invalid action name: ${name}`);
   }
 
-  if (!title) {
+  if (title === undefined) {
     throw new Error(`Action ${name} missing title`);
   }
 
-  if (typeof title !== "string") {
-    throw new Error(`Invalid title for action ${name}: ${title}`);
+  if (!TitleSchema.safeParse(title).success) {
+    throw new Error(`Invalid action title: ${title}`);
+  }
+
+  if (apps) {
+    if (!AppsSchema.safeParse(apps).success) {
+      throw new Error(
+        `Invalid apps for action ${name}: ${apps} Must be an array of valid names`
+      );
+    }
+  }
+
+  if (variables) {
+    if (!VariablesSchema.safeParse(variables).success) {
+      throw new Error(
+        `Invalid variables for action ${name}: ${variables} Must be an array of valid names`
+      );
+    }
+  }
+
+  if (secrets) {
+    if (!SecretsSchema.safeParse(secrets).success) {
+      throw new Error(
+        `Invalid secrets for action ${name}: ${secrets} Must be an array of valid names`
+      );
+    }
   }
 
   if (trigger) {
     const array = [
-      trigger.webhook ? 1 : 0,
-      trigger.schedule ? 1 : 0,
-      trigger.pollingFrequency ? 1 : 0,
+      "webhook" in trigger ? 1 : 0,
+      "schedule" in trigger ? 1 : 0,
+      "pollingFrequency" in trigger ? 1 : 0,
     ];
     const sum: number = array.reduce((sum, x) => sum + x);
 
-    invariant(
-      sum === 1,
-      `Must specify one and only one of webhook, schedule, and pollingFrequency on trigger`
-    );
+    if (sum !== 1) {
+      throw new Error(
+        `Must specify one and only one of webhook and pollingFrequency on trigger ${name}`
+      );
+      // throw new Error(
+      //   `Must specify one and only one of webhook, schedule, and pollingFrequency on trigger`
+      // );
+    }
+    if ("webhook" in trigger) {
+      if (!WebhookSchema.safeParse(trigger.webhook).success) {
+        throw new Error(
+          `Webhook for action ${name} must be a valid name: ${trigger.webhook}`
+        );
+      }
+    } else if ("pollingFrequency" in trigger) {
+      if (!PollingFrequencySchema.safeParse(trigger.pollingFrequency).success) {
+        throw new Error(
+          `Polling frequency for action ${name} must be a positive integer: ${trigger.pollingFrequency}`
+        );
+      }
+    } else if ("schedule" in trigger) {
+      throw new Error(
+        "Schedule not yet supported, try pollingFrequency for now."
+      );
+    }
   }
 }
 
@@ -155,7 +215,7 @@ export function defineAction(props: DefineActionProps) {
   console.debug("in defineAction", props);
 
   const { run, ...rest } = props;
-  validateActionProps(rest);
+  validateActionProps(props);
   invariant(run, "Run function missing");
   invariant(isFunction(run), "Run must be a function");
 
@@ -163,47 +223,6 @@ export function defineAction(props: DefineActionProps) {
   actionIndex[rest.name] = run;
 
   return rest.name;
-}
-
-export async function deployAction(envName: string, props: DeployActionProps) {
-  validateActionProps(props);
-
-  const { name, description, trigger } = props;
-
-  const response = await baseRequest({
-    uri: `/api/v1/envs/${envName}/actions`,
-    data: {
-      name,
-      description,
-      trigger,
-    },
-  });
-
-  if (!response.ok) {
-    console.error(await response.json());
-    throw new Error(`deployAction failed: ${name}`);
-  }
-
-  console.info(`Deployed action: ${name}`);
-}
-
-export async function setActionInitializedStatus(
-  envName: string,
-  props: SetActionInitializedProps
-) {
-  validateActionProps(props);
-
-  const { name, status } = props;
-
-  await baseRequest({
-    method: "POST",
-    uri: `/api/v1/envs/${envName}/actions/${name}/initialized`,
-    data: {
-      status,
-    },
-  });
-
-  console.info(`Set action: ${name} to initialized: ${status}`);
 }
 
 export type ActionData = {
