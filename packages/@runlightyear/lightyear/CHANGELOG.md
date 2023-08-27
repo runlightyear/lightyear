@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.31.0
+
+### Minor Changes
+
+- Improved validation of defineAction and defineWebhook
+
 ## 0.30.0
 
 ### Minor Changes

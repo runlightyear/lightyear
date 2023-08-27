@@ -1,5 +1,12 @@
 # @runlightyear/salesforce
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.31.0
+
 ## 0.3.0
 
 ### Minor Changes

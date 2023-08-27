@@ -7,8 +7,8 @@ importers:
       '@changesets/cli': ^2.24.4
       '@microsoft/api-documenter': workspace:*
       eslint-config-custom: workspace:*
-      prettier: latest
-      turbo: latest
+      prettier: 2.8.7
+      turbo: 1.9.1
     dependencies:
       '@changesets/cli': 2.25.0
     devDependencies:
@@ -337,6 +337,7 @@ importers:
       tsconfig: workspace:*
       tsup: ^6.1.3
       typescript: ^4.5.2
+      zod: ^3.22.2
     dependencies:
       aws-lambda: 1.0.7
       babel-jest: 28.1.3_@babel+core@7.19.3
@@ -347,6 +348,7 @@ importers:
       query-string: 7.1.1
       tiny-invariant: 1.3.1
       ts-jest: 28.0.8_mqzupvn4egmhbnidexwmhrt75u
+      zod: 3.22.2
     devDependencies:
       '@microsoft/api-extractor': 7.33.4
       '@types/aws-lambda': 8.10.108
@@ -689,7 +691,7 @@ importers:
       eslint: 7.32.0
       eslint-config-next: 12.3.1_3rubbgt5ekhqrcgx4uwls3neim
       eslint-config-prettier: 8.5.0_eslint@7.32.0
-      eslint-config-turbo: 1.9.1_eslint@7.32.0
+      eslint-config-turbo: 1.10.13_eslint@7.32.0
       eslint-plugin-react: 7.31.8_eslint@7.32.0
     devDependencies:
       typescript: 4.8.4
@@ -7324,13 +7326,13 @@ packages:
       eslint: 7.32.0
     dev: false
 
-  /eslint-config-turbo/1.9.1_eslint@7.32.0:
-    resolution: {integrity: sha512-tUqm5TxI5bpbDEgClbw+UygVPAwYB20FIpAiQsZI8imJNDz30E40TZkp6uWpAKmxykU8T0+t3jwkYokvXmXc0Q==}
+  /eslint-config-turbo/1.10.13_eslint@7.32.0:
+    resolution: {integrity: sha512-Ffa0SxkRCPMtfUX/HDanEqsWoLwZTQTAXO9W4IsOtycb2MzJDrVcLmoFW5sMwCrg7gjqbrC4ZJoD+1SPPzIVqg==}
     peerDependencies:
       eslint: '>6.6.0'
     dependencies:
       eslint: 7.32.0
-      eslint-plugin-turbo: 1.9.1_eslint@7.32.0
+      eslint-plugin-turbo: 1.10.13_eslint@7.32.0
     dev: false
 
   /eslint-import-resolver-node/0.3.6:
@@ -7511,11 +7513,12 @@ packages:
       '@microsoft/tsdoc-config': 0.16.2
     dev: true
 
-  /eslint-plugin-turbo/1.9.1_eslint@7.32.0:
-    resolution: {integrity: sha512-QPd0EG0xkoDkXJLwPQKULxHjkR27VmvJtILW4C9aIrqauLZ+Yc/V7R+A9yVwAi6nkMHxUlCSUsBxmiQP9TIlPw==}
+  /eslint-plugin-turbo/1.10.13_eslint@7.32.0:
+    resolution: {integrity: sha512-el4AAmn0zXmvHEyp1h0IQMfse10Vy8g5Vbg4IU3+vD9CSj5sDbX07iFVt8sCKg7og9Q5FAa9mXzlCf7t4vYgzg==}
     peerDependencies:
       eslint: '>6.6.0'
     dependencies:
+      dotenv: 16.0.3
       eslint: 7.32.0
     dev: false
 
@@ -14678,6 +14681,10 @@ packages:
       validator: 13.7.0
     optionalDependencies:
       commander: 2.20.3
+
+  /zod/3.22.2:
+    resolution: {integrity: sha512-wvWkphh5WQsJbVk1tbx1l1Ly4yg+XecD+Mq280uBGt9wa5BKSWf4Mhp6GmrkPixhMxmabYY7RbzlwVP32pbGCg==}
+    dev: false
 
   /zwitch/1.0.5:
     resolution: {integrity: sha512-V50KMwwzqJV0NpZIZFwfOD5/lyny3WlSzRiXgA0G7VUnRlqttta1L6UQIHzd6EuBY/cHGfwTIck7w1yH6Q5zUw==}

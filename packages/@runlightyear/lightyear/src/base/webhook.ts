@@ -6,6 +6,12 @@ import { Auths, Secrets, Variables } from "../run";
 import { AuthData } from "./auth";
 import { prefixedRedactedConsole } from "../logging";
 import { getEnvName } from "../util/getEnvName";
+import {
+  isValidName,
+  validNameRegex,
+  validVariableAndSecretNameRegex,
+} from "../util/isValidName";
+import { z } from "zod";
 
 /**
  * @public
@@ -108,9 +114,60 @@ export interface DefineWebhookProps {
   unsubscribe?: UnsubscribeFunc;
 }
 
-function validateWebhookProps({ name }: DefineWebhookProps) {
-  invariant(name, "Missing required name");
-  invariant(typeof name === "string", "Name must be a string");
+function validateWebhookProps(props: DefineWebhookProps) {
+  const { name, title, apps, variables, secrets } = props;
+
+  const NameSchema = z.string().min(1).regex(validNameRegex);
+  const TitleSchema = z.string().min(1);
+
+  const AppsSchema = z.array(NameSchema);
+
+  const VariableAndSecretNameSchema = z
+    .string()
+    .min(1)
+    .regex(validVariableAndSecretNameRegex);
+  const VariablesSchema = z.array(VariableAndSecretNameSchema);
+  const SecretsSchema = z.array(VariableAndSecretNameSchema);
+
+  if (name === undefined) {
+    throw new Error("Webhook missing name");
+  }
+
+  if (!NameSchema.safeParse(name).success) {
+    throw new Error(`Invalid webhook name: ${name}`);
+  }
+
+  if (title === undefined) {
+    throw new Error(`Webhook ${name} missing title`);
+  }
+
+  if (!TitleSchema.safeParse(title).success) {
+    throw new Error(`Invalid webhook title: ${title}`);
+  }
+
+  if (apps) {
+    if (!AppsSchema.safeParse(apps).success) {
+      throw new Error(
+        `Invalid apps for action ${name}: ${apps} Must be an array of valid names`
+      );
+    }
+  }
+
+  if (variables) {
+    if (!VariablesSchema.safeParse(variables).success) {
+      throw new Error(
+        `Invalid variables for webhook ${name}: ${variables} Must be an array of valid names`
+      );
+    }
+  }
+
+  if (secrets) {
+    if (!SecretsSchema.safeParse(secrets).success) {
+      throw new Error(
+        `Invalid secrets for webhook ${name}: ${secrets} Must be an array of valid names`
+      );
+    }
+  }
 }
 
 /**
@@ -154,6 +211,9 @@ function validateWebhookProps({ name }: DefineWebhookProps) {
  */
 export function defineWebhook(props: DefineWebhookProps) {
   console.debug("in defineWebhook", props);
+
+  const { subscribeProps, subscribe, unsubscribe, ...rest } = props;
+  validateWebhookProps(rest);
 
   pushToDeployList({
     type: "webhook",

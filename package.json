@@ -30,8 +30,8 @@
   "devDependencies": {
     "@microsoft/api-documenter": "workspace:*",
     "eslint-config-custom": "workspace:*",
-    "prettier": "latest",
-    "turbo": "latest"
+    "prettier": "2.8.7",
+    "turbo": "1.9.1"
   },
   "engines": {
     "node": ">=14.0.0"
