@@ -6,7 +6,11 @@ import { Auths, Secrets, Variables } from "../run";
 import { AuthData } from "./auth";
 import { prefixedRedactedConsole } from "../logging";
 import { getEnvName } from "../util/getEnvName";
-import { isValidName, validNameRegex } from "../util/isValidName";
+import {
+  isValidName,
+  validNameRegex,
+  validVariableAndSecretNameRegex,
+} from "../util/isValidName";
 import { z } from "zod";
 
 /**
@@ -118,8 +122,12 @@ function validateWebhookProps(props: DefineWebhookProps) {
 
   const AppsSchema = z.array(NameSchema);
 
-  const VariablesSchema = z.array(NameSchema);
-  const SecretsSchema = z.array(NameSchema);
+  const VariableAndSecretNameSchema = z
+    .string()
+    .min(1)
+    .regex(validVariableAndSecretNameRegex);
+  const VariablesSchema = z.array(VariableAndSecretNameSchema);
+  const SecretsSchema = z.array(VariableAndSecretNameSchema);
 
   if (name === undefined) {
     throw new Error("Webhook missing name");

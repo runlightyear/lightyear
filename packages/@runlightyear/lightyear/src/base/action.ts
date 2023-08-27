@@ -6,7 +6,10 @@ import { pushToDeployList } from "./deploy";
 import { prefixedRedactedConsole } from "../logging";
 import { AuthData } from "./auth";
 import { getEnvName } from "../util/getEnvName";
-import { validNameRegex } from "../util/isValidName";
+import {
+  validNameRegex,
+  validVariableAndSecretNameRegex,
+} from "../util/isValidName";
 import { z } from "zod";
 
 export type AppName =
@@ -97,8 +100,12 @@ function validateActionProps(props: DefineActionProps) {
 
   const AppsSchema = z.array(NameSchema);
 
-  const VariablesSchema = z.array(NameSchema);
-  const SecretsSchema = z.array(NameSchema);
+  const VariableAndSecretNameSchema = z
+    .string()
+    .min(1)
+    .regex(validVariableAndSecretNameRegex);
+  const VariablesSchema = z.array(VariableAndSecretNameSchema);
+  const SecretsSchema = z.array(VariableAndSecretNameSchema);
 
   const WebhookSchema = NameSchema;
   const PollingFrequencySchema = z.number().int().positive();
