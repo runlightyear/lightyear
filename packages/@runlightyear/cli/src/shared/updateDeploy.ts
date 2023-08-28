@@ -1,19 +1,17 @@
 import fetch from "node-fetch";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
-export default async function updateDeploy({
-  deployId,
-  status,
-  endedAt,
-  logs,
-  compiledCode,
-}: {
+export interface UpdateDeployProps {
   deployId: string;
   status?: string;
   endedAt?: "now";
   logs?: any;
   compiledCode?: any;
-}) {
+}
+
+export default async function updateDeploy(props: UpdateDeployProps) {
+  const { deployId, status, endedAt, logs, compiledCode } = props;
+
   const baseUrl = getBaseUrl();
   const envName = getEnvName();
   const apiKey = getApiKey();
