@@ -25,14 +25,17 @@ export default async function execDeployAndSubscribe() {
   const deployId = await createDeploy({ status: "RUNNING", compiledCode });
 
   const handlerResult = await execDeploy({ deployId, compiledCode });
-  await execSubscribeProps({ deployId, compiledCode });
-  await execUnsubscribeAfterDeploy({
-    deployId,
-  });
-  await execSubscribeAfterDeploy({ deployId, compiledCode });
 
   const { statusCode } = handlerResult;
   const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
+
+  if (status === "SUCCEEDED") {
+    await execSubscribeProps({ deployId, compiledCode });
+    await execUnsubscribeAfterDeploy({
+      deployId,
+    });
+    await execSubscribeAfterDeploy({ deployId, compiledCode });
+  }
 
   if (status === "SUCCEEDED") {
     // terminal.green("🚀 Deploy succeeded!\n");

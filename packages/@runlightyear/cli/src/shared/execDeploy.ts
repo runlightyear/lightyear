@@ -48,12 +48,6 @@ export default async function execDeploy(props: ExecDeployProps) {
   const { logs } = responseData;
   const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
-  if (status === "SUCCEEDED") {
-    // terminal.green("🚀 Deploy succeeded!\n");
-  } else if (status === "FAILED") {
-    terminal.red("💥 Deploy failed\n");
-  }
-
   await updateDeploy({
     deployId,
     logs,
