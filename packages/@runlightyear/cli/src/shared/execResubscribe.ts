@@ -40,5 +40,6 @@ export default async function execResubscribe(props: ExecResubscribeProps) {
   await updateDeploy({
     deployId,
     status: "SUCCEEDED",
+    endedAt: "now",
   });
 }
