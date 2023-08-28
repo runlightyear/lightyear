@@ -121,6 +121,7 @@ function validateWebhookProps(props: DefineWebhookProps) {
   const TitleSchema = z.string().min(1);
 
   const AppsSchema = z.array(NameSchema);
+  const CustomAppsSchema = z.array(NameSchema);
 
   const VariableAndSecretNameSchema = z
     .string()
@@ -128,6 +129,20 @@ function validateWebhookProps(props: DefineWebhookProps) {
     .regex(validVariableAndSecretNameRegex);
   const VariablesSchema = z.array(VariableAndSecretNameSchema);
   const SecretsSchema = z.array(VariableAndSecretNameSchema);
+
+  const DefineWebhookSchema = z
+    .object({
+      name: NameSchema,
+      title: TitleSchema,
+      apps: AppsSchema.optional(),
+      customApps: CustomAppsSchema.optional(),
+      variables: VariablesSchema.optional(),
+      secrets: SecretsSchema.optional(),
+      subscribeProps: z.function().optional(),
+      subscribe: z.function().optional(),
+      unsubscribe: z.function().optional(),
+    })
+    .strict();
 
   if (name === undefined) {
     throw new Error("Webhook missing name");
@@ -167,6 +182,14 @@ function validateWebhookProps(props: DefineWebhookProps) {
         `Invalid secrets for webhook ${name}: ${secrets} Must be an array of valid names`
       );
     }
+  }
+
+  const fullResult = DefineWebhookSchema.safeParse(props);
+  if (!fullResult.success) {
+    const messages = fullResult.error.issues.map((issue) => issue.message);
+    throw new Error(
+      `Invalid definition for webhook ${name}: ${messages.join(", ")}`
+    );
   }
 }
 
