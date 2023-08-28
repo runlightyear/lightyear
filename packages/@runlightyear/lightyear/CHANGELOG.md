@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.32.0
+
+### Minor Changes
+
+- 7e667cda1: Catch unknown keys in defineAction and defineWebhook
+
 ## 0.31.0
 
 ### Minor Changes
