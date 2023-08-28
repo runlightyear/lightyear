@@ -235,8 +235,7 @@ function validateWebhookProps(props: DefineWebhookProps) {
 export function defineWebhook(props: DefineWebhookProps) {
   console.debug("in defineWebhook", props);
 
-  const { subscribeProps, subscribe, unsubscribe, ...rest } = props;
-  validateWebhookProps(rest);
+  validateWebhookProps(props);
 
   pushToDeployList({
     type: "webhook",
