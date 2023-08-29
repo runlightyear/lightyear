@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.33.0
+
+### Minor Changes
+
+- 7469fbe82: Removed unsupported description from defineAction
+
 ## 0.32.0
 
 ### Minor Changes

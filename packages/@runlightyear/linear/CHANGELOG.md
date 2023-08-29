@@ -1,5 +1,12 @@
 # @runlightyear/linear
 
+## 0.6.3
+
+### Patch Changes
+
+- Updated dependencies [7469fbe82]
+  - @runlightyear/lightyear@0.33.0
+
 ## 0.6.2
 
 ### Patch Changes
