@@ -5,6 +5,7 @@ import {
 import { GitHub } from "../../GitHub";
 import WebhookEvent from "../../types/WebhookEvent";
 import WebhookConfig from "../../types/WebhookConfig";
+import { isHttpProxyResponseError } from "@runlightyear/lightyear/src";
 
 export interface CreateRepositoryWebhookProps {
   /**
@@ -77,8 +78,7 @@ const createRepositoryWebhook =
     const { owner, repo, name, config, events, active } = props;
 
     try {
-      console.debug("about to call createRepositoryWebhook");
-      const response = await self.post({
+      return await self.post({
         url: `/repos/${owner}/${repo}/hooks`,
         data: {
           name,
@@ -94,16 +94,11 @@ const createRepositoryWebhook =
           active,
         },
       });
-
-      console.debug("got the response");
-
-      return response;
-    } catch (error) {
-      console.debug("Got an error");
-      if (error instanceof HttpProxyResponseError) {
+    } catch (error: unknown) {
+      if (isHttpProxyResponseError(error)) {
         if (error.response.status === 404) {
           console.error(
-            "Check that the owner and repo are specified correctly. The owner parameter is the account owner of the repository (case insensitive). The repo parameter is name is the name of the repository without the .git extension (case insensitive)."
+            "Check that the owner and repo are specified correctly. The owner parameter is the account owner of the repository. The repo parameter is name is the name of the repository without the .git extension."
           );
         }
       }

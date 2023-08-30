@@ -33,6 +33,7 @@ export type { DeployFuncProps, DeployFunc } from "./base/deploy";
 export { getDeployList } from "./base/deploy";
 
 /* Http Proxy */
+export { isHttpProxyResponseError } from "./base/http";
 export type {
   HttpProxyRequestProps,
   HttpProxyResponse,
