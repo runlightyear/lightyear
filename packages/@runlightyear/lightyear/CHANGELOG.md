@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.34.0
+
+### Minor Changes
+
+- Added a function to check if an error is an HttpProxyResponseError
+
 ## 0.33.0
 
 ### Minor Changes

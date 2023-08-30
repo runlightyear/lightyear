@@ -1,5 +1,13 @@
 # @runlightyear/github
 
+## 0.19.6
+
+### Patch Changes
+
+- Fix the error message on createRepositoryWebhook
+- Updated dependencies
+  - @runlightyear/lightyear@0.34.0
+
 ## 0.19.5
 
 ### Patch Changes
