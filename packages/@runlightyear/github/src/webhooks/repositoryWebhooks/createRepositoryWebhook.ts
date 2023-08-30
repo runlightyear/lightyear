@@ -1,11 +1,10 @@
 import {
   HttpProxyResponse,
-  HttpProxyResponseError,
+  isHttpProxyResponseError,
 } from "@runlightyear/lightyear";
 import { GitHub } from "../../GitHub";
 import WebhookEvent from "../../types/WebhookEvent";
 import WebhookConfig from "../../types/WebhookConfig";
-import { isHttpProxyResponseError } from "@runlightyear/lightyear/src";
 
 export interface CreateRepositoryWebhookProps {
   /**
