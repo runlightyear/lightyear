@@ -1,5 +1,11 @@
 # @runlightyear/github
 
+## 0.19.7
+
+### Patch Changes
+
+- Improved formatting of createRepositoryWebhook error message on 404
+
 ## 0.19.6
 
 ### Patch Changes
