@@ -1,5 +1,13 @@
 # @runlightyear/github
 
+## 0.19.5
+
+### Patch Changes
+
+- 3d4c02ff4: Attempt to add some helpful logging when createRepositoryWebhook fails
+- Updated dependencies [7469fbe82]
+  - @runlightyear/lightyear@0.33.0
+
 ## 0.19.4
 
 ### Patch Changes

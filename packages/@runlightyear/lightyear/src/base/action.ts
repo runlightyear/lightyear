@@ -45,7 +45,6 @@ export interface DefineActionProps {
    * The title of this action.
    */
   title: string;
-  description?: string;
   trigger?: ActionTrigger;
   /**
    * An array of the system apps used by this action.

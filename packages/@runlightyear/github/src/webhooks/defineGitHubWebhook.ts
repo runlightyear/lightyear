@@ -54,6 +54,8 @@ const defineGitHubWebhook = (props: DefineGitHubWebhookProps) => {
 
       const github = new GitHub({ auth: auths.github });
 
+      console.debug("in defineGitHubWebhook");
+
       const response = await github.createRepositoryWebhook({
         owner: subscribeProps.owner,
         repo: subscribeProps.repo,

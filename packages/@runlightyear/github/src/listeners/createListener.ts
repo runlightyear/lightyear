@@ -17,16 +17,53 @@ export type GitHubListenerRunFunc<Payload> = (
 ) => void;
 
 export interface GitHubListenerProps<Payload> {
+  /**
+   * The name of this listener.
+   */
   name: string;
+  /**
+   * The title of this listener.
+   */
   title: string;
   customAppName?: string;
   authName?: string;
+  /**
+   * An array of the system apps used by this listener.
+   */
   apps?: Array<AppName>;
+  /**
+   * An array of the custom apps used by this listener.
+   */
   customApps?: Array<string>;
+  /**
+   * An array of the variables on this listener.
+   *
+   * Variables are required to have a value by default. If you append a "?" to the end of the name, the variable will be optional. For example:
+   *
+   * ["requiredVar", "optionalVar?"]
+   */
   variables?: Array<string>;
+  /**
+   * An array of the secrets on this listener.
+   *
+   * Secrets are like variables, but they are stored more securely in the database and they are redacted in the console logs.
+   *
+   * Secrets are required to have a value by default. If you append a "?" to the end of the name, the secret will be optional. For example:
+   *
+   * ["requiredSecret", "optionalSecret?"]
+   */
   secrets?: Array<string>;
+  /**
+   * The function to run when this listener is triggered.
+   */
   run: GitHubListenerRunFunc<Payload>;
+  /**
+   * The account owner of the repository. The name is not case sensitive.
+   */
   owner: string;
+  /**
+   * The name of the repository without the .git extension. The name is not case sensitive.
+   */
   repo: string;
 }
 
