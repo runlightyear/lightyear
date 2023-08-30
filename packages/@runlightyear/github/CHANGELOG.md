@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- Improved formatting of createWebhook error message on 404
+- Improved formatting of createRepositoryWebhook error message on 404
 
 ## 0.19.6
 
