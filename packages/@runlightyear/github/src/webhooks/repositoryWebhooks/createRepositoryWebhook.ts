@@ -96,9 +96,9 @@ const createRepositoryWebhook =
     } catch (error: unknown) {
       if (isHttpProxyResponseError(error)) {
         if (error.response.status === 404) {
-          console.error(
-            "Check that the owner and repo are specified correctly. The owner parameter is the account owner of the repository. The repo parameter is name is the name of the repository without the .git extension."
-          );
+          console.error(`Check that the owner and repo are specified correctly.           
+1. The owner parameter is the account owner of the repository.
+2. The repo parameter is the name of the repository without the .git extension.`);
         }
       }
 
