@@ -1,5 +1,23 @@
 # @runlightyear/lightyear
 
+## 0.34.0
+
+### Minor Changes
+
+- Added a function to check if an error is an HttpProxyResponseError
+
+## 0.33.0
+
+### Minor Changes
+
+- 7469fbe82: Removed unsupported description from defineAction
+
+## 0.32.0
+
+### Minor Changes
+
+- 7e667cda1: Catch unknown keys in defineAction and defineWebhook
+
 ## 0.31.0
 
 ### Minor Changes

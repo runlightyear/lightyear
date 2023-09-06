@@ -1,6 +1,6 @@
 {
   "name": "@runlightyear/github",
-  "version": "0.19.3",
+  "version": "0.19.7",
   "publishConfig": {
     "access": "public"
   },

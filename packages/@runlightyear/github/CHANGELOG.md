@@ -1,5 +1,34 @@
 # @runlightyear/github
 
+## 0.19.7
+
+### Patch Changes
+
+- Improved formatting of createRepositoryWebhook error message on 404
+
+## 0.19.6
+
+### Patch Changes
+
+- Fix the error message on createRepositoryWebhook
+- Updated dependencies
+  - @runlightyear/lightyear@0.34.0
+
+## 0.19.5
+
+### Patch Changes
+
+- 3d4c02ff4: Attempt to add some helpful logging when createRepositoryWebhook fails
+- Updated dependencies [7469fbe82]
+  - @runlightyear/lightyear@0.33.0
+
+## 0.19.4
+
+### Patch Changes
+
+- Updated dependencies [7e667cda1]
+  - @runlightyear/lightyear@0.32.0
+
 ## 0.19.3
 
 ### Patch Changes

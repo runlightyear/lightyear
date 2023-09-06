@@ -1,5 +1,28 @@
 # @runlightyear/cli
 
+## 0.27.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.34.0
+
+## 0.27.4
+
+### Patch Changes
+
+- Updated dependencies [7469fbe82]
+  - @runlightyear/lightyear@0.33.0
+
+## 0.27.3
+
+### Patch Changes
+
+- 164319917: Removed some redundant logs
+- a8f99cf36: Fix bug with not setting endedAt for deploys triggered by resubscribe
+- Updated dependencies [7e667cda1]
+  - @runlightyear/lightyear@0.32.0
+
 ## 0.27.2
 
 ### Patch Changes

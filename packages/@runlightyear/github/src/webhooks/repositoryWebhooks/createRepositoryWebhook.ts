@@ -1,4 +1,7 @@
-import { HttpProxyResponse } from "@runlightyear/lightyear";
+import {
+  HttpProxyResponse,
+  isHttpProxyResponseError,
+} from "@runlightyear/lightyear";
 import { GitHub } from "../../GitHub";
 import WebhookEvent from "../../types/WebhookEvent";
 import WebhookConfig from "../../types/WebhookConfig";
@@ -73,22 +76,34 @@ const createRepositoryWebhook =
   ): Promise<CreateRepositoryWebhookResponse> => {
     const { owner, repo, name, config, events, active } = props;
 
-    return self.post({
-      url: `/repos/${owner}/${repo}/hooks`,
-      data: {
-        name,
-        config: config && {
-          url: config.url,
-          content_type: "json",
-          secret: config.secret,
-          insecure_ssl: config.insecureSSL,
-          token: config.token,
-          digest: config.digest,
+    try {
+      return await self.post({
+        url: `/repos/${owner}/${repo}/hooks`,
+        data: {
+          name,
+          config: config && {
+            url: config.url,
+            content_type: "json",
+            secret: config.secret,
+            insecure_ssl: config.insecureSSL,
+            token: config.token,
+            digest: config.digest,
+          },
+          events,
+          active,
         },
-        events,
-        active,
-      },
-    });
+      });
+    } catch (error: unknown) {
+      if (isHttpProxyResponseError(error)) {
+        if (error.response.status === 404) {
+          console.error(`Check that the owner and repo are specified correctly.           
+1. The owner parameter is the account owner of the repository.
+2. The repo parameter is the name of the repository without the .git extension.`);
+        }
+      }
+
+      throw error;
+    }
   };
 
 export default createRepositoryWebhook;

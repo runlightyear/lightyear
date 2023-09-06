@@ -8,6 +8,27 @@
 - Added additional types
 - Removed support for createTranscription until we have a better file management story.
 
+## 0.5.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@0.34.0
+
+## 0.5.3
+
+### Patch Changes
+
+- Updated dependencies [7469fbe82]
+  - @runlightyear/lightyear@0.33.0
+
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [7e667cda1]
+  - @runlightyear/lightyear@0.32.0
+
 ## 0.5.1
 
 ### Patch Changes

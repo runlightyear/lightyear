@@ -50,7 +50,16 @@ export class HttpProxyResponseError extends Error {
   constructor(response: HttpProxyResponse) {
     super(`HttpProxyResponseError: ${response.status} ${response.statusText}`);
     this.response = response;
+
+    Object.setPrototypeOf(this, HttpProxyResponseError.prototype);
   }
+}
+
+export function isHttpProxyResponseError(
+  error: unknown
+): error is HttpProxyResponseError {
+  // return error instanceof HttpProxyResponseError;
+  return !!error && typeof error === "object" && "response" in error;
 }
 
 export interface HttpRequest {

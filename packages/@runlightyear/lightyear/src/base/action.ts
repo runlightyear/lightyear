@@ -45,7 +45,6 @@ export interface DefineActionProps {
    * The title of this action.
    */
   title: string;
-  description?: string;
   trigger?: ActionTrigger;
   /**
    * An array of the system apps used by this action.
@@ -93,12 +92,13 @@ export interface SetActionInitializedProps {
 }
 
 function validateActionProps(props: DefineActionProps) {
-  const { name, title, trigger, apps, variables, secrets } = props;
+  const { name, title, trigger, apps, customApps, variables, secrets } = props;
 
   const NameSchema = z.string().min(1).regex(validNameRegex);
   const TitleSchema = z.string().min(1);
 
   const AppsSchema = z.array(NameSchema);
+  const CustomAppsSchema = z.array(NameSchema);
 
   const VariableAndSecretNameSchema = z
     .string()
@@ -109,6 +109,28 @@ function validateActionProps(props: DefineActionProps) {
 
   const WebhookSchema = NameSchema;
   const PollingFrequencySchema = z.number().int().positive();
+
+  const RunSchema = z.function();
+
+  const DefineActionSchema = z
+    .object({
+      name: NameSchema,
+      title: TitleSchema,
+      apps: AppsSchema.optional(),
+      customApps: CustomAppsSchema.optional(),
+      variables: VariablesSchema.optional(),
+      secrets: SecretsSchema.optional(),
+      trigger: z
+        .object({
+          webhook: WebhookSchema.optional(),
+          schedule: z.string().optional(),
+          pollingFrequency: PollingFrequencySchema.optional(),
+        })
+        .strict()
+        .optional(),
+      run: RunSchema,
+    })
+    .strict();
 
   if (name === undefined) {
     throw new Error("Action missing name");
@@ -130,6 +152,14 @@ function validateActionProps(props: DefineActionProps) {
     if (!AppsSchema.safeParse(apps).success) {
       throw new Error(
         `Invalid apps for action ${name}: ${apps} Must be an array of valid names`
+      );
+    }
+  }
+
+  if (customApps) {
+    if (!CustomAppsSchema.safeParse(customApps).success) {
+      throw new Error(
+        `Invalid customApps for action ${name}: ${customApps} Must be an array of valid names`
       );
     }
   }
@@ -183,6 +213,14 @@ function validateActionProps(props: DefineActionProps) {
         "Schedule not yet supported, try pollingFrequency for now."
       );
     }
+  }
+
+  const fullResult = DefineActionSchema.safeParse(props);
+  if (!fullResult.success) {
+    const messages = fullResult.error.issues.map((issue) => issue.message);
+    throw new Error(
+      `Invalid action definition for action ${name}: ${messages.join(", ")}`
+    );
   }
 }
 
