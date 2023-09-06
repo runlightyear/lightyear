@@ -1,5 +1,6 @@
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { OpenAI } from "../OpenAI";
+import { ImageData } from "../types/ImageData";
 
 export interface CreateImageProps {
   /**
@@ -34,13 +35,13 @@ export interface CreateImageProps {
   user?: string;
 }
 
+export interface CreateImageResponseData {
+  created: number;
+  data: Array<ImageData>;
+}
+
 export interface CreateImageResponse extends HttpProxyResponse {
-  data: {
-    created: number;
-    data: Array<{
-      url: string;
-    }>;
-  };
+  data: CreateImageResponseData;
 }
 
 export const createImage =

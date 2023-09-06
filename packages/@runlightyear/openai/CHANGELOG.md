@@ -1,5 +1,13 @@
 # @runlightyear/openai
 
+## 0.6.0
+
+### Minor Changes
+
+- Updated documentation
+- Added additional types
+- Removed support for createTranscription until we have a better file management story.
+
 ## 0.5.4
 
 ### Patch Changes
