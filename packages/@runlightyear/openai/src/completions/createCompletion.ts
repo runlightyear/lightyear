@@ -1,5 +1,8 @@
 import { OpenAI } from "../OpenAI";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
+import { Usage } from "../types/Usage";
+import { ChatChoice } from "../types/ChatChoice";
+import { CompletionChoice } from "../types/CompletionChoice";
 
 /**
  * @beta
@@ -124,27 +127,20 @@ export interface CreateCompletionProps {
   user?: string;
 }
 
+export interface CreateCompletionResponseData {
+  id: string;
+  object: "text_completion";
+  created: number;
+  model: string;
+  choices: Array<CompletionChoice>;
+  usage: Usage;
+}
+
 /**
  * @beta
  */
 export interface CreateCompletionResponse extends HttpProxyResponse {
-  data: {
-    id: string;
-    object: string;
-    created: number;
-    model: string;
-    choices: Array<{
-      text: string;
-      index: number;
-      logprobs: null;
-      finishReason: string;
-    }>;
-    usage: {
-      promptTokens: number;
-      completionTokens: number;
-      totalTokens: number;
-    };
-  };
+  data: CreateCompletionResponseData;
 }
 
 export const createCompletion =

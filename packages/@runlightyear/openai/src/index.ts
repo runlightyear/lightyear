@@ -1,9 +1,7 @@
 /* OpenAI */
-
-import { OpenAI } from "./OpenAI";
+export { OpenAI } from "./OpenAI";
 
 /** Audio **/
-
 export type {
   CreateTranscriptionProps,
   CreateTranscriptionResponse,
@@ -11,42 +9,35 @@ export type {
 } from "./audio/createTranscription";
 
 /** Chat **/
-
-import type {
-  CreateChatCompletionProps,
-  CreateChatCompletionResponse,
-} from "./chat/createChatCompletion";
-
-/** Completion **/
-
-import type {
-  CreateCompletionProps,
-  CreateCompletionResponse,
-} from "./completions/createCompletion";
-
-/** Images **/
-
-import type {
-  CreateImageProps,
-  CreateImageResponse,
-} from "./images/createImage";
-
-/** Models **/
-
-import type { ListModelsResponse } from "./models/listModels";
-
-/** Types **/
-
-import type { ChatMessage } from "./types/ChatMessage";
-
-export { OpenAI };
 export type {
   CreateChatCompletionProps,
   CreateChatCompletionResponse,
+  CreateChatCompletionResponseData,
+} from "./chat/createChatCompletion";
+
+/** Completion **/
+export type {
   CreateCompletionProps,
   CreateCompletionResponse,
+  CreateCompletionResponseData,
+} from "./completions/createCompletion";
+
+/** Images **/
+export type {
   CreateImageProps,
   CreateImageResponse,
+  CreateImageResponseData,
+} from "./images/createImage";
+
+/** Models **/
+export type {
   ListModelsResponse,
-  ChatMessage,
-};
+  ListModelsResponseData,
+} from "./models/listModels";
+
+/** Types **/
+export type { ChatMessage } from "./types/ChatMessage";
+export type { ChatChoice } from "./types/ChatChoice";
+export type { ImageData } from "./types/ImageData";
+export type { Model } from "./types/Model";
+export type { Usage } from "./types/Usage";

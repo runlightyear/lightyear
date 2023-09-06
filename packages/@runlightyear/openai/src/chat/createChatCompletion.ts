@@ -1,6 +1,8 @@
 import { ChatMessage } from "../types/ChatMessage";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { OpenAI } from "../OpenAI";
+import { ChatChoice } from "../types/ChatChoice";
+import { Usage } from "../types/Usage";
 
 export interface CreateChatCompletionProps {
   /**
@@ -93,22 +95,16 @@ export interface CreateChatCompletionProps {
   user?: string;
 }
 
+export interface CreateChatCompletionResponseData {
+  id: string;
+  object: "chat.completion";
+  created: number;
+  choices: Array<ChatChoice>;
+  usage: Usage;
+}
+
 export interface CreateChatCompletionResponse extends HttpProxyResponse {
-  data: {
-    id: string;
-    object: "chat.completion";
-    created: number;
-    choices: Array<{
-      index: number;
-      message: ChatMessage;
-      finishReason: string;
-    }>;
-    usage: {
-      promptTokens: number;
-      completionTokens: number;
-      totalTokens: number;
-    };
-  };
+  data: CreateChatCompletionResponseData;
 }
 
 export const createChatCompletion =

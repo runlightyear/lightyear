@@ -1,4 +1,4 @@
-export type ChatMessage = {
+export interface ChatMessage {
   role: "assistant" | "user" | "system";
   content: string;
-};
+}
