@@ -83,6 +83,37 @@ export interface ListRecordsProps {
   recordMetadata?: Array<"commentCount">;
 }
 
+export interface ListRecordsResponseData {
+  offset?: string;
+  records: Array<{
+    /**
+     * Record ID
+     */
+    id: string;
+
+    /**
+     * A date timestamp in the ISO format, eg:"2018-01-01T00:00:00.000Z"
+     */
+    createdTime: string;
+
+    /**
+     * Cell values are keyed by either field name or field ID (conditioned on returnFieldsByFieldId).
+     *
+     *  See Cell Values for more information on cell value response types.
+     */
+    fields: {
+      [key: string]: any;
+    };
+
+    /**
+     * The number of comments (if there are any) on the record.
+     *
+     * The recordMetadata query parameter must include "commentCount" in order to receive this.
+     */
+    commentCount?: number;
+  }>;
+}
+
 /**
  * @beta
  */
@@ -90,36 +121,7 @@ export interface ListRecordsResponse extends HttpProxyResponse {
   /**
    * If there are more records, the response will contain an offset. Pass this offset into the next request to fetch the next page of records.
    */
-  data: {
-    offset?: string;
-    records: Array<{
-      /**
-       * Record ID
-       */
-      id: string;
-
-      /**
-       * A date timestamp in the ISO format, eg:"2018-01-01T00:00:00.000Z"
-       */
-      createdTime: string;
-
-      /**
-       * Cell values are keyed by either field name or field ID (conditioned on returnFieldsByFieldId).
-       *
-       *  See Cell Values for more information on cell value response types.
-       */
-      fields: {
-        [key: string]: any;
-      };
-
-      /**
-       * The number of comments (if there are any) on the record.
-       *
-       * The recordMetadata query parameter must include "commentCount" in order to receive this.
-       */
-      commentCount?: number;
-    }>;
-  };
+  data: ListRecordsResponseData;
 }
 
 export const listRecords =

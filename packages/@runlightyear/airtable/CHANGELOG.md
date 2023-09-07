@@ -1,5 +1,11 @@
 # @runlightyear/airtable
 
+## 0.4.0
+
+### Minor Changes
+
+- Added additional record actions
+
 ## 0.3.4
 
 ### Patch Changes
