@@ -1,43 +1,50 @@
 /* Airtable */
-import { Airtable } from "./Airtable";
-import type { AirtableProps } from "./Airtable";
+export { Airtable } from "./Airtable";
+export type { AirtableProps } from "./Airtable";
 
 /* Airtable OAuth */
-import { AirtableOAuth } from "./AirtableOAuth";
-import type { AirtableOAuthProps } from "./AirtableOAuth";
+export { AirtableOAuth } from "./AirtableOAuth";
+export type { AirtableOAuthProps } from "./AirtableOAuth";
 
 /* Types */
-import type { AirtableScope } from "./types/AirtableScope";
-import type { Timezone } from "./types/Timezone";
+export type { AirtableScope } from "./types/AirtableScope";
+export type { Timezone } from "./types/Timezone";
 
 /* Who am i */
-import type { WhoamiResponse } from "./meta/whoami";
-
-/* List Records */
-import type {
-  ListRecordsProps,
-  ListRecordsResponse,
-} from "./records/listRecords";
+export type { WhoamiResponse } from "./meta/whoami";
 
 /* Create Records */
-import type {
+export type {
   CreateRecordsProps,
   SingleRecordResponseData,
   MultipleRecordsResponseData,
   CreateRecordsResponse,
 } from "./records/createRecords";
 
-export { Airtable, AirtableOAuth };
+/* Delete Record */
 export type {
-  AirtableProps,
-  AirtableOAuthProps,
-  AirtableScope,
-  Timezone,
-  WhoamiResponse,
+  DeleteRecordProps,
+  DeleteRecordResponse,
+  DeleteRecordResponseData,
+} from "./records/deleteRecord";
+
+/* Get Record */
+export type {
+  GetRecordProps,
+  GetRecordResponse,
+  GetRecordResponseData,
+} from "./records/getRecord";
+
+/* List Records */
+export type {
   ListRecordsProps,
   ListRecordsResponse,
-  CreateRecordsProps,
-  SingleRecordResponseData,
-  MultipleRecordsResponseData,
-  CreateRecordsResponse,
-};
+  ListRecordsResponseData,
+} from "./records/listRecords";
+
+/* Update Record */
+export type {
+  UpdateRecordProps,
+  UpdateRecordResponse,
+  UpdateRecordResponseData,
+} from "./records/updateRecord";

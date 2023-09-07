@@ -7,14 +7,12 @@ import { HttpProxyResponse } from "@runlightyear/lightyear";
 export interface CreateRecordsProps {
   baseId: string;
   tableIdOrName: string;
-
   /**
    * Create a single record
    */
   fields?: {
     [key: string]: unknown;
   };
-
   /**
    * Create multiple records
    *
@@ -25,7 +23,6 @@ export interface CreateRecordsProps {
       [key: string]: unknown;
     };
   }>;
-
   /**
    * An optional boolean value that lets you return field objects keyed by the field id.
    *
