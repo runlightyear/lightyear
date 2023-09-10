@@ -405,12 +405,14 @@ importers:
       '@microsoft/api-extractor': ^7.31.2
       '@runlightyear/lightyear': workspace:*
       '@types/jest': ^28.1.8
+      '@types/lodash': ^4.14.182
       '@types/node': 12.20.24
       '@types/nodemon': ^1.19.2
       '@typescript-eslint/parser': ^5.38.0
       api-extractor-config: workspace:*
       eslint: ^7.32.0
       eslint-config-custom: workspace:*
+      lodash: ^4.17.21
       nodemon: ^2.0.19
       tsconfig: workspace:*
       tsdoc-config: workspace:*
@@ -418,9 +420,11 @@ importers:
       typescript: ^4.5.2
     dependencies:
       '@runlightyear/lightyear': link:../lightyear
+      lodash: 4.17.21
     devDependencies:
       '@microsoft/api-extractor': 7.33.4
       '@types/jest': 28.1.8
+      '@types/lodash': 4.14.191
       '@types/node': 12.20.24
       '@types/nodemon': 1.19.2
       '@typescript-eslint/parser': 5.40.1_3rubbgt5ekhqrcgx4uwls3neim
