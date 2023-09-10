@@ -1,6 +1,6 @@
 {
   "name": "@runlightyear/notion",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "publishConfig": {
     "access": "public"
   },
@@ -13,11 +13,13 @@
     "docs:extract": "api-extractor run --local --verbose"
   },
   "dependencies": {
-    "@runlightyear/lightyear": "workspace:*"
+    "@runlightyear/lightyear": "workspace:*",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.31.2",
     "@types/jest": "^28.1.8",
+    "@types/lodash": "^4.14.182",
     "@types/node": "12.20.24",
     "@types/nodemon": "^1.19.2",
     "@typescript-eslint/parser": "^5.38.0",

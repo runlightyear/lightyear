@@ -1,5 +1,11 @@
 # @runlightyear/notion
 
+## 0.3.0
+
+### Minor Changes
+
+- Built out methods and object types
+
 ## 0.2.4
 
 ### Patch Changes
