@@ -1,6 +1,6 @@
 import { SortDirection } from "./SortDirection";
 
-export interface PropertyValueSort {
+export interface PropertyValueSortCriteria {
   /**
    * The name of the property to sort against.
    */

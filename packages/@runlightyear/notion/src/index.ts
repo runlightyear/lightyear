@@ -324,7 +324,12 @@ export type {
 /* Objects: Filters */
 export type { CompoundFilter } from "./objects/filters/CompoundFilter";
 export type { Filter } from "./objects/filters/Filter";
-export type { TypeFilter } from "./objects/filters/TypeFilter";
+export type { PropertyFilter } from "./objects/filters/PropertyFilter";
+export type {
+  TimestampFilter,
+  CreatedTimeFilter,
+  LastEditedTimeFilter,
+} from "./objects/filters/TimestampFilter";
 
 /* Objects: Filters: Conditions */
 export type { CheckboxFilterCondition } from "./objects/filters/conditions/CheckboxFilterCondition";
@@ -339,7 +344,6 @@ export type { RichTextFilterCondition } from "./objects/filters/conditions/RichT
 export type { RollupFilterCondition } from "./objects/filters/conditions/RollupFilterCondition";
 export type { SelectFilterCondition } from "./objects/filters/conditions/SelectFilterCondition";
 export type { StatusFilterCondition } from "./objects/filters/conditions/StatusFilterCondition";
-export type { TimestampFilterCondition } from "./objects/filters/conditions/TimestampFilterCondition";
 
 /* Objects: Lists */
 export type { BlockList } from "./objects/lists/BlockList";
@@ -455,10 +459,10 @@ export type { PageParent, PageParentInput } from "./objects/parents/PageParent";
 export type { WorkspaceParent } from "./objects/parents/WorkspaceParent";
 
 /* Objects: Sorts */
-export type { PropertyValueSort } from "./objects/sorts/PropertyValueSort";
-export type { Sort } from "./objects/sorts/Sort";
-export type { SortDirection } from "./objects/sorts/SortDirection";
-export type { TimestampSort } from "./objects/sorts/TimestampSort";
+export type { PropertyValueSortCriteria } from "./objects/sorting/PropertyValueSortCriteria";
+export type { SortCriteria } from "./objects/sorting/SortCriteria";
+export type { SortDirection } from "./objects/sorting/SortDirection";
+export type { TimestampSortCriteria } from "./objects/sorting/TimestampSortCriteria";
 
 /* Objects: Types */
 export type { Color, ForegroundColor } from "./objects/types/Color";
