@@ -71,7 +71,7 @@ export const onNewDatabaseItems = (props: OnNewDatabaseItemsProps) => {
           },
         },
       });
-      console.log("Database items:", response.data);
+      console.debug("Database items:", response.data);
 
       if (response.data.results.length > 0) {
         const lastCreatedTime =

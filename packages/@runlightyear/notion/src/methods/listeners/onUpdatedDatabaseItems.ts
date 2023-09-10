@@ -71,7 +71,7 @@ export const onUpdatedDatabaseItems = (props: OnUpdatedDatabaseItemsProps) => {
           },
         },
       });
-      console.log("Database items:", response.data);
+      console.debug("Database items:", response.data);
 
       if (response.data.results.length > 0) {
         const lastEditedTime =
