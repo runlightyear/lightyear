@@ -1,6 +1,6 @@
 import { NotionId } from "../../objects/types/NotionId";
 import { Filter } from "../../objects/filters/Filter";
-import { Sort } from "../../objects/sorts/Sort";
+import { SortCriteria } from "../../objects/sorting/SortCriteria";
 import { Notion } from "../../Notion";
 import { deCamelize, HttpProxyResponse } from "@runlightyear/lightyear";
 import { PageOrDatabaseList } from "../../objects/lists/PageOrDatabaseList";
@@ -26,7 +26,7 @@ export interface QueryDatabaseProps {
   /**
    * When supplied, orders the results based on the provided sort criteria.
    */
-  sorts?: Array<Sort>;
+  sorts?: Array<SortCriteria>;
 
   /**
    * When supplied, returns a page of results starting after the cursor provided. If not supplied, this endpoint will return the first page of results.

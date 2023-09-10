@@ -1,4 +1,5 @@
-import { TypeFilter } from "./TypeFilter";
+import { PropertyFilter } from "./PropertyFilter";
 import { CompoundFilter } from "./CompoundFilter";
+import { TimestampFilter } from "./TimestampFilter";
 
-export type Filter = TypeFilter | CompoundFilter;
+export type Filter = PropertyFilter | TimestampFilter | CompoundFilter;

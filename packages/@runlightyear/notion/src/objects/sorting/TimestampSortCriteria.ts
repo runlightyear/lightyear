@@ -1,7 +1,7 @@
 import { Timestamp } from "../types/Timestamp";
 import { SortDirection } from "./SortDirection";
 
-export interface TimestampSort {
+export interface TimestampSortCriteria {
   /**
    * The name of the timestamp to sort against.
    */

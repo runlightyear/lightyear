@@ -27,6 +27,14 @@ import {
   CreateDatabaseProps,
 } from "./methods/databases/createDatabase";
 import { camelizeNotionData } from "./util/camelizeNotionData";
+import {
+  onNewDatabaseItems,
+  OnNewDatabaseItemsProps,
+} from "./methods/listeners/onNewDatabaseItems";
+import {
+  onUpdatedDatabaseItems,
+  OnUpdatedDatabaseItemsProps,
+} from "./methods/listeners/onUpdatedDatabaseItems";
 
 /**
  * @beta
@@ -1229,5 +1237,55 @@ export class Notion extends RestConnector {
    */
   async retrieveDatabase(props: RetrieveDatabaseProps) {
     return retrieveDatabase(this)(props);
+  }
+
+  /**
+   * On New Database Items
+   *
+   * @group Listeners
+   *
+   * @example On new database items
+   * ```typescript
+   * import { Notion } from "@runlightyear/notion";
+   *
+   * Notion.onNewDatabaseItems({
+   *   name: "onNewDatabaseItems",
+   *   title: "On New Database Items",
+   *   pollingFrequency: 1,
+   *   run: async ({ data }) => {
+   *     console.log("New database items:", data);
+   *   },
+   * });
+   * ```
+   *
+   * @param props
+   */
+  static onNewDatabaseItems(props: OnNewDatabaseItemsProps) {
+    return onNewDatabaseItems(props);
+  }
+
+  /**
+   * On Updated Database Items
+   *
+   * @group Listeners
+   *
+   * @example On updated database items
+   * ```typescript
+   * import { Notion } from "@runlightyear/notion";
+   *
+   * Notion.onUpdatedDatabaseItems({
+   *   name: "onUpdatedDatabaseItems",
+   *   title: "On Updated Database Items",
+   *   pollingFrequency: 1,
+   *   run: async ({ data }) => {
+   *     console.log("Updated database items:", data);
+   *   },
+   * });
+   * ```
+   *
+   * @param props
+   */
+  static onUpdatedDatabaseItems(props: OnUpdatedDatabaseItemsProps) {
+    return onUpdatedDatabaseItems(props);
   }
 }

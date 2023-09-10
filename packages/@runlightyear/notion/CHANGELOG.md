@@ -1,5 +1,12 @@
 # @runlightyear/notion
 
+## 0.4.0
+
+### Minor Changes
+
+- Added polling listeners
+- Fixed some bugs with filtering by timestamp
+
 ## 0.3.0
 
 ### Minor Changes

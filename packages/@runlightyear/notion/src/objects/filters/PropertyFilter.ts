@@ -8,8 +8,9 @@ import { PeopleFilterCondition } from "./conditions/PeopleFilterCondition";
 import { RelationFilterCondition } from "./conditions/RelationFilterCondition";
 import { RichTextFilterCondition } from "./conditions/RichTextFilterCondition";
 import { RollupFilterCondition } from "./conditions/RollupFilterCondition";
+import { SelectFilterCondition } from "./conditions/SelectFilterCondition";
 
-export interface TypeFilter {
+export interface PropertyFilter {
   property?: string;
   checkbox?: CheckboxFilterCondition;
   date?: DateFilterCondition;
@@ -21,4 +22,5 @@ export interface TypeFilter {
   relation?: RelationFilterCondition;
   richText?: RichTextFilterCondition;
   rollup?: RollupFilterCondition;
+  select?: SelectFilterCondition;
 }
