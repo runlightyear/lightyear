@@ -6,7 +6,7 @@ export interface ListRepositoriesForAuthenticatedUserProps {
    *
    * Default: all
    */
-  visibility: "all" | "public" | "private";
+  visibility?: "all" | "public" | "private";
   /**
    * Array of values. Can include:
    *
@@ -16,13 +16,13 @@ export interface ListRepositoriesForAuthenticatedUserProps {
    *
    * Default: owner,collaborator,organization_member
    */
-  affiliation: Array<"owner" | "collaborator" | "organization_member">;
+  affiliation?: Array<"owner" | "collaborator" | "organization_member">;
   /**
    * Limit results to repositories of the specified type. Will cause a 422 error if used in the same request as visibility or affiliation.
    *
    * Default: all
    */
-  type: Array<"all" | "owner" | "public" | "private" | "member">;
+  type?: Array<"all" | "owner" | "public" | "private" | "member">;
   /**
    * The property to sort the results by.
    *
@@ -53,7 +53,7 @@ export interface ListRepositoriesForAuthenticatedUserProps {
 
 const listRepositoriesForAuthenticatedUser =
   (self: GitHub) =>
-  async (props: ListRepositoriesForAuthenticatedUserProps) => {
+  async (props?: ListRepositoriesForAuthenticatedUserProps) => {
     const {
       visibility,
       affiliation,
@@ -64,7 +64,7 @@ const listRepositoriesForAuthenticatedUser =
       page,
       since,
       before,
-    } = props;
+    } = props || {};
 
     return await self.get({
       url: `/user/repos`,

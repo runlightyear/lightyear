@@ -28,7 +28,7 @@ export interface UpdateIssueProps {
   /**
    * The reason for the current state
    */
-  stateReason: "completed" | "not_planned" | "repopened" | null;
+  stateReason?: "completed" | "not_planned" | "reopened" | null;
   /**
    * The number of the milestone to associate this issue with or null to remove current.
    *

@@ -10,9 +10,6 @@ import updateIssue, { UpdateIssueProps } from "./issues/updateIssue";
 import createPullRequest, {
   CreatePullRequestProps,
 } from "./pulls/createPullRequest";
-import createReviewCommentForPullRequest, {
-  CreatePullRequestCommentProps,
-} from "./pulls/createReviewCommentForPullRequest";
 import updatePullRequest, {
   UpdatePullRequestProps,
 } from "./pulls/updatePullRequest";
@@ -351,27 +348,6 @@ export class GitHub extends RestConnector {
   }
 
   /**
-   * Create a review comment for a pull request
-   *
-   * @group Pull Request
-   *
-   * Creates a review comment in the pull request diff. To add a regular comment to a pull request timeline, see "Create an issue comment." We recommend creating a review comment using line, side, and optionally start_line and start_side if your comment applies to more than one line in the pull request diff.
-   *
-   * The position parameter is deprecated. If you use position, the line, side, start_line, and start_side parameters are not required.
-   *
-   * Note: The position value equals the number of lines down from the first "@@" hunk header in the file you want to add a comment. The line just below the "@@" line is position 1, the next line is position 2, and so on. The position in the diff continues to increase through lines of whitespace and additional hunks until the beginning of a new file.
-   *
-   * This endpoint triggers notifications. Creating content too quickly using this endpoint may result in secondary rate limiting. See "Secondary rate limits" and "Dealing with secondary rate limits" for details.
-   *
-   * @param props props
-   */
-  async createReviewCommentForPullRequest(
-    props: CreatePullRequestCommentProps
-  ) {
-    return createReviewCommentForPullRequest(this)(props);
-  }
-
-  /**
    * Update a pull request
    *
    * @group Pull Request
@@ -411,7 +387,7 @@ export class GitHub extends RestConnector {
    * @param props props
    */
   async listRepositoriesForAuthenticatedUser(
-    props: ListRepositoriesForAuthenticatedUserProps
+    props?: ListRepositoriesForAuthenticatedUserProps
   ) {
     return listRepositoriesForAuthenticatedUser(this)(props);
   }

@@ -1,4 +1,4 @@
-type WebhookConfig = {
+export type WebhookConfig = {
   /** The URL to which the payloads will be delivered. */
   url: string;
   /** The media type used to serialize the payloads. Supported values
