@@ -1,5 +1,12 @@
 # @runlightyear/github
 
+## 0.20.0
+
+### Minor Changes
+
+- Removed problematic createReviewCommentForPullRequest method for now
+- Fixed some type-related bugs
+
 ## 0.19.7
 
 ### Patch Changes
