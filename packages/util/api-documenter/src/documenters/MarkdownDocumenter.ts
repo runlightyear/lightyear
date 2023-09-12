@@ -1424,8 +1424,7 @@ export class MarkdownDocumenter {
   private _writeBetaWarning(output: DocSection): void {
     const configuration: TSDocConfiguration = this._tsdocConfiguration;
     const betaWarning: string =
-      "This API is provided as a preview for developers and may change" +
-      " based on feedback that we receive.  Do not use this API in a production environment.";
+      "This API is in beta and may contain contain bugs. Can be used in production with caution.";
     output.appendNode(
       new DocNoteBox({ configuration }, [
         new DocParagraph({ configuration }, [
