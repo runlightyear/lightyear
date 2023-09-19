@@ -1,5 +1,12 @@
 # @runlightyear/gsheets
 
+## 0.5.0
+
+### Minor Changes
+
+- Added examples
+- Added onNewRows listener
+
 ## 0.4.4
 
 ### Patch Changes

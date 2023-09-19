@@ -289,12 +289,14 @@ importers:
       eslint: ^7.32.0
       eslint-config-custom: workspace:*
       nodemon: ^2.0.19
+      tiny-invariant: ^1.2.0
       tsconfig: workspace:*
       tsdoc-config: workspace:*
       tsup: ^6.1.3
       typescript: ^4.5.2
     dependencies:
       '@runlightyear/lightyear': link:../lightyear
+      tiny-invariant: 1.3.1
     devDependencies:
       '@microsoft/api-extractor': 7.33.4
       '@types/jest': 28.1.8
@@ -695,7 +697,7 @@ importers:
       eslint: 7.32.0
       eslint-config-next: 12.3.1_3rubbgt5ekhqrcgx4uwls3neim
       eslint-config-prettier: 8.5.0_eslint@7.32.0
-      eslint-config-turbo: 1.10.13_eslint@7.32.0
+      eslint-config-turbo: 1.10.14_eslint@7.32.0
       eslint-plugin-react: 7.31.8_eslint@7.32.0
     devDependencies:
       typescript: 4.8.4
@@ -7330,13 +7332,13 @@ packages:
       eslint: 7.32.0
     dev: false
 
-  /eslint-config-turbo/1.10.13_eslint@7.32.0:
-    resolution: {integrity: sha512-Ffa0SxkRCPMtfUX/HDanEqsWoLwZTQTAXO9W4IsOtycb2MzJDrVcLmoFW5sMwCrg7gjqbrC4ZJoD+1SPPzIVqg==}
+  /eslint-config-turbo/1.10.14_eslint@7.32.0:
+    resolution: {integrity: sha512-ZeB+IcuFXy1OICkLuAplVa0euoYbhK+bMEQd0nH9+Lns18lgZRm33mVz/iSoH9VdUzl/1ZmFmoK+RpZc+8R80A==}
     peerDependencies:
       eslint: '>6.6.0'
     dependencies:
       eslint: 7.32.0
-      eslint-plugin-turbo: 1.10.13_eslint@7.32.0
+      eslint-plugin-turbo: 1.10.14_eslint@7.32.0
     dev: false
 
   /eslint-import-resolver-node/0.3.6:
@@ -7517,8 +7519,8 @@ packages:
       '@microsoft/tsdoc-config': 0.16.2
     dev: true
 
-  /eslint-plugin-turbo/1.10.13_eslint@7.32.0:
-    resolution: {integrity: sha512-el4AAmn0zXmvHEyp1h0IQMfse10Vy8g5Vbg4IU3+vD9CSj5sDbX07iFVt8sCKg7og9Q5FAa9mXzlCf7t4vYgzg==}
+  /eslint-plugin-turbo/1.10.14_eslint@7.32.0:
+    resolution: {integrity: sha512-sBdBDnYr9AjT1g4lR3PBkZDonTrMnR4TvuGv5W0OiF7z9az1rI68yj2UHJZvjkwwcGu5mazWA1AfB0oaagpmfg==}
     peerDependencies:
       eslint: '>6.6.0'
     dependencies:
