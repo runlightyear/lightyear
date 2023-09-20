@@ -7,7 +7,7 @@ import { query, QueryProps } from "./query/query";
 import { describeObject, DescribeObjectProps } from "./describe/describeObject";
 
 /**
- * @beta
+ * @alpha
  */
 export interface SalesforceProps extends AuthConnectorProps {
   domain: string;
@@ -16,7 +16,7 @@ export interface SalesforceProps extends AuthConnectorProps {
 /**
  * Salesforce connector
  *
- * @beta
+ * @alpha
  *
  * @example Install
  * ```

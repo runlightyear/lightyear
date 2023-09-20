@@ -10,14 +10,14 @@ import {
 } from "./listeners/onNewRecordings";
 
 /**
- * @beta
+ * @alpha
  */
 export interface ZoomProps extends AuthConnectorProps {}
 
 /**
  * Zoom Connector
  *
- * @beta
+ * @alpha
  *
  * @example Install
  * ```

@@ -1,12 +1,12 @@
 import { OAuthConnector, OAuthConnectorProps } from "@runlightyear/lightyear";
 
 /**
- * @beta
+ * @alpha
  */
 export interface ZoomOAuthProps extends OAuthConnectorProps {}
 
 /**
- * @beta
+ * @alpha
  */
 export class ZoomOAuth extends OAuthConnector {
   constructor(props: ZoomOAuthProps) {

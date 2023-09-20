@@ -2,7 +2,7 @@ import { OAuthConnector, OAuthConnectorProps } from "@runlightyear/lightyear";
 import { LinearScope } from "./types/LinearScope";
 
 /**
- * @beta
+ * @alpha
  */
 export interface LinearOAuthProps extends OAuthConnectorProps {
   /**
@@ -27,7 +27,7 @@ export interface LinearOAuthProps extends OAuthConnectorProps {
 }
 
 /**
- * @beta
+ * @alpha
  */
 export class LinearOAuth extends OAuthConnector {
   scope: LinearScope[];

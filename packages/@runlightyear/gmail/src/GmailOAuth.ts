@@ -1,12 +1,12 @@
 import { OAuthConnectorProps, OAuthConnector } from "@runlightyear/lightyear";
 
 /**
- * @beta
+ * @alpha
  */
 export interface GmailOAuthProps extends OAuthConnectorProps {}
 
 /**
- * @beta
+ * @alpha
  */
 export class GmailOAuth extends OAuthConnector {
   scopes = [

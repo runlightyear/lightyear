@@ -578,6 +578,12 @@ export class MarkdownDocumenter {
     });
 
     for (const apiMember of apiModel.members) {
+      // skip if no classes
+      const pkg = apiMember.members[0];
+      if (!pkg.members.find((member) => member.kind === ApiItemKind.Class)) {
+        continue;
+      }
+
       const row: DocTableRow = new DocTableRow({ configuration }, [
         this._createTitleCell(apiMember),
         this._createDescriptionCell(apiMember),
