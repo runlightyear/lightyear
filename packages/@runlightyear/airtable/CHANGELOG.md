@@ -1,5 +1,11 @@
 # @runlightyear/airtable
 
+## 0.5.0
+
+### Minor Changes
+
+- 3912db785: Added AirtableRecord type
+
 ## 0.4.0
 
 ### Minor Changes
