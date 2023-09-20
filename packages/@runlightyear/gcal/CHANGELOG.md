@@ -1,5 +1,13 @@
 # @runlightyear/gcal
 
+## 0.7.0
+
+### Minor Changes
+
+- Breaking change: most createEvent and updateEvent moved into event prop
+- Added examples
+- Added getEvent and patchEvent methods
+
 ## 0.6.4
 
 ### Patch Changes

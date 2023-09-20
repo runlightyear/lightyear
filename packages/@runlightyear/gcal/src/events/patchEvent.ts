@@ -1,54 +1,58 @@
-import { HttpProxyResponse } from "@runlightyear/lightyear";
+import {
+  EventResource,
+  EventResourceInput,
+  EventResourcePatchInput,
+} from "../types/EventResource";
 import { GoogleCalendar } from "../GoogleCalendar";
-import { EventResource, EventResourceInput } from "../types/EventResource";
+import { HttpProxyResponse } from "@runlightyear/lightyear";
 
-export interface CreateEventProps {
+export interface PatchEventProps {
   /**
    * Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
    */
   calendarId: "primary" | string;
-
+  /**
+   * Event identifier.
+   */
+  eventId: string;
   /**
    * Version number of conference data supported by the API client. Version 0 assumes no conference data support and ignores conference data in the event's body. Version 1 enables support for copying of ConferenceData as well as for creating new conferences using the createRequest field of conferenceData. The default is 0. Acceptable values are 0 to 1, inclusive.
    */
   conferenceDataVersion?: number;
-
   /**
    * The maximum number of attendees to include in the response. If there are more than the specified number of attendees, only the participant is returned.
    */
   maxAttendees?: number;
-
   /**
-   * Whether to send notifications about the creation of the new event. Note that some emails might still be sent. The default is false.
+   * Guests who should receive notifications about the event update (for example, title changes, etc.).
    *
-   *   Acceptable values are:
-   *     "all": Notifications are sent to all guests.
+   * Acceptable values are:
+   *   "all": Notifications are sent to all guests.
    *   "externalOnly": Notifications are sent to non-Google Calendar guests only.
-   *   "none": No notifications are sent.
-   *   Warning: Using the value none can have significant adverse effects, including events not syncing to external calendars or events being lost altogether for some users. For calendar migration tasks, consider using the events.import method instead.
+   *   "none": No notifications are sent. For calendar migration tasks, consider using the Events.import method instead.
    */
   sendUpdates?: "all" | "externalOnly" | "none";
-
   /**
-   * Whether API client performing operation supports event attachments. Optional. The default is false.
+   * Whether API client performing operation supports event attachments. Optional. The default is False.
    */
   supportsAttachments?: boolean;
 
   /**
-   * The event to create
+   * The new event data
    */
-  event: EventResourceInput;
+  event: EventResourcePatchInput;
 }
 
-export interface CreateEventResponse extends HttpProxyResponse {
+export interface PatchEventResponse extends HttpProxyResponse {
   data: EventResource;
 }
 
-export const createEvent =
+export const patchEvent =
   (self: GoogleCalendar) =>
-  async (props: CreateEventProps): Promise<CreateEventResponse> => {
+  async (props: PatchEventProps): Promise<PatchEventResponse> => {
     const {
       calendarId,
+      eventId,
       conferenceDataVersion,
       maxAttendees,
       sendUpdates,
@@ -56,8 +60,8 @@ export const createEvent =
       event,
     } = props;
 
-    return await self.post({
-      url: `/calendars/${calendarId}/events`,
+    return await self.patch({
+      url: `/calendars/${calendarId}/events/${eventId}`,
       params: {
         conferenceDataVersion,
         maxAttendees,

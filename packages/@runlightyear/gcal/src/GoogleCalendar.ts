@@ -18,56 +18,319 @@ import {
   onUpdatedEvents,
   OnUpdatedEventsProps,
 } from "./listeners/onUpdatedEvents";
+import { patchEvent, PatchEventProps } from "./events/patchEvent";
+import { getEvent, GetEventProps } from "./events/getEvent";
 
 /**
- * @alpha
+ * @beta
  */
 export interface GoogleCalendarProps extends AuthConnectorProps {}
 
 /**
  * Google Calendar connector
  *
- * @alpha
+ * @beta
  *
- * @example Install
- * ```
- * npm install @runlightyear/gcal
- * ```
- *
- * @example Import
- * ```
- * import { GoogleCalendar } from "@runlightyear/gcal";
- * ```
- *
- * @example Use in an action
+ * @example Create an event
  * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GoogleCalendar } from "@runlightyear/gcal";
+ *
+ * function addHours(date: Date, hours: number) {
+ *   return new Date(date.getTime() + hours * 60 * 60 * 1000);
+ * }
+ *
  * defineAction({
- *   name: "gcalExample",
- *   title: "Google Calendar Example",
+ *   name: "createEvent",
+ *   title: "Create Event",
  *   apps: ["gcal"],
- *   run: async ({ auths }) => {
+ *   variables: ["calendarId?", "summary"],
+ *   run: async ({ auths, variables }) => {
  *     const gcal = new GoogleCalendar({
  *       auth: auths.gcal,
  *     });
- *   },
- * });
- *```
  *
- * @example Get updated events every minute
- * ```typescript
- * GoogleCalendar.onUpdatedEvents({
- *   name: "updatedCalendarEvents",
- *   title: "Updated Calendar Events",
- *   calendarId: "primary",
- *   trigger: {
- *     pollingFrequency: 1,  // Run once a minute
- *   },
- *   run: async ({ data: events }) => {
- *     console.log("Updated events", events);
+ *     const response = await gcal.createEvent({
+ *       calendarId: variables.calendarId || "primary",
+ *       event: {
+ *         summary: variables.summary!,
+ *         start: {
+ *           dateTime: addHours(new Date(), 1).toISOString(),
+ *         },
+ *         end: {
+ *           dateTime: addHours(new Date(), 2).toISOString(),
+ *         },
+ *       },
+ *     });
+ *
+ *     console.log("Response: ", response.data);
  *   },
  * });
  * ```
- * */
+ *
+ * @example Create an event with attendees
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GoogleCalendar } from "@runlightyear/gcal";
+ *
+ * function addHours(date: Date, hours: number) {
+ *   return new Date(date.getTime() + hours * 60 * 60 * 1000);
+ * }
+ *
+ * defineAction({
+ *   name: "createEventWithAttendees",
+ *   title: "Create Event with Attendees",
+ *   apps: ["gcal"],
+ *   variables: ["calendarId?", "summary", "attendees"],
+ *   run: async ({ auths, variables }) => {
+ *     const gcal = new GoogleCalendar({
+ *       auth: auths.gcal,
+ *     });
+ *
+ *     const attendees = variables.attendees!.split(",");
+ *
+ *     const response = await gcal.createEvent({
+ *       calendarId: variables.calendarId || "primary",
+ *       event: {
+ *         summary: variables.summary!,
+ *         start: {
+ *           dateTime: addHours(new Date(), 1).toISOString(),
+ *         },
+ *         end: {
+ *           dateTime: addHours(new Date(), 2).toISOString(),
+ *         },
+ *         attendees: attendees.map((email) => ({
+ *           email,
+ *         })),
+ *       },
+ *     });
+ *
+ *     console.log("Response: ", response.data);
+ *   },
+ * });
+ * ```
+ *
+ * @example Create an all-day event
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GoogleCalendar } from "@runlightyear/gcal";
+ *
+ * function tomorrow() {
+ *   const date = new Date();
+ *   date.setDate(date.getDate() + 1);
+ *   return date.toISOString().split("T")[0];
+ * }
+ *
+ * defineAction({
+ *   name: "createAllDayEvent",
+ *   title: "Create All Day Event",
+ *   apps: ["gcal"],
+ *   variables: ["calendarId?", "summary"],
+ *   run: async ({ auths, variables }) => {
+ *     const gcal = new GoogleCalendar({
+ *       auth: auths.gcal,
+ *     });
+ *
+ *     const response = await gcal.createEvent({
+ *       calendarId: variables.calendarId || "primary",
+ *       event: {
+ *         summary: variables.summary!,
+ *         start: {
+ *           date: tomorrow(),
+ *         },
+ *         end: {
+ *           date: tomorrow(),
+ *         },
+ *       },
+ *     });
+ *
+ *     console.log("Response: ", response.data);
+ *   },
+ * });
+ * ```
+ *
+ * @example List upcoming events
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GoogleCalendar } from "@runlightyear/gcal";
+ *
+ * function addDays(date: Date, days: number) {
+ *   return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
+ * }
+ *
+ * defineAction({
+ *   name: "listUpcomingEvents",
+ *   title: "List Upcoming Events",
+ *   apps: ["gcal"],
+ *   variables: ["calendarId?"],
+ *   run: async ({ auths, variables }) => {
+ *     const gcal = new GoogleCalendar({
+ *       auth: auths.gcal,
+ *     });
+ *
+ *     const response = await gcal.listEvents({
+ *       calendarId: variables.calendarId || "primary",
+ *       timeMin: new Date().toISOString(),
+ *       timeMax: addDays(new Date(), 2).toISOString(),
+ *     });
+ *
+ *     console.log("Response: ", response.data);
+ *   },
+ * });
+ * ```
+ *
+ * @example Get an event
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GoogleCalendar } from "@runlightyear/gcal";
+ *
+ * defineAction({
+ *   name: "getEvent",
+ *   title: "Get Event",
+ *   apps: ["gcal"],
+ *   variables: ["calendarId?", "eventId"],
+ *   run: async ({ auths, variables }) => {
+ *     const gcal = new GoogleCalendar({
+ *       auth: auths.gcal,
+ *     });
+ *
+ *     const response = await gcal.getEvent({
+ *       calendarId: variables.calendarId || "primary",
+ *       eventId: variables.eventId!,
+ *     });
+ *
+ *     console.log("Response: ", response.data);
+ *   },
+ * });
+ * ```
+ *
+ * @example Patch event summary
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GoogleCalendar } from "@runlightyear/gcal";
+ *
+ * defineAction({
+ *   name: "patchEventSummary",
+ *   title: "Patch Event Summary",
+ *   apps: ["gcal"],
+ *   variables: ["calendarId?", "eventId", "summary"],
+ *   run: async ({ auths, variables }) => {
+ *     const gcal = new GoogleCalendar({
+ *       auth: auths.gcal,
+ *     });
+ *
+ *     const response = await gcal.patchEvent({
+ *       calendarId: variables.calendarId || "primary",
+ *       eventId: variables.eventId!,
+ *       event: {
+ *         summary: variables.summary!,
+ *       },
+ *     });
+ *
+ *     console.log("Response: ", response.data);
+ *   },
+ * });
+ * ```
+ *
+ * @example Patch event attendees
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GoogleCalendar } from "@runlightyear/gcal";
+ *
+ * defineAction({
+ *   name: "addEventAttendee",
+ *   title: "Add Event Attendee",
+ *   apps: ["gcal"],
+ *   variables: ["calendarId?", "eventId", "attendee"],
+ *   run: async ({ auths, variables }) => {
+ *     const gcal = new GoogleCalendar({
+ *       auth: auths.gcal,
+ *     });
+ *
+ *     const getEventResponse = await gcal.getEvent({
+ *       calendarId: variables.calendarId || "primary",
+ *       eventId: variables.eventId!,
+ *     });
+ *
+ *     const event = getEventResponse.data;
+ *
+ *     const response = await gcal.patchEvent({
+ *       calendarId: variables.calendarId || "primary",
+ *       eventId: variables.eventId!,
+ *       event: {
+ *         attendees: [...event.attendees, { email: variables.attendee! }],
+ *       },
+ *     });
+ *
+ *     console.log("Response: ", response.data);
+ *   },
+ * });
+ * ```
+ *
+ * @example Update event
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GoogleCalendar } from "@runlightyear/gcal";
+ *
+ * function addHours(date: Date, hours: number) {
+ *   return new Date(date.getTime() + hours * 60 * 60 * 1000);
+ * }
+ *
+ * defineAction({
+ *   name: "updateEvent",
+ *   title: "Update Event",
+ *   apps: ["gcal"],
+ *   variables: ["calendarId?", "eventId", "summary"],
+ *   run: async ({ auths, variables }) => {
+ *     const gcal = new GoogleCalendar({
+ *       auth: auths.gcal,
+ *     });
+ *
+ *     const response = await gcal.updateEvent({
+ *       calendarId: variables.calendarId || "primary",
+ *       eventId: variables.eventId!,
+ *       event: {
+ *         summary: variables.summary!,
+ *         start: {
+ *           dateTime: addHours(new Date(), 2).toISOString(),
+ *         },
+ *         end: {
+ *           dateTime: addHours(new Date(), 3).toISOString(),
+ *         },
+ *       },
+ *     });
+ *
+ *     console.log("Response: ", response.data);
+ *   },
+ * });
+ * ```
+ *
+ * @example Delete event
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GoogleCalendar } from "@runlightyear/gcal";
+ *
+ * defineAction({
+ *   name: "deleteEvent",
+ *   title: "Delete Event",
+ *   apps: ["gcal"],
+ *   variables: ["calendarId?", "eventId"],
+ *   run: async ({ auths, variables }) => {
+ *     const gcal = new GoogleCalendar({
+ *       auth: auths.gcal,
+ *     });
+ *
+ *     const response = await gcal.deleteEvent({
+ *       calendarId: variables.calendarId || "primary",
+ *       eventId: variables.eventId!,
+ *     });
+ *
+ *     console.log("Response: ", response.data);
+ *   },
+ * });
+ * ```
+ *
+ */
 export class GoogleCalendar extends RestConnector {
   constructor(props: GoogleCalendarProps) {
     super({ ...props, baseUrl: "https://www.googleapis.com/calendar/v3" });
@@ -75,6 +338,8 @@ export class GoogleCalendar extends RestConnector {
 
   /**
    * Returns the calendars on the user's calendar list.
+   *
+   * @alpha
    *
    * @group Calendar
    *
@@ -86,6 +351,8 @@ export class GoogleCalendar extends RestConnector {
 
   /**
    * Creates a secondary calendar.
+   *
+   * @alpha
    *
    * @group Calendar
    *
@@ -100,6 +367,36 @@ export class GoogleCalendar extends RestConnector {
    *
    * @group Event
    *
+   * @example List upcoming events
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   *
+   * function addDays(date: Date, days: number) {
+   *   return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
+   * }
+   *
+   * defineAction({
+   *   name: "listUpcomingEvents",
+   *   title: "List Upcoming Events",
+   *   apps: ["gcal"],
+   *   variables: ["calendarId?"],
+   *   run: async ({ auths, variables }) => {
+   *     const gcal = new GoogleCalendar({
+   *       auth: auths.gcal,
+   *     });
+   *
+   *     const response = await gcal.listEvents({
+   *       calendarId: variables.calendarId || "primary",
+   *       timeMin: new Date().toISOString(),
+   *       timeMax: addDays(new Date(), 2).toISOString(),
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   *
    * @param props
    */
   async listEvents(props: ListEventsProps) {
@@ -111,6 +408,124 @@ export class GoogleCalendar extends RestConnector {
    *
    * @group Event
    *
+   * @example Create an event
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   *
+   * function addHours(date: Date, hours: number) {
+   *   return new Date(date.getTime() + hours * 60 * 60 * 1000);
+   * }
+   *
+   * defineAction({
+   *   name: "createEvent",
+   *   title: "Create Event",
+   *   apps: ["gcal"],
+   *   variables: ["calendarId?", "summary"],
+   *   run: async ({ auths, variables }) => {
+   *     const gcal = new GoogleCalendar({
+   *       auth: auths.gcal,
+   *     });
+   *
+   *     const response = await gcal.createEvent({
+   *       calendarId: variables.calendarId || "primary",
+   *       event: {
+   *         summary: variables.summary!,
+   *         start: {
+   *           dateTime: addHours(new Date(), 1).toISOString(),
+   *         },
+   *         end: {
+   *           dateTime: addHours(new Date(), 2).toISOString(),
+   *         },
+   *       },
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   *
+   * @example Create an event with attendees
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   *
+   * function addHours(date: Date, hours: number) {
+   *   return new Date(date.getTime() + hours * 60 * 60 * 1000);
+   * }
+   *
+   * defineAction({
+   *   name: "createEventWithAttendees",
+   *   title: "Create Event with Attendees",
+   *   apps: ["gcal"],
+   *   variables: ["calendarId?", "summary", "attendees"],
+   *   run: async ({ auths, variables }) => {
+   *     const gcal = new GoogleCalendar({
+   *       auth: auths.gcal,
+   *     });
+   *
+   *     const attendees = variables.attendees!.split(",");
+   *
+   *     const response = await gcal.createEvent({
+   *       calendarId: variables.calendarId || "primary",
+   *       event: {
+   *         summary: variables.summary!,
+   *         start: {
+   *           dateTime: addHours(new Date(), 1).toISOString(),
+   *         },
+   *         end: {
+   *           dateTime: addHours(new Date(), 2).toISOString(),
+   *         },
+   *         attendees: attendees.map((email) => ({
+   *           email,
+   *         })),
+   *       },
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   *
+   * @example Create an all-day event
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   *
+   * function tomorrow() {
+   *   const date = new Date();
+   *   date.setDate(date.getDate() + 1);
+   *   return date.toISOString().split("T")[0];
+   * }
+   *
+   * defineAction({
+   *   name: "createAllDayEvent",
+   *   title: "Create All Day Event",
+   *   apps: ["gcal"],
+   *   variables: ["calendarId?", "summary"],
+   *   run: async ({ auths, variables }) => {
+   *     const gcal = new GoogleCalendar({
+   *       auth: auths.gcal,
+   *     });
+   *
+   *     const response = await gcal.createEvent({
+   *       calendarId: variables.calendarId || "primary",
+   *       event: {
+   *         summary: variables.summary!,
+   *         start: {
+   *           date: tomorrow(),
+   *         },
+   *         end: {
+   *           date: tomorrow(),
+   *         },
+   *       },
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   *
    * @param props
    */
   async createEvent(props: CreateEventProps) {
@@ -118,9 +533,81 @@ export class GoogleCalendar extends RestConnector {
   }
 
   /**
+   * Get an event.
+   *
+   * @group Event
+   *
+   * @example Get an event
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   *
+   * defineAction({
+   *   name: "getEvent",
+   *   title: "Get Event",
+   *   apps: ["gcal"],
+   *   variables: ["calendarId?", "eventId"],
+   *   run: async ({ auths, variables }) => {
+   *     const gcal = new GoogleCalendar({
+   *       auth: auths.gcal,
+   *     });
+   *
+   *     const response = await gcal.getEvent({
+   *       calendarId: variables.calendarId || "primary",
+   *       eventId: variables.eventId!,
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   */
+  async getEvent(props: GetEventProps) {
+    return getEvent(this)(props);
+  }
+
+  /**
    * Updates an event. This method does not support patch semantics and always updates the entire event resource. To do a partial update, perform a get followed by an update using etags to ensure atomicity.
    *
    * @group Event
+   *
+   * @example Update event
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   *
+   * function addHours(date: Date, hours: number) {
+   *   return new Date(date.getTime() + hours * 60 * 60 * 1000);
+   * }
+   *
+   * defineAction({
+   *   name: "updateEvent",
+   *   title: "Update Event",
+   *   apps: ["gcal"],
+   *   variables: ["calendarId?", "eventId", "summary"],
+   *   run: async ({ auths, variables }) => {
+   *     const gcal = new GoogleCalendar({
+   *       auth: auths.gcal,
+   *     });
+   *
+   *     const response = await gcal.updateEvent({
+   *       calendarId: variables.calendarId || "primary",
+   *       eventId: variables.eventId!,
+   *       event: {
+   *         summary: variables.summary!,
+   *         start: {
+   *           dateTime: addHours(new Date(), 2).toISOString(),
+   *         },
+   *         end: {
+   *           dateTime: addHours(new Date(), 3).toISOString(),
+   *         },
+   *       },
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
    *
    * @param props
    */
@@ -129,9 +616,136 @@ export class GoogleCalendar extends RestConnector {
   }
 
   /**
+   * Patch an event.
+   *
+   * @group Event
+   *
+   * @example Patch event summary
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   *
+   * defineAction({
+   *   name: "patchEventSummary",
+   *   title: "Patch Event Summary",
+   *   apps: ["gcal"],
+   *   variables: ["calendarId?", "eventId", "summary"],
+   *   run: async ({ auths, variables }) => {
+   *     const gcal = new GoogleCalendar({
+   *       auth: auths.gcal,
+   *     });
+   *
+   *     const response = await gcal.patchEvent({
+   *       calendarId: variables.calendarId || "primary",
+   *       eventId: variables.eventId!,
+   *       event: {
+   *         summary: variables.summary!,
+   *       },
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   *
+   * @example Patch event attendees
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   *
+   * defineAction({
+   *   name: "patchEventAttendees",
+   *   title: "Patch Event Attendees",
+   *   apps: ["gcal"],
+   *   variables: ["calendarId?", "eventId", "attendees"],
+   *   run: async ({ auths, variables }) => {
+   *     const gcal = new GoogleCalendar({
+   *       auth: auths.gcal,
+   *     });
+   *
+   *     const attendees = variables.attendees!.split(",");
+   *
+   *     const response = await gcal.patchEvent({
+   *       calendarId: variables.calendarId || "primary",
+   *       eventId: variables.eventId!,
+   *       event: {
+   *         attendees: attendees.map((email) => ({ email })),
+   *       },
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   *
+   * @example Add event attendee
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   *
+   * defineAction({
+   *   name: "addEventAttendee",
+   *   title: "Add Event Attendee",
+   *   apps: ["gcal"],
+   *   variables: ["calendarId?", "eventId", "attendee"],
+   *   run: async ({ auths, variables }) => {
+   *     const gcal = new GoogleCalendar({
+   *       auth: auths.gcal,
+   *     });
+   *
+   *     const getEventResponse = await gcal.getEvent({
+   *       calendarId: variables.calendarId || "primary",
+   *       eventId: variables.eventId!,
+   *     });
+   *
+   *     const event = getEventResponse.data;
+   *
+   *     const response = await gcal.patchEvent({
+   *       calendarId: variables.calendarId || "primary",
+   *       eventId: variables.eventId!,
+   *       event: {
+   *         attendees: [...event.attendees, { email: variables.attendee! }],
+   *       },
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   */
+  async patchEvent(props: PatchEventProps) {
+    return patchEvent(this)(props);
+  }
+
+  /**
    * Deletes an event.
    *
    * @group Event
+   *
+   * @example Delete event
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   *
+   * defineAction({
+   *   name: "deleteEvent",
+   *   title: "Delete Event",
+   *   apps: ["gcal"],
+   *   variables: ["calendarId?", "eventId"],
+   *   run: async ({ auths, variables }) => {
+   *     const gcal = new GoogleCalendar({
+   *       auth: auths.gcal,
+   *     });
+   *
+   *     const response = await gcal.deleteEvent({
+   *       calendarId: variables.calendarId || "primary",
+   *       eventId: variables.eventId!,
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
    *
    * @param props
    */
@@ -172,6 +786,8 @@ export class GoogleCalendar extends RestConnector {
 
   /**
    * Updated Events Listener
+   *
+   * @alpha
    *
    * @group Listener
    *
