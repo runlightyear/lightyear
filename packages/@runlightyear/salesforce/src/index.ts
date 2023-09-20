@@ -1,3 +1,11 @@
+/**
+ * Salesforce Connectors for Lightyear
+ *
+ * @alpha
+ *
+ * @packageDocumentation
+ */
+
 export { Salesforce } from "./Salesforce";
 export type { SalesforceProps } from "./Salesforce";
 

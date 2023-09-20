@@ -11,7 +11,7 @@ import { dayjsUtc } from "@runlightyear/lightyear";
 export interface SalesforceOAuthProps extends OAuthConnectorProps {}
 
 /**
- * @beta
+ * @alpha
  */
 export class SalesforceOAuth extends OAuthConnector {
   scopes = ["full", "refresh_token"];

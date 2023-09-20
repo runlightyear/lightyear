@@ -1,12 +1,12 @@
 import { AuthConnectorProps, RestConnector } from "@runlightyear/lightyear";
 
 /**
- * @beta
+ * @alpha
  */
 export interface GmailProps extends AuthConnectorProps {}
 
 /**
- * @beta
+ * @alpha
  */
 export class Gmail extends RestConnector {
   constructor(props: GmailProps) {

@@ -20,14 +20,14 @@ import {
 } from "./listeners/onUpdatedEvents";
 
 /**
- * @beta
+ * @alpha
  */
 export interface GoogleCalendarProps extends AuthConnectorProps {}
 
 /**
  * Google Calendar connector
  *
- * @beta
+ * @alpha
  *
  * @example Install
  * ```
