@@ -35,110 +35,194 @@ export interface AirtableProps extends AuthConnectorProps {}
  *
  * @example Create a single record
  * ```typescript
- * const result = await airtable.createRecords({
- *   baseId: "baseId",
- *   tableIdOrName: "tableIdOrName",
- *   fields: {
- *     Name: "North Beach",
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { Airtable } from "@runlightyear/airtable";
+ *
+ * defineAction({
+ *   name: "createSingleRecord",
+ *   title: "Create Single Record",
+ *   apps: ["airtable"],
+ *   variables: ["baseId", "tableIdOrName", "name"],
+ *   run: async ({ auths, variables }) => {
+ *     const airtable = new Airtable({
+ *       auth: auths.airtable,
+ *     });
+ *     const response = await airtable.createRecords({
+ *       baseId: variables.baseId!,
+ *       tableIdOrName: variables.tableIdOrName!,
+ *       fields: {
+ *         Name: variables.name!,
+ *       },
+ *     });
+ *
+ *     console.log("Record: ", response.data);
  *   },
  * });
- *
- * if ("id" in result.data) {
- *   console.log("Created record", result.data.id);
- * }
  * ```
  *
  * @example Create multiple records
  * ```typescript
- * const result = await airtable.createRecords({
- *   baseId: "baseId",
- *   tableIdOrName: "tableIdOrName",
- *   records: [
- *     {
- *       fields: {
- *         Name: "Union Square",
- *       },
- *     },
- *     {
- *       fields: {
- *         Name: "Ferry Building",
- *       },
- *     },
- *   ],
- * });
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { Airtable } from "@runlightyear/airtable";
  *
- * if ("records" in result.data) {
- *   console.log(
- *     "Created records",
- *     result.data.records.map((record) => record.id)
- *   );
- * }
+ * defineAction({
+ *   name: "createMultipleRecords",
+ *   title: "Create Multiple Records",
+ *   apps: ["airtable"],
+ *   variables: ["baseId", "tableIdOrName"],
+ *   run: async ({ auths, variables }) => {
+ *     const airtable = new Airtable({
+ *       auth: auths.airtable,
+ *     });
+ *
+ *     const response = await airtable.createRecords({
+ *       baseId: variables.baseId!,
+ *       tableIdOrName: variables.tableIdOrName!,
+ *       records: [
+ *         {
+ *           fields: {
+ *             Name: "Union Square",
+ *           },
+ *         },
+ *         {
+ *           fields: {
+ *             Name: "Ferry Building",
+ *           },
+ *         },
+ *       ],
+ *     });
+ *
+ *     console.log("Response: ", response.data);
+ *   },
+ * });
  * ```
  *
  * @example Get a record
  * ```typescript
- * const result = await airtable.getRecord({
- *   baseId: "baseId",
- *   tableIdOrName: "tableIdOrName",
- *   recordId: "recordId",
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { Airtable } from "@runlightyear/airtable";
+ *
+ * defineAction({
+ *   name: "getRecord",
+ *   title: "Get Record",
+ *   apps: ["airtable"],
+ *   variables: ["baseId", "tableIdOrName", "recordId"],
+ *   run: async ({ auths, variables }) => {
+ *     const airtable = new Airtable({
+ *       auth: auths.airtable,
+ *     });
+ *
+ *     const response = await airtable.getRecord({
+ *       baseId: variables.baseId!,
+ *       tableIdOrName: variables.tableIdOrName!,
+ *       recordId: variables.recordId!,
+ *     });
+ *
+ *     console.log("Response: ", response.data);
+ *   },
  * });
- * console.log("Record: ", result.data);
  * ```
  *
  * @example Update a record
  * ```typescript
- * const result = await airtable.updateRecord({
- *   baseId: "baseId",
- *   tableIdOrName: "tableIdOrName",
- *   recordId: "recordId",
- *   fields: {
- *     Name: "Russian Hill",
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { Airtable } from "@runlightyear/airtable";
+ *
+ * defineAction({
+ *   name: "updateRecord",
+ *   title: "Update Record",
+ *   apps: ["airtable"],
+ *   variables: ["baseId", "tableIdOrName", "recordId", "name"],
+ *   run: async ({ auths, variables }) => {
+ *     const airtable = new Airtable({
+ *       auth: auths.airtable,
+ *     });
+ *
+ *     const response = await airtable.updateRecord({
+ *       baseId: variables.baseId!,
+ *       tableIdOrName: variables.tableIdOrName!,
+ *       recordId: variables.recordId!,
+ *       fields: {
+ *         Name: variables.name!,
+ *       },
+ *     });
+ *
+ *     console.log("Response: ", response.data);
  *   },
  * });
- * console.log("New record: ", result.data);
  * ```
  *
  * @example Delete a record
  * ```typescript
- * const result = await airtable.deleteRecord({
- *   baseId: "baseId",
- *   tableIdOrName: "tableIdOrName",
- *   recordId: "recordId",
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { Airtable } from "@runlightyear/airtable";
+ *
+ * defineAction({
+ *   name: "deleteRecord",
+ *   title: "Delete Record",
+ *   apps: ["airtable"],
+ *   variables: ["baseId", "tableIdOrName", "recordId"],
+ *   run: async ({ auths, variables }) => {
+ *     const airtable = new Airtable({
+ *       auth: auths.airtable,
+ *     });
+ *
+ *     const response = await airtable.deleteRecord({
+ *       baseId: variables.baseId!,
+ *       tableIdOrName: variables.tableIdOrName!,
+ *       recordId: variables.recordId!,
+ *     });
+ *
+ *     console.log("Response: ", response.data);
+ *   },
  * });
- * if (result.data.deleted) {
- *   console.log("Deleted record", result.data.id);
- * }
  * ```
  *
  * @example List records
  * ```typescript
- * const result = await airtable.listRecords({
- *   baseId: "baseId",
- *   tableIdOrName: "tableIdOrName",
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { Airtable } from "@runlightyear/airtable";
+ *
+ * defineAction({
+ *   name: "listRecords",
+ *   title: "List Records",
+ *   apps: ["airtable"],
+ *   variables: ["baseId", "tableIdOrName"],
+ *   run: async ({ auths, variables }) => {
+ *     const airtable = new Airtable({
+ *       auth: auths.airtable,
+ *     });
+ *
+ *     const response = await airtable.listRecords({
+ *       baseId: variables.baseId!,
+ *       tableIdOrName: variables.tableIdOrName!,
+ *       recordMetadata: ["commentCount"],
+ *     });
+ *
+ *     console.log("Response: ", response.data);
+ *   },
  * });
- * const records = result.data.records;
- * console.log(
- *   "Names: ",
- *   records.map((record) => record.fields["Name"])
- * );
+ *
+ * @example Who am I?
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { Airtable } from "@runlightyear/airtable";
+ *
+ * defineAction({
+ *   name: "whoami",
+ *   title: "Who Am I?",
+ *   apps: ["airtable"],
+ *   run: async ({ auths, variables }) => {
+ *     const airtable = new Airtable({ auth: auths.airtable });
+ *
+ *     const response = await airtable.whoami();
+ *
+ *     console.log("Response: ", response.data);
+ *   },
+ * });
  * ```
  */
 export class Airtable extends RestConnector {
-  /**
-   * @example Use in an action
-   * ```typescript
-   * defineAction({
-   *   name: "airtableExample",
-   *   title: "Airtable Example"
-   *   apps: ["airtable"],
-   *   run: async ({ auths }) => {
-   *     const airtable = new Airtable({ auth: auths.airtable });
-   *   }
-   * }
-   * ```
-   *
-   * @param props
-   */
   constructor(props: AirtableProps) {
     super({
       ...props,
@@ -154,8 +238,21 @@ export class Airtable extends RestConnector {
    *
    * @example Who am I?
    * ```typescript
-   * const result = await airtable.whoami();
-   * console.log("User: ", result.data);
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { Airtable } from "@runlightyear/airtable";
+   *
+   * defineAction({
+   *   name: "whoami",
+   *   title: "Who Am I?",
+   *   apps: ["airtable"],
+   *   run: async ({ auths, variables }) => {
+   *     const airtable = new Airtable({ auth: auths.airtable });
+   *
+   *     const response = await airtable.whoami();
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
    * ```
    *
    */
@@ -180,15 +277,28 @@ export class Airtable extends RestConnector {
    *
    * @example List records
    * ```typescript
-   * const result = await airtable.listRecords({
-   *   baseId: "baseId",
-   *   tableIdOrName: "tableIdOrName",
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { Airtable } from "@runlightyear/airtable";
+   *
+   * defineAction({
+   *   name: "listRecords",
+   *   title: "List Records",
+   *   apps: ["airtable"],
+   *   variables: ["baseId", "tableIdOrName"],
+   *   run: async ({ auths, variables }) => {
+   *     const airtable = new Airtable({
+   *       auth: auths.airtable,
+   *     });
+   *
+   *     const response = await airtable.listRecords({
+   *       baseId: variables.baseId!,
+   *       tableIdOrName: variables.tableIdOrName!,
+   *       recordMetadata: ["commentCount"],
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
    * });
-   * const records = result.data.records;
-   * console.log(
-   *   "Names: ",
-   *   records.map((record) => record.fields["Name"])
-   * );
    * ```
    *
    * @param props
@@ -212,44 +322,67 @@ export class Airtable extends RestConnector {
    *
    * @example Create a single record
    * ```typescript
-   * const result = await airtable.createRecords({
-   *   baseId: "baseId",
-   *   tableIdOrName: "tableIdOrName",
-   *   fields: {
-   *     Name: "North Beach",
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { Airtable } from "@runlightyear/airtable";
+   *
+   * defineAction({
+   *   name: "createSingleRecord",
+   *   title: "Create Single Record",
+   *   apps: ["airtable"],
+   *   variables: ["baseId", "tableIdOrName", "name"],
+   *   run: async ({ auths, variables }) => {
+   *     const airtable = new Airtable({
+   *       auth: auths.airtable,
+   *     });
+   *
+   *     const response = await airtable.createRecords({
+   *       baseId: variables.baseId!,
+   *       tableIdOrName: variables.tableIdOrName!,
+   *       fields: {
+   *         Name: variables.name!,
+   *       },
+   *     });
+   *
+   *     console.log("Record: ", response.data);
    *   },
    * });
-   *
-   * if ("id" in result.data) {
-   *   console.log("Created record", result.data.id);
-   * }
    * ```
    *
    * @example Create multiple records
    * ```typescript
-   * const result = await airtable.createRecords({
-   *   baseId: "baseId",
-   *   tableIdOrName: "tableIdOrName",
-   *   records: [
-   *     {
-   *       fields: {
-   *         Name: "Union Square",
-   *       },
-   *     },
-   *     {
-   *       fields: {
-   *         Name: "Ferry Building",
-   *       },
-   *     },
-   *   ],
-   * });
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { Airtable } from "@runlightyear/airtable";
    *
-   * if ("records" in result.data) {
-   *   console.log(
-   *     "Created records",
-   *     result.data.records.map((record) => record.id)
-   *   );
-   * }
+   * defineAction({
+   *   name: "createMultipleRecords",
+   *   title: "Create Multiple Records",
+   *   apps: ["airtable"],
+   *   variables: ["baseId", "tableIdOrName"],
+   *   run: async ({ auths, variables }) => {
+   *     const airtable = new Airtable({
+   *       auth: auths.airtable,
+   *     });
+   *
+   *     const response = await airtable.createRecords({
+   *       baseId: variables.baseId!,
+   *       tableIdOrName: variables.tableIdOrName!,
+   *       records: [
+   *         {
+   *           fields: {
+   *             Name: "Union Square",
+   *           },
+   *         },
+   *         {
+   *           fields: {
+   *             Name: "Ferry Building",
+   *           },
+   *         },
+   *       ],
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
    * ```
    */
   async createRecords(props: CreateRecordsProps) {
@@ -265,12 +398,28 @@ export class Airtable extends RestConnector {
    *
    * @example Get a record
    * ```typescript
-   * const result = await airtable.getRecord({
-   *   baseId: "baseId",
-   *   tableIdOrName: "tableIdOrName",
-   *   recordId: "recordId",
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { Airtable } from "@runlightyear/airtable";
+   *
+   * defineAction({
+   *   name: "getRecord",
+   *   title: "Get Record",
+   *   apps: ["airtable"],
+   *   variables: ["baseId", "tableIdOrName", "recordId"],
+   *   run: async ({ auths, variables }) => {
+   *     const airtable = new Airtable({
+   *       auth: auths.airtable,
+   *     });
+   *
+   *     const response = await airtable.getRecord({
+   *       baseId: variables.baseId!,
+   *       tableIdOrName: variables.tableIdOrName!,
+   *       recordId: variables.recordId!,
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
    * });
-   * console.log("Record: ", result.data);
    * ```
    */
   async getRecord(props: GetRecordProps) {
@@ -290,15 +439,31 @@ export class Airtable extends RestConnector {
    *
    * @example Update a record
    * ```typescript
-   * const result = await airtable.updateRecord({
-   *   baseId: "baseId",
-   *   tableIdOrName: "tableIdOrName",
-   *   recordId: "recordId",
-   *   fields: {
-   *     Name: "Russian Hill",
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { Airtable } from "@runlightyear/airtable";
+   *
+   * defineAction({
+   *   name: "updateRecord",
+   *   title: "Update Record",
+   *   apps: ["airtable"],
+   *   variables: ["baseId", "tableIdOrName", "recordId", "name"],
+   *   run: async ({ auths, variables }) => {
+   *     const airtable = new Airtable({
+   *       auth: auths.airtable,
+   *     });
+   *
+   *     const response = await airtable.updateRecord({
+   *       baseId: variables.baseId!,
+   *       tableIdOrName: variables.tableIdOrName!,
+   *       recordId: variables.recordId!,
+   *       fields: {
+   *         Name: variables.name!,
+   *       },
+   *     });
+   *
+   *     console.log("Response: ", response.data);
    *   },
    * });
-   * console.log("New record: ", result.data);
    * ```
    */
   async updateRecord(props: UpdateRecordProps) {
@@ -314,14 +479,28 @@ export class Airtable extends RestConnector {
    *
    * @example Delete a record
    * ```typescript
-   * const result = await airtable.deleteRecord({
-   *   baseId: "baseId",
-   *   tableIdOrName: "tableIdOrName",
-   *   recordId: "recordId",
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { Airtable } from "@runlightyear/airtable";
+   *
+   * defineAction({
+   *   name: "deleteRecord",
+   *   title: "Delete Record",
+   *   apps: ["airtable"],
+   *   variables: ["baseId", "tableIdOrName", "recordId"],
+   *   run: async ({ auths, variables }) => {
+   *     const airtable = new Airtable({
+   *       auth: auths.airtable,
+   *     });
+   *
+   *     const response = await airtable.deleteRecord({
+   *       baseId: variables.baseId!,
+   *       tableIdOrName: variables.tableIdOrName!,
+   *       recordId: variables.recordId!,
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
    * });
-   * if (result.data.deleted) {
-   *   console.log("Deleted record", result.data.id);
-   * }
    * ```
    */
   async deleteRecord(props: DeleteRecordProps) {
