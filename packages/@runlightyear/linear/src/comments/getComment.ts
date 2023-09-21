@@ -1,6 +1,5 @@
 import { LinearID } from "../types/LinearID";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
-import { DateTime } from "../types/DateTime";
 import { Linear } from "../Linear";
 import { CommentResponse, commentResponseFields } from "./CommentResponse";
 
@@ -9,7 +8,7 @@ export interface GetCommentProps {
 }
 
 const query = `
-query GetComment($id: ID) {
+query GetComment($id: String!) {
   comment(id: $id) {
     ${commentResponseFields}
   }
@@ -29,6 +28,6 @@ export const getComment =
 
     return {
       ...response,
-      data: response.data.comment,
+      data: response.data.data.comment,
     };
   };

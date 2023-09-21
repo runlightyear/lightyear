@@ -9,37 +9,37 @@ export interface ListUsersProps {
   /**
    * Filter returned users.
    */
-  filter: UserFilter;
+  filter?: UserFilter;
 
   /**
    * A cursor to be used with last for backward pagination.
    */
-  before: string;
+  before?: string;
 
   /**
    * A cursor to be used with first for forward pagination
    */
-  after: string;
+  after?: string;
 
   /**
    * The number of items to forward paginate (used with after). Defaults to 50.
    */
-  first: number;
+  first?: number;
 
   /**
    * The number of items to backward paginate (used with before). Defaults to 50.
    */
-  last: number;
+  last?: number;
 
   /**
    * Should archived resources be included (default: false)
    */
-  includeArchived: boolean;
+  includeArchived?: boolean;
 
   /**
    * By which field should the pagination order by. Available options are createdAt (default) and updatedAt.
    */
-  orderBy: PaginationOrderBy;
+  orderBy?: PaginationOrderBy;
 }
 
 const query = `
@@ -67,7 +67,7 @@ export interface ListUsersResponse extends HttpProxyResponse {
 
 export const listUsers =
   (self: Linear) =>
-  async (props: ListUsersProps): Promise<ListUsersResponse> => {
+  async (props?: ListUsersProps): Promise<ListUsersResponse> => {
     const { filter, before, after, first, last, includeArchived, orderBy } =
       props || {};
 

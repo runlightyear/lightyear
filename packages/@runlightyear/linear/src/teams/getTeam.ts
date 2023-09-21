@@ -8,7 +8,7 @@ export interface GetTeamProps {
 }
 
 const query = `
-query GetTeam($id: ID) {
+query GetTeam($id: String!) {
   team(id: $id) {
     ${teamResponseFields}
   }
@@ -28,6 +28,6 @@ export const getTeam =
 
     return {
       ...response,
-      data: response.data.team,
+      data: response.data.data.team,
     };
   };

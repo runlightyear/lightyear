@@ -2,44 +2,43 @@ import { Linear } from "../Linear";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { TeamFilter } from "../types/TeamFilter";
 import { PaginationOrderBy } from "../types/PaginationOrderBy";
-import { LinearID } from "../types/LinearID";
 import { TeamResponse, teamResponseFields } from "./TeamResponse";
 
 export interface ListTeamsProps {
   /**
    * Filter returned teams.
    */
-  filter: TeamFilter;
+  filter?: TeamFilter;
 
   /**
    * A cursor to be used with last for backward pagination.
    */
-  before: string;
+  before?: string;
 
   /**
    * A cursor to be used with first for forward pagination
    */
-  after: string;
+  after?: string;
 
   /**
    * The number of items to forward paginate (used with after). Defaults to 50.
    */
-  first: number;
+  first?: number;
 
   /**
    * The number of items to backward paginate (used with before). Defaults to 50.
    */
-  last: number;
+  last?: number;
 
   /**
    * Should archived resources be included (default: false)
    */
-  includeArchived: boolean;
+  includeArchived?: boolean;
 
   /**
    * By which field should the pagination order by. Available options are createdAt (default) and updatedAt.
    */
-  orderBy: PaginationOrderBy;
+  orderBy?: PaginationOrderBy;
 }
 
 const query = `

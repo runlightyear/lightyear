@@ -179,7 +179,7 @@ export class Linear extends GraphQLConnector {
    *
    * @param props
    */
-  async listComments(props: ListCommentsProps) {
+  async listComments(props?: ListCommentsProps) {
     return listComments(this)(props);
   }
 
@@ -212,7 +212,7 @@ export class Linear extends GraphQLConnector {
    *
    * @param props
    */
-  async listUsers(props: ListUsersProps) {
+  async listUsers(props?: ListUsersProps) {
     return listUsers(this)(props);
   }
 
