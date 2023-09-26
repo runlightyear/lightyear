@@ -149,6 +149,7 @@ import { onWorkflowDispatch } from "./listeners/onWorkflowDispatch";
 import { onWorkflowJob } from "./listeners/onWorkflowJob";
 import { onPush } from "./listeners/onPush";
 import { onIssueComment } from "./listeners/onIssueComment";
+import { getTree, GetTreeProps } from "./gitDatabase/trees/getTree";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -261,6 +262,43 @@ export class GitHub extends RestConnector {
    */
   async createGist(props: CreateGistProps): Promise<HttpProxyResponse> {
     return createGist(this)(props);
+  }
+
+  /**
+   * Get a tree
+   *
+   * @group Git Database
+   *
+   * @example Get a tree
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "getTree",
+   *   title: "Get Tree",
+   *   apps: ["github"],
+   *   variables: ["owner", "repo", "treeSha"],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *
+   *     const response = await github.getTree({
+   *       owner: variables.owner!,
+   *       repo: variables.repo!,
+   *       treeSha: variables.treeSha!,
+   *       recursive: true,
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   *
+   */
+  async getTree(props: GetTreeProps) {
+    return getTree(this)(props);
   }
 
   /**
