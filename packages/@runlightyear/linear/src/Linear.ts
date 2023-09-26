@@ -28,12 +28,12 @@ import {
 } from "./helpers/findWorkflowStateByName";
 
 /**
- * @alpha
+ * @beta
  */
 export interface LinearProps extends AuthConnectorProps {}
 
 /**
- * @alpha
+ * @beta
  *
  * Connector to the Linear API
  *
