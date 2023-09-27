@@ -258,7 +258,7 @@ function validateActionProps(props: DefineActionProps) {
  *     "var1",
  *     "var2?",
  *     { name: "var3", description: "Required variable 3" },
- *     { name: "var4?", description: "Optional variable 4?" },
+ *     { name: "var4?", description: "Optional variable 4" },
  *   ],
  *   run: async ({ variables }) => {
  *     console.log("required variable", variables.var1);
@@ -285,7 +285,7 @@ function validateActionProps(props: DefineActionProps) {
  *     },
  *     {
  *       name: "secret4?",
- *       description: "Optional secret 4?",
+ *       description: "Optional secret 4",
  *     },
  *   ],
  *   run: async ({ secrets }) => {
