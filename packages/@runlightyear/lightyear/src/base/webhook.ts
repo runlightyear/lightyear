@@ -12,6 +12,8 @@ import {
   validVariableAndSecretNameRegex,
 } from "../util/isValidName";
 import { z } from "zod";
+import { VariableDef } from "./variable";
+import { SecretDef } from "./secret";
 
 /**
  * @public
@@ -98,7 +100,7 @@ export interface DefineWebhookProps {
    *
    * ["requiredVar", "optionalVar?"]
    */
-  variables?: Array<string>;
+  variables?: Array<VariableDef>;
   /**
    * An array of the secrets on this webhook.
    *
@@ -108,7 +110,7 @@ export interface DefineWebhookProps {
    *
    * ["requiredSecret", "optionalSecret?"]
    */
-  secrets?: Array<string>;
+  secrets?: Array<SecretDef>;
   subscribeProps?: SubscribePropsFunc;
   subscribe?: SubscribeFunc;
   unsubscribe?: UnsubscribeFunc;
@@ -123,10 +125,13 @@ function validateWebhookProps(props: DefineWebhookProps) {
   const AppsSchema = z.array(NameSchema);
   const CustomAppsSchema = z.array(NameSchema);
 
-  const VariableAndSecretNameSchema = z
-    .string()
-    .min(1)
-    .regex(validVariableAndSecretNameRegex);
+  const VariableAndSecretNameSchema = z.union([
+    z.string().min(1).regex(validVariableAndSecretNameRegex),
+    z.object({
+      name: z.string().min(1).regex(validVariableAndSecretNameRegex),
+      description: z.string().optional(),
+    }),
+  ]);
   const VariablesSchema = z.array(VariableAndSecretNameSchema);
   const SecretsSchema = z.array(VariableAndSecretNameSchema);
 
@@ -171,7 +176,7 @@ function validateWebhookProps(props: DefineWebhookProps) {
   if (variables) {
     if (!VariablesSchema.safeParse(variables).success) {
       throw new Error(
-        `Invalid variables for webhook ${name}: ${variables} Must be an array of valid names`
+        `Invalid variables for webhook ${name}: ${variables} Must be an array of valid names or objects with name and optional description`
       );
     }
   }
@@ -179,7 +184,7 @@ function validateWebhookProps(props: DefineWebhookProps) {
   if (secrets) {
     if (!SecretsSchema.safeParse(secrets).success) {
       throw new Error(
-        `Invalid secrets for webhook ${name}: ${secrets} Must be an array of valid names`
+        `Invalid secrets for webhook ${name}: ${secrets} Must be an array of valid names or objects with name and optional description`
       );
     }
   }
@@ -198,16 +203,61 @@ function validateWebhookProps(props: DefineWebhookProps) {
  *
  * Define a Webhook
  *
- * @example Basic
- *
+ * @example Basic webhook
  * ```typescript
+ * import { defineWebhook } from "@runlightyear/lightyear";
+ *
  * defineWebhook({
  *   name: "basicWebhook",
  *   title: "Basic Webhook",
- * })
+ * });
  *```
  *
- * @example With Subscription
+ * @example Webhook with variables
+ * ```typescript
+ * import { defineWebhook } from "@runlightyear/lightyear";
+ *
+ * defineWebhook({
+ *   name: "webhookWithVariables",
+ *   title: "Webhook with Variables",
+ *   variables: [
+ *     "var1",
+ *     "var2?",
+ *     {
+ *       name: "var3",
+ *       description: "Required variable 3",
+ *     },
+ *     {
+ *       name: "var4?",
+ *       description: "Optional variable 4",
+ *     },
+ *   ],
+ * });
+ * ```
+ *
+ * @example Webhook with secrets
+ * ```typescript
+ * import { defineWebhook } from "@runlightyear/lightyear";
+ *
+ * defineWebhook({
+ *   name: "webhookWithSecrets",
+ *   title: "Webhook with Secrets",
+ *   secrets: [
+ *     "secret1",
+ *     "secret2?",
+ *     {
+ *       name: "secret3",
+ *       description: "Required secret 3",
+ *     },
+ *     {
+ *       name: "secret4?",
+ *       description: "Optional secret 4",
+ *     },
+ *   ],
+ * });
+ * ```
+ *
+ * @example With subscription
  *
  * ```typescript
  * defineWebhook({

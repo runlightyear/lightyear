@@ -3,6 +3,12 @@ import baseRequest from "./baseRequest";
 import { getEnvName } from "../util/getEnvName";
 import { getContext } from "./context";
 
+export type VariableOrSecretDef =
+  | string
+  | { name: string; description?: string };
+
+export type VariableDef = VariableOrSecretDef;
+
 /**
  * @internal
  */
