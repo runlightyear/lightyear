@@ -1,5 +1,12 @@
 # @runlightyear/linear
 
+## 0.7.0
+
+### Minor Changes
+
+- 5e711349a: Bug fixes and updates for several methods
+- a311edb14: Update docs to @beta
+
 ## 0.6.5
 
 ### Patch Changes
