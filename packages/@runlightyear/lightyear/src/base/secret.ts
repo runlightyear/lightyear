@@ -1,6 +1,9 @@
 import { getEnvName } from "../util/getEnvName";
 import { getContext } from "./context";
 import baseRequest from "./baseRequest";
+import { VariableOrSecretDef } from "./variable";
+
+export type SecretDef = VariableOrSecretDef;
 
 /**
  * @internal

@@ -8,7 +8,7 @@ export interface GetIssueProps {
 }
 
 const query = `
-query GetIssue($id: ID) {
+query GetIssue($id: String!) {
   issue(id: $id) {
     ${issueResponseFields}
   }
@@ -28,6 +28,6 @@ export const getIssue =
 
     return {
       ...response,
-      data: response.data.issue,
+      data: response.data.data.issue,
     };
   };

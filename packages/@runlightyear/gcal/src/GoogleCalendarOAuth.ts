@@ -1,12 +1,12 @@
 import { OAuthConnectorProps, OAuthConnector } from "@runlightyear/lightyear";
 
 /**
- * @alpha
+ * @beta
  */
 export interface GoogleCalendarOAuthProps extends OAuthConnectorProps {}
 
 /**
- * @alpha
+ * @beta
  */
 export class GoogleCalendarOAuth extends OAuthConnector {
   scopes = ["https://www.googleapis.com/auth/calendar"];

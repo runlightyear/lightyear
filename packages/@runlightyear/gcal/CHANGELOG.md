@@ -1,5 +1,21 @@
 # @runlightyear/gcal
 
+## 0.7.1
+
+### Patch Changes
+
+- Updated dependencies [da7c9a679]
+- Updated dependencies [6f77253ea]
+  - @runlightyear/lightyear@0.35.0
+
+## 0.7.0
+
+### Minor Changes
+
+- Breaking change: most createEvent and updateEvent moved into event prop
+- Added examples
+- Added getEvent and patchEvent methods
+
 ## 0.6.4
 
 ### Patch Changes

@@ -1,5 +1,6 @@
 import isString from "../util/isString";
 import isObject from "../util/isObject";
+import isArray from "../util/isArray";
 
 export default function argsToStr(args: Array<any>) {
   return args
@@ -12,7 +13,7 @@ export default function argsToStr(args: Array<any>) {
         return String(arg);
       }
 
-      if (isObject(arg)) {
+      if (isObject(arg) || isArray(arg)) {
         let result: string;
 
         try {
