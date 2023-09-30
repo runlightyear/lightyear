@@ -17,17 +17,15 @@ export interface OnChangeProps {
   customApps?: Array<string>;
   variables?: Array<VariableDef>;
   secrets?: Array<SecretDef>;
-  run: AirtableListenerRunFunc;
-  baseId: string;
+  run: OnChangeRunFunc;
+  baseId?: string;
   specification: WebhookSpecification;
 }
 
-export type AirtableListenerRunFunc = (
-  props: AirtableListenerRunFuncProps
-) => Promise<void>;
+export type OnChangeRunFunc = (props: OnChangeRunFuncProps) => Promise<void>;
 
-export interface AirtableListenerRunFuncProps extends RunFuncProps {
-  data: Array<WebhookPayload>;
+export interface OnChangeRunFuncProps extends RunFuncProps {
+  data: { baseId: string; webhookId: string; payloads: Array<WebhookPayload> };
 }
 
 export const onChange = (props: OnChangeProps) => {
@@ -42,14 +40,16 @@ export const onChange = (props: OnChangeProps) => {
     baseId,
   } = props;
 
+  const webhookVariables = [...variables, ...(!baseId ? ["baseId"] : [])];
+
   const webhook = Airtable.defineWebhook({
     name,
     title,
-    variables,
+    variables: webhookVariables,
     secrets,
-    subscribeProps: () => {
+    subscribeProps: ({ variables }) => {
       return {
-        baseId,
+        baseId: baseId || variables.baseId!,
         specification: props.specification,
       };
     },
@@ -60,7 +60,15 @@ export const onChange = (props: OnChangeProps) => {
     title,
     apps: [...apps, "airtable"],
     customApps,
-    variables: [...variables, "webhookId?", "airtableCursor?"],
+    variables: [
+      ...variables,
+      "webhookId?",
+      {
+        name: "airtableCursor?",
+        description:
+          "Cursor used to make sure only the most recent payloads are retrieved.",
+      },
+    ],
     secrets,
     trigger: {
       webhook,
@@ -88,7 +96,10 @@ export const onChange = (props: OnChangeProps) => {
 
       const newCursor = payloadsResponse.data.cursor;
 
-      await run({ ...runProps, data: payloadsResponse.data.payloads });
+      await run({
+        ...runProps,
+        data: { baseId, webhookId, payloads: payloadsResponse.data.payloads },
+      });
 
       await setVariable("airtableCursor", String(newCursor));
     },

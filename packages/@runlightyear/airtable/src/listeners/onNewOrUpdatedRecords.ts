@@ -16,7 +16,7 @@ export interface OnNewOrUpdatedRecordsProps {
   variables?: Array<VariableDef>;
   secrets?: Array<SecretDef>;
   run: OnNewOrUpdatedRecordsRunFunc;
-  baseId: string;
+  baseId?: string;
   specification?: WebhookSpecification;
 }
 
@@ -26,6 +26,8 @@ export type OnNewOrUpdatedRecordsRunFunc = (
 
 export interface OnNewRecordsRunFuncProps extends RunFuncProps {
   data: {
+    baseId: string;
+    webhookId: string;
     newOrUpdatedRecords: Array<{ tableId: string; recordId: string }>;
     payloads: Array<WebhookPayload>;
   };
@@ -49,7 +51,9 @@ export const onNewOrUpdatedRecords = (props: OnNewOrUpdatedRecordsProps) => {
       const { data, auths } = runProps;
       console.debug("Data: ", data);
 
-      const recordIdsByPayload = data.map((payload) => {
+      const { baseId, webhookId, payloads } = data;
+
+      const recordIdsByPayload = payloads.map((payload) => {
         if (payload.changedTablesById) {
           const tableIds = Object.keys(payload.changedTablesById);
           return tableIds.map((tableId) => {
@@ -99,7 +103,12 @@ export const onNewOrUpdatedRecords = (props: OnNewOrUpdatedRecordsProps) => {
 
       await run({
         ...runProps,
-        data: { newOrUpdatedRecords: recordIds, payloads: data },
+        data: {
+          baseId,
+          webhookId,
+          newOrUpdatedRecords: recordIds,
+          payloads: payloads,
+        },
       });
     },
   });
