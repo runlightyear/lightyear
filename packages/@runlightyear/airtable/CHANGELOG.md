@@ -1,5 +1,11 @@
 # @runlightyear/airtable
 
+## 0.6.0
+
+### Minor Changes
+
+- 18b194494: Alpha support for webhooks + listBases and getBaseSchema
+
 ## 0.5.1
 
 ### Patch Changes

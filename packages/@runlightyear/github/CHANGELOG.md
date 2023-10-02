@@ -1,5 +1,13 @@
 # @runlightyear/github
 
+## 0.21.0
+
+### Minor Changes
+
+- eb4714bdd: getTree method added
+- e24e8454a: Listeners create an owner and repo variable if they are not specified
+- e24e8454a: Added new examples
+
 ## 0.20.1
 
 ### Patch Changes
