@@ -149,6 +149,7 @@ import { onWorkflowDispatch } from "./listeners/onWorkflowDispatch";
 import { onWorkflowJob } from "./listeners/onWorkflowJob";
 import { onPush } from "./listeners/onPush";
 import { onIssueComment } from "./listeners/onIssueComment";
+import { getTree, GetTreeProps } from "./gitDatabase/trees/getTree";
 
 export interface GitHubConnectorProps extends AuthConnectorProps {}
 
@@ -164,47 +165,272 @@ export interface GitHubDefineAuthProps {
  *
  * Connector to the GitHub API
  *
- * @example Import
+ * @example On push
  * ```typescript
- * import { GitHub } from "@runlightyear/github"
+ * import { GitHub } from "@runlightyear/github";
+ *
+ * GitHub.onPush({
+ *   name: "onPush",
+ *   title: "On Push",
+ *   run: async ({ data, auths }) => {
+ *     console.log("Push data: ", data);
+ *   },
+ * });
  * ```
  *
- * @example Use in an action
+ * @example On issue opened
  * ```typescript
- * defineAction({
- *   name: "githubExample",
- *   title: "GitHub Example",
- *   apps: ["github"],
- *   run: ({ auths }) => {
- *     const github = new GitHub({ auth: auths.github });
- *   }
- * })
+ * import { GitHub } from "@runlightyear/github";
+ * import { SKIPPED } from "@runlightyear/lightyear";
+ *
+ * GitHub.onIssues({
+ *   name: "onIssueOpened",
+ *   title: "On Issue Opened",
+ *   run: async ({ data, auths }) => {
+ *     if (data.action !== "opened") {
+ *       throw SKIPPED;
+ *     }
+ *     console.log("Issue opened:", data.issue);
+ *   },
+ * });
+ * ```
+ *
+ * @example On workflow run completed
+ * ```typescript
+ * import { GitHub } from "@runlightyear/github";
+ * import { SKIPPED } from "@runlightyear/lightyear";
+ *
+ * GitHub.onWorkflowRun({
+ *   name: "onWorkflowRunComplete",
+ *   title: "On Workflow Run Complete",
+ *   run: async ({ data, auths }) => {
+ *     console.log("Workflow run data: ", data);
+ *     if (data.action !== "completed") {
+ *       throw SKIPPED;
+ *     }
+ *     console.log("Workflow run completed:", data);
+ *   },
+ * });
  * ```
  *
  * @example Create an issue
  * ```typescript
- * await github.createIssue({
- *   owner: "<owner>",
- *   repo: "<repo name>",
- *   title: "New Issue",
- * })
- * ```
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GitHub } from "@runlightyear/github";
  *
- * @example Subscribe to push events
- * ```typescript
- * GitHub.defineWebhook({
- *   name: "githubPushes",
- *   title: "GitHub Pushes",
- *   subscribeProps: () => {
- *     return {
- *       owner: "<owner>",
- *       repo: "<repo name>",
- *       events: ["push"],
- *     }
+ * defineAction({
+ *   name: "createIssue",
+ *   title: "Create Issue",
+ *   apps: ["github"],
+ *   variables: [
+ *     {
+ *       name: "owner",
+ *       description:
+ *         "The account owner of the repository. The name is not case sensitive.",
+ *     },
+ *     {
+ *       name: "repo",
+ *       description:
+ *         "The name of the repository without the .git extension. The name is not case sensitive.",
+ *     },
+ *     "title",
+ *   ],
+ *   run: async ({ auths, variables }) => {
+ *     const github = new GitHub({
+ *       auth: auths.github,
+ *     });
+ *     const response = await github.createIssue({
+ *       owner: variables.owner!,
+ *       repo: variables.repo!,
+ *       title: variables.title!,
+ *     });
+ *     console.log("Response: ", response.data);
  *   },
  * });
+ * ```
  *
- * ``` */
+ * @example Assign an issue
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GitHub } from "@runlightyear/github";
+ *
+ * defineAction({
+ *   name: "assignIssue",
+ *   title: "Assign Issue",
+ *   apps: ["github"],
+ *   variables: [
+ *     {
+ *       name: "owner",
+ *       description:
+ *         "The account owner of the repository. The name is not case sensitive.",
+ *     },
+ *     {
+ *       name: "repo",
+ *       description:
+ *         "The name of the repository without the .git extension. The name is not case sensitive.",
+ *     },
+ *     "issueNumber",
+ *     "assignee",
+ *   ],
+ *   run: async ({ auths, variables }) => {
+ *     const github = new GitHub({
+ *       auth: auths.github,
+ *     });
+ *     const result = await github.updateIssue({
+ *       owner: variables.owner!,
+ *       repo: variables.repo!,
+ *       issueNumber: parseInt(variables.issueNumber!),
+ *       assignees: [variables.assignee!],
+ *     });
+ *     console.log("Issue: ", result.data);
+ *   },
+ * });
+ * ```
+ *
+ * @example Label an issue
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GitHub } from "@runlightyear/github";
+ *
+ * defineAction({
+ *   name: "labelIssue",
+ *   title: "Label Issue",
+ *   apps: ["github"],
+ *   variables: [
+ *     {
+ *       name: "owner",
+ *       description:
+ *         "The account owner of the repository. The name is not case sensitive.",
+ *     },
+ *     {
+ *       name: "repo",
+ *       description:
+ *         "The name of the repository without the .git extension. The name is not case sensitive.",
+ *     },
+ *     "issueNumber",
+ *     "label",
+ *   ],
+ *   run: async ({ auths, variables }) => {
+ *     const github = new GitHub({
+ *       auth: auths.github,
+ *     });
+ *     const response = await github.updateIssue({
+ *       owner: variables.owner!,
+ *       repo: variables.repo!,
+ *       issueNumber: parseInt(variables.issueNumber!),
+ *       labels: [variables.label!],
+ *     });
+ *     console.log("Response: ", response.data);
+ *   },
+ * });
+ * ```
+ *
+ * @example Complete an issue
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GitHub } from "@runlightyear/github";
+ *
+ * defineAction({
+ *   name: "completeIssue",
+ *   title: "Complete Issue",
+ *   apps: ["github"],
+ *   variables: [
+ *     {
+ *       name: "owner",
+ *       description:
+ *         "The account owner of the repository. The name is not case sensitive.",
+ *     },
+ *     {
+ *       name: "repo",
+ *       description:
+ *         "The name of the repository without the .git extension. The name is not case sensitive.",
+ *     },
+ *     "issueNumber",
+ *   ],
+ *   run: async ({ auths, variables }) => {
+ *     const github = new GitHub({
+ *       auth: auths.github,
+ *     });
+ *     const response = await github.updateIssue({
+ *       owner: variables.owner!,
+ *       repo: variables.repo!,
+ *       issueNumber: parseInt(variables.issueNumber!),
+ *       state: "closed",
+ *       stateReason: "completed",
+ *     });
+ *     console.log("Response: ", response.data);
+ *   },
+ * });
+ * ```
+ *
+ * @example Compare two commits
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GitHub } from "@runlightyear/github";
+ *
+ * defineAction({
+ *   name: "compareTwoCommits",
+ *   title: "Compare Two Commits",
+ *   apps: ["github"],
+ *   variables: [
+ *     {
+ *       name: "owner",
+ *       description:
+ *         "The account owner of the repository. The name is not case sensitive.",
+ *     },
+ *     {
+ *       name: "repo",
+ *       description:
+ *         "The name of the repository without the .git extension. The name is not case sensitive.",
+ *     },
+ *     {
+ *       name: "basehead",
+ *       description:
+ *         "The base branch and head branch to compare. This parameter expects the format BASE...HEAD. Both must be branch names in repo. To compare with a branch that exists in a different repository in the same network as repo, the basehead parameter expects the format USERNAME:BASE...USERNAME:HEAD.",
+ *     },
+ *   ],
+ *   run: async ({ auths, variables }) => {
+ *     const github = new GitHub({
+ *       auth: auths.github,
+ *     });
+ *     const response = await github.compareTwoCommits({
+ *       owner: variables.owner!,
+ *       repo: variables.repo!,
+ *       basehead: variables.basehead!,
+ *     });
+ *     console.log("Response data:", response.data);
+ *   },
+ * });
+ * ```
+ *
+ * @example Create a gist
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ * import { GitHub } from "@runlightyear/github";
+ *
+ * defineAction({
+ *   name: "createGist",
+ *   title: "Create Gist",
+ *   apps: ["github"],
+ *   run: async ({ auths }) => {
+ *     const github = new GitHub({
+ *       auth: auths.github,
+ *     });
+ *     const response = await github.createGist({
+ *       description: "Hello World",
+ *       files: {
+ *         "helloWorld.txt": {
+ *           content: "Hello World",
+ *         },
+ *       },
+ *       isPublic: false,
+ *     });
+ *     console.log("Response data:", response.data);
+ *   },
+ * });
+ * ```
+ *
+ *  */
 export class GitHub extends RestConnector {
   /**
    * @example
@@ -242,6 +468,46 @@ export class GitHub extends RestConnector {
    *
    * @group Commit
    *
+   * @example Compare two commits
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "compareTwoCommits",
+   *   title: "Compare Two Commits",
+   *   apps: ["github"],
+   *   variables: [
+   *     {
+   *       name: "owner",
+   *       description:
+   *         "The account owner of the repository. The name is not case sensitive.",
+   *     },
+   *     {
+   *       name: "repo",
+   *       description:
+   *         "The name of the repository without the .git extension. The name is not case sensitive.",
+   *     },
+   *     {
+   *       name: "basehead",
+   *       description:
+   *         "The base branch and head branch to compare. This parameter expects the format BASE...HEAD. Both must be branch names in repo. To compare with a branch that exists in a different repository in the same network as repo, the basehead parameter expects the format USERNAME:BASE...USERNAME:HEAD.",
+   *     },
+   *   ],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *     const response = await github.compareTwoCommits({
+   *       owner: variables.owner!,
+   *       repo: variables.repo!,
+   *       basehead: variables.basehead!,
+   *     });
+   *     console.log("Response data:", response.data);
+   *   },
+   * });
+   * ```
+   *
    * @param props
    */
   async compareTwoCommits(props: CompareTwoCommitsProps) {
@@ -257,10 +523,74 @@ export class GitHub extends RestConnector {
    *
    * Note: Don't name your files "gistfile" with a numerical suffix. This is the format of the automatic naming scheme that Gist uses internally.
    *
+   * @example Create a gist
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "createGist",
+   *   title: "Create Gist",
+   *   apps: ["github"],
+   *   run: async ({ auths }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *     const response = await github.createGist({
+   *       description: "Hello World",
+   *       files: {
+   *         "helloWorld.txt": {
+   *           content: "Hello World",
+   *         },
+   *       },
+   *       isPublic: false,
+   *     });
+   *     console.log("Response data:", response.data);
+   *   },
+   * });
+   * ```
+   *
    * @param props props
    */
   async createGist(props: CreateGistProps): Promise<HttpProxyResponse> {
     return createGist(this)(props);
+  }
+
+  /**
+   * Get a tree
+   *
+   * @group Git Database
+   *
+   * @example Get a tree
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "getTree",
+   *   title: "Get Tree",
+   *   apps: ["github"],
+   *   variables: ["owner", "repo", "treeSha"],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *
+   *     const response = await github.getTree({
+   *       owner: variables.owner!,
+   *       repo: variables.repo!,
+   *       treeSha: variables.treeSha!,
+   *       recursive: true,
+   *     });
+   *
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   *
+   */
+  async getTree(props: GetTreeProps) {
+    return getTree(this)(props);
   }
 
   /**
@@ -294,6 +624,42 @@ export class GitHub extends RestConnector {
    *
    * This endpoint triggers notifications. Creating content too quickly using this endpoint may result in secondary rate limiting. See "Secondary rate limits" and "Dealing with secondary rate limits" for details.
    *
+   * @example Create an issue
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "createIssue",
+   *   title: "Create Issue",
+   *   apps: ["github"],
+   *   variables: [
+   *     {
+   *       name: "owner",
+   *       description:
+   *         "The account owner of the repository. The name is not case sensitive.",
+   *     },
+   *     {
+   *       name: "repo",
+   *       description:
+   *         "The name of the repository without the .git extension. The name is not case sensitive.",
+   *     },
+   *     "title",
+   *   ],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *     const response = await github.createIssue({
+   *       owner: variables.owner!,
+   *       repo: variables.repo!,
+   *       title: variables.title!,
+   *     });
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   *
    * @param props props
    */
   async createIssue(props: CreateIssueProps): Promise<HttpProxyResponse> {
@@ -306,6 +672,120 @@ export class GitHub extends RestConnector {
    * @group Issue
    *
    * Issue owners and users with push access can edit an issue.
+   *
+   * @example Assign an issue
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "assignIssue",
+   *   title: "Assign Issue",
+   *   apps: ["github"],
+   *   variables: [
+   *     {
+   *       name: "owner",
+   *       description:
+   *         "The account owner of the repository. The name is not case sensitive.",
+   *     },
+   *     {
+   *       name: "repo",
+   *       description:
+   *         "The name of the repository without the .git extension. The name is not case sensitive.",
+   *     },
+   *     "issueNumber",
+   *     "assignee",
+   *   ],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *     const result = await github.updateIssue({
+   *       owner: variables.owner!,
+   *       repo: variables.repo!,
+   *       issueNumber: parseInt(variables.issueNumber!),
+   *       assignees: [variables.assignee!],
+   *     });
+   *     console.log("Issue: ", result.data);
+   *   },
+   * });
+   * ```
+   *
+   * @example Label an issue
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "labelIssue",
+   *   title: "Label Issue",
+   *   apps: ["github"],
+   *   variables: [
+   *     {
+   *       name: "owner",
+   *       description:
+   *         "The account owner of the repository. The name is not case sensitive.",
+   *     },
+   *     {
+   *       name: "repo",
+   *       description:
+   *         "The name of the repository without the .git extension. The name is not case sensitive.",
+   *     },
+   *     "issueNumber",
+   *     "label",
+   *   ],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *     const response = await github.updateIssue({
+   *       owner: variables.owner!,
+   *       repo: variables.repo!,
+   *       issueNumber: parseInt(variables.issueNumber!),
+   *       labels: [variables.label!],
+   *     });
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   *
+   * @example Complete an issue
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "completeIssue",
+   *   title: "Complete Issue",
+   *   apps: ["github"],
+   *   variables: [
+   *     {
+   *       name: "owner",
+   *       description:
+   *         "The account owner of the repository. The name is not case sensitive.",
+   *     },
+   *     {
+   *       name: "repo",
+   *       description:
+   *         "The name of the repository without the .git extension. The name is not case sensitive.",
+   *     },
+   *     "issueNumber",
+   *   ],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *     const response = await github.updateIssue({
+   *       owner: variables.owner!,
+   *       repo: variables.repo!,
+   *       issueNumber: parseInt(variables.issueNumber!),
+   *       state: "closed",
+   *       stateReason: "completed",
+   *     });
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
    *
    * @param props props
    */
@@ -321,6 +801,44 @@ export class GitHub extends RestConnector {
    * You can use the REST API to create comments on issues and pull requests. Every pull request is an issue, but not every issue is a pull request.
    *
    * This endpoint triggers notifications. Creating content too quickly using this endpoint may result in secondary rate limiting. See "Secondary rate limits" and "Dealing with secondary rate limits" for details.
+   *
+   * @example Create an issue comment
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "createIssueComment",
+   *   title: "Create Issue Comment",
+   *   apps: ["github"],
+   *   variables: [
+   *     {
+   *       name: "owner",
+   *       description:
+   *         "The account owner of the repository. The name is not case sensitive.",
+   *     },
+   *     {
+   *       name: "repo",
+   *       description:
+   *         "The name of the repository without the .git extension. The name is not case sensitive.",
+   *     },
+   *     "issueNumber",
+   *     "comment",
+   *   ],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *     const response = await github.createIssueComment({
+   *       owner: variables.owner!,
+   *       repo: variables.repo!,
+   *       issueNumber: parseInt(variables.issueNumber!),
+   *       body: variables.comment!,
+   *     });
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
    *
    * @param props
    */
@@ -339,6 +857,48 @@ export class GitHub extends RestConnector {
    *
    * This endpoint triggers notifications. Creating content too quickly using this endpoint may result in secondary rate limiting. See "Secondary rate limits" and "Dealing with secondary rate limits" for details.
    *
+   * @example Create a pull request
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "createPullRequest",
+   *   title: "Create Pull Request",
+   *   apps: ["github"],
+   *   variables: [
+   *     {
+   *       name: "owner",
+   *       description:
+   *         "The account owner of the repository. The name is not case sensitive.",
+   *     },
+   *     {
+   *       name: "repo",
+   *       description:
+   *         "The name of the repository without the .git extension. The name is not case sensitive.",
+   *     },
+   *     "title",
+   *     "body",
+   *     "base",
+   *     "head",
+   *   ],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *     const response = await github.createPullRequest({
+   *       owner: variables.owner!,
+   *       repo: variables.repo!,
+   *       title: variables.title!,
+   *       body: variables.body!,
+   *       base: variables.base!,
+   *       head: variables.head!,
+   *     });
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   *
    * @param props props
    */
   async createPullRequest(
@@ -356,6 +916,43 @@ export class GitHub extends RestConnector {
    *
    * To open or update a pull request in a public repository, you must have write access to the head or the source branch. For organization-owned repositories, you must be a member of the organization that owns the repository to open or update a pull request.
    *
+   * @example Update a pull request
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "closePullRequest",
+   *   title: "Close Pull Request",
+   *   apps: ["github"],
+   *   variables: [
+   *     {
+   *       name: "owner",
+   *       description:
+   *         "The account owner of the repository. The name is not case sensitive.",
+   *     },
+   *     {
+   *       name: "repo",
+   *       description:
+   *         "The name of the repository without the .git extension. The name is not case sensitive.",
+   *     },
+   *     "pullNumber",
+   *   ],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *     const response = await github.updatePullRequest({
+   *       owner: variables.owner!,
+   *       repo: variables.repo!,
+   *       pullNumber: parseInt(variables.pullNumber!),
+   *       state: "closed",
+   *     });
+   *     console.log("Closed pull request: ", response.data);
+   *   },
+   * });
+   * ```
+   *
    * @param props props
    */
   async updatePullRequest(props: UpdatePullRequestProps) {
@@ -368,6 +965,28 @@ export class GitHub extends RestConnector {
    * @group Repository
    *
    * Lists repositories for the specified organization.
+   *
+   * @example List organization repositories
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "listOrganizationRepositories",
+   *   title: "List Organization Repositories",
+   *   apps: ["github"],
+   *   variables: ["org"],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *     const response = await github.listOrganizationRepositories({
+   *       org: variables.org!,
+   *     });
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
    *
    * @param props props
    */
@@ -384,6 +1003,25 @@ export class GitHub extends RestConnector {
    *
    * The authenticated user has explicit permission to access repositories they own, repositories where they are a collaborator, and repositories that they can access through an organization membership.
    *
+   * @example List repositories for the current user
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "listRepositoriesForCurrentUser",
+   *   title: "List Repositories For Current User",
+   *   apps: ["github"],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *     const response = await github.listRepositoriesForAuthenticatedUser();
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
+   *
    * @param props props
    */
   async listRepositoriesForAuthenticatedUser(
@@ -398,6 +1036,28 @@ export class GitHub extends RestConnector {
    * @group Repository
    *
    * Lists public repositories for the specified user. Note: For GitHub AE, this endpoint will list internal repositories for the specified user.
+   *
+   * @example List public repositories for a user
+   * ```typescript
+   * import { defineAction } from "@runlightyear/lightyear";
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * defineAction({
+   *   name: "listPublicRepositoriesForUser",
+   *   title: "List Public Repositories For User",
+   *   apps: ["github"],
+   *   variables: ["username"],
+   *   run: async ({ auths, variables }) => {
+   *     const github = new GitHub({
+   *       auth: auths.github,
+   *     });
+   *     const response = await github.listRepositoriesForUser({
+   *       username: variables.username!,
+   *     });
+   *     console.log("Response: ", response.data);
+   *   },
+   * });
+   * ```
    *
    * @param props props
    */
@@ -930,6 +1590,23 @@ export class GitHub extends RestConnector {
    *
    * @group Listener
    *
+   * @example On issue opened
+   * ```typescript
+   * import { GitHub } from "@runlightyear/github";
+   * import { SKIPPED } from "@runlightyear/lightyear";
+   *
+   * GitHub.onIssues({
+   *   name: "onIssueOpened",
+   *   title: "On Issue Opened",
+   *   run: async ({ data, auths }) => {
+   *     if (data.action !== "opened") {
+   *       throw SKIPPED;
+   *     }
+   *     console.log("Issue opened:", data.issue);
+   *   },
+   * });
+   * ```
+   *
    * @param props
    */
   static onIssues(props: GitHubListenerProps<IssuesPayload>) {
@@ -993,6 +1670,19 @@ export class GitHub extends RestConnector {
    *
    * @group Listener
    *
+   * @example On push
+   * ```typescript
+   * import { GitHub } from "@runlightyear/github";
+   *
+   * GitHub.onPush({
+   *   name: "onPush",
+   *   title: "On Push",
+   *   run: async ({ data, auths }) => {
+   *     console.log("Push data: ", data);
+   *   },
+   * });
+   * ```
+   *
    * @param props
    */
   static onPush(props: GitHubListenerProps<PushPayload>) {
@@ -1055,6 +1745,24 @@ export class GitHub extends RestConnector {
    * For activity relating to a job in a workflow run, use the workflow_job event.
    *
    * @group Listener
+   *
+   * @example On workflow run completed
+   * ```typescript
+   * import { GitHub } from "@runlightyear/github";
+   * import { SKIPPED } from "@runlightyear/lightyear";
+   *
+   * GitHub.onWorkflowRun({
+   *   name: "onWorkflowRunComplete",
+   *   title: "On Workflow Run Complete",
+   *   run: async ({ data, auths }) => {
+   *     console.log("Workflow run data: ", data);
+   *     if (data.action !== "completed") {
+   *       throw SKIPPED;
+   *     }
+   *     console.log("Workflow run completed:", data);
+   *   },
+   * });
+   * ```
    *
    * @param props
    */

@@ -1,5 +1,5 @@
 import WebhookEvent from "../types/WebhookEvent";
-import { defineWebhook } from "@runlightyear/lightyear";
+import { defineWebhook, SecretDef, VariableDef } from "@runlightyear/lightyear";
 import type { SubscribePropsFuncProps } from "@runlightyear/lightyear";
 import { GitHub } from "../GitHub";
 
@@ -31,8 +31,8 @@ export type GitHubWebhookSubscribePropsFunc = (
 export interface DefineGitHubWebhookProps {
   name: string;
   title: string;
-  variables?: Array<string>;
-  secrets?: Array<string>;
+  variables?: Array<VariableDef>;
+  secrets?: Array<SecretDef>;
   subscribeProps: GitHubWebhookSubscribePropsFunc;
 }
 

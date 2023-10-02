@@ -5,6 +5,25 @@ import { createRecords, CreateRecordsProps } from "./records/createRecords";
 import { getRecord, GetRecordProps } from "./records/getRecord";
 import { updateRecord, UpdateRecordProps } from "./records/updateRecord";
 import { deleteRecord, DeleteRecordProps } from "./records/deleteRecord";
+import { createWebhook, CreateWebhookProps } from "./webhooks/createWebhook";
+import { deleteWebhook, DeleteWebhookProps } from "./webhooks/deleteWebhook";
+import {
+  defineAirtableWebhook,
+  DefineAirtableWebhookProps,
+} from "./webhooks/defineAirtableWebhook";
+import { listWebhooks, ListWebhooksProps } from "./webhooks/listWebhooks";
+import { listBases, ListBasesProps } from "./bases/listBases";
+import { getBaseSchema, GetBaseSchemaProps } from "./bases/getBaseSchema";
+import {
+  listWebhookPayloads,
+  ListWebhookPayloadsProps,
+} from "./webhooks/listWebhookPayloads";
+import { onChange, OnChangeProps } from "./listeners/onChange";
+import { onNewRecords, OnNewRecordsProps } from "./listeners/onNewRecords";
+import {
+  onNewOrUpdatedRecords,
+  OnNewOrUpdatedRecordsProps,
+} from "./listeners/onNewOrUpdatedRecords";
 
 /**
  * @beta
@@ -261,6 +280,24 @@ export class Airtable extends RestConnector {
   }
 
   /**
+   * List bases
+   *
+   * @group Base
+   */
+  async listBases(props?: ListBasesProps) {
+    return listBases(this)(props);
+  }
+
+  /**
+   * Get base schema
+   *
+   * @group Base
+   */
+  async getBaseSchema(props: GetBaseSchemaProps) {
+    return getBaseSchema(this)(props);
+  }
+
+  /**
    * List records in a table.
    *
    * @group Records
@@ -505,5 +542,77 @@ export class Airtable extends RestConnector {
    */
   async deleteRecord(props: DeleteRecordProps) {
     return deleteRecord(this)(props);
+  }
+
+  /**
+   * Create a webhook
+   *
+   * @alpha
+   */
+  async createWebhook(props: CreateWebhookProps) {
+    return createWebhook(this)(props);
+  }
+
+  /**
+   * List webhooks
+   *
+   * @alpha
+   */
+  async listWebhooks(props: ListWebhooksProps) {
+    return listWebhooks(this)(props);
+  }
+
+  /**
+   * List webhook payloads
+   *
+   * @alpha
+   */
+  async listWebhookPayloads(props: ListWebhookPayloadsProps) {
+    return listWebhookPayloads(this)(props);
+  }
+
+  /**
+   * Delete a webhook
+   *
+   * @alpha
+   */
+  async deleteWebhook(props: DeleteWebhookProps) {
+    return deleteWebhook(this)(props);
+  }
+
+  /**
+   * Define an Airtable webhook
+   *
+   * @alpha
+   */
+  static defineWebhook(props: DefineAirtableWebhookProps) {
+    return defineAirtableWebhook(props);
+  }
+
+  /**
+   * On change
+   *
+   * @alpha
+   */
+  static onChange(props: OnChangeProps) {
+    return onChange(props);
+  }
+
+  /**
+   * On new records
+   *
+   * @alpha
+   */
+  static onNewRecords(props: OnNewRecordsProps) {
+    return onNewRecords(props);
+  }
+
+  /**
+   * On new or updated records
+   *
+   * @alpha
+   */
+  static onNewOrUpdatedRecords(props: OnNewOrUpdatedRecordsProps) {
+    return onNewOrUpdatedRecords(props);
   }
 }
