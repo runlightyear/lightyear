@@ -33,10 +33,10 @@ export type {
 
 /** Listeners **/
 export type {
-  OnUpdatedEventsProps,
-  OnUpdatedEventsRunFunc,
-  OnUpdatedEventsRunFuncProps,
-} from "./listeners/onUpdatedEvents";
+  OnNewAndUpdatedEventsProps,
+  OnNewAndUpdatedEventsRunFunc,
+  OnNewAndUpdatedEventsRunFuncProps,
+} from "./listeners/onNewAndUpdatedEvents";
 
 /** Types **/
 export type { AccessRole } from "./types/AccessRole";

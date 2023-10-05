@@ -85,6 +85,8 @@ export type {
   SubscribeFuncProps,
   UnsubscribeFunc,
   UnsubscribeFuncProps,
+  RefreshSubscriptionFunc,
+  RefreshSubscriptionFuncProps,
 } from "./base/webhook";
 
 /** Connectors **/
