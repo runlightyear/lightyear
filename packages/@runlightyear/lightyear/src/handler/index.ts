@@ -18,6 +18,7 @@ import { setContext } from "../base/context";
 import { handleGetAuthRequestUrl } from "./handleGetAuthRequestUrl";
 import { handleRequestAccessToken } from "./handleRequestAccessToken";
 import { handleRefreshAccessToken } from "./handleRefreshAccessToken";
+import { handleRefreshSubscription } from "./handleRefreshSubscription";
 
 /**
  * @internal
@@ -73,7 +74,6 @@ export async function handler(
   }
 
   console.debug(`Event: ${JSON.stringify(event, null, 2)}`);
-  console.debug(`Context: ${JSON.stringify(context, null, 2)}`);
 
   const {
     operation,
@@ -96,6 +96,7 @@ export async function handler(
       "subscribeProps",
       "subscribe",
       "unsubscribe",
+      "refreshSubscription",
       "run",
       "getAuthRequestUrl",
       "requestAccessToken",
@@ -115,6 +116,8 @@ export async function handler(
     return handleUnsubscribe({ envName, webhookName, removed });
   } else if (operation === "subscribe") {
     return handleSubscribe({ envName, webhookName });
+  } else if (operation === "refreshSubscription") {
+    return handleRefreshSubscription({ webhookName });
   } else if (operation === "run") {
     return handleRun({ actionName, data, context });
   } else if (operation === "getAuthRequestUrl") {

@@ -1,6 +1,8 @@
 import invariant from "tiny-invariant";
 import baseRequest from "./baseRequest";
 import { Auths, Secrets, Variables } from "../run";
+import { getEnvName } from "../util/getEnvName";
+import { getContext } from "./context";
 
 export type SubscriptionStatus =
   | "NOT_SUBSCRIBED"
@@ -72,6 +74,30 @@ export async function updateSubscription(
     data: {
       status,
       unsubscribeProps,
+    },
+  });
+}
+
+export async function setSubscriptionExpiresAt(value: string | null) {
+  const envName = getEnvName();
+  const context = getContext();
+
+  console.debug("in setSubscriptionExpiresAt");
+  console.debug("context", context);
+
+  const { webhookName } = context;
+
+  if (!webhookName) {
+    throw new Error(
+      "setSubscriptionExpiresAt not called from a webhook context"
+    );
+  }
+
+  return await baseRequest({
+    method: "PATCH",
+    uri: `/api/v1/envs/${envName}/webhooks/${webhookName}/subscription`,
+    data: {
+      expiresAt: value,
     },
   });
 }

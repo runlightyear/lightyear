@@ -18,24 +18,33 @@ import { SecretDef } from "./secret";
 /**
  * @public
  */
-export type SubscribeFuncProps = {
+export interface SubscribeFuncProps {
   endpoint: string;
   auths: Auths;
   variables: Variables;
   secrets: Secrets;
   subscribeProps: any;
-};
+}
 
 /**
  * @public
  */
-export type UnsubscribeFuncProps = {
+export interface UnsubscribeFuncProps {
   endpoint: string;
   auths: Auths;
   variables: Variables;
   secrets: Secrets;
   unsubscribeProps: any;
-};
+}
+
+export interface RefreshSubscriptionFuncProps {
+  endpoint: string;
+  auths: Auths;
+  variables: Variables;
+  secrets: Secrets;
+  unsubscribeProps: any;
+  subscribeProps: any;
+}
 
 /**
  * @public
@@ -45,7 +54,14 @@ export type SubscribeFunc = (props: SubscribeFuncProps) => Promise<object>;
 /**
  * @public
  */
-export type UnsubscribeFunc = (props: UnsubscribeFuncProps) => void;
+export type UnsubscribeFunc = (props: UnsubscribeFuncProps) => Promise<void>;
+
+/**
+ * @public
+ */
+export type RefreshSubscriptionFunc = (
+  props: RefreshSubscriptionFuncProps
+) => Promise<object>;
 
 type SubscribeIndex = {
   [name: string]: SubscribeFunc;
@@ -55,8 +71,13 @@ type UnsubscribeIndex = {
   [name: string]: UnsubscribeFunc;
 };
 
+type RefreshSubscriptionIndex = {
+  [name: string]: RefreshSubscriptionFunc;
+};
+
 export const subscribeIndex: SubscribeIndex = {};
 export const unsubscribeIndex: UnsubscribeIndex = {};
+export const refreshSubscriptionIndex: RefreshSubscriptionIndex = {};
 
 /**
  * @public
@@ -113,6 +134,7 @@ export interface DefineWebhookProps {
   secrets?: Array<SecretDef>;
   subscribeProps?: SubscribePropsFunc;
   subscribe?: SubscribeFunc;
+  refreshSubscription?: RefreshSubscriptionFunc;
   unsubscribe?: UnsubscribeFunc;
 }
 
@@ -146,6 +168,7 @@ function validateWebhookProps(props: DefineWebhookProps) {
       subscribeProps: z.function().optional(),
       subscribe: z.function().optional(),
       unsubscribe: z.function().optional(),
+      refreshSubscription: z.function().optional(),
     })
     .strict();
 
@@ -273,6 +296,9 @@ function validateWebhookProps(props: DefineWebhookProps) {
  *     // return value becomes unsubscribeProps for unsubscribe
  *     // for example: hook id returned by rest api call
  *   },
+ *   refreshSubscription: ({ refreshSubscriptionProps }) => {
+ *     // runs when a subscription is close to expiring
+ *   },
  *   unsubscribe: ({ unsubscribeProps }) => {
  *      // if subscribed, runs after a change in subscribeProps is detected
  *      // code to unsubscribe using unsubscribe props
@@ -296,6 +322,9 @@ export function defineWebhook(props: DefineWebhookProps) {
   }
   if (props.unsubscribe) {
     unsubscribeIndex[props.name] = props.unsubscribe;
+  }
+  if (props.refreshSubscription) {
+    refreshSubscriptionIndex[props.name] = props.refreshSubscription;
   }
 
   return props.name;
