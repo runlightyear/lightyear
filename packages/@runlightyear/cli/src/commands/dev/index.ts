@@ -12,6 +12,7 @@ import { pushOperation } from "../../shared/operationQueue";
 import handleGetAuthRequestUrl from "./handleGetAuthRequestUrl";
 import handleRequestAccessToken from "./handleRequestAccessToken";
 import handleRefreshAccessToken from "./handleRefreshAccessToken";
+import { handleRefreshSubscription } from "./handleRefreshSubscription";
 
 export const dev = new Command("dev");
 
@@ -53,6 +54,10 @@ dev
       "localRefreshAccessTokenTriggered",
       handleRefreshAccessToken
     );
+    subscription.bind(
+      "localRefreshSubscriptionTriggered",
+      handleRefreshSubscription
+    );
 
     nodemon({
       ignoreRoot: [".git"],
@@ -70,7 +75,7 @@ dev
           process.exit();
         }, 100);
       } else if (data.code === "d") {
-        await pushOperation({ operation: "deploy", params: undefined });
+        pushOperation({ operation: "deploy", params: undefined });
 
         terminal("\n\nWaiting for file changes...\n");
         terminal("press h for help, press q to quit\n");
@@ -97,7 +102,7 @@ dev
     });
 
     nodemon.on("exit", async () => {
-      await pushOperation({ operation: "deploy", params: undefined });
+      pushOperation({ operation: "deploy", params: undefined });
 
       if (firstDeploy) {
         terminal(
