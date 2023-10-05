@@ -2,6 +2,7 @@ import {
   defineWebhook,
   SecretDef,
   setSecret,
+  setSubscriptionExpiresAt,
   SubscribePropsFuncProps,
   VariableDef,
 } from "@runlightyear/lightyear";
@@ -54,6 +55,7 @@ export const defineAirtableWebhook = (props: DefineAirtableWebhookProps) => {
       console.debug("response", response);
 
       await setSecret("macSecretBase64", response.data.macSecretBase64);
+      await setSubscriptionExpiresAt(response.data.expirationTime ?? null);
 
       console.info("Subscribed to Airtable webhook");
 
@@ -76,6 +78,21 @@ export const defineAirtableWebhook = (props: DefineAirtableWebhookProps) => {
       });
 
       console.info("Unsubscribed from Airtable webhook");
+    },
+    refreshSubscription: async ({ auths, unsubscribeProps }) => {
+      const airtable = new Airtable({ auth: auths.airtable });
+
+      const response = await airtable.refreshWebhook({
+        baseId: unsubscribeProps.baseId,
+        webhookId: unsubscribeProps.webhookId,
+      });
+      console.info("Refreshed Airtable webhook subscription");
+
+      const { expirationTime } = response.data;
+      await setSubscriptionExpiresAt(expirationTime);
+      console.info("Expires at", expirationTime);
+
+      return unsubscribeProps;
     },
   });
 };

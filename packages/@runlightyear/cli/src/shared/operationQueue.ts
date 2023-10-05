@@ -14,6 +14,10 @@ import {
   execRefreshAccessToken,
   ExecRefreshAccessTokenProps,
 } from "./execRefreshAccessToken";
+import {
+  execRefreshSubscription,
+  ExecRefreshSubscriptionProps,
+} from "./execRefreshSubscription";
 
 export interface OperationQueueDeployItem {
   operation: "deploy";
@@ -23,6 +27,11 @@ export interface OperationQueueDeployItem {
 export interface OperationQueueRunItem {
   operation: "run";
   params: RunActionProps;
+}
+
+export interface OperationQueueRefreshSubscriptionItem {
+  operation: "refreshSubscription";
+  params: ExecRefreshSubscriptionProps;
 }
 
 export interface OperationQueueResubscribeItem {
@@ -50,6 +59,7 @@ export type OperationQueueItem =
   | OperationQueueGetAuthRequestUrlItem
   | OperationQueueRequestAccessTokenItem
   | OperationQueueRefreshAccessTokenItem
+  | OperationQueueRefreshSubscriptionItem
   | OperationQueueRunItem
   | OperationQueueResubscribeItem;
 
@@ -71,6 +81,8 @@ async function processOperations() {
     const item = operationQueue.shift();
     invariant(item);
 
+    console.log("Processing operation", item.operation);
+
     try {
       if (item.operation === "deploy") {
         await execDeployAndSubscribe();
@@ -84,6 +96,11 @@ async function processOperations() {
         await execRequestAccessToken(item.params);
       } else if (item.operation === "refreshAccessToken") {
         await execRefreshAccessToken(item.params);
+      } else if (item.operation === "refreshSubscription") {
+        await execRefreshSubscription(item.params);
+      } else {
+        const _exhaustiveCheck: never = item;
+        throw new Error(`Unhandled operation ${_exhaustiveCheck}`);
       }
     } catch (error) {
       console.error(String(error));

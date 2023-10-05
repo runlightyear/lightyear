@@ -1,21 +1,21 @@
-import pako from "pako";
 import { pushOperation } from "../../shared/operationQueue";
+import pako from "pako";
 
-export default async function handleResubscribe(props: any) {
-  console.debug("in handleResubscribe");
+export async function handleRefreshSubscription(props: any) {
+  console.debug("in handleRefreshSubscription");
 
   const { compressedPayloadB64 } = props;
   const compressedPayload = Buffer.from(compressedPayloadB64, "base64");
   const payloadStr = pako.inflate(compressedPayload, { to: "string" });
   const payload = JSON.parse(payloadStr);
 
-  console.debug("payload", payload);
+  console.log("handleRefreshSubscription with payload", payload);
 
   pushOperation({
-    operation: "resubscribe",
+    operation: "refreshSubscription",
     params: {
       webhookName: payload.webhookName,
-      manual: payload.manual,
+      activityId: payload.activityId,
     },
   });
 }

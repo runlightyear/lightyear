@@ -61,6 +61,9 @@ export type { PollingData, WebhookDeliveryData } from "./base/runData";
 export { setSecret } from "./base/secret";
 export type { SecretDef, SecretData } from "./base/secret";
 
+/* Subscriptions */
+export { setSubscriptionExpiresAt } from "./base/subscription";
+
 /* Smtp Proxy */
 export type {
   SmtpProxyRequestProps,

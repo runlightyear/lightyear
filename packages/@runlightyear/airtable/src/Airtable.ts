@@ -24,6 +24,7 @@ import {
   onNewOrUpdatedRecords,
   OnNewOrUpdatedRecordsProps,
 } from "./listeners/onNewOrUpdatedRecords";
+import { refreshWebhook, RefreshWebhookProps } from "./webhooks/refreshWebhook";
 
 /**
  * @beta
@@ -569,6 +570,15 @@ export class Airtable extends RestConnector {
    */
   async listWebhookPayloads(props: ListWebhookPayloadsProps) {
     return listWebhookPayloads(this)(props);
+  }
+
+  /**
+   * Refresh a webhook
+   *
+   * @alpha
+   */
+  async refreshWebhook(props: RefreshWebhookProps) {
+    return refreshWebhook(this)(props);
   }
 
   /**
