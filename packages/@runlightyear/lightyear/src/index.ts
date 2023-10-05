@@ -59,7 +59,10 @@ export type { PollingData, WebhookDeliveryData } from "./base/runData";
 
 /* Secrets */
 export { setSecret } from "./base/secret";
-export type { SecretData } from "./base/secret";
+export type { SecretDef, SecretData } from "./base/secret";
+
+/* Subscriptions */
+export { setSubscriptionExpiresAt } from "./base/subscription";
 
 /* Smtp Proxy */
 export type {
@@ -70,7 +73,7 @@ export type {
 
 /* Variables */
 export { getVariableData, setVariable } from "./base/variable";
-export type { VariableData } from "./base/variable";
+export type { VariableDef, VariableData } from "./base/variable";
 
 /* Webhooks */
 export { defineWebhook, getWebhookData } from "./base/webhook";

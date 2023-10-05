@@ -1,5 +1,31 @@
 # @runlightyear/airtable
 
+## 0.7.0
+
+### Minor Changes
+
+- adb48382d: Support for refreshing expiring webhook subscriptions
+- adb48382d: listWebhooks method bugfix
+
+### Patch Changes
+
+- Updated dependencies [4393656c3]
+  - @runlightyear/lightyear@0.36.0
+
+## 0.6.0
+
+### Minor Changes
+
+- 18b194494: Alpha support for webhooks + listBases and getBaseSchema
+
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [da7c9a679]
+- Updated dependencies [6f77253ea]
+  - @runlightyear/lightyear@0.35.0
+
 ## 0.5.0
 
 ### Minor Changes

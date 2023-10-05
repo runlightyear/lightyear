@@ -1,15 +1,12 @@
 /** GitHub **/
-
 export { GitHub } from "./GitHub";
 export type { GitHubConnectorProps, GitHubDefineAuthProps } from "./GitHub";
 
 /** GitHubOAuth **/
-
 export { GitHubOAuth } from "./GitHubOAuth";
 export type { GitHubOAuthProps } from "./GitHubOAuth";
 
 /** Commits **/
-
 export type {
   CompareTwoCommitsProps,
   CompareTwoCommitsResponse,
@@ -17,20 +14,22 @@ export type {
 } from "./commits/compareTwoCommits";
 
 /** Gists **/
-
 export type { CreateGistProps } from "./gists/createGist";
 
-/** Helpers **/
+/** Git Database **/
+export type {
+  GetTreeProps,
+  GetTreeResponse,
+} from "./gitDatabase/trees/getTree";
 
+/** Helpers **/
 export type { MatchAllCommitsProps } from "./helpers/matchAllCommits";
 
 /** Issues **/
-
 export type { CreateIssueProps } from "./issues/createIssue";
 export type { UpdateIssueProps } from "./issues/updateIssue";
 
 /** Listeners **/
-
 export type {
   GitHubListenerProps,
   GitHubListenerRunFunc,
@@ -38,12 +37,10 @@ export type {
 } from "./listeners/createListener";
 
 /** Pulls **/
-
 export type { CreatePullRequestProps } from "./pulls/createPullRequest";
 export type { UpdatePullRequestProps } from "./pulls/updatePullRequest";
 
 /** Repositories **/
-
 export type { DownloadRepoArchiveTarProps } from "./repositories/contents/downloadRepoArchiveTar";
 export type { DownloadRepoArchiveZipProps } from "./repositories/contents/downloadRepoArchiveZip";
 export type { ListOrganizationRepositoriesProps } from "./repositories/listOrganizationRepositories";
@@ -51,7 +48,6 @@ export type { ListRepositoriesForAuthenticatedUserProps } from "./repositories/l
 export type { ListRepositoriesForUserProps } from "./repositories/listRepositoriesForUser";
 
 /** Types **/
-
 export type { Commit } from "./types/Commit";
 export type { CommitComment } from "./types/CommitComment";
 export type { Deployment } from "./types/Deployment";
@@ -64,6 +60,7 @@ export type { Milestone } from "./types/Milestone";
 export type { PushCommit } from "./types/PushCommit";
 export type { Reactions } from "./types/Reactions";
 export type { Repository } from "./types/Repository";
+export type { Tree, TreeItem } from "./types/Tree";
 export type { User } from "./types/User";
 export type { WebhookConfig } from "./types/WebhookConfig";
 export type { WebhookEvent } from "./types/WebhookEvent";
@@ -72,7 +69,6 @@ export type { WorkflowJob } from "./types/WorkflowJob";
 export type { WorkflowRun } from "./types/WorkflowRun";
 
 /** Webhooks **/
-
 export type {
   DefineGitHubWebhookProps,
   GitHubWebhookSubscribeProps,
@@ -80,7 +76,6 @@ export type {
 } from "./webhooks/defineGitHubWebhook";
 
 /** Webhooks Payloads **/
-
 export type { CommitCommentPayload } from "./webhooks/payloads/asCommitCommentPayload";
 export type { CommonPayload } from "./webhooks/payloads/commonPayload";
 export type { CreatePayload } from "./webhooks/payloads/asCreatePayload";
@@ -144,7 +139,6 @@ export type { WorkflowJobPayload } from "./webhooks/payloads/asWorkflowJobPayloa
 export type { WorkflowRunPayload } from "./webhooks/payloads/asWorkflowRunPayload";
 
 /** Webhooks Repositories **/
-
 export type {
   CreateRepositoryWebhookProps,
   CreateRepositoryWebhookResponse,

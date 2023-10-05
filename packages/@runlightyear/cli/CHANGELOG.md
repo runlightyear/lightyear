@@ -1,5 +1,24 @@
 # @runlightyear/cli
 
+## 0.28.0
+
+### Minor Changes
+
+- ea910fc0c: Support for refreshing expiring subscriptions
+
+### Patch Changes
+
+- Updated dependencies [4393656c3]
+  - @runlightyear/lightyear@0.36.0
+
+## 0.27.6
+
+### Patch Changes
+
+- Updated dependencies [da7c9a679]
+- Updated dependencies [6f77253ea]
+  - @runlightyear/lightyear@0.35.0
+
 ## 0.27.5
 
 ### Patch Changes

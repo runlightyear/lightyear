@@ -14,7 +14,7 @@ export interface GitHubListenerRunFuncProps<Payload> extends RunFuncProps {
 
 export type GitHubListenerRunFunc<Payload> = (
   props: GitHubListenerRunFuncProps<Payload>
-) => void;
+) => Promise<void>;
 
 export interface GitHubListenerProps<Payload> {
   /**
@@ -60,11 +60,11 @@ export interface GitHubListenerProps<Payload> {
   /**
    * The account owner of the repository. The name is not case sensitive.
    */
-  owner: string;
+  owner?: string;
   /**
    * The name of the repository without the .git extension. The name is not case sensitive.
    */
-  repo: string;
+  repo?: string;
 }
 
 export interface CreateListenerProps<Payload> {
@@ -98,12 +98,32 @@ export function createListener<Payload>(props: CreateListenerProps<Payload>) {
     const webhook = GitHub.defineWebhook({
       name,
       title,
-      variables,
+      variables: [
+        ...variables,
+        ...(owner
+          ? []
+          : [
+              {
+                name: "owner",
+                description:
+                  "The account owner of the repository. The name is not case sensitive.",
+              },
+            ]),
+        ...(repo
+          ? []
+          : [
+              {
+                name: "repo",
+                description:
+                  "The name of the repository without the .git extension. The name is not case sensitive.",
+              },
+            ]),
+      ],
       secrets,
-      subscribeProps: () => {
+      subscribeProps: ({ variables }) => {
         return {
-          owner,
-          repo,
+          owner: owner || variables.owner!,
+          repo: repo || variables.repo!,
           events: [event],
         };
       },

@@ -1,5 +1,28 @@
 # @runlightyear/github
 
+## 0.21.1
+
+### Patch Changes
+
+- Updated dependencies [4393656c3]
+  - @runlightyear/lightyear@0.36.0
+
+## 0.21.0
+
+### Minor Changes
+
+- eb4714bdd: getTree method added
+- e24e8454a: Listeners create an owner and repo variable if they are not specified
+- e24e8454a: Added new examples
+
+## 0.20.1
+
+### Patch Changes
+
+- Updated dependencies [da7c9a679]
+- Updated dependencies [6f77253ea]
+  - @runlightyear/lightyear@0.35.0
+
 ## 0.20.0
 
 ### Minor Changes

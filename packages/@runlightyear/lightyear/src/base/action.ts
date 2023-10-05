@@ -11,6 +11,8 @@ import {
   validVariableAndSecretNameRegex,
 } from "../util/isValidName";
 import { z } from "zod";
+import { VariableDef } from "./variable";
+import { SecretDef } from "./secret";
 
 export type AppName =
   | "airtable"
@@ -61,7 +63,7 @@ export interface DefineActionProps {
    *
    * ["requiredVar", "optionalVar?"]
    */
-  variables?: Array<string>;
+  variables?: Array<VariableDef>;
   /**
    * An array of the secrets on this action.
    *
@@ -71,7 +73,7 @@ export interface DefineActionProps {
    *
    * ["requiredSecret", "optionalSecret?"]
    */
-  secrets?: Array<string>;
+  secrets?: Array<SecretDef>;
   /**
    * The function to run when this action is triggered.
    */
@@ -100,10 +102,13 @@ function validateActionProps(props: DefineActionProps) {
   const AppsSchema = z.array(NameSchema);
   const CustomAppsSchema = z.array(NameSchema);
 
-  const VariableAndSecretNameSchema = z
-    .string()
-    .min(1)
-    .regex(validVariableAndSecretNameRegex);
+  const VariableAndSecretNameSchema = z.union([
+    z.string().min(1).regex(validVariableAndSecretNameRegex),
+    z.object({
+      name: z.string().min(1).regex(validVariableAndSecretNameRegex),
+      description: z.string().optional(),
+    }),
+  ]);
   const VariablesSchema = z.array(VariableAndSecretNameSchema);
   const SecretsSchema = z.array(VariableAndSecretNameSchema);
 
@@ -167,7 +172,7 @@ function validateActionProps(props: DefineActionProps) {
   if (variables) {
     if (!VariablesSchema.safeParse(variables).success) {
       throw new Error(
-        `Invalid variables for action ${name}: ${variables} Must be an array of valid names`
+        `Invalid variables for action ${name}: Must be an array of valid names or objects with name and optional description`
       );
     }
   }
@@ -175,7 +180,7 @@ function validateActionProps(props: DefineActionProps) {
   if (secrets) {
     if (!SecretsSchema.safeParse(secrets).success) {
       throw new Error(
-        `Invalid secrets for action ${name}: ${secrets} Must be an array of valid names`
+        `Invalid secrets for action ${name}: Must be an array of valid names or objects with name and optional description`
       );
     }
   }
@@ -230,28 +235,66 @@ function validateActionProps(props: DefineActionProps) {
  * Define an Action
  *
  * @example Hello World
- *
  * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ *
  * defineAction({
  *   name: "helloWorld",
  *   title: "Hello World",
  *   run: async () => {
- *     console.log('Hello world');
- *   }
- * })
+ *     console.log("Hello world");
+ *   },
+ * });
  * ```
  *
  * @example Variables
  * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ *
  * defineAction({
- *   name: "variables",
- *   title: "Variables",
- *   variables: ["var1", "var2?"],
+ *   name: "actionWithVariables",
+ *   title: "Action with Variables",
+ *   variables: [
+ *     "var1",
+ *     "var2?",
+ *     { name: "var3", description: "Required variable 3" },
+ *     { name: "var4?", description: "Optional variable 4" },
+ *   ],
  *   run: async ({ variables }) => {
  *     console.log("required variable", variables.var1);
  *     console.log("optional variable", variables.var2);
- *   }
- * }
+ *     console.log("variable with description", variables.var3);
+ *     console.log("optional variable with description", variables.var4);
+ *   },
+ * });
+ * ```
+ *
+ * @example Secrets
+ * ```typescript
+ * import { defineAction } from "@runlightyear/lightyear";
+ *
+ * defineAction({
+ *   name: "actionWithSecrets",
+ *   title: "Action with Secrets",
+ *   secrets: [
+ *     "secret1",
+ *     "secret2?",
+ *     {
+ *       name: "secret3",
+ *       description: "Required secret 3",
+ *     },
+ *     {
+ *       name: "secret4?",
+ *       description: "Optional secret 4",
+ *     },
+ *   ],
+ *   run: async ({ secrets }) => {
+ *     console.log("required secret", secrets.secret1);
+ *     console.log("optional secret", secrets.secret2);
+ *     console.log("secret with description", secrets.secret3);
+ *     console.log("optional secret with description", secrets.secret4);
+ *   },
+ * });
  * ```
  *
  * @param props

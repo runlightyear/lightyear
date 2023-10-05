@@ -12,28 +12,39 @@ import {
   validVariableAndSecretNameRegex,
 } from "../util/isValidName";
 import { z } from "zod";
+import { VariableDef } from "./variable";
+import { SecretDef } from "./secret";
 
 /**
  * @public
  */
-export type SubscribeFuncProps = {
+export interface SubscribeFuncProps {
   endpoint: string;
   auths: Auths;
   variables: Variables;
   secrets: Secrets;
   subscribeProps: any;
-};
+}
 
 /**
  * @public
  */
-export type UnsubscribeFuncProps = {
+export interface UnsubscribeFuncProps {
   endpoint: string;
   auths: Auths;
   variables: Variables;
   secrets: Secrets;
   unsubscribeProps: any;
-};
+}
+
+export interface RefreshSubscriptionFuncProps {
+  endpoint: string;
+  auths: Auths;
+  variables: Variables;
+  secrets: Secrets;
+  unsubscribeProps: any;
+  subscribeProps: any;
+}
 
 /**
  * @public
@@ -43,7 +54,14 @@ export type SubscribeFunc = (props: SubscribeFuncProps) => Promise<object>;
 /**
  * @public
  */
-export type UnsubscribeFunc = (props: UnsubscribeFuncProps) => void;
+export type UnsubscribeFunc = (props: UnsubscribeFuncProps) => Promise<void>;
+
+/**
+ * @public
+ */
+export type RefreshSubscriptionFunc = (
+  props: RefreshSubscriptionFuncProps
+) => Promise<object>;
 
 type SubscribeIndex = {
   [name: string]: SubscribeFunc;
@@ -53,8 +71,13 @@ type UnsubscribeIndex = {
   [name: string]: UnsubscribeFunc;
 };
 
+type RefreshSubscriptionIndex = {
+  [name: string]: RefreshSubscriptionFunc;
+};
+
 export const subscribeIndex: SubscribeIndex = {};
 export const unsubscribeIndex: UnsubscribeIndex = {};
+export const refreshSubscriptionIndex: RefreshSubscriptionIndex = {};
 
 /**
  * @public
@@ -98,7 +121,7 @@ export interface DefineWebhookProps {
    *
    * ["requiredVar", "optionalVar?"]
    */
-  variables?: Array<string>;
+  variables?: Array<VariableDef>;
   /**
    * An array of the secrets on this webhook.
    *
@@ -108,9 +131,10 @@ export interface DefineWebhookProps {
    *
    * ["requiredSecret", "optionalSecret?"]
    */
-  secrets?: Array<string>;
+  secrets?: Array<SecretDef>;
   subscribeProps?: SubscribePropsFunc;
   subscribe?: SubscribeFunc;
+  refreshSubscription?: RefreshSubscriptionFunc;
   unsubscribe?: UnsubscribeFunc;
 }
 
@@ -123,10 +147,13 @@ function validateWebhookProps(props: DefineWebhookProps) {
   const AppsSchema = z.array(NameSchema);
   const CustomAppsSchema = z.array(NameSchema);
 
-  const VariableAndSecretNameSchema = z
-    .string()
-    .min(1)
-    .regex(validVariableAndSecretNameRegex);
+  const VariableAndSecretNameSchema = z.union([
+    z.string().min(1).regex(validVariableAndSecretNameRegex),
+    z.object({
+      name: z.string().min(1).regex(validVariableAndSecretNameRegex),
+      description: z.string().optional(),
+    }),
+  ]);
   const VariablesSchema = z.array(VariableAndSecretNameSchema);
   const SecretsSchema = z.array(VariableAndSecretNameSchema);
 
@@ -141,6 +168,7 @@ function validateWebhookProps(props: DefineWebhookProps) {
       subscribeProps: z.function().optional(),
       subscribe: z.function().optional(),
       unsubscribe: z.function().optional(),
+      refreshSubscription: z.function().optional(),
     })
     .strict();
 
@@ -171,7 +199,7 @@ function validateWebhookProps(props: DefineWebhookProps) {
   if (variables) {
     if (!VariablesSchema.safeParse(variables).success) {
       throw new Error(
-        `Invalid variables for webhook ${name}: ${variables} Must be an array of valid names`
+        `Invalid variables for webhook ${name}: ${variables} Must be an array of valid names or objects with name and optional description`
       );
     }
   }
@@ -179,7 +207,7 @@ function validateWebhookProps(props: DefineWebhookProps) {
   if (secrets) {
     if (!SecretsSchema.safeParse(secrets).success) {
       throw new Error(
-        `Invalid secrets for webhook ${name}: ${secrets} Must be an array of valid names`
+        `Invalid secrets for webhook ${name}: ${secrets} Must be an array of valid names or objects with name and optional description`
       );
     }
   }
@@ -198,16 +226,61 @@ function validateWebhookProps(props: DefineWebhookProps) {
  *
  * Define a Webhook
  *
- * @example Basic
- *
+ * @example Basic webhook
  * ```typescript
+ * import { defineWebhook } from "@runlightyear/lightyear";
+ *
  * defineWebhook({
  *   name: "basicWebhook",
  *   title: "Basic Webhook",
- * })
+ * });
  *```
  *
- * @example With Subscription
+ * @example Webhook with variables
+ * ```typescript
+ * import { defineWebhook } from "@runlightyear/lightyear";
+ *
+ * defineWebhook({
+ *   name: "webhookWithVariables",
+ *   title: "Webhook with Variables",
+ *   variables: [
+ *     "var1",
+ *     "var2?",
+ *     {
+ *       name: "var3",
+ *       description: "Required variable 3",
+ *     },
+ *     {
+ *       name: "var4?",
+ *       description: "Optional variable 4",
+ *     },
+ *   ],
+ * });
+ * ```
+ *
+ * @example Webhook with secrets
+ * ```typescript
+ * import { defineWebhook } from "@runlightyear/lightyear";
+ *
+ * defineWebhook({
+ *   name: "webhookWithSecrets",
+ *   title: "Webhook with Secrets",
+ *   secrets: [
+ *     "secret1",
+ *     "secret2?",
+ *     {
+ *       name: "secret3",
+ *       description: "Required secret 3",
+ *     },
+ *     {
+ *       name: "secret4?",
+ *       description: "Optional secret 4",
+ *     },
+ *   ],
+ * });
+ * ```
+ *
+ * @example With subscription
  *
  * ```typescript
  * defineWebhook({
@@ -222,6 +295,9 @@ function validateWebhookProps(props: DefineWebhookProps) {
  *     // code to create subscription using subscribe props
  *     // return value becomes unsubscribeProps for unsubscribe
  *     // for example: hook id returned by rest api call
+ *   },
+ *   refreshSubscription: ({ refreshSubscriptionProps }) => {
+ *     // runs when a subscription is close to expiring
  *   },
  *   unsubscribe: ({ unsubscribeProps }) => {
  *      // if subscribed, runs after a change in subscribeProps is detected
@@ -246,6 +322,9 @@ export function defineWebhook(props: DefineWebhookProps) {
   }
   if (props.unsubscribe) {
     unsubscribeIndex[props.name] = props.unsubscribe;
+  }
+  if (props.refreshSubscription) {
+    refreshSubscriptionIndex[props.name] = props.refreshSubscription;
   }
 
   return props.name;

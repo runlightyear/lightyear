@@ -1,5 +1,27 @@
 # @runlightyear/linear
 
+## 0.7.1
+
+### Patch Changes
+
+- Updated dependencies [4393656c3]
+  - @runlightyear/lightyear@0.36.0
+
+## 0.7.0
+
+### Minor Changes
+
+- 5e711349a: Bug fixes and updates for several methods
+- a311edb14: Update docs to @beta
+
+## 0.6.5
+
+### Patch Changes
+
+- Updated dependencies [da7c9a679]
+- Updated dependencies [6f77253ea]
+  - @runlightyear/lightyear@0.35.0
+
 ## 0.6.4
 
 ### Patch Changes

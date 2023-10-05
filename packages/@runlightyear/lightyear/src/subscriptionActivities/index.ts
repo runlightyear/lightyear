@@ -1,4 +1,6 @@
 import {
+  RefreshSubscriptionFuncProps,
+  refreshSubscriptionIndex,
   SubscribeFuncProps,
   subscribeIndex,
   UnsubscribeFuncProps,
@@ -65,7 +67,7 @@ export async function unsubscribe(
 ) {
   const fn = unsubscribeIndex[webhookName];
   if (!fn) {
-    console.error(`Unknown webhook: ${webhookName}`);
+    console.error(`No unsubscribe function for: ${webhookName}`);
   }
 
   await fn(unsubscribeFuncProps);
@@ -77,8 +79,20 @@ export async function subscribe(
 ) {
   const fn = subscribeIndex[webhookName];
   if (!fn) {
-    console.error(`Unknown subscription: ${webhookName}`);
+    console.error(`No subscribe function for: ${webhookName}`);
   }
 
   return await fn(subscribeFuncProps);
+}
+
+export async function refreshSubscription(
+  webhookName: string,
+  refreshSubscriptionFuncProps: RefreshSubscriptionFuncProps
+) {
+  const fn = refreshSubscriptionIndex[webhookName];
+  if (!fn) {
+    console.error(`No refresh subscription function for: ${webhookName}`);
+  }
+
+  return await fn(refreshSubscriptionFuncProps);
 }

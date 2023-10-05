@@ -1,5 +1,21 @@
 # @runlightyear/lightyear
 
+## 0.36.0
+
+### Minor Changes
+
+- 4393656c3: Support for refreshing expiring webhook subscriptions
+
+## 0.35.0
+
+### Minor Changes
+
+- 6f77253ea: Support for adding descriptions to variables and secrets
+
+### Patch Changes
+
+- da7c9a679: Console logs arrays properly
+
 ## 0.34.0
 
 ### Minor Changes
