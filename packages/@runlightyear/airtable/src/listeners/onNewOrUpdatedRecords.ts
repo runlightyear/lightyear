@@ -21,10 +21,10 @@ export interface OnNewOrUpdatedRecordsProps {
 }
 
 export type OnNewOrUpdatedRecordsRunFunc = (
-  props: OnNewRecordsRunFuncProps
+  props: OnNewOrUpdatedRecordsRunFuncProps
 ) => Promise<void>;
 
-export interface OnNewRecordsRunFuncProps extends RunFuncProps {
+export interface OnNewOrUpdatedRecordsRunFuncProps extends RunFuncProps {
   data: {
     baseId: string;
     webhookId: string;

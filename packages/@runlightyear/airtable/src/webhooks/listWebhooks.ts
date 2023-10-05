@@ -6,8 +6,12 @@ export interface ListWebhooksProps {
   baseId: string;
 }
 
+export interface ListWebhooksResponseData {
+  webhooks: Array<Webhook>;
+}
+
 export interface ListWebhooksResponse extends HttpProxyResponse {
-  data: Array<Webhook>;
+  data: ListWebhooksResponseData;
 }
 
 export const listWebhooks =
