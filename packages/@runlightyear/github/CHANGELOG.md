@@ -1,5 +1,11 @@
 # @runlightyear/github
 
+## 0.22.0
+
+### Minor Changes
+
+- Only create specified variables and secrets for listeners on the action
+
 ## 0.21.1
 
 ### Patch Changes
