@@ -99,7 +99,6 @@ export function createListener<Payload>(props: CreateListenerProps<Payload>) {
       name,
       title,
       variables: [
-        ...variables,
         ...(owner
           ? []
           : [
@@ -119,7 +118,6 @@ export function createListener<Payload>(props: CreateListenerProps<Payload>) {
               },
             ]),
       ],
-      secrets,
       subscribeProps: ({ variables }) => {
         return {
           owner: owner || variables.owner!,
