@@ -139,7 +139,7 @@ export const onNewEvents = (props: OnNewEventsProps) => {
     : customApps;
 
   const webhook = GoogleCalendar.defineEventsWebhook({
-    name: `${name}-webhook`,
+    name: `${name}_webhook`,
     title,
     apps,
     customApps,
@@ -211,7 +211,7 @@ export const onNewEvents = (props: OnNewEventsProps) => {
           await setVariable("updatedMin", updatedMin);
         }
 
-        console.info("Found no updated events, skipping");
+        console.info("Found no new events, skipping");
         throw SKIPPED;
       }
     },

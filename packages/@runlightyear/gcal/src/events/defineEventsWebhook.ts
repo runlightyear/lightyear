@@ -8,6 +8,8 @@ import {
   VariableDef,
   SecretDef,
   AppName,
+  dayjsUtc,
+  setSubscriptionExpiresAt,
 } from "@runlightyear/lightyear";
 import { GoogleCalendar } from "../GoogleCalendar";
 
@@ -73,6 +75,13 @@ const subscribe: SubscribeFunc = async ({
   };
 
   console.info("Subscribed to Google Calendar event notifications");
+  if (response.data.expiration) {
+    const expiresAt = dayjsUtc(
+      parseInt(response.data.expiration)
+    ).toISOString();
+    console.info(`Will auto-refresh before ${expiresAt}`);
+    await setSubscriptionExpiresAt(expiresAt);
+  }
 
   console.debug("unsubscribeProps", unsubscribeProps);
 
