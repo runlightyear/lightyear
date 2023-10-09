@@ -15,11 +15,12 @@ import {
   DefineEventsWebhookProps,
 } from "./events/defineEventsWebhook";
 import {
-  onUpdatedEvents,
-  OnUpdatedEventsProps,
-} from "./listeners/onUpdatedEvents";
+  onNewAndUpdatedEvents,
+  OnNewAndUpdatedEventsProps,
+} from "./listeners/onNewAndUpdatedEvents";
 import { patchEvent, PatchEventProps } from "./events/patchEvent";
 import { getEvent, GetEventProps } from "./events/getEvent";
+import { onNewEvents, OnNewEventsProps } from "./listeners/onNewEvents";
 
 /**
  * @beta
@@ -330,6 +331,32 @@ export interface GoogleCalendarProps extends AuthConnectorProps {}
  * });
  * ```
  *
+ * @example On new events
+ * ```typescript
+ * import { GoogleCalendar } from "@runlightyear/gcal";
+ *
+ * GoogleCalendar.onNewEvents({
+ *   name: "onNewEvents",
+ *   title: "On New Events",
+ *   run: async ({ data }) => {
+ *     console.info("New events", data);
+ *   },
+ * });
+ * ```
+ *
+ * @example On new and updated events
+ * ```typescript
+ * import { GoogleCalendar } from "@runlightyear/gcal";
+ *
+ * GoogleCalendar.onNewAndUpdatedEvents({
+ *   name: "onNewAndUpdatedEvents",
+ *   title: "On New and Updated Events",
+ *   run: async ({ data }) => {
+ *     console.info("New and updated events", data);
+ *   },
+ * });
+ * ```
+ *
  */
 export class GoogleCalendar extends RestConnector {
   constructor(props: GoogleCalendarProps) {
@@ -338,8 +365,6 @@ export class GoogleCalendar extends RestConnector {
 
   /**
    * Returns the calendars on the user's calendar list.
-   *
-   * @alpha
    *
    * @group Calendar
    *
@@ -351,8 +376,6 @@ export class GoogleCalendar extends RestConnector {
 
   /**
    * Creates a secondary calendar.
-   *
-   * @alpha
    *
    * @group Calendar
    *
@@ -757,8 +780,6 @@ export class GoogleCalendar extends RestConnector {
    * Watch for events.
    *
    * @group Notification
-   *
-   * @alpha
    */
   async watchEvents(props: WatchEventsProps) {
     return watchEvents(this)(props);
@@ -768,15 +789,13 @@ export class GoogleCalendar extends RestConnector {
    * Stop notification channel
    *
    * @group Notification
-   *
-   * @alpha
    */
   async stopChannel(props: StopChannelProps) {
     return stopChannel(this)(props);
   }
 
   /**
-   * @alpha
+   * Low level interface to define an event webhook.
    *
    * @param props
    */
@@ -785,30 +804,73 @@ export class GoogleCalendar extends RestConnector {
   }
 
   /**
-   * Updated Events Listener
-   *
-   * @alpha
+   * On new events
    *
    * @group Listener
    *
-   * @example Get updated events every minute
+   * @example On new events
    * ```typescript
-   * GoogleCalendar.onUpdatedEvents({
-   *   name: "updatedCalendarEvents",
-   *   title: "Updated Calendar Events",
-   *   calendarId: "primary",
-   *   trigger: {
-   *     pollingFrequency: 1,  // Run once a minute
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   *
+   * GoogleCalendar.onNewEvents({
+   *   name: "onNewEvents",
+   *   title: "On New Events",
+   *   run: async ({ data }) => {
+   *     console.info("New events", data);
    *   },
-   *   run: async ({ data: events }) => {
-   *     console.log("Updated events", events);
+   * });
+   * ```
+   *
+   * @example On new events with matching title
+   * ```typescript
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   * import { SKIPPED } from "@runlightyear/lightyear";
+   *
+   * GoogleCalendar.onNewEvents({
+   *   name: "onNewMatchingEvents",
+   *   title: "On New Matching Events",
+   *   variables: [
+   *     { name: "term", description: "Event title must contain this term" },
+   *   ],
+   *   run: async ({ data, variables }) => {
+   *     const testEvents = data.filter((event) =>
+   *       event.summary.includes(variables.term!)
+   *     );
+   *
+   *     if (testEvents.length === 0) {
+   *       throw SKIPPED;
+   *     }
+   *
+   *     console.log(`New events matching ${variables.term!}:`, testEvents);
+   *   },
+   * });
+   * ```
+   */
+  static onNewEvents(props: OnNewEventsProps) {
+    return onNewEvents(props);
+  }
+
+  /**
+   * On new and updated events
+   *
+   * @group Listener
+   *
+   * @example On new and updated events
+   * ```typescript
+   * import { GoogleCalendar } from "@runlightyear/gcal";
+   *
+   * GoogleCalendar.onNewAndUpdatedEvents({
+   *   name: "onNewAndUpdatedEvents",
+   *   title: "On New and Updated Events",
+   *   run: async ({ data }) => {
+   *     console.info("New and updated events", data);
    *   },
    * });
    * ```
    *
    * @param props
    */
-  static onUpdatedEvents(props: OnUpdatedEventsProps) {
-    return onUpdatedEvents(props);
+  static onNewAndUpdatedEvents(props: OnNewAndUpdatedEventsProps) {
+    return onNewAndUpdatedEvents(props);
   }
 }

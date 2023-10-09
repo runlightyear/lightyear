@@ -1,5 +1,17 @@
 # @runlightyear/gcal
 
+## 0.8.0
+
+### Minor Changes
+
+- efed4a0c7: Webhook-based onNewEvents and onNewAndUpdatedEvents listeners
+- Refreshes expiring subscriptions
+
+### Patch Changes
+
+- Updated dependencies [efed4a0c7]
+  - @runlightyear/lightyear@0.36.1
+
 ## 0.7.2
 
 ### Patch Changes

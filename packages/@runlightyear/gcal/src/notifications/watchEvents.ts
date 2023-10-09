@@ -47,7 +47,7 @@ export interface WatchEventsResponseData {
   resourceId: string;
   resourceUri: string;
   token: string;
-  expiration: number;
+  expiration: string;
 }
 
 export interface WatchEventsResponse extends HttpProxyResponse {

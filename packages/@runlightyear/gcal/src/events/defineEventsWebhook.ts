@@ -1,7 +1,15 @@
 import { randomInt } from "crypto";
 import {
   defineWebhook,
+  SubscribeFunc,
   SubscribePropsFuncProps,
+  UnsubscribeFunc,
+  RefreshSubscriptionFunc,
+  VariableDef,
+  SecretDef,
+  AppName,
+  dayjsUtc,
+  setSubscriptionExpiresAt,
 } from "@runlightyear/lightyear";
 import { GoogleCalendar } from "../GoogleCalendar";
 
@@ -19,8 +27,10 @@ export type DefineEventsWebhookSubscribePropsFunc = (
 export interface DefineEventsWebhookProps {
   name: string;
   title: string;
-  variables?: Array<string>;
-  secrets?: Array<string>;
+  apps?: Array<AppName>;
+  customApps?: Array<string>;
+  variables?: Array<VariableDef>;
+  secrets?: Array<SecretDef>;
   subscribeProps: DefineEventsWebhookSubscribePropsFunc;
 }
 
@@ -34,39 +44,62 @@ export const defineEventsWebhook = (props: DefineEventsWebhookProps) => {
     variables,
     secrets,
     subscribeProps,
-    subscribe: async ({ auths, endpoint, subscribeProps }) => {
-      console.debug("Subscribe to Google Calendar events");
-      console.debug("subscribeProps", subscribeProps);
-
-      const gcal = new GoogleCalendar({ auth: auths.gcal });
-
-      const id = String(randomInt(100000000));
-
-      const response = await gcal.watchEvents({
-        calendarId: subscribeProps.calendarId,
-        id,
-        type: "webhook",
-        address: endpoint,
-      });
-
-      const unsubscribeProps = {
-        id,
-        resourceId: response.data.resourceId,
-      };
-
-      console.log("unsubscribeProps", unsubscribeProps);
-
-      return unsubscribeProps;
-    },
-    unsubscribe: async ({ auths, unsubscribeProps }) => {
-      const gcal = new GoogleCalendar({ auth: auths.gcal });
-
-      await gcal.stopChannel({
-        id: unsubscribeProps.id,
-        resourceId: unsubscribeProps.resourceId,
-      });
-
-      console.info("Unsubscribed from Google Calendar event notifications");
-    },
+    subscribe,
+    unsubscribe,
+    refreshSubscription,
   });
+};
+
+const subscribe: SubscribeFunc = async ({
+  auths,
+  endpoint,
+  subscribeProps,
+}) => {
+  console.debug("Subscribe to Google Calendar events");
+  console.debug("subscribeProps", subscribeProps);
+
+  const gcal = new GoogleCalendar({ auth: auths.gcal });
+
+  const id = String(randomInt(100000000));
+
+  const response = await gcal.watchEvents({
+    calendarId: subscribeProps.calendarId,
+    id,
+    type: "webhook",
+    address: endpoint,
+  });
+
+  const unsubscribeProps = {
+    id,
+    resourceId: response.data.resourceId,
+  };
+
+  console.info("Subscribed to Google Calendar event notifications");
+  if (response.data.expiration) {
+    const expiresAt = dayjsUtc(
+      parseInt(response.data.expiration)
+    ).toISOString();
+    console.info(`Will auto-refresh before ${expiresAt}`);
+    await setSubscriptionExpiresAt(expiresAt);
+  }
+
+  console.debug("unsubscribeProps", unsubscribeProps);
+
+  return unsubscribeProps;
+};
+
+const unsubscribe: UnsubscribeFunc = async ({ auths, unsubscribeProps }) => {
+  const gcal = new GoogleCalendar({ auth: auths.gcal });
+
+  await gcal.stopChannel({
+    id: unsubscribeProps.id,
+    resourceId: unsubscribeProps.resourceId,
+  });
+
+  console.info("Unsubscribed from Google Calendar event notifications");
+};
+
+const refreshSubscription: RefreshSubscriptionFunc = async (props) => {
+  await unsubscribe(props);
+  return await subscribe(props);
 };

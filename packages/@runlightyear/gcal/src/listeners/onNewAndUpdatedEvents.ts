@@ -4,35 +4,33 @@ import {
   dayjsUtc,
   defineAction,
   RunFuncProps,
+  SecretDef,
   setVariable,
   SKIPPED,
-} from "@runlightyear/lightyear";
-import {
-  ActionTrigger,
+  VariableDef,
   AppName,
-} from "@runlightyear/lightyear/src/base/action";
+} from "@runlightyear/lightyear";
 import { GoogleCalendar } from "../GoogleCalendar";
 import { EventResource } from "../types/EventResource";
 
-export interface OnUpdatedEventsRunFuncProps extends RunFuncProps {
+export interface OnNewAndUpdatedEventsRunFuncProps extends RunFuncProps {
   data: Array<EventResource>;
 }
 
-export type OnUpdatedEventsRunFunc = (
-  props: OnUpdatedEventsRunFuncProps
-) => void;
+export type OnNewAndUpdatedEventsRunFunc = (
+  props: OnNewAndUpdatedEventsRunFuncProps
+) => Promise<void>;
 
-export interface OnUpdatedEventsProps {
+export interface OnNewAndUpdatedEventsProps {
   name: string;
   title: string;
-  trigger?: ActionTrigger;
   customAppName?: string;
   authName?: string;
   apps?: Array<AppName>;
   customApps?: Array<string>;
-  variables?: Array<string>;
-  secrets?: Array<string>;
-  run: OnUpdatedEventsRunFunc;
+  variables?: Array<VariableDef>;
+  secrets?: Array<SecretDef>;
+  run: OnNewAndUpdatedEventsRunFunc;
 
   /**
    * Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
@@ -108,11 +106,10 @@ export interface OnUpdatedEventsProps {
   timeZone?: string;
 }
 
-export const onUpdatedEvents = (props: OnUpdatedEventsProps) => {
+export const onNewAndUpdatedEvents = (props: OnNewAndUpdatedEventsProps) => {
   const {
     name,
     title,
-    trigger,
     customAppName,
     authName = "gcal",
     apps = [],
@@ -141,14 +138,30 @@ export const onUpdatedEvents = (props: OnUpdatedEventsProps) => {
     ? [customAppName, ...customApps]
     : customApps;
 
-  return defineAction({
+  const webhook = GoogleCalendar.defineEventsWebhook({
+    name: `${name}_webhook`,
+    title,
+    apps,
+    customApps,
+    variables: [...(calendarId ? [] : ["calendarId?"])],
+    secrets,
+    subscribeProps: (props) => {
+      return {
+        calendarId: calendarId || "primary",
+      };
+    },
+  });
+
+  const action = defineAction({
     name,
     title,
     apps: combinedApps,
     customApps: combinedCustomApps,
-    variables: [...variables, "updatedMin"],
+    variables: [...variables, "updatedMin?"],
     secrets,
-    trigger,
+    trigger: {
+      webhook,
+    },
     run: async (runProps) => {
       const { auths, variables } = runProps;
 
@@ -179,7 +192,7 @@ export const onUpdatedEvents = (props: OnUpdatedEventsProps) => {
 
       // Filter out the last time returned from the previous call since Google doesn't do this for us.
       const events = response.data.items.filter(
-        (event) => event.updated !== updatedMin
+        (event) => event.status !== "cancelled" && event.updated !== updatedMin
       );
 
       if (events.length > 0) {
@@ -196,9 +209,14 @@ export const onUpdatedEvents = (props: OnUpdatedEventsProps) => {
           await setVariable("updatedMin", updatedMin);
         }
 
-        console.info("Found no updated events, skipping");
+        console.info("Found no new nor updated events, skipping");
         throw SKIPPED;
       }
     },
   });
+
+  return {
+    webhook,
+    action,
+  };
 };

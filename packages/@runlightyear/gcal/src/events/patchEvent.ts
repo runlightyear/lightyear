@@ -1,8 +1,4 @@
-import {
-  EventResource,
-  EventResourceInput,
-  EventResourcePatchInput,
-} from "../types/EventResource";
+import { EventResource, EventResourcePatchInput } from "../types/EventResource";
 import { GoogleCalendar } from "../GoogleCalendar";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 

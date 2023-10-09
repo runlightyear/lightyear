@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.36.1
+
+### Patch Changes
+
+- efed4a0c7: Added some missing exports
+
 ## 0.36.0
 
 ### Minor Changes
