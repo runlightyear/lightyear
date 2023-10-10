@@ -1,6 +1,6 @@
 import { SelectMenuConversationsElement } from "./SelectMenuConversationsElement";
 import { SelectMenuExternalDataSourceElement } from "./SelectMenuExternalDataSourceElement";
-import { SelectMenuPublicChannelsElement } from "./SelectMenuPublicChannels";
+import { SelectMenuPublicChannelsElement } from "./SelectMenuPublicChannelsElement";
 import { SelectMenuStaticOptionsElement } from "./SelectMenuStaticOptionsElement";
 import { SelectMenuUserElement } from "./SelectMenuUserElement";
 

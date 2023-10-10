@@ -1,29 +1,3 @@
-/**
- * type
- * String
- * Yes
- * The type of element. In this case type is always rich_text_input.
- * action_id
- * String
- * Yes
- * An identifier for the input value when the parent modal is submitted. You can use this when you receive a view_submission payload to identify the value of the input element. Should be unique among all other action_ids in the containing block. Maximum length is 255 characters.
- * initial_value
- * Rich text
- * No
- * The initial value in the rich text input when it is loaded.
- * dispatch_action_config
- * Object
- * No
- * A dispatch configuration object that determines when during text input the element returns a block_actions payload.
- * focus_on_load
- * Boolean
- * No
- * Indicates whether the element will be set to auto focus within the view object. Only one element can be set to true. Defaults to false.
- * placeholder
- * Object
- * No
- * A plain_text only text object that defines the placeholder text shown in the plain-text input. Maximum length for the text in this field is 150 characters.
- */
 import { RichTextBlock } from "../blocks/RichTextBlock";
 import { DispatchActionConfigurationObject } from "../objects/DispatchActionConfigurationObject";
 import { PlainTextObject } from "../objects/PlainTextObject";

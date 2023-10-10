@@ -1,13 +1,3 @@
-/**
- * label
- * Object
- * A plain_text text object that defines the label shown above this group of options. Maximum length for the text in this field is 75 characters.
- * Yes
- * options
- * Object[]
- * An array of option objects that belong to this specific group. Maximum of 100 items.
- * Yes
- */
 import { PlainTextObject } from "./PlainTextObject";
 import { OptionObject } from "./OptionObject";
 

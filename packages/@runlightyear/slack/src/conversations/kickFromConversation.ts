@@ -1,17 +1,3 @@
-/**
- * channel
- * ·Required
- * ID of conversation to remove user from.
- *
- * Example
- * C1234567890
- * user
- * ·Required
- * User ID to be removed.
- *
- * Example
- * W1234567890
- */
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { Slack } from "../Slack";
 

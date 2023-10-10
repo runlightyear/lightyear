@@ -1,6 +1,5 @@
 import { Slack } from "../Slack";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
-import { Channel } from "../types/Channel";
 
 export interface LeaveConversationProps {
   /**

@@ -1,6 +1,6 @@
 import { deCamelize } from "@runlightyear/lightyear";
 import { Slack } from "../Slack";
-import { Block, BlockInput } from "../types/blocks/Block";
+import { BlockInput } from "../types/blocks/Block";
 
 /**
  * Props for postMessage
