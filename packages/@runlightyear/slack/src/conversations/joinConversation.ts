@@ -13,13 +13,15 @@ export interface JoinConversationProps {
 }
 
 export interface JoinConversationResponse extends HttpProxyResponse {
-  data: {
-    ok: boolean;
-    channel: Channel;
-    warning?: string;
-    responseMetadata: {
-      warnings?: Array<string>;
-    };
+  data: JoinConversationResponseData;
+}
+
+export interface JoinConversationResponseData {
+  ok: true;
+  channel: Channel;
+  warning?: string;
+  responseMetadata: {
+    warnings?: Array<string>;
   };
 }
 

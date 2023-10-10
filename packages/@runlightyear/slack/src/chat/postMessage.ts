@@ -1,6 +1,6 @@
 import { deCamelize } from "@runlightyear/lightyear";
 import { Slack } from "../Slack";
-import { Block } from "../elements/blocks";
+import { Block, BlockInput } from "../types/blocks/Block";
 
 /**
  * Props for postMessage
@@ -17,7 +17,7 @@ export interface PostMessageProps {
   /**
    * An array of structured blocks
    */
-  blocks?: Block[];
+  blocks?: Array<BlockInput>;
   /**
    * An array of attachments.
    */
