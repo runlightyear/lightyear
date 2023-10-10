@@ -18,10 +18,12 @@ export interface GetUserProps {
 }
 
 export interface GetUserResponse extends HttpProxyResponse {
-  data: {
-    ok: true;
-    user: User;
-  };
+  data: GetUserResponseData;
+}
+
+export interface GetUserResponseData {
+  ok: true;
+  user: User;
 }
 
 export const getUser =

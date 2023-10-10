@@ -1,6 +1,6 @@
 import { deCamelize } from "@runlightyear/lightyear";
 import { Slack } from "../Slack";
-import { Block } from "../elements/blocks";
+import { Block, BlockInput } from "../types/blocks/Block";
 
 export interface ScheduleMessageProps {
   /**
@@ -24,7 +24,7 @@ export interface ScheduleMessageProps {
   /**
    * An array of structured blocks
    */
-  blocks?: Block[];
+  blocks?: BlockInput[];
 
   /**
    * An array of attachments.

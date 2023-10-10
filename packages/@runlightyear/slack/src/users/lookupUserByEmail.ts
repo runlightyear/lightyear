@@ -1,5 +1,6 @@
 import { Slack } from "../Slack";
 import { User } from "../types/User";
+import { HttpProxyResponse } from "@runlightyear/lightyear";
 
 export interface LookupUserByEmailProps {
   /**
@@ -11,11 +12,13 @@ export interface LookupUserByEmailProps {
   email: string;
 }
 
-export interface LookupUserByEmailResponse {
-  data: {
-    ok: true;
-    user: User;
-  };
+export interface LookupUserByEmailResponse extends HttpProxyResponse {
+  data: LookupUserByEmailResponseData;
+}
+
+export interface LookupUserByEmailResponseData {
+  ok: true;
+  user: User;
 }
 
 export const lookupUserByEmail =

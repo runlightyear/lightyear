@@ -1,6 +1,7 @@
-import { PlainTextObject } from "../objects/plainTextObject";
+import { PlainTextObject } from "../objects/PlainTextObject";
 
-export interface ImageProps {
+export interface ImageBlock {
+  type: "image";
   /**
    * The URL of the image to be displayed. Maximum length for this field is 3000 characters.
    */
@@ -17,20 +18,4 @@ export interface ImageProps {
    * A string acting as a unique identifier for a block. If not specified, one will be generated. Maximum length for this field is 255 characters. block_id should be unique for each message and each iteration of a message. If a message is updated, use a new block_id.
    */
   blockId?: string;
-}
-
-export interface ImageBlock extends ImageProps {
-  type: "image";
-}
-
-export function imageBlock(props: ImageProps): ImageBlock {
-  const { imageUrl, altText, title, blockId } = props;
-
-  return {
-    type: "image",
-    imageUrl,
-    altText,
-    title,
-    blockId,
-  };
 }
