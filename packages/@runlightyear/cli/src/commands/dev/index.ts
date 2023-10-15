@@ -39,7 +39,7 @@ dev
       console.debug("Subscribed to presence channel\n");
     });
 
-    const subscription = pusher.subscribe(credentials.userId);
+    const subscription = pusher.subscribe(credentials.devEnvId);
     subscription.bind("localRunTriggered", handleRunLocal);
     subscription.bind("localResubscribeTriggered", handleResubscribe);
     subscription.bind(
