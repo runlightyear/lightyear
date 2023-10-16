@@ -50,6 +50,41 @@ importers:
       '@tsconfig/docusaurus': 1.0.6
       typescript: 4.8.4
 
+  packages/@runlightyear/__template:
+    specifiers:
+      '@microsoft/api-extractor': ^7.31.2
+      '@runlightyear/lightyear': workspace:*
+      '@types/jest': ^28.1.8
+      '@types/node': 12.20.24
+      '@types/nodemon': ^1.19.2
+      '@typescript-eslint/parser': ^5.38.0
+      api-extractor-config: workspace:*
+      eslint: ^7.32.0
+      eslint-config-custom: workspace:*
+      nodemon: ^2.0.19
+      tiny-invariant: ^1.2.0
+      tsconfig: workspace:*
+      tsdoc-config: workspace:*
+      tsup: ^6.1.3
+      typescript: ^4.5.2
+    dependencies:
+      '@runlightyear/lightyear': link:../lightyear
+      tiny-invariant: 1.3.1
+    devDependencies:
+      '@microsoft/api-extractor': 7.33.4
+      '@types/jest': 28.1.8
+      '@types/node': 12.20.24
+      '@types/nodemon': 1.19.2
+      '@typescript-eslint/parser': 5.40.1_3rubbgt5ekhqrcgx4uwls3neim
+      api-extractor-config: link:../../util/api-extractor-config
+      eslint: 7.32.0
+      eslint-config-custom: link:../../util/eslint-config-custom
+      nodemon: 2.0.20
+      tsconfig: link:../../util/tsconfig
+      tsdoc-config: link:../../util/tsdoc-config
+      tsup: 6.3.0_typescript@4.8.4
+      typescript: 4.8.4
+
   packages/@runlightyear/airtable:
     specifiers:
       '@microsoft/api-extractor': ^7.31.2
@@ -612,6 +647,41 @@ importers:
       tsup: 6.3.0_typescript@4.8.4
       typescript: 4.8.4
 
+  packages/@runlightyear/typeform:
+    specifiers:
+      '@microsoft/api-extractor': ^7.31.2
+      '@runlightyear/lightyear': workspace:*
+      '@types/jest': ^28.1.8
+      '@types/node': 12.20.24
+      '@types/nodemon': ^1.19.2
+      '@typescript-eslint/parser': ^5.38.0
+      api-extractor-config: workspace:*
+      eslint: ^7.32.0
+      eslint-config-custom: workspace:*
+      nodemon: ^2.0.19
+      tiny-invariant: ^1.2.0
+      tsconfig: workspace:*
+      tsdoc-config: workspace:*
+      tsup: ^6.1.3
+      typescript: ^4.5.2
+    dependencies:
+      '@runlightyear/lightyear': link:../lightyear
+      tiny-invariant: 1.3.1
+    devDependencies:
+      '@microsoft/api-extractor': 7.33.4
+      '@types/jest': 28.1.8
+      '@types/node': 12.20.24
+      '@types/nodemon': 1.19.2
+      '@typescript-eslint/parser': 5.40.1_3rubbgt5ekhqrcgx4uwls3neim
+      api-extractor-config: link:../../util/api-extractor-config
+      eslint: 7.32.0
+      eslint-config-custom: link:../../util/eslint-config-custom
+      nodemon: 2.0.20
+      tsconfig: link:../../util/tsconfig
+      tsdoc-config: link:../../util/tsdoc-config
+      tsup: 6.3.0_typescript@4.8.4
+      typescript: 4.8.4
+
   packages/@runlightyear/zoom:
     specifiers:
       '@microsoft/api-extractor': ^7.31.2
@@ -697,7 +767,7 @@ importers:
       eslint: 7.32.0
       eslint-config-next: 12.3.1_3rubbgt5ekhqrcgx4uwls3neim
       eslint-config-prettier: 8.5.0_eslint@7.32.0
-      eslint-config-turbo: 1.10.14_eslint@7.32.0
+      eslint-config-turbo: 1.10.15_eslint@7.32.0
       eslint-plugin-react: 7.31.8_eslint@7.32.0
     devDependencies:
       typescript: 4.8.4
@@ -4536,7 +4606,7 @@ packages:
   /@types/fs-extra/9.0.13:
     resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
     dependencies:
-      '@types/node': 18.11.2
+      '@types/node': 16.18.11
     dev: true
 
   /@types/graceful-fs/4.1.5:
@@ -4641,7 +4711,7 @@ packages:
   /@types/node-fetch/2.6.2:
     resolution: {integrity: sha512-DHqhlq5jeESLy19TYhLakJ07kNumXWjcDdxXsLUMJZ6ue8VZJj4kLPQVE/2mdHh3xZziNF1xppu5lwmS53HR+A==}
     dependencies:
-      '@types/node': 18.11.2
+      '@types/node': 16.18.11
       form-data: 3.0.1
     dev: true
 
@@ -4659,14 +4729,10 @@ packages:
     resolution: {integrity: sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==}
     dev: false
 
-  /@types/node/18.11.2:
-    resolution: {integrity: sha512-BWN3M23gLO2jVG8g/XHIRFWiiV4/GckeFIqbU/C4V3xpoBBWSMk4OZomouN0wCkfQFPqgZikyLr7DOYDysIkkw==}
-    dev: true
-
   /@types/nodemon/1.19.2:
     resolution: {integrity: sha512-4GWiTN3HevkxMIxEQ7OpD3MAHhlVsX2tairCMRmf8oYZxmhHw9+UpQpIdGdJrjsMT2Ty26FtJzUUcP/qM5fR8A==}
     dependencies:
-      '@types/node': 18.11.2
+      '@types/node': 16.18.11
     dev: true
 
   /@types/normalize-package-data/2.4.1:
@@ -4784,7 +4850,7 @@ packages:
   /@types/tar/6.1.3:
     resolution: {integrity: sha512-YzDOr5kdAeqS8dcO6NTTHTMJ44MUCBDoLEIyPtwEn7PssKqUYL49R1iCVJPeiPzPlKi6DbH33eZkpeJ27e4vHg==}
     dependencies:
-      '@types/node': 18.11.2
+      '@types/node': 16.18.11
       minipass: 3.3.5
     dev: true
 
@@ -7332,13 +7398,13 @@ packages:
       eslint: 7.32.0
     dev: false
 
-  /eslint-config-turbo/1.10.14_eslint@7.32.0:
-    resolution: {integrity: sha512-ZeB+IcuFXy1OICkLuAplVa0euoYbhK+bMEQd0nH9+Lns18lgZRm33mVz/iSoH9VdUzl/1ZmFmoK+RpZc+8R80A==}
+  /eslint-config-turbo/1.10.15_eslint@7.32.0:
+    resolution: {integrity: sha512-76mpx2x818JZE26euen14utYcFDxOahZ9NaWA+6Xa4pY2ezVKVschuOxS96EQz3o3ZRSmcgBOapw/gHbN+EKxQ==}
     peerDependencies:
       eslint: '>6.6.0'
     dependencies:
       eslint: 7.32.0
-      eslint-plugin-turbo: 1.10.14_eslint@7.32.0
+      eslint-plugin-turbo: 1.10.15_eslint@7.32.0
     dev: false
 
   /eslint-import-resolver-node/0.3.6:
@@ -7519,8 +7585,8 @@ packages:
       '@microsoft/tsdoc-config': 0.16.2
     dev: true
 
-  /eslint-plugin-turbo/1.10.14_eslint@7.32.0:
-    resolution: {integrity: sha512-sBdBDnYr9AjT1g4lR3PBkZDonTrMnR4TvuGv5W0OiF7z9az1rI68yj2UHJZvjkwwcGu5mazWA1AfB0oaagpmfg==}
+  /eslint-plugin-turbo/1.10.15_eslint@7.32.0:
+    resolution: {integrity: sha512-Tv4QSKV/U56qGcTqS/UgOvb9HcKFmWOQcVh3HEaj7of94lfaENgfrtK48E2CckQf7amhKs1i+imhCsNCKjkQyA==}
     peerDependencies:
       eslint: '>6.6.0'
     dependencies:
