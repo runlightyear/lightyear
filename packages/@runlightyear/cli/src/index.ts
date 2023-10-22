@@ -28,11 +28,11 @@ program
   .addHelpText("beforeAll", largeLogo);
 
 async function main() {
-  await program.parseAsync();
-
   const options = program.opts();
   if (options.debug) {
     setLogDisplayLevel("DEBUG");
+    prepareConsole();
   }
+  await program.parseAsync();
 }
 main();

@@ -1,5 +1,12 @@
 # @runlightyear/cli
 
+## 0.29.0
+
+### Minor Changes
+
+- d78e14331: Support for multiplayer - listen for events on dev env instead of user
+- 8a9940793: deploy command can output debug information if --debug specified
+
 ## 0.28.1
 
 ### Patch Changes

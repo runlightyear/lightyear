@@ -1,5 +1,7 @@
-import { Command, program } from "commander";
+import { Command, Option, program } from "commander";
 import deployToProd from "./deployToProd";
+import { setLogDisplayLevel } from "../../shared/setLogDisplayLevel";
+import { prepareConsole } from "../../logging";
 
 export const deploy = new Command("deploy");
 
@@ -7,6 +9,13 @@ deploy
   .description("Deploy the integrations to an env (only prod for now)")
   .argument("<env>", "Environment (only 'prod' for now)")
   .action(async (env) => {
+    const options = program.opts();
+    if (options.debug) {
+      setLogDisplayLevel("DEBUG");
+      prepareConsole();
+      console.debug("Outputting debug information");
+    }
+
     // if (env === "dev") {
     //   await deployToDev();
     // } else if (env === "prod") {
