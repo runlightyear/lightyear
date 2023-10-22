@@ -33,5 +33,7 @@ export default async function deployToProd() {
     compiledCode,
   });
 
+  console.debug("deployId", deployId);
+
   await waitUntilDeployFinishes(deployId);
 }
