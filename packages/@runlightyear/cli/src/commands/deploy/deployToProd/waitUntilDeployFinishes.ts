@@ -67,8 +67,8 @@ export default async function waitUntilDeployFinishes(deployId: string) {
 
   const throttledHandleUpdate = throttle(handleUpdate, 1000);
 
-  const channel = credentials.userId;
-  console.debug("Subscribing to channel (credentials.userId)", channel);
+  const channel = credentials.prodEnvId;
+  console.debug("Subscribing to channel (credentials.prodEnvId)", channel);
   const subscription = pusher.subscribe(channel);
   subscription.bind("deployUpdated", throttledHandleUpdate);
 
