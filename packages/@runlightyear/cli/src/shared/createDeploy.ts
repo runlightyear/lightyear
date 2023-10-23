@@ -1,5 +1,7 @@
 import fetch from "node-fetch";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
+import { program } from "commander";
+import { terminal } from "terminal-kit";
 
 export interface CreateDeployProps {
   envName?: "dev" | "prod";
@@ -42,6 +44,12 @@ export default async function createDeploy(
     }
     return json.id as string;
   } else {
+    const json = await response.json();
+    if (response.status === 403) {
+      console.error(json.message);
+      terminal.red("Deploy failed 💥\n");
+      process.exit(1);
+    }
     console.error(
       "Failed to create deploy",
       response.status,
