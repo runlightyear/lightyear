@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.30.0
+
+### Minor Changes
+
+- 03a657e9d: Friendlier error message when attempting to deploy to prod without being an admin
+
 ## 0.29.0
 
 ### Minor Changes
