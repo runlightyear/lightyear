@@ -354,14 +354,6 @@ export class GoogleSheets extends RestConnector {
     return "https://sheets.googleapis.com/v4";
   }
 
-  getDefaultHeaders() {
-    const { accessToken } = this.getAuthData();
-
-    return {
-      Authorization: `Bearer ${accessToken}`,
-    };
-  }
-
   /**
    * Creates a spreadsheet, returning the newly created spreadsheet.
    *

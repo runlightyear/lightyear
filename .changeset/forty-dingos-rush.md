@@ -2,4 +2,4 @@
 "@runlightyear/gsheets": minor
 ---
 
-Implement getBaseUrl and getDefaultHeaders
+Implement getBaseUrl
