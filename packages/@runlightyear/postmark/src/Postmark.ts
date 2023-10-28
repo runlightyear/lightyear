@@ -1,4 +1,4 @@
-import { AuthConnectorProps, RestConnector } from "@runlightyear/lightyear";
+import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
 import {
   sendSingleEmail,
   SendSingleEmailProps,
@@ -8,7 +8,7 @@ import invariant from "tiny-invariant";
 /**
  * @alpha
  */
-export interface PostmarkProps extends AuthConnectorProps {}
+export interface PostmarkProps extends RestConnectorProps {}
 
 /**
  * @alpha
@@ -16,13 +16,16 @@ export interface PostmarkProps extends AuthConnectorProps {}
 export class Postmark extends RestConnector {
   constructor(props: PostmarkProps) {
     super({
-      ...props,
-      baseUrl: "https://api.postmarkapp.com",
       camelize: false,
+      ...props,
     });
   }
 
-  authorizationHeaders(): { [p: string]: string } {
+  getBaseUrl(): string {
+    return "https://api.postmarkapp.com";
+  }
+
+  getDefaultHeaders() {
     const { apiKey } = this.getAuthData();
 
     invariant(apiKey, "Missing API Key");
