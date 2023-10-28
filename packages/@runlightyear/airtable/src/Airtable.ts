@@ -254,14 +254,6 @@ export class Airtable extends RestConnector {
     return "https://api.airtable.com/v0";
   }
 
-  getDefaultHeaders() {
-    const { accessToken } = this.getAuthData();
-
-    return {
-      Authorization: `Bearer ${accessToken}`,
-    };
-  }
-
   /**
    * Retrieve the user ID and, for OAuth access tokens, the scopes associated with the token used.
    *
