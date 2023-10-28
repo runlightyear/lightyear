@@ -1,8 +1,8 @@
 import {
-  AuthConnectorProps,
   HttpProxyRequestProps,
   HttpProxyResponse,
   RestConnector,
+  RestConnectorProps,
 } from "@runlightyear/lightyear";
 import {
   queryDatabase,
@@ -39,7 +39,7 @@ import {
 /**
  * @beta
  */
-export interface NotionProps extends AuthConnectorProps {}
+export interface NotionProps extends RestConnectorProps {}
 
 /**
  * @beta
@@ -510,7 +510,11 @@ export interface NotionProps extends AuthConnectorProps {}
  */
 export class Notion extends RestConnector {
   constructor(props: NotionProps) {
-    super({ ...props, baseUrl: "https://api.notion.com/v1", camelize: false });
+    super({ ...props, camelize: false });
+  }
+
+  getBaseUrl(): string {
+    return "https://api.notion.com/v1";
   }
 
   /**
