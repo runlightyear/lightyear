@@ -16,12 +16,4 @@ export class Gmail extends RestConnector {
   getBaseUrl() {
     return "https://gmail.googleapis.com";
   }
-
-  getDefaultHeaders() {
-    const { accessToken } = this.getAuthData();
-
-    return {
-      Authorization: `Bearer ${accessToken}`,
-    };
-  }
 }

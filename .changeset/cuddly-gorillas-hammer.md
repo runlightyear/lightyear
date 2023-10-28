@@ -2,4 +2,4 @@
 "@runlightyear/gmail": minor
 ---
 
-Implement getBaseUrl and getDefaultHeaders
+Implement getBaseUrl
