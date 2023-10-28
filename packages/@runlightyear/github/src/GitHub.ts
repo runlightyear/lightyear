@@ -451,15 +451,13 @@ export class GitHub extends RestConnector {
     super(props);
   }
 
-  getBaseUrl(): string {
+  getBaseUrl() {
     return "https://api.github.com";
   }
 
-  getDefaultHeaders(): Record<string, any> {
-    const { accessToken } = this.getAuthData();
-
+  getDefaultHeaders() {
     return {
-      Authorization: `Bearer ${accessToken}`,
+      ...super.getDefaultHeaders(),
       Accept: "application/vnd.github+json",
     };
   }
