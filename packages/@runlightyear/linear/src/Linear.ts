@@ -1,7 +1,7 @@
 import {
   GraphQLConnector,
-  AuthConnectorProps,
   GraphQLConnectorQueryProps,
+  RestConnectorProps,
 } from "@runlightyear/lightyear";
 import { createIssue, CreateIssueProps } from "./issues/createIssue";
 import { listTeams, ListTeamsProps } from "./teams/listTeams";
@@ -30,7 +30,7 @@ import {
 /**
  * @beta
  */
-export interface LinearProps extends AuthConnectorProps {}
+export interface LinearProps extends RestConnectorProps {}
 
 /**
  * @beta
@@ -61,7 +61,11 @@ export interface LinearProps extends AuthConnectorProps {}
  */
 export class Linear extends GraphQLConnector {
   constructor(props: LinearProps) {
-    super({ ...props, baseUrl: "https://api.linear.app/graphql" });
+    super(props);
+  }
+
+  getBaseUrl(): string {
+    return "https://api.linear.app/graphql";
   }
 
   /**
