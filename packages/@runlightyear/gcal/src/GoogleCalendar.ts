@@ -367,14 +367,6 @@ export class GoogleCalendar extends RestConnector {
     return "https://www.googleapis.com/calendar/v3";
   }
 
-  getDefaultHeaders() {
-    const { accessToken } = this.getAuthData();
-
-    return {
-      Authorization: `Bearer ${accessToken}`,
-    };
-  }
-
   /**
    * Returns the calendars on the user's calendar list.
    *
