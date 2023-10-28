@@ -7,6 +7,7 @@ import { prefixedRedactedConsole } from "../logging";
 import { Auths, Secrets, Variables } from "../run";
 import { subscribeProps } from "../subscriptionActivities";
 import { getEnvName } from "../util/getEnvName";
+import { DefineAuthorizerProps } from "./authorizer";
 
 interface Props {
   envName: string;
@@ -31,11 +32,12 @@ export type InitializerSpec = Initializer | Initializer[] | DeployFunc;
 
 export type DeployItem = {
   // type: "action" | "auth" | "variable" | "secret" | "subscription" | "webhook";
-  type: "action" | "webhook";
+  type: "action" | "webhook" | "authorizer";
   // data: DeployActionProps | AuthProps | WebhookProps;
   actionProps?: DeployActionProps;
   // authProps?: AuthProps;
   webhookProps?: DefineWebhookProps;
+  authorizerProps?: DefineAuthorizerProps;
   // subscribeArgs?: (props: SubscribeArgsProps) => Promise<object>;
   deploy?: (props: DeployFuncProps) => Promise<string>;
 };
@@ -64,6 +66,8 @@ export async function deploy({ envName }: Props) {
       return item.actionProps?.name;
     } else if (item.type === "webhook") {
       return item.webhookProps?.name;
+    } else if (item.type === "authorizer") {
+      return `${item.authorizerProps?.customApp} authorizer`;
     }
   });
 

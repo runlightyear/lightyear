@@ -8,7 +8,7 @@ export interface AuthConnectorProps extends BaseConnectorProps {
   /**
    * Name of the auth to use
    */
-  auth: AuthData;
+  auth: AuthData | undefined;
 }
 
 /**
@@ -23,16 +23,31 @@ export class AuthConnector extends BaseConnector {
     const { auth, ...rest } = props;
 
     super(rest);
-    this._auth = auth;
+
+    if (auth) {
+      this._auth = auth;
+    } else {
+      this._auth = {
+        appName: null,
+        customAppName: null,
+        authName: "null",
+        username: null,
+        password: null,
+        apiKey: null,
+        tokenType: null,
+        state: null,
+        codeVerifier: null,
+        accessToken: null,
+        refreshToken: null,
+        expiresAt: null,
+        refreshedAt: null,
+        extraData: null,
+        customAppData: undefined,
+      };
+    }
   }
 
   getAuthData() {
-    console.debug("in AuthConnector.getAuthData");
     return this._auth;
-  }
-
-  async refreshToken() {
-    console.debug("in AuthConnector.refreshToken");
-    // return await refreshToken(this._auth);
   }
 }

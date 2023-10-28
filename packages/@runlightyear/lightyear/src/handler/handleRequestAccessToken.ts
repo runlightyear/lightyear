@@ -1,5 +1,5 @@
 import { handlerResult } from "./handlerResult";
-import { oAuthIndex } from "../base/oauth";
+import { authorizerIndex } from "../base/authorizer";
 import { OAuthConnector } from "../connectors/OAuthConnector";
 import { getAuthData, updateAuthDataState } from "../base/auth";
 import invariant from "tiny-invariant";
@@ -27,7 +27,7 @@ export async function handleRequestAccessToken({
     return handlerResult(400, "Missing code");
   }
 
-  const item = oAuthIndex[customAppName];
+  const item = authorizerIndex[customAppName];
 
   const authData = await getAuthData({
     customAppName: customAppName,

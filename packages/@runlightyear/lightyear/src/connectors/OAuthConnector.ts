@@ -82,7 +82,7 @@ export abstract class OAuthConnector {
     const { state } = this.authData;
     invariant(state, "Missing state");
 
-    return { client_id: clientId, state, redirect_uri: this.redirectUri() };
+    return { client_id: clientId, state, redirect_uri: this.getRedirectUri() };
   }
 
   getAuthRequestUrl(): string {
@@ -96,13 +96,21 @@ export abstract class OAuthConnector {
     return url.href;
   }
 
+  /**
+   * Get the url of the access token endpoint.
+   */
   abstract getAccessTokenUrl(): string;
 
+  /**
+   * Get the url of the refresh token endpoint
+   *
+   * By default, returns the same url as the access token endpoint
+   */
   getRefreshTokenUrl(): string {
     return this.getAccessTokenUrl();
   }
 
-  redirectUri(): string {
+  getRedirectUri(): string {
     const suffix = inDevelopment() || this.inDevelopment ? "-local" : "";
 
     if (this.appName) {
@@ -110,6 +118,13 @@ export abstract class OAuthConnector {
     }
 
     return `https://app.runlightyear.com/api/v1/custom-oauth2/${this.customAppName}/redirect${suffix}`;
+  }
+
+  /**
+   * @deprecated
+   */
+  redirectUri() {
+    return this.getRedirectUri();
   }
 
   getRequestAccessTokenHeaders(): {
@@ -140,7 +155,7 @@ export abstract class OAuthConnector {
       state,
       client_id: clientId,
       client_secret: clientSecret,
-      redirect_uri: this.redirectUri(),
+      redirect_uri: this.getRedirectUri(),
     };
   }
 
@@ -288,7 +303,7 @@ export abstract class OAuthConnector {
 
     const response = await this.post({ url, headers, body });
 
-    const newAuthData = await this.processRequestAccessTokenResponse({
+    const newAuthData = this.processRequestAccessTokenResponse({
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
@@ -313,7 +328,7 @@ export abstract class OAuthConnector {
 
     const response = await this.post({ url, headers, body });
 
-    const newAuthData = await this.processRefreshAccessTokenResponse({
+    const newAuthData = this.processRefreshAccessTokenResponse({
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,

@@ -14,7 +14,6 @@ import { setAuthError } from "../base/auth";
  * @public
  */
 export interface RestConnectorProps extends AuthConnectorProps {
-  baseUrl: string;
   /**
    * Whether to automatically convert calls to and from camelCase to snake_case
    */
@@ -30,24 +29,44 @@ export interface RestConnectorProps extends AuthConnectorProps {
  *
  * @param props
  */
-export class RestConnector extends AuthConnector {
-  baseUrl: string;
+export abstract class RestConnector extends AuthConnector {
   camelize: boolean;
 
   constructor(props: RestConnectorProps) {
-    const { baseUrl, camelize = true, ...rest } = props;
+    const { camelize = true, ...rest } = props;
     super(rest);
-    this.baseUrl = baseUrl;
+
     this.camelize = camelize;
+  }
+
+  abstract getBaseUrl(): string;
+
+  getDefaultParams(): Record<string, any> {
+    return {};
+  }
+
+  getDefaultHeaders(): Record<string, any> {
+    return {
+      "Content-Type": "application/json",
+    };
+  }
+
+  getDefaultData(): Record<string, any> {
+    return {};
   }
 
   buildUrl(url: string, params?: Record<string, any>) {
     console.debug("in RestConnector.buildUrl");
     const queryStr = params ? `?${queryString.stringify(params)}` : "";
 
-    return `${this.baseUrl}${url}` + queryStr;
+    return `${this.getBaseUrl()}${url}` + queryStr;
   }
 
+  /**
+   * Use defaultHeaders instead
+   *
+   * @deprecated
+   */
   authorizationHeaders(): { [key: string]: string } {
     console.debug("in RestConnector.authorizationHeaders");
     const { accessToken } = this.getAuthData();
@@ -67,12 +86,20 @@ export class RestConnector extends AuthConnector {
 
     const proxyProps = {
       method,
-      url: this.buildUrl(url, params),
+      url: this.buildUrl(url, {
+        ...this.getDefaultParams(),
+        ...params,
+      }),
       headers: {
+        ...this.getDefaultHeaders(),
         ...headers,
-        ...this.authorizationHeaders(),
       },
-      body: data && JSON.stringify(data),
+      body:
+        data &&
+        JSON.stringify({
+          ...this.getDefaultData(),
+          ...data,
+        }),
     };
 
     let response;
