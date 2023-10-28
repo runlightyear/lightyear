@@ -1,4 +1,3 @@
-import { Response } from "node-fetch";
 import {
   OAuthConnector,
   OAuthConnectorProps,
@@ -6,12 +5,45 @@ import {
 } from "@runlightyear/lightyear";
 import { SlackScope } from "./types/SlackScope";
 
+export interface SlackOAuthProps extends OAuthConnectorProps {
+  scopes?: Array<SlackScope>;
+}
+
 /**
  * Connector to the Slack OAuth2 API
  */
 export class SlackOAuth extends OAuthConnector {
-  constructor(props: OAuthConnectorProps) {
-    super(props);
+  scopes: Array<SlackScope>;
+
+  constructor(props: SlackOAuthProps) {
+    const {
+      scopes = [
+        "channels:history",
+        "channels:join",
+        "channels:manage",
+        "channels:read",
+        "chat:write",
+        "chat:write.customize",
+        "chat:write.public",
+        "files:write",
+        "groups:history",
+        "im:history",
+        "im:read",
+        "im:write",
+        "mpim:history",
+        "mpim:read",
+        "mpim:write",
+        "team:read",
+        "users.profile:read",
+        "users:read",
+        "users:read.email",
+        "workflow.steps:execute",
+      ],
+      ...rest
+    } = props;
+    super(rest);
+
+    this.scopes = scopes;
   }
 
   getAuthRequestUrlBase() {
@@ -19,32 +51,9 @@ export class SlackOAuth extends OAuthConnector {
   }
 
   getAuthRequestUrlParams() {
-    const scopes: SlackScope[] = [
-      "channels:history",
-      "channels:join",
-      "channels:manage",
-      "channels:read",
-      "chat:write",
-      "chat:write.customize",
-      "chat:write.public",
-      "files:write",
-      "groups:history",
-      "im:history",
-      "im:read",
-      "im:write",
-      "mpim:history",
-      "mpim:read",
-      "mpim:write",
-      "team:read",
-      "users.profile:read",
-      "users:read",
-      "users:read.email",
-      "workflow.steps:execute",
-    ];
-
     return {
       ...super.getAuthRequestUrlParams(),
-      scope: scopes.join(","),
+      scope: this.scopes.join(","),
     };
   }
 
