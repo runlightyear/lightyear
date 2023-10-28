@@ -46,8 +46,11 @@ export abstract class RestConnector extends AuthConnector {
   }
 
   getDefaultHeaders(): Record<string, any> {
+    const { accessToken } = this.getAuthData();
+
     return {
       "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     };
   }
 
