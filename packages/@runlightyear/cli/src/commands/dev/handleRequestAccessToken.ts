@@ -9,7 +9,7 @@ export default async function handleRequestAccessToken(props: any) {
 
   console.debug("payload", payload);
 
-  await pushOperation({
+  pushOperation({
     operation: "requestAccessToken",
     params: {
       customAppName: payload.customApp,
