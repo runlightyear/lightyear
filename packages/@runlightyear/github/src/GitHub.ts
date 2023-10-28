@@ -1,7 +1,7 @@
 import {
-  AuthConnectorProps,
   HttpProxyResponse,
   RestConnector,
+  RestConnectorProps,
   WebhookDeliveryData,
 } from "@runlightyear/lightyear";
 import createGist, { CreateGistProps } from "./gists/createGist";
@@ -151,7 +151,7 @@ import { onPush } from "./listeners/onPush";
 import { onIssueComment } from "./listeners/onIssueComment";
 import { getTree, GetTreeProps } from "./gitDatabase/trees/getTree";
 
-export interface GitHubConnectorProps extends AuthConnectorProps {}
+export interface GitHubConnectorProps extends RestConnectorProps {}
 
 export interface GitHubDefineAuthProps {
   /**
@@ -448,7 +448,20 @@ export class GitHub extends RestConnector {
    * @param props
    */
   constructor(props: GitHubConnectorProps) {
-    super({ ...props, baseUrl: "https://api.github.com" });
+    super(props);
+  }
+
+  getBaseUrl(): string {
+    return "https://api.github.com";
+  }
+
+  getDefaultHeaders(): Record<string, any> {
+    const { accessToken } = this.getAuthData();
+
+    return {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/vnd.github+json",
+    };
   }
 
   /**
