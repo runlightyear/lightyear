@@ -1,4 +1,4 @@
-import { AuthConnectorProps, RestConnector } from "@runlightyear/lightyear";
+import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
 import { appendValues, AppendValuesProps } from "./values/appendValues";
 import { updateValues, UpdateValuesProps } from "./values/updateValues";
 import { clearValues, ClearValuesProps } from "./values/clearValues";
@@ -12,7 +12,7 @@ import { onNewRows, OnNewRowsProps } from "./listeners/onNewRows";
 /**
  * @beta
  */
-export interface GoogleSheetsProps extends AuthConnectorProps {}
+export interface GoogleSheetsProps extends RestConnectorProps {}
 
 /**
  * @beta
@@ -347,7 +347,19 @@ export interface GoogleSheetsProps extends AuthConnectorProps {}
  */
 export class GoogleSheets extends RestConnector {
   constructor(props: GoogleSheetsProps) {
-    super({ ...props, baseUrl: "https://sheets.googleapis.com/v4" });
+    super(props);
+  }
+
+  getBaseUrl() {
+    return "https://sheets.googleapis.com/v4";
+  }
+
+  getDefaultHeaders() {
+    const { accessToken } = this.getAuthData();
+
+    return {
+      Authorization: `Bearer ${accessToken}`,
+    };
   }
 
   /**
