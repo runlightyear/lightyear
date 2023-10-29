@@ -1,4 +1,5 @@
 import baseRequest from "./baseRequest";
+import { prefixedRedactedConsole } from "../logging";
 
 /**
  * @public
@@ -17,6 +18,7 @@ export interface HttpProxyRequestProps {
   };
   data?: object;
   body?: string;
+  redactKeys?: string[];
 }
 
 /**
@@ -67,11 +69,13 @@ export interface HttpRequest {
 }
 
 export const httpRequest: HttpRequest = async (props) => {
+  const { redactKeys, ...rest } = props;
+
   console.debug("httpRequest with props", JSON.stringify(props, null, 2));
 
   const response = await baseRequest({
     uri: "/api/v1/httpRequest",
-    data: props,
+    data: rest,
   });
 
   console.debug(`response.status`, response.status);
@@ -82,6 +86,15 @@ export const httpRequest: HttpRequest = async (props) => {
     console.error("Error in proxy http request", proxyResponse);
     throw new HttpProxyResponseError(proxyResponse);
   } else {
+    console.debug("redacting keys", redactKeys);
+    for (const key of redactKeys || []) {
+      if (proxyResponse.data[key]) {
+        prefixedRedactedConsole.addSecrets([proxyResponse.data[key]]);
+      } else {
+        console.debug(`key ${key} not found in response data`);
+      }
+    }
+
     console.debug("proxyResponse", proxyResponse);
   }
 
