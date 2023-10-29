@@ -4,6 +4,7 @@ import runInContext from "./runInContext";
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { prepareConsole } from "../logging";
 import { deliverLocalResponse } from "./deliverLocalResponse";
+import createAuthorizerActivity from "./createAuthorizerActivity";
 
 export interface ExecGetAuthRequestUrlProps {
   customAppName: string;
@@ -37,7 +38,7 @@ export async function execGetAuthRequestUrl(props: ExecGetAuthRequestUrlProps) {
 
   const { statusCode, body } = handlerResult;
   const responseData = JSON.parse(body);
-  const { authRequestUrl } = responseData;
+  const { authRequestUrl, logs } = responseData;
 
   const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
@@ -49,6 +50,13 @@ export async function execGetAuthRequestUrl(props: ExecGetAuthRequestUrlProps) {
   });
 
   console.info(`Returned auth request url for ${customAppName}`);
+
+  await createAuthorizerActivity({
+    customAppName,
+    type: "GET_AUTH_REQUEST_URL",
+    status,
+    logs,
+  });
 
   return status;
 }

@@ -4,6 +4,7 @@ import runInContext from "../runInContext";
 import { logDisplayLevel } from "../setLogDisplayLevel";
 import { prepareConsole } from "../../logging";
 import { deliverLocalResponse } from "../deliverLocalResponse";
+import createAuthorizerActivity from "../createAuthorizerActivity";
 
 export interface ExecRefreshAccessTokenProps {
   customAppName: string;
@@ -39,8 +40,19 @@ export async function execRefreshAccessToken(
   prepareConsole();
 
   const { statusCode, body } = result;
+  const responseData = JSON.parse(body);
+  const { logs } = responseData;
+
+  const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
   console.info(`Refreshed access token successfully for ${customAppName}`);
+
+  await createAuthorizerActivity({
+    customAppName,
+    type: "REFRESH_ACCESS_TOKEN",
+    status,
+    logs: logs,
+  });
 
   // await deliverLocalResponse({ localResponseId, response: "OK" });
 }
