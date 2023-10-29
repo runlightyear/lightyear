@@ -15,6 +15,8 @@ export async function handleRequestAccessToken({
   authName,
   code,
 }: HandleRequestAccessTokenProps) {
+  console.debug("Requesting access token");
+
   if (!customAppName) {
     return handlerResult(400, "Missing customApp");
   }
@@ -46,6 +48,8 @@ export async function handleRequestAccessToken({
   });
 
   await connector.requestAccessToken(code);
+
+  console.info("Requested access token successfully");
 
   return handlerResult(200, "Success");
 }

@@ -88,10 +88,13 @@ export abstract class OAuthConnector {
   getAuthRequestUrl(): string {
     const base = this.getAuthRequestUrlBase();
     invariant(base, "Missing authRequestUrlBase");
+    console.info("Base URL:", base);
 
     const params = this.getAuthRequestUrlParams();
+    console.info("Params", params);
 
     const url = new URL(`${base}?${new URLSearchParams(params)}`);
+    console.info("Auth request URL:", url.href);
 
     return url.href;
   }
@@ -111,6 +114,7 @@ export abstract class OAuthConnector {
   }
 
   getRedirectUri(): string {
+    console.debug("process.env.NODE_ENV", process.env.NODE_ENV);
     const suffix = inDevelopment() || this.inDevelopment ? "-local" : "";
 
     if (this.appName) {
@@ -318,6 +322,8 @@ export abstract class OAuthConnector {
       redactKeys,
     });
 
+    console.info("Response:", response);
+
     const newAuthData = this.processRequestAccessTokenResponse({
       status: response.status,
       statusText: response.statusText,
@@ -343,6 +349,8 @@ export abstract class OAuthConnector {
     const redactKeys = this.getRefreshAccessTokenRedactKeys();
 
     const response = await this.post({ url, headers, body, redactKeys });
+
+    console.info("Response:", response);
 
     const newAuthData = this.processRefreshAccessTokenResponse({
       status: response.status,

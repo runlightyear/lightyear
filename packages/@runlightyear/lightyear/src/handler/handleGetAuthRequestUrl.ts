@@ -1,6 +1,4 @@
 import { handlerResult } from "./handlerResult";
-import { unsubscribe } from "../subscriptionActivities";
-import { getWebhookData } from "../base/webhook";
 import { authorizerIndex } from "../base/authorizer";
 import { OAuthConnector } from "../connectors/OAuthConnector";
 import { getAuthData, updateAuthDataState } from "../base/auth";
@@ -15,6 +13,8 @@ export async function handleGetAuthRequestUrl({
   customApp,
   authName,
 }: HandleGetAuthRequestUrl) {
+  console.debug("Getting auth request url");
+
   if (!customApp) {
     return handlerResult(400, "Missing customApp");
   }

@@ -13,6 +13,8 @@ export async function handleRefreshAccessToken({
   customAppName,
   authName,
 }: HandleRefreshAccessTokenProps) {
+  console.debug("Refreshing access token");
+
   if (!customAppName) {
     return handlerResult(400, "Missing customApp");
   }
@@ -40,6 +42,8 @@ export async function handleRefreshAccessToken({
   });
 
   await connector.refreshAccessToken();
+
+  console.info("Refreshed access token");
 
   return handlerResult(200, "Success");
 }
