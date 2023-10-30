@@ -1,5 +1,18 @@
 # @runlightyear/github
 
+## 0.23.0
+
+### Minor Changes
+
+- 84f5e4bea: GitHub uses getBaseUrl and getDefaultHeaders
+- 84f5e4bea: GitHubOAuth allows specification of scope on init
+
+### Patch Changes
+
+- Updated dependencies [2914452a6]
+- Updated dependencies [2914452a6]
+  - @runlightyear/lightyear@0.37.0
+
 ## 0.22.1
 
 ### Patch Changes

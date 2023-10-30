@@ -1,5 +1,12 @@
 # @runlightyear/lightyear
 
+## 0.37.0
+
+### Minor Changes
+
+- 2914452a6: Authorizer support
+- 2914452a6: RestConnector and GraphQLConnector become abstract classes
+
 ## 0.36.1
 
 ### Patch Changes

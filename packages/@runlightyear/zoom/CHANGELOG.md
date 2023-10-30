@@ -1,5 +1,17 @@
 # @runlightyear/zoom
 
+## 0.6.0
+
+### Minor Changes
+
+- 4802f2b6d: Implement getBaseUrl
+
+### Patch Changes
+
+- Updated dependencies [2914452a6]
+- Updated dependencies [2914452a6]
+  - @runlightyear/lightyear@0.37.0
+
 ## 0.5.7
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @runlightyear/linear
 
+## 0.8.0
+
+### Minor Changes
+
+- d7655c731: Implement getBaseUrl
+
+### Patch Changes
+
+- Updated dependencies [2914452a6]
+- Updated dependencies [2914452a6]
+  - @runlightyear/lightyear@0.37.0
+
 ## 0.7.2
 
 ### Patch Changes

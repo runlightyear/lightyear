@@ -1,5 +1,17 @@
 # @runlightyear/openai
 
+## 0.7.0
+
+### Minor Changes
+
+- 3171285d3: Implement getBaseUrl
+
+### Patch Changes
+
+- Updated dependencies [2914452a6]
+- Updated dependencies [2914452a6]
+  - @runlightyear/lightyear@0.37.0
+
 ## 0.6.3
 
 ### Patch Changes
