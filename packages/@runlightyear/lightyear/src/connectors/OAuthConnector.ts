@@ -82,27 +82,39 @@ export abstract class OAuthConnector {
     const { state } = this.authData;
     invariant(state, "Missing state");
 
-    return { client_id: clientId, state, redirect_uri: this.redirectUri() };
+    return { client_id: clientId, state, redirect_uri: this.getRedirectUri() };
   }
 
   getAuthRequestUrl(): string {
     const base = this.getAuthRequestUrlBase();
     invariant(base, "Missing authRequestUrlBase");
+    console.info("Base URL:", base);
 
     const params = this.getAuthRequestUrlParams();
+    console.info("Params", params);
 
     const url = new URL(`${base}?${new URLSearchParams(params)}`);
+    console.info("Auth request URL:", url.href);
 
     return url.href;
   }
 
+  /**
+   * Get the url of the access token endpoint.
+   */
   abstract getAccessTokenUrl(): string;
 
+  /**
+   * Get the url of the refresh token endpoint
+   *
+   * By default, returns the same url as the access token endpoint
+   */
   getRefreshTokenUrl(): string {
     return this.getAccessTokenUrl();
   }
 
-  redirectUri(): string {
+  getRedirectUri(): string {
+    console.debug("process.env.NODE_ENV", process.env.NODE_ENV);
     const suffix = inDevelopment() || this.inDevelopment ? "-local" : "";
 
     if (this.appName) {
@@ -110,6 +122,13 @@ export abstract class OAuthConnector {
     }
 
     return `https://app.runlightyear.com/api/v1/custom-oauth2/${this.customAppName}/redirect${suffix}`;
+  }
+
+  /**
+   * @deprecated
+   */
+  redirectUri() {
+    return this.getRedirectUri();
   }
 
   getRequestAccessTokenHeaders(): {
@@ -140,7 +159,7 @@ export abstract class OAuthConnector {
       state,
       client_id: clientId,
       client_secret: clientSecret,
-      redirect_uri: this.redirectUri(),
+      redirect_uri: this.getRedirectUri(),
     };
   }
 
@@ -153,6 +172,10 @@ export abstract class OAuthConnector {
     });
 
     return params.toString();
+  }
+
+  getRequestAccessTokenRedactKeys() {
+    return ["access_token", "refresh_token"];
   }
 
   processRequestAccessTokenResponse({
@@ -222,6 +245,10 @@ export abstract class OAuthConnector {
     return params.toString();
   }
 
+  getRefreshAccessTokenRedactKeys() {
+    return this.getRequestAccessTokenRedactKeys();
+  }
+
   processRefreshAccessTokenResponse({
     status,
     statusText,
@@ -254,7 +281,7 @@ export abstract class OAuthConnector {
    */
   async request(props: HttpProxyRequestProps): Promise<HttpProxyResponse> {
     console.debug("in RestConnector.request");
-    const { method, url, params, headers, data, body } = props;
+    const { method, url, params, headers, data, body, redactKeys } = props;
 
     const proxyProps = {
       method,
@@ -263,6 +290,7 @@ export abstract class OAuthConnector {
         ...headers,
       },
       body: data ? JSON.stringify(data) : body,
+      redactKeys,
     };
 
     let response: HttpProxyResponse;
@@ -285,10 +313,18 @@ export abstract class OAuthConnector {
     const url = this.getAccessTokenUrl();
     const headers = this.getRequestAccessTokenHeaders();
     const body = this.getRequestAccessTokenBody(code);
+    const redactKeys = this.getRequestAccessTokenRedactKeys();
 
-    const response = await this.post({ url, headers, body });
+    const response = await this.post({
+      url,
+      headers,
+      body,
+      redactKeys,
+    });
 
-    const newAuthData = await this.processRequestAccessTokenResponse({
+    console.info("Response:", response);
+
+    const newAuthData = this.processRequestAccessTokenResponse({
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
@@ -310,10 +346,13 @@ export abstract class OAuthConnector {
     const url = this.getRefreshTokenUrl();
     const headers = this.getRefreshAccessTokenHeaders();
     const body = this.getRefreshAccessTokenBody();
+    const redactKeys = this.getRefreshAccessTokenRedactKeys();
 
-    const response = await this.post({ url, headers, body });
+    const response = await this.post({ url, headers, body, redactKeys });
 
-    const newAuthData = await this.processRefreshAccessTokenResponse({
+    console.info("Response:", response);
+
+    const newAuthData = this.processRefreshAccessTokenResponse({
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,

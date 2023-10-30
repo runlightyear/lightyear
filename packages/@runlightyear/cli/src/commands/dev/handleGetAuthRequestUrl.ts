@@ -9,7 +9,7 @@ export default async function handleGetAuthRequestUrl(props: any) {
 
   console.debug("payload", payload);
 
-  await pushOperation({
+  pushOperation({
     operation: "getAuthRequestUrl",
     params: {
       customAppName: payload.customApp,

@@ -1,5 +1,17 @@
 # @runlightyear/airtable
 
+## 0.8.0
+
+### Minor Changes
+
+- 084c596c7: Use getBaseUrl
+
+### Patch Changes
+
+- Updated dependencies [2914452a6]
+- Updated dependencies [2914452a6]
+  - @runlightyear/lightyear@0.37.0
+
 ## 0.7.1
 
 ### Patch Changes

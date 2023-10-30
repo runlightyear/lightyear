@@ -1,4 +1,4 @@
-import { AuthConnectorProps, RestConnector } from "@runlightyear/lightyear";
+import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
 import { listCalendars, ListCalendarsProps } from "./calendars/listCalendars";
 import { listEvents, ListEventsProps } from "./events/listEvents";
 import { createEvent, CreateEventProps } from "./events/createEvent";
@@ -25,7 +25,7 @@ import { onNewEvents, OnNewEventsProps } from "./listeners/onNewEvents";
 /**
  * @beta
  */
-export interface GoogleCalendarProps extends AuthConnectorProps {}
+export interface GoogleCalendarProps extends RestConnectorProps {}
 
 /**
  * Google Calendar connector
@@ -360,7 +360,11 @@ export interface GoogleCalendarProps extends AuthConnectorProps {}
  */
 export class GoogleCalendar extends RestConnector {
   constructor(props: GoogleCalendarProps) {
-    super({ ...props, baseUrl: "https://www.googleapis.com/calendar/v3" });
+    super(props);
+  }
+
+  getBaseUrl(): string {
+    return "https://www.googleapis.com/calendar/v3";
   }
 
   /**

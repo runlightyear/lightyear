@@ -1,8 +1,8 @@
 import {
   RestConnector,
-  AuthConnectorProps,
   HttpProxyRequestProps,
   HttpProxyResponse,
+  RestConnectorProps,
 } from "@runlightyear/lightyear";
 import postMessage, { PostMessageProps } from "./chat/postMessage";
 import { scheduleMessage, ScheduleMessageProps } from "./chat/scheduleMessage";
@@ -43,6 +43,8 @@ import {
   kickFromConversation,
   KickFromConversationProps,
 } from "./conversations/kickFromConversation";
+
+export interface SlackProps extends RestConnectorProps {}
 
 /**
  * Connector to the Slack API
@@ -339,20 +341,12 @@ export class Slack extends RestConnector {
    *
    * @param props
    */
-  constructor(props: AuthConnectorProps) {
-    super({ ...props, baseUrl: "https://slack.com/api/" });
+  constructor(props: SlackProps) {
+    super(props);
   }
 
-  /**
-   * @internal
-   */
-  authorizationHeaders(): { [p: string]: string } {
-    const { accessToken } = this.getAuthData();
-
-    return {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    };
+  getBaseUrl(): string {
+    return "https://slack.com/api/";
   }
 
   /**

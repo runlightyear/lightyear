@@ -23,8 +23,8 @@ export interface GraphQLConnectorQueryProps {
  *
  * The base for making calls to GraphQL APIs
  */
-export class GraphQLConnector extends RestConnector {
-  constructor(props: GraphQLConnectorProps) {
+export abstract class GraphQLConnector extends RestConnector {
+  protected constructor(props: GraphQLConnectorProps) {
     super(props);
   }
 

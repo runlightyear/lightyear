@@ -4,6 +4,7 @@ import runInContext from "../runInContext";
 import { logDisplayLevel } from "../setLogDisplayLevel";
 import { prepareConsole } from "../../logging";
 import { deliverLocalResponse } from "../deliverLocalResponse";
+import createAuthorizerActivity from "../createAuthorizerActivity";
 
 export interface ExecRequestAccessTokenProps {
   customAppName: string;
@@ -40,8 +41,21 @@ export async function execRequestAccessToken(
   prepareConsole();
 
   const { statusCode, body } = result;
+  const responseData = JSON.parse(body);
+  const { authRequestUrl, logs } = responseData;
+
+  const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
   console.info(`Requested access token successfully for ${customAppName}`);
 
   await deliverLocalResponse({ localResponseId, response: "OK" });
+
+  await createAuthorizerActivity({
+    customAppName,
+    type: "REQUEST_ACCESS_TOKEN",
+    status,
+    logs,
+  });
+
+  return status;
 }

@@ -1,5 +1,17 @@
 # @runlightyear/postmark
 
+## 0.3.0
+
+### Minor Changes
+
+- 4555bae76: Implement getBaseUrl
+
+### Patch Changes
+
+- Updated dependencies [2914452a6]
+- Updated dependencies [2914452a6]
+  - @runlightyear/lightyear@0.37.0
+
 ## 0.2.7
 
 ### Patch Changes

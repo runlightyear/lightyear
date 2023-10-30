@@ -1,5 +1,17 @@
 # @runlightyear/notion
 
+## 0.5.0
+
+### Minor Changes
+
+- 1d1f74cb7: Implement getBaseUrl
+
+### Patch Changes
+
+- Updated dependencies [2914452a6]
+- Updated dependencies [2914452a6]
+  - @runlightyear/lightyear@0.37.0
+
 ## 0.4.3
 
 ### Patch Changes

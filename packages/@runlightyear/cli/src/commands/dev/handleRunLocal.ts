@@ -11,7 +11,7 @@ export default async function handleRunLocal(props: any) {
 
   console.debug("payload", payload);
 
-  await pushOperation({
+  pushOperation({
     operation: "run",
     params: {
       actionName: payload.actionName,

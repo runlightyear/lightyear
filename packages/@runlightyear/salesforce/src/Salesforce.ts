@@ -1,4 +1,4 @@
-import { AuthConnectorProps, RestConnector } from "@runlightyear/lightyear";
+import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
 import { createRecord, CreateRecordProps } from "./records/createRecord";
 import { updateRecord, UpdateRecordProps } from "./records/updateRecord";
 import { deleteRecord, DeleteRecordProps } from "./records/deleteRecord";
@@ -9,7 +9,7 @@ import { describeObject, DescribeObjectProps } from "./describe/describeObject";
 /**
  * @alpha
  */
-export interface SalesforceProps extends AuthConnectorProps {
+export interface SalesforceProps extends RestConnectorProps {
   domain: string;
 }
 
@@ -134,12 +134,13 @@ export class Salesforce extends RestConnector {
   constructor(props: SalesforceProps) {
     const { domain, ...rest } = props;
 
-    super({
-      ...rest,
-      baseUrl: `https://${domain}.my.salesforce.com/services/data/v57.0`,
-    });
+    super(rest);
 
     this.domain = domain;
+  }
+
+  getBaseUrl(): string {
+    return `https://${this.domain}.my.salesforce.com/services/data/v57.0`;
   }
 
   /**

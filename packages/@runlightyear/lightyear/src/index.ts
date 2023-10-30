@@ -41,8 +41,11 @@ export type {
 } from "./base/http";
 
 /* OAuth */
-export { defineOAuth } from "./base/oauth";
-export type { DefineOAuthProps } from "./base/oauth";
+export { defineAuthorizer, defineOAuth } from "./base/authorizer";
+export type {
+  DefineAuthorizerProps,
+  DefineOAuthProps,
+} from "./base/authorizer";
 
 /* Runs */
 export { run } from "./run";

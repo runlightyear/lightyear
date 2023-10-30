@@ -1,4 +1,4 @@
-import { AuthConnectorProps, RestConnector } from "@runlightyear/lightyear";
+import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
 import { listMeetings, ListMeetingsProps } from "./meetings/listMeetings";
 import {
   listRecordings,
@@ -12,7 +12,7 @@ import {
 /**
  * @alpha
  */
-export interface ZoomProps extends AuthConnectorProps {}
+export interface ZoomProps extends RestConnectorProps {}
 
 /**
  * Zoom Connector
@@ -69,7 +69,11 @@ export interface ZoomProps extends AuthConnectorProps {}
  */
 export class Zoom extends RestConnector {
   constructor(props: ZoomProps) {
-    super({ ...props, baseUrl: "https://api.zoom.us/v2", camelize: true });
+    super({ ...props, camelize: true });
+  }
+
+  getBaseUrl(): string {
+    return "https://api.zoom.us/v2";
   }
 
   /**

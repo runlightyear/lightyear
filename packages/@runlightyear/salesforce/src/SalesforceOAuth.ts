@@ -8,16 +8,21 @@ import { dayjsUtc } from "@runlightyear/lightyear";
 /**
  * @beta
  */
-export interface SalesforceOAuthProps extends OAuthConnectorProps {}
+export interface SalesforceOAuthProps extends OAuthConnectorProps {
+  scopes?: Array<string>;
+}
 
 /**
  * @alpha
  */
 export class SalesforceOAuth extends OAuthConnector {
-  scopes = ["full", "refresh_token"];
+  scopes: Array<string>;
 
   constructor(props: SalesforceOAuthProps) {
-    super(props);
+    const { scopes = ["full", "refresh_token"], ...rest } = props;
+    super(rest);
+
+    this.scopes = scopes;
   }
 
   getAuthRequestUrlBase(): string {

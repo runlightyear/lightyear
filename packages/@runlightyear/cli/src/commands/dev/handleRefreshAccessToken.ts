@@ -9,7 +9,7 @@ export default async function handleRefreshAccessToken(props: any) {
 
   console.debug("payload", payload);
 
-  await pushOperation({
+  pushOperation({
     operation: "refreshAccessToken",
     params: {
       customAppName: payload.customApp,

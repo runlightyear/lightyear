@@ -1,5 +1,17 @@
 # @runlightyear/gmail
 
+## 0.4.0
+
+### Minor Changes
+
+- da8369e6f: Implement getBaseUrl
+
+### Patch Changes
+
+- Updated dependencies [2914452a6]
+- Updated dependencies [2914452a6]
+  - @runlightyear/lightyear@0.37.0
+
 ## 0.3.7
 
 ### Patch Changes

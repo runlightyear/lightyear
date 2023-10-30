@@ -1,5 +1,18 @@
 # @runlightyear/slack
 
+## 0.16.0
+
+### Minor Changes
+
+- 7eda6fc67: Allow scope specification
+- 7eda6fc67: Implement getBaseUrl
+
+### Patch Changes
+
+- Updated dependencies [2914452a6]
+- Updated dependencies [2914452a6]
+  - @runlightyear/lightyear@0.37.0
+
 ## 0.15.0
 
 ### Minor Changes

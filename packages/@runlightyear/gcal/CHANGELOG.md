@@ -1,5 +1,17 @@
 # @runlightyear/gcal
 
+## 0.9.0
+
+### Minor Changes
+
+- 19a75166e: Implement getBaseUrl
+
+### Patch Changes
+
+- Updated dependencies [2914452a6]
+- Updated dependencies [2914452a6]
+  - @runlightyear/lightyear@0.37.0
+
 ## 0.8.0
 
 ### Minor Changes

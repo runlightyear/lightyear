@@ -1,5 +1,17 @@
 # @runlightyear/gsheets
 
+## 0.6.0
+
+### Minor Changes
+
+- 5b62e87c9: Implement getBaseUrl
+
+### Patch Changes
+
+- Updated dependencies [2914452a6]
+- Updated dependencies [2914452a6]
+  - @runlightyear/lightyear@0.37.0
+
 ## 0.5.3
 
 ### Patch Changes

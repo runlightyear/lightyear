@@ -1,5 +1,5 @@
 import { handlerResult } from "./handlerResult";
-import { oAuthIndex } from "../base/oauth";
+import { authorizerIndex } from "../base/authorizer";
 import { OAuthConnector } from "../connectors/OAuthConnector";
 import { getAuthData, updateAuthDataState } from "../base/auth";
 import invariant from "tiny-invariant";
@@ -13,6 +13,8 @@ export async function handleRefreshAccessToken({
   customAppName,
   authName,
 }: HandleRefreshAccessTokenProps) {
+  console.debug("Refreshing access token");
+
   if (!customAppName) {
     return handlerResult(400, "Missing customApp");
   }
@@ -21,7 +23,7 @@ export async function handleRefreshAccessToken({
     return handlerResult(400, "Missing authName");
   }
 
-  const item = oAuthIndex[customAppName];
+  const item = authorizerIndex[customAppName];
 
   const authData = await getAuthData({
     customAppName: customAppName,
@@ -40,6 +42,8 @@ export async function handleRefreshAccessToken({
   });
 
   await connector.refreshAccessToken();
+
+  console.info("Refreshed access token");
 
   return handlerResult(200, "Success");
 }

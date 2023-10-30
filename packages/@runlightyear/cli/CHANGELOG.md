@@ -1,5 +1,17 @@
 # @runlightyear/cli
 
+## 0.31.0
+
+### Minor Changes
+
+- e4827bb65: Upload result of authorizer activities
+
+### Patch Changes
+
+- Updated dependencies [2914452a6]
+- Updated dependencies [2914452a6]
+  - @runlightyear/lightyear@0.37.0
+
 ## 0.30.0
 
 ### Minor Changes

@@ -1,4 +1,4 @@
-import { AuthConnectorProps, RestConnector } from "@runlightyear/lightyear";
+import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
 import { listRecords, ListRecordsProps } from "./records/listRecords";
 import { whoami } from "./meta/whoami";
 import { createRecords, CreateRecordsProps } from "./records/createRecords";
@@ -29,7 +29,7 @@ import { refreshWebhook, RefreshWebhookProps } from "./webhooks/refreshWebhook";
 /**
  * @beta
  */
-export interface AirtableProps extends AuthConnectorProps {}
+export interface AirtableProps extends RestConnectorProps {}
 
 /**
  * @beta
@@ -246,9 +246,12 @@ export class Airtable extends RestConnector {
   constructor(props: AirtableProps) {
     super({
       ...props,
-      baseUrl: "https://api.airtable.com/v0",
       camelize: false,
     });
+  }
+
+  getBaseUrl() {
+    return "https://api.airtable.com/v0";
   }
 
   /**

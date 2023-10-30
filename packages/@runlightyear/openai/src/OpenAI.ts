@@ -1,4 +1,4 @@
-import { AuthConnectorProps, RestConnector } from "@runlightyear/lightyear";
+import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
 import {
   createCompletion,
   CreateCompletionProps,
@@ -13,7 +13,7 @@ import { listModels } from "./models/listModels";
 /**
  * @beta
  */
-export interface OpenAIProps extends AuthConnectorProps {}
+export interface OpenAIProps extends RestConnectorProps {}
 
 /**
  * @beta
@@ -106,16 +106,11 @@ export class OpenAI extends RestConnector {
    * @param props
    */
   constructor(props: OpenAIProps) {
-    super({ ...props, baseUrl: "https://api.openai.com/v1" });
+    super(props);
   }
 
-  authorizationHeaders(): { [p: string]: string } {
-    const { apiKey } = this.getAuthData();
-
-    return {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    };
+  getBaseUrl(): string {
+    return "https://api.openai.com/v1";
   }
 
   /**
