@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 0.38.0
+
+### Minor Changes
+
+- 678e207c7: Make the deployList global so it can work across different versions of the @runlightyear/lightyear package
+
 ## 0.37.0
 
 ### Minor Changes

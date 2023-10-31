@@ -28,8 +28,6 @@ export type DeployFunc = (
   | Promise<Initializer>
   | Promise<Initializer[]>;
 
-export type InitializerSpec = Initializer | Initializer[] | DeployFunc;
-
 export type DeployItem = {
   // type: "action" | "auth" | "variable" | "secret" | "subscription" | "webhook";
   type: "action" | "webhook" | "authorizer";
@@ -42,15 +40,16 @@ export type DeployItem = {
   deploy?: (props: DeployFuncProps) => Promise<string>;
 };
 
-const deployList: DeployItem[] = [];
-
 export function getDeployList() {
-  return deployList;
+  return globalThis.deployList;
 }
 
 export function pushToDeployList(item: DeployItem) {
   console.debug("pushing item to deployList", item);
-  deployList.push(item);
+  if (!globalThis.deployList) {
+    globalThis.deployList = [];
+  }
+  globalThis.deployList.push(item);
 }
 
 /**
@@ -59,9 +58,9 @@ export function pushToDeployList(item: DeployItem) {
  * @param envName
  */
 export async function deploy({ envName }: Props) {
-  console.debug("deployList", JSON.stringify(deployList, null, 2));
+  console.debug("deployList", JSON.stringify(globalThis.deployList, null, 2));
 
-  const names = deployList.map((item) => {
+  const names = globalThis.deployList.map((item) => {
     if (item.type === "action") {
       return item.actionProps?.name;
     } else if (item.type === "webhook") {
@@ -76,7 +75,7 @@ export async function deploy({ envName }: Props) {
   const response = await baseRequest({
     method: "POST",
     uri: `/api/v1/envs/${envName}/deploy`,
-    data: deployList,
+    data: globalThis.deployList,
   });
 
   console.debug("back from baseRequest");
