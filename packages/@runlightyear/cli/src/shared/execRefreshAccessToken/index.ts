@@ -16,7 +16,7 @@ export interface ExecRefreshAccessTokenProps {
 export async function execRefreshAccessToken(
   props: ExecRefreshAccessTokenProps
 ) {
-  const { customAppName, authName } = props;
+  const { customAppName, authName, localResponseId } = props;
 
   const pkg = readPackage();
   const compiledCode = getCompiledCode(pkg.main);
@@ -54,5 +54,9 @@ export async function execRefreshAccessToken(
     logs: logs,
   });
 
-  // await deliverLocalResponse({ localResponseId, response: "OK" });
+  if (localResponseId) {
+    await deliverLocalResponse({ localResponseId, response: "OK" });
+  }
+
+  return status;
 }
