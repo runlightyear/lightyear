@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 0.32.0
+
+### Minor Changes
+
+- Alert server when refreshAccessToken has completed
+
 ## 0.31.0
 
 ### Minor Changes
