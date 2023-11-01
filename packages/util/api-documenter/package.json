@@ -22,12 +22,12 @@
   "main": "lib/index.js",
   "typings": "dist/rollup.d.ts",
   "dependencies": {
-    "@microsoft/api-extractor-model": "~7.24.2",
+    "@microsoft/api-extractor-model": "~7.24.4",
     "@microsoft/tsdoc": "0.14.1",
     "@rushstack/node-core-library": "~3.52.0",
-    "@rushstack/ts-command-line": "~4.12.3",
-    "colors": "~1.2.1",
-    "flatted": "^3.2.7",
+    "@rushstack/ts-command-line": "~4.12.5",
+    "colors": "~1.2.5",
+    "flatted": "^3.2.9",
     "js-yaml": "~3.13.1",
     "resolve": "~1.17.0"
   },
