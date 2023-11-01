@@ -1,6 +1,6 @@
 {
   "name": "docs",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
@@ -18,9 +18,9 @@
     "@docusaurus/core": "2.1.0",
     "@docusaurus/preset-classic": "2.1.0",
     "@mdx-js/react": "^1.6.22",
-    "@runlightyear/github": "^0.23.1",
-    "@runlightyear/lightyear": "^0.38.0",
-    "@runlightyear/slack": "^0.16.1",
+    "@runlightyear/github": "^0.23.2",
+    "@runlightyear/lightyear": "^0.38.1",
+    "@runlightyear/slack": "^0.16.2",
     "clsx": "^1.2.1",
     "prism-react-renderer": "^1.3.5",
     "react": "^17.0.2",
