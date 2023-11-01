@@ -60,7 +60,10 @@ export abstract class RestConnector extends AuthConnector {
 
   buildUrl(url: string, params?: Record<string, any>) {
     console.debug("in RestConnector.buildUrl");
-    const queryStr = params ? `?${queryString.stringify(params)}` : "";
+    const queryStr =
+      params && Object.keys(params).length > 0
+        ? `?${queryString.stringify(params)}`
+        : "";
 
     return `${this.getBaseUrl()}${url}` + queryStr;
   }
