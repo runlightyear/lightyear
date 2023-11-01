@@ -23,9 +23,9 @@ importers:
       '@docusaurus/module-type-aliases': 2.1.0
       '@docusaurus/preset-classic': 2.1.0
       '@mdx-js/react': ^1.6.22
-      '@runlightyear/github': ^0.23.1
-      '@runlightyear/lightyear': ^0.38.0
-      '@runlightyear/slack': ^0.16.1
+      '@runlightyear/github': ^0.23.2
+      '@runlightyear/lightyear': ^0.38.1
+      '@runlightyear/slack': ^0.16.2
       '@tsconfig/docusaurus': ^1.0.7
       clsx: ^1.2.1
       prism-react-renderer: ^1.3.5
@@ -112,7 +112,7 @@ importers:
       dotenv: ^16.3.1
       enquirer: ^2.4.1
       eslint: ^7.32.0
-      eslint-config-custom: ^0.0.0
+      eslint-config-custom: ^0.0.1
       execa: ^5.1.1
       fs-extra: ^10.1.0
       jest: ^28.1.3
@@ -326,7 +326,7 @@ importers:
       babel-jest: ^28.1.3
       dayjs: ^1.11.10
       eslint: ^7.32.0
-      eslint-config-custom: ^0.0.0
+      eslint-config-custom: ^0.0.1
       graphql: ^16.8.1
       jest: ^28.1.3
       lodash: ^4.17.21
