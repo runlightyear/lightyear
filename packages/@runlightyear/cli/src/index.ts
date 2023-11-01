@@ -24,7 +24,7 @@ program
   .addCommand(login)
   .addCommand(dev)
   .addCommand(deploy)
-  .option("-d, --debug", "output extra debugging")
+  .option("-d, --debug", "output extra debugging logs")
   .addHelpText("beforeAll", largeLogo);
 
 async function main() {

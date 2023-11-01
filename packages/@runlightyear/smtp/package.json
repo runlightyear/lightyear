@@ -24,7 +24,7 @@
     "api-extractor-config": "workspace:*",
     "eslint": "^7.32.0",
     "eslint-config-custom": "workspace:*",
-    "nodemon": "^2.0.22",
+    "nodemon": "^3.0.1",
     "tsconfig": "workspace:*",
     "tsdoc-config": "workspace:*",
     "tsup": "^6.7.0",
