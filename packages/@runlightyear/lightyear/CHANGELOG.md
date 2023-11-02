@@ -1,5 +1,12 @@
 # @runlightyear/lightyear
 
+## 0.38.1
+
+### Patch Changes
+
+- 4754e624b: Updated dependencies
+- c2b776da8: Fixed: RestConnector.buildUrl was appending a ? even if there were no params
+
 ## 0.38.0
 
 ### Minor Changes
