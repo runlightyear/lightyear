@@ -30,7 +30,7 @@
     "fs-extra": "^10.1.0",
     "lodash": "^4.17.21",
     "node-fetch": "^2.7.0",
-    "nodemon": "^3.0.1",
+    "nodemon": "^2.0.22",
     "open": "^8.4.2",
     "pako": "^2.1.0",
     "pusher-js": "^7.6.0",
