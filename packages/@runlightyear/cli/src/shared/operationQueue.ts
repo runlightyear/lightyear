@@ -18,6 +18,7 @@ import {
   execRefreshSubscription,
   ExecRefreshSubscriptionProps,
 } from "./execRefreshSubscription";
+import { terminal } from "terminal-kit";
 
 export interface OperationQueueDeployItem {
   operation: "deploy";
@@ -66,6 +67,7 @@ export type OperationQueueItem =
 export const operationQueue: Array<OperationQueueItem> = [];
 
 let processingOperations = false;
+let firstOperationsProcessed = true;
 
 export function pushOperation(operationQueueItem: OperationQueueItem) {
   operationQueue.push(operationQueueItem);
@@ -81,7 +83,7 @@ async function processOperations() {
     const item = operationQueue.shift();
     invariant(item);
 
-    console.log("Processing operation", item.operation);
+    console.info("Processing operation", item.operation);
 
     try {
       if (item.operation === "deploy") {
@@ -108,4 +110,12 @@ async function processOperations() {
   }
   console.debug("Finished processing operations");
   processingOperations = false;
+
+  if (firstOperationsProcessed) {
+    terminal("\n\nDashboard is available at: https://app.runlightyear.com\n");
+    firstOperationsProcessed = false;
+  }
+
+  terminal("\n\nWaiting for file changes...\n");
+  terminal("press h for help, press q to quit\n\n");
 }
