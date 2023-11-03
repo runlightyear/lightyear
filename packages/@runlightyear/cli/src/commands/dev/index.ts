@@ -64,7 +64,7 @@ dev
       watch: ["src", "node_modules/@runlightyear/lightyear/dist"],
       ext: "js,ts",
       execMap: {
-        js: "npm run build",
+        js: "npx lightyear build",
       },
     });
 

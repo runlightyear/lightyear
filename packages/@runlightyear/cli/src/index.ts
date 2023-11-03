@@ -9,6 +9,7 @@ import { dev } from "./commands/dev";
 import { deploy } from "./commands/deploy";
 import { prepareConsole } from "./logging";
 import { largeLogo } from "./largeLogo";
+import { build } from "./commands/build-command";
 // import { test } from "./commands/test";
 
 dotenv.config();
@@ -22,6 +23,7 @@ program
   .addCommand(create)
   .addCommand(signup)
   .addCommand(login)
+  .addCommand(build)
   .addCommand(dev)
   .addCommand(deploy)
   .option("-d, --debug", "output extra debugging")

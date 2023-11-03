@@ -6,7 +6,7 @@ import waitUntilDeployFinishes from "./waitUntilDeployFinishes";
 import createDeploy from "../../../shared/createDeploy";
 import readPackage from "../../../shared/readPackage";
 import getCompiledCode from "../../../shared/getCompiledCode";
-import execa from "execa";
+import { execBuild } from "../../../shared/execBuild";
 
 export default async function deployToProd() {
   console.info("Deploying to prod");
@@ -16,13 +16,7 @@ export default async function deployToProd() {
   // const { deployId } = await requestDeploy("prod");
   // await deleteTgz();
 
-  try {
-    await execa("npm", ["run", "build"]);
-    console.info("Successful build");
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
+  await execBuild();
 
   const pkg = readPackage();
   const compiledCode = getCompiledCode(pkg.main);
