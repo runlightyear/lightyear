@@ -1,4 +1,4 @@
-import { Command, Option } from "commander";
+import { Command, Option, program } from "commander";
 import getPusher from "../../shared/getPusher";
 import getPusherCredentials from "../../shared/getPusherCredentials";
 import handleRunLocal from "./handleRunLocal";
@@ -24,6 +24,13 @@ dev
   .action(async () => {
     terminal(largeLogo);
     terminal("\n\n");
+
+    const options = program.opts();
+    if (options.debug) {
+      setLogDisplayLevel("DEBUG");
+      prepareConsole();
+      console.debug("Outputting debug information");
+    }
 
     const credentials = await getPusherCredentials();
     const pusher = await getPusher(credentials);
