@@ -1,6 +1,6 @@
 {
   "name": "@runlightyear/slack",
-  "version": "0.16.2",
+  "version": "0.16.3",
   "publishConfig": {
     "access": "public"
   },
@@ -13,8 +13,7 @@
     "docs:extract": "api-extractor run --local --verbose"
   },
   "dependencies": {
-    "@runlightyear/lightyear": "workspace:*",
-    "node-fetch": "^2.6.7"
+    "@runlightyear/lightyear": "workspace:*"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.31.2",

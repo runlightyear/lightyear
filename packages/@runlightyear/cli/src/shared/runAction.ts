@@ -99,7 +99,7 @@ export default async function runAction({
   );
 
   if (response.ok) {
-    console.log("Uploaded run result");
+    console.info("Uploaded run result");
   } else {
     console.error(
       "Failed to upload run result",

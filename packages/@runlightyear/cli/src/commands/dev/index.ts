@@ -1,4 +1,4 @@
-import { Command, Option } from "commander";
+import { Command, Option, program } from "commander";
 import getPusher from "../../shared/getPusher";
 import getPusherCredentials from "../../shared/getPusherCredentials";
 import handleRunLocal from "./handleRunLocal";
@@ -16,8 +16,6 @@ import { handleRefreshSubscription } from "./handleRefreshSubscription";
 
 export const dev = new Command("dev");
 
-let firstDeploy = true;
-
 dev
   .description(
     "Automatically deploy changes, run actions, and respond to webhooks in your dev environment"
@@ -25,6 +23,14 @@ dev
   .addOption(new Option("--dev").hideHelp())
   .action(async () => {
     terminal(largeLogo);
+    terminal("\n\n");
+
+    const options = program.opts();
+    if (options.debug) {
+      setLogDisplayLevel("DEBUG");
+      prepareConsole();
+      console.debug("Outputting debug information");
+    }
 
     const credentials = await getPusherCredentials();
     const pusher = await getPusher(credentials);
@@ -64,7 +70,7 @@ dev
       watch: ["src", "node_modules/@runlightyear/lightyear/dist"],
       ext: "js,ts",
       execMap: {
-        js: "npm run build",
+        js: "npx lightyear build",
       },
     });
 
@@ -76,9 +82,6 @@ dev
         }, 100);
       } else if (data.code === "d") {
         pushOperation({ operation: "deploy", params: undefined });
-
-        terminal("\n\nWaiting for file changes...\n");
-        terminal("press h for help, press q to quit\n");
       } else if (data.code === "l") {
         console.info("DEBUG logging on");
         setLogDisplayLevel("DEBUG");
@@ -103,17 +106,6 @@ dev
 
     nodemon.on("exit", async () => {
       pushOperation({ operation: "deploy", params: undefined });
-
-      if (firstDeploy) {
-        terminal(
-          "\n\nDashboard is available at: https://app.runlightyear.com\n"
-        );
-        firstDeploy = false;
-      }
-
-      terminal("\n\nWaiting for file changes...\n");
-      terminal("press h for help, press q to quit\n");
-
       terminal.grabInput(true);
     });
   });

@@ -1,5 +1,14 @@
 # @runlightyear/cli
 
+## 0.33.0
+
+### Minor Changes
+
+- 0d31cd508: Upgrade to nodemon 3.0
+- a8d821155: Added the build command
+- 0a2330154: Print the Waiting for file changes... message at the correct time
+- 07322b8fa: Add a --debug option to create and dev commands
+
 ## 0.32.2
 
 ### Patch Changes
