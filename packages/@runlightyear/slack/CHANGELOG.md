@@ -1,5 +1,11 @@
 # @runlightyear/slack
 
+## 0.16.3
+
+### Patch Changes
+
+- dd8182fc7: Removed unused node-fetch dependency
+
 ## 0.16.2
 
 ### Patch Changes
