@@ -1,5 +1,11 @@
 # @runlightyear/openai
 
+## 0.8.0
+
+### Minor Changes
+
+- Work with the new getDefaultHeaders api
+
 ## 0.7.2
 
 ### Patch Changes

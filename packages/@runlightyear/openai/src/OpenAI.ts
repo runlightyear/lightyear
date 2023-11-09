@@ -113,6 +113,12 @@ export class OpenAI extends RestConnector {
     return "https://api.openai.com/v1";
   }
 
+  getDefaultHeaders() {
+    const { apiKey } = this.getAuthData();
+
+    return { ...super.getDefaultHeaders(), Authorization: `Bearer ${apiKey}` };
+  }
+
   /**
    * List and describe the various models available in the API. You can refer to the Models documentation to understand what models are available and the differences between them.
    *
