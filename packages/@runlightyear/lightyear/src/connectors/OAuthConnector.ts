@@ -322,7 +322,7 @@ export abstract class OAuthConnector {
       redactKeys,
     });
 
-    console.info("Response:", response);
+    console.debug("Response:", response);
 
     const newAuthData = this.processRequestAccessTokenResponse({
       status: response.status,
@@ -350,7 +350,7 @@ export abstract class OAuthConnector {
 
     const response = await this.post({ url, headers, body, redactKeys });
 
-    console.info("Response:", response);
+    console.debug("Response:", response);
 
     const newAuthData = this.processRefreshAccessTokenResponse({
       status: response.status,
