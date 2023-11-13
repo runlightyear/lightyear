@@ -1,5 +1,16 @@
 # @runlightyear/notion
 
+## 1.0.0
+
+### Major Changes
+
+- Notion connector is GA
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@1.0.0
+
 ## 0.5.2
 
 ### Patch Changes

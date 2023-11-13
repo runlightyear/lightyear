@@ -1,6 +1,3 @@
-/**
- * @beta
- */
 export type AirtableScope =
   /**
    * See the data in records

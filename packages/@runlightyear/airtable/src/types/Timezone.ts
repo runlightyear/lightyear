@@ -1,6 +1,3 @@
-/**
- * @beta
- */
 export type Timezone =
   | "utc"
   | "client"

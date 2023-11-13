@@ -2,9 +2,6 @@ import { Airtable } from "../Airtable";
 import { Timezone } from "../types/Timezone";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 
-/**
- * @beta
- */
 export interface ListRecordsProps {
   baseId: string;
   tableIdOrName: string;
@@ -114,9 +111,6 @@ export interface ListRecordsResponseData {
   }>;
 }
 
-/**
- * @beta
- */
 export interface ListRecordsResponse extends HttpProxyResponse {
   /**
    * If there are more records, the response will contain an offset. Pass this offset into the next request to fetch the next page of records.

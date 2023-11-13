@@ -1,5 +1,16 @@
 # @runlightyear/airtable
 
+## 1.0.0
+
+### Major Changes
+
+- Airtable connector is GA
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@1.0.0
+
 ## 0.8.2
 
 ### Patch Changes

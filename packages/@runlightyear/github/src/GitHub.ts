@@ -161,8 +161,6 @@ export interface GitHubDefineAuthProps {
 }
 
 /**
- * @beta
- *
  * Connector to the GitHub API
  *
  * @example On push
