@@ -36,13 +36,10 @@ import {
   OnUpdatedDatabaseItemsProps,
 } from "./methods/listeners/onUpdatedDatabaseItems";
 
-/**
- * @beta
- */
 export interface NotionProps extends RestConnectorProps {}
 
 /**
- * @beta
+ * Connector to the Notion API
  *
  * @example Create a database
  * ```typescript

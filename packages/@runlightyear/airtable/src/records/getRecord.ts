@@ -32,9 +32,6 @@ export interface GetRecordResponseData {
   };
 }
 
-/**
- * @beta
- */
 export interface GetRecordResponse extends HttpProxyResponse {
   data: GetRecordResponseData;
 }

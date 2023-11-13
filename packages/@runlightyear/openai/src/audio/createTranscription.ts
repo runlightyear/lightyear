@@ -1,9 +1,6 @@
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { OpenAI } from "../OpenAI";
 
-/**
- * @beta
- */
 export interface CreateTranscriptionProps {
   /**
    * The audio file to transcribe, in one of these formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm.
@@ -40,16 +37,10 @@ export interface CreateTranscriptionProps {
   language?: string;
 }
 
-/**
- * @beta
- */
 export interface CreateTranscriptionResponseData {
   text: string;
 }
 
-/**
- * @beta
- */
 export interface CreateTranscriptionResponse extends HttpProxyResponse {
   data: CreateTranscriptionResponseData;
 }

@@ -1,13 +1,7 @@
 import { OAuthConnectorProps, OAuthConnector } from "@runlightyear/lightyear";
 
-/**
- * @beta
- */
 export interface NotionOAuthProps extends OAuthConnectorProps {}
 
-/**
- * @beta
- */
 export class NotionOAuth extends OAuthConnector {
   constructor(props: NotionOAuthProps) {
     super(props);

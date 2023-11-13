@@ -10,14 +10,9 @@ import {
 import { createImage, CreateImageProps } from "./images/createImage";
 import { listModels } from "./models/listModels";
 
-/**
- * @beta
- */
 export interface OpenAIProps extends RestConnectorProps {}
 
 /**
- * @beta
- *
  * Connector to the OpenAI API
  *
  * @example Import

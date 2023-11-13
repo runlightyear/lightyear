@@ -1,14 +1,8 @@
 import { RestConnector, RestConnectorProps } from "./RestConnector";
 import { HttpProxyResponse } from "../base/http";
 
-/**
- * @beta
- */
 export interface GraphQLConnectorProps extends RestConnectorProps {}
 
-/**
- * @beta
- */
 export interface GraphQLConnectorQueryProps {
   query: string;
   variables?: {
@@ -17,8 +11,6 @@ export interface GraphQLConnectorQueryProps {
 }
 
 /**
- * @beta
- *
  * GraphQL Connector
  *
  * The base for making calls to GraphQL APIs

@@ -1,5 +1,16 @@
 # @runlightyear/github
 
+## 1.0.0
+
+### Major Changes
+
+- GitHub connector is GA
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@1.0.0
+
 ## 0.23.2
 
 ### Patch Changes

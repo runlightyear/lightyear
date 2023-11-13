@@ -1,5 +1,16 @@
 # @runlightyear/openai
 
+## 1.0.0
+
+### Major Changes
+
+- OpenAI connector is GA
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@1.0.0
+
 ## 0.8.0
 
 ### Minor Changes
