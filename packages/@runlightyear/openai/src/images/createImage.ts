@@ -1,6 +1,6 @@
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 import { OpenAI } from "../OpenAI";
-import { ImageData } from "../types/ImageData";
+import { Image } from "../types/Image";
 
 export interface CreateImageProps {
   /**
@@ -37,7 +37,7 @@ export interface CreateImageProps {
 
 export interface CreateImageResponseData {
   created: number;
-  data: Array<ImageData>;
+  data: Array<Image>;
 }
 
 export interface CreateImageResponse extends HttpProxyResponse {

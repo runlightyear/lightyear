@@ -137,6 +137,7 @@ export { getEnvName } from "./util/getEnvName";
 export { default as toTimestamp } from "./util/toTimestamp";
 export { dayjsUtc } from "./util/dayjsUtc";
 export { isFunction } from "./util/isFunction";
+export { sleep } from "./util/sleep";
 
 /** Handler **/
 export { handler } from "./handler";

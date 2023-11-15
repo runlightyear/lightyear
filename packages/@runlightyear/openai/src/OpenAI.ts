@@ -9,6 +9,56 @@ import {
 } from "./chat/createChatCompletion";
 import { createImage, CreateImageProps } from "./images/createImage";
 import { listModels } from "./models/listModels";
+import {
+  createAssistant,
+  CreateAssistantProps,
+} from "./assistants/createAssistant";
+import {
+  deleteAssistant,
+  DeleteAssistantProps,
+} from "./assistants/deleteAssistant";
+import {
+  listAssistants,
+  ListAssistantsProps,
+} from "./assistants/listAssistants";
+import {
+  modifyAssistant,
+  ModifyAssistantProps,
+} from "./assistants/modifyAssistant";
+import {
+  retrieveAssistant,
+  RetrieveAssistantProps,
+} from "./assistants/retrieveAssistant";
+import { createMessage, CreateMessageProps } from "./messages/createMessage";
+import {
+  listMessageFiles,
+  ListMessageFilesProps,
+} from "./messages/listMessageFiles";
+import { listMessages, ListMessagesProps } from "./messages/listMessages";
+import { modifyMessage, ModifyMessageProps } from "./messages/modifyMessage";
+import {
+  retrieveMessage,
+  RetrieveMessageProps,
+} from "./messages/retrieveMessage";
+import {
+  retrieveMessageFile,
+  RetrieveMessageFileProps,
+} from "./messages/retrieveMessageFile";
+import { createThread, CreateThreadProps } from "./threads/createThread";
+import { deleteThread, DeleteThreadProps } from "./threads/deleteThread";
+import { modifyThread, ModifyThreadProps } from "./threads/modifyThread";
+import { retrieveThread, RetrieveThreadProps } from "./threads/retrieveThread";
+import { cancelRun, CancelRunProps } from "./runs/cancelRun";
+import { createRun, CreateRunProps } from "./runs/createRun";
+import {
+  createThreadAndRun,
+  CreateThreadAndRunProps,
+} from "./runs/createThreadAndRun";
+import { listRuns, ListRunsProps } from "./runs/listRuns";
+import { listRunSteps, ListRunStepsProps } from "./runs/listRunSteps";
+import { modifyRun, ModifyRunProps } from "./runs/modifyRun";
+import { retrieveRun, RetrieveRunProps } from "./runs/retrieveRun";
+import { retrieveRunStep, RetrieveRunStepProps } from "./runs/retrieveRunStep";
 
 export interface OpenAIProps extends RestConnectorProps {}
 
@@ -111,7 +161,11 @@ export class OpenAI extends RestConnector {
   getDefaultHeaders() {
     const { apiKey } = this.getAuthData();
 
-    return { ...super.getDefaultHeaders(), Authorization: `Bearer ${apiKey}` };
+    return {
+      ...super.getDefaultHeaders(),
+      Authorization: `Bearer ${apiKey}`,
+      "OpenAI-Beta": "assistants=v1",
+    };
   }
 
   /**
@@ -128,6 +182,61 @@ export class OpenAI extends RestConnector {
    */
   async listModels() {
     return listModels(this)();
+  }
+
+  /**
+   * @beta
+   *
+   * Create an assistant.
+   *
+   * @group Assistants
+   */
+  async createAssistant(props: CreateAssistantProps) {
+    return createAssistant(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Delete an assistant
+   *
+   * @group Assistants
+   */
+  async deleteAssistant(props: DeleteAssistantProps) {
+    return deleteAssistant(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * List assistants
+   *
+   * @group Assistants
+   */
+  async listAssistants(props?: ListAssistantsProps) {
+    return listAssistants(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Modify an assistant
+   *
+   * @group Assistants
+   */
+  async modifyAssistant(props: ModifyAssistantProps) {
+    return modifyAssistant(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Retrieve an assistant
+   *
+   * @group Assistants
+   */
+  async retrieveAssistant(props: RetrieveAssistantProps) {
+    return retrieveAssistant(this)(props);
   }
 
   /**
@@ -205,6 +314,204 @@ export class OpenAI extends RestConnector {
    */
   async createImage(props: CreateImageProps) {
     return createImage(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Create a message
+   *
+   * @group Messages
+   */
+  async createMessage(props: CreateMessageProps) {
+    return createMessage(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * List message files
+   *
+   * @group Messages
+   */
+  async listMessageFiles(props: ListMessageFilesProps) {
+    return listMessageFiles(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * List messages
+   *
+   * @group Messages
+   */
+  async listMessages(props: ListMessagesProps) {
+    return listMessages(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Modify a message
+   *
+   * @group Messages
+   */
+  async modifyMessage(props: ModifyMessageProps) {
+    return modifyMessage(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Retrieve a message
+   *
+   * @group Messages
+   */
+  async retrieveMessage(props: RetrieveMessageProps) {
+    return retrieveMessage(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Retrieve a message file
+   *
+   * @group Messages
+   */
+  async retrieveMessageFile(props: RetrieveMessageFileProps) {
+    return retrieveMessageFile(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Cancel a run
+   *
+   * @group Runs
+   */
+  async cancelRun(props: CancelRunProps) {
+    return cancelRun(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Create a run
+   *
+   * @group Runs
+   */
+  async createRun(props: CreateRunProps) {
+    return createRun(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Create a thread and run
+   *
+   * @group Runs
+   */
+  async createThreadAndRun(props: CreateThreadAndRunProps) {
+    return createThreadAndRun(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * List runs
+   *
+   * @group Runs
+   */
+  async listRuns(props: ListRunsProps) {
+    return listRuns(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * List run steps
+   *
+   * @group Runs
+   */
+  async listRunSteps(props: ListRunStepsProps) {
+    return listRunSteps(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Modify a run
+   *
+   * @group Runs
+   */
+  async modifyRun(props: ModifyRunProps) {
+    return modifyRun(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Retrieve a run
+   *
+   * @group Runs
+   */
+  async retrieveRun(props: RetrieveRunProps) {
+    return retrieveRun(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Retrieve a run step
+   *
+   * @group Runs
+   */
+  async retrieveRunStep(props: RetrieveRunStepProps) {
+    return retrieveRunStep(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Create a thread
+   *
+   * @group Threads
+   */
+  async createThread(props?: CreateThreadProps) {
+    return createThread(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Delete a thread
+   *
+   * @group Threads
+   */
+  async deleteThread(props: DeleteThreadProps) {
+    return deleteThread(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Modify a thread
+   *
+   * @group Threads
+   */
+  async modifyThread(props: ModifyThreadProps) {
+    return modifyThread(this)(props);
+  }
+
+  /**
+   * @beta
+   *
+   * Retrieve a thread
+   *
+   * @group Threads
+   */
+  async retrieveThread(props: RetrieveThreadProps) {
+    return retrieveThread(this)(props);
   }
 
   /**

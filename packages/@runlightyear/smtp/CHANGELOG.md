@@ -1,5 +1,12 @@
 # @runlightyear/smtp
 
+## 0.2.12
+
+### Patch Changes
+
+- Updated dependencies [88bc757af]
+  - @runlightyear/lightyear@1.1.0
+
 ## 0.2.11
 
 ### Patch Changes

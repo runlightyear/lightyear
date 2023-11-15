@@ -20,6 +20,7 @@ export default function runInContext(code: any) {
     console,
     process,
     Buffer,
+    setTimeout,
     clearTimeout,
   };
 

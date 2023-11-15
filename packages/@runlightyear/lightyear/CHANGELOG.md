@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 1.1.0
+
+### Minor Changes
+
+- 88bc757af: Added sleep utility command
+
 ## 1.0.0
 
 ### Major Changes
