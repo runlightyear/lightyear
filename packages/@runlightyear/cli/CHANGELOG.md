@@ -1,5 +1,16 @@
 # @runlightyear/cli
 
+## 1.0.0
+
+### Major Changes
+
+- Command line interface is GA
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@1.0.0
+
 ## 0.33.0
 
 ### Minor Changes

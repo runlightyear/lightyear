@@ -1,9 +1,6 @@
 import { Airtable } from "../Airtable";
 import { HttpProxyResponse } from "@runlightyear/lightyear";
 
-/**
- * @beta
- */
 export interface CreateRecordsProps {
   baseId: string;
   tableIdOrName: string;
@@ -35,9 +32,6 @@ export interface CreateRecordsProps {
   typecast?: boolean;
 }
 
-/**
- * @beta
- */
 export interface SingleRecordResponseData {
   /**
    * Record ID
@@ -63,17 +57,11 @@ export interface SingleRecordResponseData {
   commentCount?: number;
 }
 
-/**
- * @beta
- */
 export interface MultipleRecordsResponseData {
   offset?: string;
   records: Array<SingleRecordResponseData>;
 }
 
-/**
- * @beta
- */
 export interface CreateRecordsResponse extends HttpProxyResponse {
   data: SingleRecordResponseData | MultipleRecordsResponseData;
 }

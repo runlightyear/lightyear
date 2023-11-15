@@ -60,14 +60,9 @@ import { modifyRun, ModifyRunProps } from "./runs/modifyRun";
 import { retrieveRun, RetrieveRunProps } from "./runs/retrieveRun";
 import { retrieveRunStep, RetrieveRunStepProps } from "./runs/retrieveRunStep";
 
-/**
- * @beta
- */
 export interface OpenAIProps extends RestConnectorProps {}
 
 /**
- * @beta
- *
  * Connector to the OpenAI API
  *
  * @example Import

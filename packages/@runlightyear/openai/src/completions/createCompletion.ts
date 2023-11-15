@@ -4,9 +4,6 @@ import { Usage } from "../types/Usage";
 import { ChatChoice } from "../types/ChatChoice";
 import { CompletionChoice } from "../types/CompletionChoice";
 
-/**
- * @beta
- */
 export interface CreateCompletionProps {
   /**
    * ID of the model to use. You can use the List models API to see all of your available models, or see our Model overview for descriptions of them.
@@ -136,9 +133,6 @@ export interface CreateCompletionResponseData {
   usage: Usage;
 }
 
-/**
- * @beta
- */
 export interface CreateCompletionResponse extends HttpProxyResponse {
   data: CreateCompletionResponseData;
 }

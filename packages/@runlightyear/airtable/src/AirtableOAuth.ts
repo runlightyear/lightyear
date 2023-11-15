@@ -7,16 +7,10 @@ import { AirtableScope } from "./types/AirtableScope";
 import crypto from "crypto";
 import invariant from "tiny-invariant";
 
-/**
- * @beta
- */
 export interface AirtableOAuthProps extends OAuthConnectorProps {
   scopes?: AirtableScope[];
 }
 
-/**
- * @beta
- */
 export class AirtableOAuth extends OAuthConnector {
   scopes: AirtableScope[];
 

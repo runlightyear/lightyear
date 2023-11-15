@@ -26,14 +26,9 @@ import {
 } from "./listeners/onNewOrUpdatedRecords";
 import { refreshWebhook, RefreshWebhookProps } from "./webhooks/refreshWebhook";
 
-/**
- * @beta
- */
 export interface AirtableProps extends RestConnectorProps {}
 
 /**
- * @beta
- *
  * Connector to the Airtable API
  *
  * @example Import

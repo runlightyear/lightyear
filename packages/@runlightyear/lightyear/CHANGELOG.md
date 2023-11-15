@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 1.0.0
+
+### Major Changes
+
+- Lightyear is GA
+
 ## 0.38.1
 
 ### Patch Changes
