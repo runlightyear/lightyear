@@ -1,5 +1,10 @@
 import WebhookEvent from "../types/WebhookEvent";
-import { defineWebhook, SecretDef, VariableDef } from "@runlightyear/lightyear";
+import {
+  defineWebhook,
+  SecretDef,
+  setSecret,
+  VariableDef,
+} from "@runlightyear/lightyear";
 import type { SubscribePropsFuncProps } from "@runlightyear/lightyear";
 import { GitHub } from "../GitHub";
 
@@ -56,12 +61,17 @@ const defineGitHubWebhook = (props: DefineGitHubWebhookProps) => {
 
       console.debug("in defineGitHubWebhook");
 
+      const token = "1234";
+
+      await setSecret("token", token);
+
       const response = await github.createRepositoryWebhook({
         owner: subscribeProps.owner,
         repo: subscribeProps.repo,
         events: subscribeProps.events,
         config: {
           url: endpoint,
+          token,
         },
       });
 

@@ -6,6 +6,7 @@
 export { RestConnector } from "@runlightyear/lightyear";
 export { Slack } from "./Slack";
 export { SlackOAuth } from "./SlackOAuth";
+export { SlackAppWebhook } from "./SlackAppWebhook";
 
 /** Chat **/
 export type { PostMessageProps } from "./chat/postMessage";

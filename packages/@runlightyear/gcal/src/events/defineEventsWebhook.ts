@@ -10,8 +10,10 @@ import {
   AppName,
   dayjsUtc,
   setSubscriptionExpiresAt,
+  setSecret,
 } from "@runlightyear/lightyear";
 import { GoogleCalendar } from "../GoogleCalendar";
+import { ReceiveWebhookFunc } from "@runlightyear/lightyear/src/base/webhook";
 
 export interface DefineEventsWebhookSubscribeProps {
   /**
@@ -62,11 +64,15 @@ const subscribe: SubscribeFunc = async ({
 
   const id = String(randomInt(100000000));
 
+  const token = "1234";
+  await setSecret("token", token);
+
   const response = await gcal.watchEvents({
     calendarId: subscribeProps.calendarId,
     id,
     type: "webhook",
     address: endpoint,
+    token,
   });
 
   const unsubscribeProps = {
@@ -86,6 +92,28 @@ const subscribe: SubscribeFunc = async ({
   console.debug("unsubscribeProps", unsubscribeProps);
 
   return unsubscribeProps;
+};
+
+const receive: ReceiveWebhookFunc = async ({ delivery, secrets }) => {
+  console.debug("Verifying Google Calendar event notification");
+
+  const { token } = secrets;
+
+  if (delivery.data.token === token) {
+    return {
+      response: {
+        statusCode: 200,
+      },
+      triggerActions: true,
+    };
+  }
+
+  return {
+    response: {
+      statusCode: 401,
+    },
+    triggerActions: false,
+  };
 };
 
 const unsubscribe: UnsubscribeFunc = async ({ auths, unsubscribeProps }) => {

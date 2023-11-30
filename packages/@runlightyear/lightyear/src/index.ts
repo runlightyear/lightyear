@@ -4,6 +4,16 @@
  * @packageDocumentation
  */
 
+/** Initialize globals **/
+globalThis.deployList = [];
+globalThis.actionIndex = {};
+globalThis.subscribeIndex = {};
+globalThis.unsubscribeIndex = {};
+globalThis.refreshSubscriptionIndex = {};
+globalThis.receiveDeliveryIndex = {};
+globalThis.authorizerIndex = {};
+globalThis.customAppWebhookIndex = {};
+
 /** Base Functions **/
 
 /* Action */
@@ -26,6 +36,17 @@ export type { BaseRequestProps } from "./base/baseRequest";
 /* Cache */
 export { getCache, saveCache } from "./base/cache";
 export type { GetCacheProps, SaveCacheProps, CacheData } from "./base/cache";
+
+/* Custom App Webhook */
+export { defineCustomAppWebhook } from "./base/customAppWebhook";
+export type { DefineCustomAppWebhookProps } from "./base/customAppWebhook";
+
+/* Delivery */
+export type {
+  WebhookDelivery,
+  AppWebhookDeliveryResponse,
+  WebhookDeliveryResponse,
+} from "./base/delivery";
 
 /* Deploy */
 export { deploy, getDeployData } from "./base/deploy";
@@ -98,6 +119,10 @@ export type {
 export { BaseConnector } from "./connectors/BaseConnector";
 export type { BaseConnectorProps } from "./connectors/BaseConnector";
 
+/* App Webhook Connector */
+export { AppWebhookConnector } from "./connectors/AppWebhookConnector";
+export type { AppWebhookConnectorProps } from "./connectors/AppWebhookConnector";
+
 /* Auth Connector */
 export { AuthConnector } from "./connectors/AuthConnector";
 export type { AuthConnectorProps } from "./connectors/AuthConnector";
@@ -137,6 +162,7 @@ export { getEnvName } from "./util/getEnvName";
 export { default as toTimestamp } from "./util/toTimestamp";
 export { dayjsUtc } from "./util/dayjsUtc";
 export { isFunction } from "./util/isFunction";
+export { default as zod } from "zod";
 
 /** Handler **/
 export { handler } from "./handler";

@@ -1,5 +1,4 @@
 import { handlerResult } from "./handlerResult";
-import { authorizerIndex } from "../base/authorizer";
 import { OAuthConnector } from "../connectors/OAuthConnector";
 import { getAuthData, updateAuthDataState } from "../base/auth";
 import invariant from "tiny-invariant";
@@ -19,7 +18,7 @@ export async function handleGetAuthRequestUrl({
     return handlerResult(400, "Missing customApp");
   }
 
-  const item = authorizerIndex[customApp];
+  const item = globalThis.authorizerIndex[customApp];
 
   await updateAuthDataState({ customAppName: customApp, authName });
 
@@ -35,6 +34,8 @@ export async function handleGetAuthRequestUrl({
     oauthConfigData: authData.customAppData.oAuthConfigData,
     authData,
   });
+
+  console.debug("connector", connector);
 
   const authRequestUrl = connector.getAuthRequestUrl();
 

@@ -41,14 +41,9 @@ export type RunFunc = (props: RunFuncProps) => void;
 /**
  * @internal
  */
-type ActionIndex = {
+export type ActionIndex = {
   [name: string]: RunFunc;
 };
-
-/**
- * @internal
- */
-export const actionIndex: ActionIndex = {};
 
 /**
  * @internal
@@ -70,14 +65,14 @@ export interface RunProps {
  */
 export async function run(props: RunProps) {
   const { name, data, auths, variables, secrets, webhook, context } = props;
-  console.debug("actionIndex", Object.keys(actionIndex));
+  console.debug("actionIndex", Object.keys(globalThis.actionIndex));
 
-  const fn = actionIndex[name];
+  const fn = globalThis.actionIndex[name];
   if (!fn) {
     console.error(
       `Unknown action: ${name}`,
       "Known actions:",
-      Object.keys(actionIndex)
+      Object.keys(globalThis.actionIndex)
     );
     throw new Error(`Unknown action: ${name}`);
   }

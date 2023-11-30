@@ -14,6 +14,7 @@ import {
 import { z } from "zod";
 import { VariableDef } from "./variable";
 import { SecretDef } from "./secret";
+import { WebhookDelivery, WebhookDeliveryResponse } from "./delivery";
 
 /**
  * @public
@@ -63,21 +64,38 @@ export type RefreshSubscriptionFunc = (
   props: RefreshSubscriptionFuncProps
 ) => Promise<object>;
 
-type SubscribeIndex = {
+export interface ReceiveWebhookFuncProps {
+  endpoint: string;
+  auths: Auths;
+  variables: Variables;
+  secrets: Secrets;
+  delivery: WebhookDelivery;
+}
+
+export interface ReceiveWebhookResponse {
+  response: WebhookDeliveryResponse;
+  triggerActions: boolean;
+}
+
+export type ReceiveWebhookFunc = (
+  props: ReceiveWebhookFuncProps
+) => Promise<ReceiveWebhookResponse>;
+
+export type SubscribeIndex = {
   [name: string]: SubscribeFunc;
 };
 
-type UnsubscribeIndex = {
+export type UnsubscribeIndex = {
   [name: string]: UnsubscribeFunc;
 };
 
-type RefreshSubscriptionIndex = {
+export type RefreshSubscriptionIndex = {
   [name: string]: RefreshSubscriptionFunc;
 };
 
-export const subscribeIndex: SubscribeIndex = {};
-export const unsubscribeIndex: UnsubscribeIndex = {};
-export const refreshSubscriptionIndex: RefreshSubscriptionIndex = {};
+export type ReceiveDeliveryIndex = {
+  [name: string]: ReceiveWebhookFunc;
+};
 
 /**
  * @public
@@ -135,6 +153,7 @@ export interface DefineWebhookProps {
   subscribeProps?: SubscribePropsFunc;
   subscribe?: SubscribeFunc;
   refreshSubscription?: RefreshSubscriptionFunc;
+  receive?: ReceiveWebhookFunc;
   unsubscribe?: UnsubscribeFunc;
 }
 
@@ -169,6 +188,7 @@ function validateWebhookProps(props: DefineWebhookProps) {
       subscribe: z.function().optional(),
       unsubscribe: z.function().optional(),
       refreshSubscription: z.function().optional(),
+      receive: z.function().optional(),
     })
     .strict();
 
@@ -318,13 +338,16 @@ export function defineWebhook(props: DefineWebhookProps) {
     webhookProps: props,
   });
   if (props.subscribe) {
-    subscribeIndex[props.name] = props.subscribe;
+    globalThis.subscribeIndex[props.name] = props.subscribe;
   }
   if (props.unsubscribe) {
-    unsubscribeIndex[props.name] = props.unsubscribe;
+    globalThis.unsubscribeIndex[props.name] = props.unsubscribe;
   }
   if (props.refreshSubscription) {
-    refreshSubscriptionIndex[props.name] = props.refreshSubscription;
+    globalThis.refreshSubscriptionIndex[props.name] = props.refreshSubscription;
+  }
+  if (props.receive) {
+    globalThis.receiveDeliveryIndex[props.name] = props.receive;
   }
 
   return props.name;

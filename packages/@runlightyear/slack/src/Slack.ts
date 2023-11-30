@@ -3,6 +3,7 @@ import {
   HttpProxyRequestProps,
   HttpProxyResponse,
   RestConnectorProps,
+  WebhookDeliveryData,
 } from "@runlightyear/lightyear";
 import postMessage, { PostMessageProps } from "./chat/postMessage";
 import { scheduleMessage, ScheduleMessageProps } from "./chat/scheduleMessage";

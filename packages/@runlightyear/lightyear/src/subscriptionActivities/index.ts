@@ -1,10 +1,7 @@
 import {
   RefreshSubscriptionFuncProps,
-  refreshSubscriptionIndex,
   SubscribeFuncProps,
-  subscribeIndex,
   UnsubscribeFuncProps,
-  unsubscribeIndex,
 } from "../base/webhook";
 import { setSubscribeProps } from "../base/subscription";
 import { getDeployData, getDeployList } from "../base/deploy";
@@ -65,7 +62,7 @@ export async function unsubscribe(
   webhookName: string,
   unsubscribeFuncProps: UnsubscribeFuncProps
 ) {
-  const fn = unsubscribeIndex[webhookName];
+  const fn = globalThis.unsubscribeIndex[webhookName];
   if (!fn) {
     console.error(`No unsubscribe function for: ${webhookName}`);
   }
@@ -77,7 +74,7 @@ export async function subscribe(
   webhookName: string,
   subscribeFuncProps: SubscribeFuncProps
 ) {
-  const fn = subscribeIndex[webhookName];
+  const fn = globalThis.subscribeIndex[webhookName];
   if (!fn) {
     console.error(`No subscribe function for: ${webhookName}`);
   }
@@ -89,7 +86,7 @@ export async function refreshSubscription(
   webhookName: string,
   refreshSubscriptionFuncProps: RefreshSubscriptionFuncProps
 ) {
-  const fn = refreshSubscriptionIndex[webhookName];
+  const fn = globalThis.refreshSubscriptionIndex[webhookName];
   if (!fn) {
     console.error(`No refresh subscription function for: ${webhookName}`);
   }

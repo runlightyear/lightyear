@@ -1,13 +1,21 @@
 import { DeployActionProps, ActionData } from "./action";
-import { WebhookData, DefineWebhookProps } from "./webhook";
+import {
+  WebhookData,
+  DefineWebhookProps,
+  SubscribeFunc,
+  UnsubscribeFunc,
+  RefreshSubscriptionFunc,
+  ReceiveWebhookFunc,
+} from "./webhook";
 import baseRequest from "./baseRequest";
 import { Initializer } from "./Initializer";
 import invariant from "tiny-invariant";
 import { prefixedRedactedConsole } from "../logging";
-import { Auths, Secrets, Variables } from "../run";
+import { Auths, RunFunc, Secrets, Variables } from "../run";
 import { subscribeProps } from "../subscriptionActivities";
 import { getEnvName } from "../util/getEnvName";
 import { DefineAuthorizerProps } from "./authorizer";
+import { DefineCustomAppWebhookProps } from "./customAppWebhook";
 
 interface Props {
   envName: string;
@@ -30,12 +38,13 @@ export type DeployFunc = (
 
 export type DeployItem = {
   // type: "action" | "auth" | "variable" | "secret" | "subscription" | "webhook";
-  type: "action" | "webhook" | "authorizer";
+  type: "action" | "webhook" | "authorizer" | "customAppWebhook";
   // data: DeployActionProps | AuthProps | WebhookProps;
   actionProps?: DeployActionProps;
   // authProps?: AuthProps;
   webhookProps?: DefineWebhookProps;
   authorizerProps?: DefineAuthorizerProps;
+  customAppWebhookProps?: DefineCustomAppWebhookProps;
   // subscribeArgs?: (props: SubscribeArgsProps) => Promise<object>;
   deploy?: (props: DeployFuncProps) => Promise<string>;
 };
@@ -52,6 +61,7 @@ export function pushToDeployList(item: DeployItem) {
   globalThis.deployList.push(item);
 }
 
+
 /**
  * @internal
  *
@@ -67,6 +77,8 @@ export async function deploy({ envName }: Props) {
       return item.webhookProps?.name;
     } else if (item.type === "authorizer") {
       return `${item.authorizerProps?.customApp} authorizer`;
+    } else if (item.type === "customAppWebhook") {
+      return `${item.customAppWebhookProps?.customApp} custom app webhook`;
     }
   });
 
