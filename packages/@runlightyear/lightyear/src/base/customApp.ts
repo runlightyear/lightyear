@@ -1,30 +1,69 @@
 import { z } from "zod";
 import { validNameRegex } from "../util/isValidName";
 import { pushToDeployList } from "./deploy";
+import {
+  OAuthConnector,
+  OAuthConnectorProps,
+} from "../connectors/OAuthConnector";
 
 /**
  * @beta
  */
-export interface DefineCustomAppProps {
+export interface DefineCustomAppBasicProps {
   name: string;
   title: string;
-  authType: "APIKEY" | "BASIC";
+  authType: "BASIC";
 }
+
+export interface DefineCustomAppApiKeyProps {
+  name: string;
+  title: string;
+  authType: "APIKEY";
+}
+
+export interface DefineCustomAppOAuthProps {
+  name: string;
+  title: string;
+  authType: "OAUTH2";
+  oauthConnector: (props: OAuthConnectorProps) => OAuthConnector;
+}
+
+export type DefineCustomAppProps =
+  | DefineCustomAppBasicProps
+  | DefineCustomAppApiKeyProps
+  | DefineCustomAppOAuthProps;
 
 export function validateCustomAppProps(props: DefineCustomAppProps) {
   const { name, title, authType } = props;
 
   const NameSchema = z.string().min(1).regex(validNameRegex);
   const TitleSchema = z.string().min(1);
-  const AuthTypeSchema = z.union([z.literal("APIKEY"), z.literal("BASIC")]);
+  const OAuthConnectorSchema = z.function();
 
-  const DefineCustomAppSchema = z
-    .object({
-      name: NameSchema,
-      title: TitleSchema,
-      authType: AuthTypeSchema,
-    })
-    .strict();
+  const DefineCustomAppSchema = z.discriminatedUnion("authType", [
+    z
+      .object({
+        authType: z.literal("BASIC"),
+        name: NameSchema,
+        title: TitleSchema,
+      })
+      .strict(),
+    z
+      .object({
+        authType: z.literal("APIKEY"),
+        name: NameSchema,
+        title: TitleSchema,
+      })
+      .strict(),
+    z
+      .object({
+        authType: z.literal("OAUTH2"),
+        name: NameSchema,
+        title: TitleSchema,
+        oauthConnector: OAuthConnectorSchema,
+      })
+      .strict(),
+  ]);
 
   if (name === undefined) {
     throw new Error("Custom app missing required name");
