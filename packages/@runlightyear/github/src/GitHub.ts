@@ -150,6 +150,7 @@ import { onWorkflowJob } from "./listeners/onWorkflowJob";
 import { onPush } from "./listeners/onPush";
 import { onIssueComment } from "./listeners/onIssueComment";
 import { getTree, GetTreeProps } from "./gitDatabase/trees/getTree";
+import { GitHubOAuth } from "./GitHubOAuth";
 
 export interface GitHubConnectorProps extends RestConnectorProps {}
 
@@ -430,6 +431,8 @@ export interface GitHubDefineAuthProps {
  *
  *  */
 export class GitHub extends RestConnector {
+  static OAuth = GitHubOAuth;
+
   /**
    * @example
    * ```typescript

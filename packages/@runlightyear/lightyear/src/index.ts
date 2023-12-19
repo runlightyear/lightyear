@@ -105,7 +105,7 @@ export type {
 
 /* Base Connector */
 export { BaseConnector } from "./connectors/BaseConnector";
-export type { BaseConnectorProps } from "./connectors/BaseConnector";
+export type { BaseConnectorProps, AuthType } from "./connectors/BaseConnector";
 
 /* Auth Connector */
 export { AuthConnector } from "./connectors/AuthConnector";
