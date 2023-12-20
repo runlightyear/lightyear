@@ -46,6 +46,7 @@ import {
 } from "./conversations/kickFromConversation";
 import { SlackOAuth } from "./SlackOAuth";
 import { AuthType } from "@runlightyear/lightyear/src/connectors/BaseConnector";
+import { SlackAppWebhook } from "./SlackAppWebhook";
 
 export interface SlackProps extends RestConnectorProps {}
 
@@ -329,6 +330,7 @@ export interface SlackProps extends RestConnectorProps {}
 export class Slack extends RestConnector {
   static authType: AuthType = "OAUTH2";
   static OAuth = SlackOAuth;
+  static AppWebhook = SlackAppWebhook;
   static variables = ["appId", "verificationToken"];
   static secrets = ["signingSecret"];
 

@@ -1,5 +1,4 @@
 import { handlerResult } from "./handlerResult";
-import { customAppWebhookIndex } from "../base/customAppWebhook";
 import { AppWebhookConnector } from "../connectors/AppWebhookConnector";
 
 export interface HandleReceiveCustomApp {
@@ -26,17 +25,17 @@ export async function handleReceiveCustomAppWebhookDelivery({
     return handlerResult(400, "Missing customApp");
   }
 
-  const item =globalThis.customAppWebhookIndex[customAppName];
+  const appWebhookFunc = globalThis.customAppWebhookIndex[customAppName];
 
-  let connector: AppWebhookConnector;
+  let appWebhook: AppWebhookConnector;
 
-  connector = item({
+  appWebhook = appWebhookFunc({
     customAppName: customAppName,
     authName,
   });
 
   try {
-    const { response } = await connector.receiveDelivery(delivery);
+    const { response } = await appWebhook.receiveDelivery(delivery);
     return handlerResult(200, "Success", { response });
   } catch (error) {
     console.error(error);

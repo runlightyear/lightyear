@@ -7,7 +7,7 @@ import {
   UnsubscribeIndex,
 } from "./base/webhook";
 import { AuthorizerIndex } from "./base/authorizer";
-import { CustomAppWebhookIndex } from "./base/customAppWebhook";
+import { CustomAppWebhookIndex } from "./base/customApp";
 
 export declare global {
   declare module globalThis {

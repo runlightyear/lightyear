@@ -44,11 +44,8 @@ export type {
   DefineCustomAppApiKeyProps,
   DefineCustomAppOAuthProps,
   DefineCustomAppProps,
+  AppWebhookFunc,
 } from "./base/customApp";
-
-/* Custom App Webhook */
-export { defineCustomAppWebhook } from "./base/customAppWebhook";
-export type { DefineCustomAppWebhookProps } from "./base/customAppWebhook";
 
 /* Delivery */
 export type {

@@ -3,6 +3,7 @@
 import { OAuthConnector } from "./OAuthConnector";
 import { VariableDef } from "../base/variable";
 import { SecretDef } from "../base/secret";
+import { AppWebhookConnector } from "./AppWebhookConnector";
 
 export type AuthType = "BASIC" | "APIKEY" | "OAUTH2";
 
@@ -19,7 +20,7 @@ export interface BaseConnectorProps {}
 export abstract class BaseConnector {
   static authType: AuthType;
   static OAuth: typeof OAuthConnector | null = null;
-  // static AppWebhook: AppWebhook | null = null;
+  static AppWebhook: typeof AppWebhookConnector | null = null;
   static variables: Array<VariableDef> = [];
   static secrets: Array<SecretDef> = [];
 
