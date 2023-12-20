@@ -1,5 +1,16 @@
 # @runlightyear/cli
 
+## 1.1.0
+
+### Minor Changes
+
+- 622930fce: Add setTimeout to the run context so we can implement sleep utility
+
+### Patch Changes
+
+- Updated dependencies [88bc757af]
+  - @runlightyear/lightyear@1.1.0
+
 ## 1.0.0
 
 ### Major Changes

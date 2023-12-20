@@ -88,13 +88,15 @@ export abstract class OAuthConnector {
   getAuthRequestUrl(): string {
     const base = this.getAuthRequestUrlBase();
     invariant(base, "Missing authRequestUrlBase");
-    console.info("Base URL:", base);
+    console.debug("Base URL:", base);
 
     const params = this.getAuthRequestUrlParams();
-    console.info("Params", params);
+    console.debug("Params", params);
 
     const url = new URL(`${base}?${new URLSearchParams(params)}`);
-    console.info("Auth request URL:", url.href);
+    console.debug("Auth request URL:", url.href);
+
+    console.info("Generated url");
 
     return url.href;
   }
@@ -322,7 +324,7 @@ export abstract class OAuthConnector {
       redactKeys,
     });
 
-    console.info("Response:", response);
+    console.debug("Response:", response);
 
     const newAuthData = this.processRequestAccessTokenResponse({
       status: response.status,
@@ -350,7 +352,7 @@ export abstract class OAuthConnector {
 
     const response = await this.post({ url, headers, body, redactKeys });
 
-    console.info("Response:", response);
+    console.debug("Response:", response);
 
     const newAuthData = this.processRefreshAccessTokenResponse({
       status: response.status,

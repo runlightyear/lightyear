@@ -37,6 +37,15 @@ export type { BaseRequestProps } from "./base/baseRequest";
 export { getCache, saveCache } from "./base/cache";
 export type { GetCacheProps, SaveCacheProps, CacheData } from "./base/cache";
 
+/* Custom App */
+export { defineCustomApp } from "./base/customApp";
+export type {
+  DefineCustomAppBasicProps,
+  DefineCustomAppApiKeyProps,
+  DefineCustomAppOAuthProps,
+  DefineCustomAppProps,
+} from "./base/customApp";
+
 /* Custom App Webhook */
 export { defineCustomAppWebhook } from "./base/customAppWebhook";
 export type { DefineCustomAppWebhookProps } from "./base/customAppWebhook";
@@ -117,7 +126,7 @@ export type {
 
 /* Base Connector */
 export { BaseConnector } from "./connectors/BaseConnector";
-export type { BaseConnectorProps } from "./connectors/BaseConnector";
+export type { BaseConnectorProps, AuthType } from "./connectors/BaseConnector";
 
 /* App Webhook Connector */
 export { AppWebhookConnector } from "./connectors/AppWebhookConnector";
@@ -162,6 +171,7 @@ export { getEnvName } from "./util/getEnvName";
 export { default as toTimestamp } from "./util/toTimestamp";
 export { dayjsUtc } from "./util/dayjsUtc";
 export { isFunction } from "./util/isFunction";
+export { sleep } from "./util/sleep";
 export { default as zod } from "zod";
 
 /** Handler **/

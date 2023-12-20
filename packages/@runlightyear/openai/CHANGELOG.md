@@ -1,5 +1,16 @@
 # @runlightyear/openai
 
+## 1.1.0
+
+### Minor Changes
+
+- b8b2a6d3e: Support for Assistant API calls
+
+### Patch Changes
+
+- Updated dependencies [88bc757af]
+  - @runlightyear/lightyear@1.1.0
+
 ## 1.0.0
 
 ### Major Changes
