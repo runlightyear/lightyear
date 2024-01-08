@@ -1,0 +1,28 @@
+{
+  "name": "@runlightyear/hubspot",
+  "version": "0.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "lint": "eslint src/**.ts",
+    "prettier:check": "prettier --check src",
+    "build": "tsup src/index.ts --dts",
+    "docs:extract": "api-extractor run --local --verbose"
+  },
+  "dependencies": {
+    "@runlightyear/lightyear": "*"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.31.2",
+    "@typescript-eslint/parser": "^5.38.0",
+    "api-extractor-config": "*",
+    "eslint": "^7.32.0",
+    "eslint-config-custom": "*",
+    "tsconfig": "*",
+    "tsdoc-config": "workspace:*",
+    "typescript": "^4.5.2"
+  },
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts"
+}
