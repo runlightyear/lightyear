@@ -1,4 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "../../tsconfig/connector.json"
+  "extends": "tsconfig/connector.json",
+  "include": ["./"],
+  "exclude": ["dist", "build", "node_modules"]
 }
