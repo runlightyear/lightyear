@@ -82,7 +82,12 @@ export abstract class OAuthConnector {
     const { state } = this.authData;
     invariant(state, "Missing state");
 
-    return { client_id: clientId, state, redirect_uri: this.getRedirectUri() };
+    return {
+      response_type: "code",
+      client_id: clientId,
+      redirect_uri: this.getRedirectUri(),
+      state,
+    };
   }
 
   getAuthRequestUrl(): string {
