@@ -40,6 +40,9 @@ export type { ChannelTopicEvent } from "./events/ChannelTopicEvent";
 export type { SlackEvent } from "./events/SlackEvent";
 export type { SlackMessageEvent } from "./events/SlackMessageEvent";
 
+/** Listeners **/
+export type { OnChannelCreatedProps } from "./listeners/onChannelCreated";
+
 /** Types **/
 export type { Channel } from "./types/Channel";
 export type { EventType } from "./types/EventType";
