@@ -31,8 +31,6 @@ export async function execReceiveCustomWebhook(
     throw new Error("Delivery not found");
   }
 
-  console.log("delivery", delivery);
-
   let handler;
   try {
     handler = runInContext(compiledCode).handler;
@@ -59,7 +57,7 @@ export async function execReceiveCustomWebhook(
 
   const { statusCode, body } = handlerResult;
   const handlerResponseData = JSON.parse(body);
-  const { response: receiverResponse, logs } = handlerResponseData;
+  const { response: receiverResponse, forward, logs } = handlerResponseData;
 
   await deliverLocalResponse({
     localResponseId,
@@ -69,11 +67,15 @@ export async function execReceiveCustomWebhook(
         headers: receiverResponse.headers,
         body: receiverResponse.body,
       },
+      forward: forward
+        ? {
+            identifier: forward.identifier,
+            filter: forward.filter,
+            data: forward.data,
+          }
+        : null,
     }),
   });
-
-  console.log("receiverResponse", receiverResponse);
-  console.log("logs", logs);
 
   await updateCustomAppWebhookDelivery({
     customAppName,
