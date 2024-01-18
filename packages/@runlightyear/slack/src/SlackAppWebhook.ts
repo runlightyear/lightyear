@@ -94,7 +94,7 @@ export class SlackAppWebhook extends AppWebhookConnector {
         const filter = [
           event.type,
           ...("subtype" in event ? [event.subtype] : []),
-          ...("channel" in event ? [event.channel] : []),
+          ...(event.type === "message" ? [event.channel] : []),
         ].join(":");
 
         return {
