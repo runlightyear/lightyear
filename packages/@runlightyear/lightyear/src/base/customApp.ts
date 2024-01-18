@@ -14,6 +14,10 @@ import {
   AppWebhookConnector,
   AppWebhookConnectorProps,
 } from "../connectors/AppWebhookConnector";
+import invariant from "tiny-invariant";
+import { getEnvName } from "../util/getEnvName";
+import { AuthData, baseRequest, Secrets, Variables } from "../index";
+import { prefixedRedactedConsole } from "../logging";
 
 /**
  * @beta
@@ -49,7 +53,7 @@ export interface DefineCustomAppOAuthProps {
   authType: "OAUTH2";
   name: string;
   title: string;
-  connector: typeof BaseConnector;
+  connector?: typeof BaseConnector;
   oauth?: (props: OAuthConnectorProps) => OAuthConnector;
   appWebhook?: AppWebhookFunc;
   variables?: Array<VariableDef>;
@@ -80,6 +84,7 @@ export interface DeployCustomAppOAuthProps {
   authType: "OAUTH2";
   name: string;
   title: string;
+  hasOAuth?: boolean;
   hasAppWebhook?: boolean;
   variables?: Array<VariableDef>;
   secrets?: Array<VariableDef>;
@@ -150,7 +155,7 @@ export function validateCustomAppProps(props: DefineCustomAppProps) {
         authType: z.literal("OAUTH2"),
         name: NameSchema,
         title: TitleSchema,
-        connector: ConnectorSchema,
+        connector: ConnectorSchema.optional(),
         oauth: OAuthSchema.optional(),
         appWebhook: AppWebhookSchema.optional(),
         variables: VariablesSchema.optional(),
@@ -183,14 +188,6 @@ export function validateCustomAppProps(props: DefineCustomAppProps) {
     );
   }
 
-  if (fullResult.data.authType === "OAUTH2") {
-    if (fullResult.data.connector.OAuth === null) {
-      throw new Error(
-        `Invalid custom app definition for ${name}: connector must have an OAuth class set`
-      );
-    }
-  }
-
   return fullResult.data;
 }
 
@@ -205,13 +202,21 @@ export function defineCustomApp(props: DefineCustomAppProps) {
 
   const validatedProps = validateCustomAppProps(props);
 
+  const connectorOAuth = validatedProps.connector?.OAuth;
   const connectorAppWebhook = validatedProps.connector?.AppWebhook;
   const connectorVariables = validatedProps.connector?.variables ?? [];
   const connectorSecrets = validatedProps.connector?.secrets ?? [];
 
   const deployProps = {
     ...validatedProps,
-    ...(connectorAppWebhook ? { hasAppWebhook: true } : {}),
+    ...(connectorOAuth ||
+    (validatedProps.authType === "OAUTH2" && validatedProps.oauth)
+      ? { hasOAuth: true }
+      : {}),
+    ...(connectorAppWebhook ||
+    (validatedProps.authType === "OAUTH2" && validatedProps.appWebhook)
+      ? { hasAppWebhook: true }
+      : {}),
     variables: validatedProps.variables ?? connectorVariables,
     secrets: validatedProps.secrets ?? connectorSecrets,
   };
@@ -219,6 +224,9 @@ export function defineCustomApp(props: DefineCustomAppProps) {
   delete deployProps.connector;
   if ("oauth" in deployProps) {
     delete deployProps.oauth;
+  }
+  if ("appWebhook" in deployProps) {
+    delete deployProps.appWebhook;
   }
 
   pushToDeployList({
@@ -231,7 +239,7 @@ export function defineCustomApp(props: DefineCustomAppProps) {
 
     if (oauth) {
       globalThis.authorizerIndex[props.name] = oauth;
-    } else {
+    } else if (connector?.OAuth) {
       globalThis.authorizerIndex[props.name] = (props) => {
         // @ts-ignore - We are assuming the user passed in a concrete class. Is there a way to verify this?
         return new connector.OAuth(props);
@@ -240,7 +248,7 @@ export function defineCustomApp(props: DefineCustomAppProps) {
 
     if (appWebhook) {
       globalThis.customAppWebhookIndex[props.name] = appWebhook;
-    } else {
+    } else if (connector?.AppWebhook) {
       globalThis.customAppWebhookIndex[props.name] = (props) => {
         // @ts-ignore - We are assuming the user passed in a concrete class.
         return new connector.AppWebhook(props);
@@ -249,4 +257,36 @@ export function defineCustomApp(props: DefineCustomAppProps) {
   }
 
   return props.name;
+}
+
+export interface GetCustomAppWebhookDataProps {
+  customAppName: string;
+}
+
+export interface CustomAppWebhookData {
+  auth: AuthData | null;
+  variables: Variables;
+  secrets: Secrets;
+}
+
+export async function getCustomAppWebhookData(
+  props: GetCustomAppWebhookDataProps
+): Promise<CustomAppWebhookData> {
+  const { customAppName } = props;
+
+  const envName = getEnvName();
+  invariant(envName, "Missing ENV_NAME");
+
+  const response = await baseRequest({
+    method: "GET",
+    uri: `/api/v1/envs/${envName}/custom-apps/${customAppName}/webhook/data`,
+  });
+
+  const data = (await response.json()) as CustomAppWebhookData;
+
+  const { secrets } = data;
+
+  secrets && prefixedRedactedConsole.addSecrets(Object.values(secrets));
+
+  return data;
 }

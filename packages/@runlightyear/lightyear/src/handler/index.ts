@@ -151,7 +151,6 @@ export async function handler(
     }
     return handleReceiveCustomAppWebhookDelivery({
       customAppName,
-      authName,
       delivery: data,
     });
     // } else if (operation === "receiveWebhookDelivery") {

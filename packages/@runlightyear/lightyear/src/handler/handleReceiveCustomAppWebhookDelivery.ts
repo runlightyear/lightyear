@@ -1,9 +1,9 @@
 import { handlerResult } from "./handlerResult";
 import { AppWebhookConnector } from "../connectors/AppWebhookConnector";
+import { getCustomAppWebhookData } from "../base/customApp";
 
 export interface HandleReceiveCustomApp {
   customAppName: string;
-  authName: string;
   delivery: {
     method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
     url: string;
@@ -16,7 +16,6 @@ export interface HandleReceiveCustomApp {
 
 export async function handleReceiveCustomAppWebhookDelivery({
   customAppName,
-  authName,
   delivery,
 }: HandleReceiveCustomApp) {
   console.debug("in handleReceiveCustomAppWebhookDelivery");
@@ -27,16 +26,21 @@ export async function handleReceiveCustomAppWebhookDelivery({
 
   const appWebhookFunc = globalThis.customAppWebhookIndex[customAppName];
 
+  const customAppWebhookData = await getCustomAppWebhookData({
+    customAppName,
+  });
+
   let appWebhook: AppWebhookConnector;
 
   appWebhook = appWebhookFunc({
-    customAppName: customAppName,
-    authName,
+    auth: customAppWebhookData.auth || undefined,
+    variables: customAppWebhookData.variables,
+    secrets: customAppWebhookData.secrets,
   });
 
   try {
-    const { response } = await appWebhook.receiveDelivery(delivery);
-    return handlerResult(200, "Success", { response });
+    const { response, forward } = await appWebhook.receiveDelivery(delivery);
+    return handlerResult(200, "Success", { response, forward });
   } catch (error) {
     console.error(error);
     return handlerResult(500, `Failed to receive delivery: ${error}`);

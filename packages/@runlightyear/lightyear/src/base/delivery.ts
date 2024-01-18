@@ -15,6 +15,11 @@ export interface AppWebhookDeliveryResponse {
     };
     body?: string;
   };
+  forward: {
+    identifier: string;
+    filter?: string;
+    data: any;
+  } | null;
 }
 
 export interface WebhookDeliveryResponse {
