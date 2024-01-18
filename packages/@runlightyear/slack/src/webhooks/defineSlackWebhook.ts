@@ -1,6 +1,8 @@
 import {
   defineWebhook,
+  SecretDef,
   SubscribePropsFuncProps,
+  VariableDef,
 } from "@runlightyear/lightyear";
 import { Slack } from "../Slack";
 import { EventType } from "../types/EventType";
@@ -58,8 +60,8 @@ export interface DefineSlackWebhookProps {
   name: string;
   title: string;
   slackCustomAppName?: string;
-  variables?: Array<string>;
-  secrets?: Array<string>;
+  variables?: Array<VariableDef>;
+  secrets?: Array<SecretDef>;
   subscribeProps: SlackWebhookSubscribePropsFunc;
 }
 

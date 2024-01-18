@@ -16,7 +16,7 @@ export interface OnMessageProps {
   variables?: Array<VariableDef>;
   secrets?: Array<SecretDef>;
   run: OnMessageRunFunc;
-  channelId: string;
+  channelId?: string;
 }
 
 export type OnMessageRunFunc = (props: OnMessageRunFuncProps) => Promise<void>;
@@ -51,10 +51,20 @@ export const onMessage = (props: OnMessageProps) => {
     name,
     title,
     slackCustomAppName,
-    subscribeProps: () => {
+    variables: [
+      ...(channelId
+        ? []
+        : [
+            {
+              name: "channelId",
+              description: "ID of channel to join (example: C1234567890)",
+            },
+          ]),
+    ],
+    subscribeProps: ({ variables }) => {
       return {
         event: "message",
-        channelId,
+        channelId: channelId || variables.channelId!,
       };
     },
   });
