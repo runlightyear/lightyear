@@ -6,6 +6,9 @@ export type { ZoomProps } from "./Zoom";
 export { ZoomOAuth } from "./ZoomOAuth";
 export type { ZoomOAuthProps } from "./ZoomOAuth";
 
+/** ZoomAppWebhook **/
+export { ZoomAppWebhook } from "./ZoomAppWebhook";
+
 /** Cloud Recordings **/
 export type {
   OnNewRecordingsRunFuncProps,
