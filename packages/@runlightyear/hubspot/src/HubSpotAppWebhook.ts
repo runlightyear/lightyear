@@ -6,6 +6,9 @@ import {
 import { WebhookSubscriptionType } from "./types/WebhookSubscriptionType";
 import { HubSpot } from "./HubSpot";
 
+/**
+ * @alpha
+ */
 export class HubspotAppWebhook extends AppWebhookConnector {
   async getIdentifier(): Promise<string> {
     const hubspot = new HubSpot({

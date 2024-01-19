@@ -1,10 +1,16 @@
 import { OAuthConnector, OAuthConnectorProps } from "@runlightyear/lightyear";
 import { HubSpotScope } from "./types/HubSpotScope";
 
+/**
+ * @alpha
+ */
 export interface HubSpotOAuthProps extends OAuthConnectorProps {
   scopes?: Array<HubSpotScope>;
 }
 
+/**
+ * @alpha
+ */
 export class HubspotOAuth extends OAuthConnector {
   scopes: Array<HubSpotScope>;
 
