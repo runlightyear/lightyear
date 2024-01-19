@@ -6,6 +6,9 @@ import {
 import { Intercom } from "./Intercom";
 import { Topic } from "./types/Topic";
 
+/**
+ * @alpha
+ */
 export class IntercomAppWebhook extends AppWebhookConnector {
   async getIdentifier() {
     const auth = this.getAuthData();
