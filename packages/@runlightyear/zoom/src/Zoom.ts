@@ -8,6 +8,8 @@ import {
   onNewRecordings,
   OnNewRecordingsProps,
 } from "./listeners/onNewRecordings";
+import { ZoomOAuth } from "./ZoomOAuth";
+import { ZoomAppWebhook } from "./ZoomAppWebhook";
 
 /**
  * @alpha
@@ -68,6 +70,10 @@ export interface ZoomProps extends RestConnectorProps {}
  * ```
  */
 export class Zoom extends RestConnector {
+  static OAuth = ZoomOAuth;
+  static AppWebhook = ZoomAppWebhook;
+  static secrets: ["secretToken"];
+
   constructor(props: ZoomProps) {
     super({ ...props, camelize: true });
   }
