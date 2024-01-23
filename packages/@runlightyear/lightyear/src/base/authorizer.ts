@@ -13,7 +13,6 @@ export type AuthorizerIndex = {
   [customAppName: string]: (props: OAuthConnectorProps) => OAuthConnector;
 };
 
-
 export interface DefineAuthorizerProps {
   customApp: string;
   connector: (props: OAuthConnectorProps) => OAuthConnector;
