@@ -61,17 +61,12 @@ const defineGitHubWebhook = (props: DefineGitHubWebhookProps) => {
 
       console.debug("in defineGitHubWebhook");
 
-      const token = "1234";
-
-      await setSecret("token", token);
-
       const response = await github.createRepositoryWebhook({
         owner: subscribeProps.owner,
         repo: subscribeProps.repo,
         events: subscribeProps.events,
         config: {
           url: endpoint,
-          token,
         },
       });
 
