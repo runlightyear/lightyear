@@ -19,6 +19,11 @@ import {
   ExecRefreshSubscriptionProps,
 } from "./execRefreshSubscription";
 import { terminal } from "terminal-kit";
+import { handleReceiveCustomAppWebhook } from "../commands/dev/handleReceiveCustomAppWebhook";
+import {
+  execReceiveCustomWebhook,
+  ExecReceiveCustomWebhookProps,
+} from "./execReceiveCustomWebhook";
 
 export interface OperationQueueDeployItem {
   operation: "deploy";
@@ -55,12 +60,18 @@ export interface OperationQueueRefreshAccessTokenItem {
   params: ExecRefreshAccessTokenProps;
 }
 
+export interface OperationQueueReceiveCustomAppWebhook {
+  operation: "receiveCustomAppWebhook";
+  params: ExecReceiveCustomWebhookProps;
+}
+
 export type OperationQueueItem =
   | OperationQueueDeployItem
   | OperationQueueGetAuthRequestUrlItem
   | OperationQueueRequestAccessTokenItem
   | OperationQueueRefreshAccessTokenItem
   | OperationQueueRefreshSubscriptionItem
+  | OperationQueueReceiveCustomAppWebhook
   | OperationQueueRunItem
   | OperationQueueResubscribeItem;
 
@@ -100,9 +111,11 @@ async function processOperations() {
         await execRefreshAccessToken(item.params);
       } else if (item.operation === "refreshSubscription") {
         await execRefreshSubscription(item.params);
+      } else if (item.operation === "receiveCustomAppWebhook") {
+        await execReceiveCustomWebhook(item.params);
       } else {
         const _exhaustiveCheck: never = item;
-        throw new Error(`Unhandled operation ${_exhaustiveCheck}`);
+        console.error(`Unhandled operation ${_exhaustiveCheck}`);
       }
     } catch (error) {
       console.error(String(error));

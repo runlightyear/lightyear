@@ -3,5 +3,4 @@
   "extends": "tsconfig/connector.json",
   "include": ["./"],
   "exclude": ["dist", "build", "node_modules"]
-
 }

@@ -94,21 +94,14 @@ export async function getAuthData(props: GetAuthDataProps): Promise<AuthData> {
 
   const data = (await response.json()) as AuthData;
 
-  const {
-    accessToken,
-    refreshToken,
-    apiKey,
-    username,
-    password,
-    customAppData,
-  } = data;
+  const { accessToken, refreshToken, apiKey, password, customAppData } = data;
 
   const clientSecret = customAppData?.oAuthConfigData?.clientSecret;
 
   accessToken && prefixedRedactedConsole.addSecrets([accessToken]);
   refreshToken && prefixedRedactedConsole.addSecrets([refreshToken]);
   apiKey && prefixedRedactedConsole.addSecrets([apiKey]);
-  apiKey && prefixedRedactedConsole.addSecrets([password]);
+  password && prefixedRedactedConsole.addSecrets([password]);
 
   clientSecret && prefixedRedactedConsole.addSecrets([clientSecret]);
 

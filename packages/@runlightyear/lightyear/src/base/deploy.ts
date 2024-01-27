@@ -1,13 +1,21 @@
 import { DeployActionProps, ActionData } from "./action";
-import { WebhookData, DefineWebhookProps } from "./webhook";
+import {
+  WebhookData,
+  DefineWebhookProps,
+  SubscribeFunc,
+  UnsubscribeFunc,
+  RefreshSubscriptionFunc,
+  ReceiveWebhookFunc,
+} from "./webhook";
 import baseRequest from "./baseRequest";
 import { Initializer } from "./Initializer";
 import invariant from "tiny-invariant";
 import { prefixedRedactedConsole } from "../logging";
-import { Auths, Secrets, Variables } from "../run";
+import { Auths, RunFunc, Secrets, Variables } from "../run";
 import { subscribeProps } from "../subscriptionActivities";
 import { getEnvName } from "../util/getEnvName";
 import { DefineAuthorizerProps } from "./authorizer";
+import { DefineCustomAppProps, DeployCustomAppProps } from "./customApp";
 
 interface Props {
   envName: string;
@@ -30,8 +38,9 @@ export type DeployFunc = (
 
 export type DeployItem = {
   // type: "action" | "auth" | "variable" | "secret" | "subscription" | "webhook";
-  type: "action" | "webhook" | "authorizer";
+  type: "customApp" | "action" | "webhook" | "authorizer" | "customAppWebhook";
   // data: DeployActionProps | AuthProps | WebhookProps;
+  customAppProps?: DeployCustomAppProps;
   actionProps?: DeployActionProps;
   // authProps?: AuthProps;
   webhookProps?: DefineWebhookProps;
@@ -61,7 +70,9 @@ export async function deploy({ envName }: Props) {
   console.debug("deployList", JSON.stringify(globalThis.deployList, null, 2));
 
   const names = globalThis.deployList.map((item) => {
-    if (item.type === "action") {
+    if (item.type === "customApp") {
+      return item.customAppProps?.name;
+    } else if (item.type === "action") {
       return item.actionProps?.name;
     } else if (item.type === "webhook") {
       return item.webhookProps?.name;

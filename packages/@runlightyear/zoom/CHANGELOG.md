@@ -1,5 +1,19 @@
 # @runlightyear/zoom
 
+## 0.7.0
+
+### Minor Changes
+
+- 93d0064e5: Zoom app webhook
+- e7add66c5: Rely on response_type in the OAuthConnector getAuthRequestUrl params
+
+### Patch Changes
+
+- Updated dependencies [e7add66c5]
+- Updated dependencies [ef13ac4a7]
+- Updated dependencies [2ac843f96]
+  - @runlightyear/lightyear@1.2.0
+
 ## 0.6.4
 
 ### Patch Changes

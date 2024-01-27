@@ -1,7 +1,7 @@
 import invariant from "tiny-invariant";
 import isFunction from "../util/isFunction";
 import baseRequest from "./baseRequest";
-import { RunFunc, actionIndex } from "../run";
+import { RunFunc } from "../run";
 import { pushToDeployList } from "./deploy";
 import { prefixedRedactedConsole } from "../logging";
 import { AuthData } from "./auth";
@@ -308,7 +308,7 @@ export function defineAction(props: DefineActionProps) {
   invariant(isFunction(run), "Run must be a function");
 
   pushToDeployList({ type: "action", actionProps: rest });
-  actionIndex[rest.name] = run;
+  globalThis.actionIndex[rest.name] = run;
 
   return rest.name;
 }

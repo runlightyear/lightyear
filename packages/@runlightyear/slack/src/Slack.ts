@@ -3,6 +3,7 @@ import {
   HttpProxyRequestProps,
   HttpProxyResponse,
   RestConnectorProps,
+  WebhookDeliveryData,
 } from "@runlightyear/lightyear";
 import postMessage, { PostMessageProps } from "./chat/postMessage";
 import { scheduleMessage, ScheduleMessageProps } from "./chat/scheduleMessage";
@@ -43,6 +44,15 @@ import {
   kickFromConversation,
   KickFromConversationProps,
 } from "./conversations/kickFromConversation";
+import { SlackOAuth } from "./SlackOAuth";
+import { AuthType } from "@runlightyear/lightyear/src/connectors/BaseConnector";
+import { SlackAppWebhook } from "./SlackAppWebhook";
+import { getTeamInfo, GetTeamInfoProps } from "./team/getTeamInfo";
+import {
+  onChannelCreated,
+  OnChannelCreatedProps,
+} from "./listeners/onChannelCreated";
+import { onMessage, OnMessageProps } from "./listeners/onMessage";
 
 export interface SlackProps extends RestConnectorProps {}
 
@@ -324,6 +334,12 @@ export interface SlackProps extends RestConnectorProps {}
  *
  */
 export class Slack extends RestConnector {
+  static authType: AuthType = "OAUTH2";
+  static OAuth = SlackOAuth;
+  static AppWebhook = SlackAppWebhook;
+  static variables = ["appId", "verificationToken"];
+  static secrets = ["signingSecret"];
+
   /**
    * Create a new slack connector
    *
@@ -347,6 +363,13 @@ export class Slack extends RestConnector {
 
   getBaseUrl(): string {
     return "https://slack.com/api/";
+  }
+
+  getDefaultHeaders(): Record<string, any> {
+    return {
+      ...super.getDefaultHeaders(),
+      "Content-Type": "application/json; charset=utf-8",
+    };
   }
 
   /**
@@ -381,6 +404,15 @@ export class Slack extends RestConnector {
       throw new Error(data.error);
     }
     return response;
+  }
+
+  /**
+   * Get team info
+   *
+   * @group Team
+   */
+  async getTeamInfo(props?: GetTeamInfoProps) {
+    return getTeamInfo(this)(props);
   }
 
   /**
@@ -891,6 +923,28 @@ export class Slack extends RestConnector {
    */
   static defineWebhook(props: DefineSlackWebhookProps) {
     return defineSlackWebhook(props);
+  }
+
+  /**
+   * On channel created
+   *
+   * @alpha
+   *
+   * @group Listeners
+   */
+  static onChannelCreated(props: OnChannelCreatedProps) {
+    return onChannelCreated(props);
+  }
+
+  /**
+   * On message
+   *
+   * @alpha
+   *
+   * @group Listeners
+   */
+  static onMessage(props: OnMessageProps) {
+    return onMessage(props);
   }
 
   /**

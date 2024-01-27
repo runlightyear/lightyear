@@ -1,5 +1,19 @@
 # @runlightyear/slack
 
+## 0.17.0
+
+### Minor Changes
+
+- 0ba41bed4: Added onMessage and onChannelCreated listeners
+- ef13ac4a7: Support for defineCustomApp
+
+### Patch Changes
+
+- Updated dependencies [e7add66c5]
+- Updated dependencies [ef13ac4a7]
+- Updated dependencies [2ac843f96]
+  - @runlightyear/lightyear@1.2.0
+
 ## 0.16.5
 
 ### Patch Changes

@@ -6,6 +6,7 @@
 export { RestConnector } from "@runlightyear/lightyear";
 export { Slack } from "./Slack";
 export { SlackOAuth } from "./SlackOAuth";
+export { SlackAppWebhook } from "./SlackAppWebhook";
 
 /** Chat **/
 export type { PostMessageProps } from "./chat/postMessage";
@@ -38,6 +39,9 @@ export type { ChannelLeaveEvent } from "./events/ChannelLeaveEvent";
 export type { ChannelTopicEvent } from "./events/ChannelTopicEvent";
 export type { SlackEvent } from "./events/SlackEvent";
 export type { SlackMessageEvent } from "./events/SlackMessageEvent";
+
+/** Listeners **/
+export type { OnChannelCreatedProps } from "./listeners/onChannelCreated";
 
 /** Types **/
 export type { Channel } from "./types/Channel";

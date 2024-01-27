@@ -19,6 +19,7 @@ import { handleGetAuthRequestUrl } from "./handleGetAuthRequestUrl";
 import { handleRequestAccessToken } from "./handleRequestAccessToken";
 import { handleRefreshAccessToken } from "./handleRefreshAccessToken";
 import { handleRefreshSubscription } from "./handleRefreshSubscription";
+import { handleReceiveCustomAppWebhookDelivery } from "./handleReceiveCustomAppWebhookDelivery";
 
 /**
  * @internal
@@ -101,6 +102,8 @@ export async function handler(
       "getAuthRequestUrl",
       "requestAccessToken",
       "refreshAccessToken",
+      "receiveWebhookDelivery",
+      "receiveCustomAppWebhookDelivery",
     ].includes(operation)
   ) {
     return handlerResult(400, `Invalid operation: ${operation}`);
@@ -139,6 +142,19 @@ export async function handler(
       customAppName,
       authName,
     });
+  } else if (operation === "receiveCustomAppWebhookDelivery") {
+    if (!customAppName) {
+      return handlerResult(400, "Missing customAppName");
+    }
+    if (!authName) {
+      return handlerResult(400, "Missing authName");
+    }
+    return handleReceiveCustomAppWebhookDelivery({
+      customAppName,
+      delivery: data,
+    });
+    // } else if (operation === "receiveWebhookDelivery") {
+    //   return handleReceiveWebhookDelivery({ data });
   }
 
   return handlerResult(500, "Unknown error");

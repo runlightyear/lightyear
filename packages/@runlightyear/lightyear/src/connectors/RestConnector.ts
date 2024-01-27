@@ -50,6 +50,7 @@ export abstract class RestConnector extends AuthConnector {
 
     return {
       "Content-Type": "application/json",
+      Accept: "application/json",
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     };
   }

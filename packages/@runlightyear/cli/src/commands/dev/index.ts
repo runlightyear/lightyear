@@ -13,6 +13,7 @@ import handleGetAuthRequestUrl from "./handleGetAuthRequestUrl";
 import handleRequestAccessToken from "./handleRequestAccessToken";
 import handleRefreshAccessToken from "./handleRefreshAccessToken";
 import { handleRefreshSubscription } from "./handleRefreshSubscription";
+import { handleReceiveCustomAppWebhook } from "./handleReceiveCustomAppWebhook";
 
 export const dev = new Command("dev");
 
@@ -45,7 +46,15 @@ dev
       console.debug("Subscribed to presence channel\n");
     });
 
+    console.debug(
+      "Attempting to subscribe to regular channel",
+      credentials.devEnvId
+    );
     const subscription = pusher.subscribe(credentials.devEnvId);
+    subscription.bind("pusher:subscription_succeeded", () => {
+      console.debug("Subscribed to regular channel");
+    });
+
     subscription.bind("localRunTriggered", handleRunLocal);
     subscription.bind("localResubscribeTriggered", handleResubscribe);
     subscription.bind(
@@ -63,6 +72,10 @@ dev
     subscription.bind(
       "localRefreshSubscriptionTriggered",
       handleRefreshSubscription
+    );
+    subscription.bind(
+      "localReceiveCustomAppWebhookTriggered",
+      handleReceiveCustomAppWebhook
     );
 
     nodemon({

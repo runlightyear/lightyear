@@ -9,14 +9,9 @@ import { pushToDeployList } from "./deploy";
 /**
  * @internal
  */
-type AuthorizerIndex = {
+export type AuthorizerIndex = {
   [customAppName: string]: (props: OAuthConnectorProps) => OAuthConnector;
 };
-
-/**
- * @internal
- */
-export const authorizerIndex: AuthorizerIndex = {};
 
 export interface DefineAuthorizerProps {
   customApp: string;
@@ -58,7 +53,7 @@ export function defineAuthorizer(props: DefineAuthorizerProps) {
 
   pushToDeployList({ type: "authorizer", authorizerProps: props });
 
-  authorizerIndex[customApp] = connector;
+  globalThis.authorizerIndex[customApp] = connector;
 }
 
 /**

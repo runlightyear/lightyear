@@ -1,5 +1,4 @@
 import { handlerResult } from "./handlerResult";
-import { authorizerIndex } from "../base/authorizer";
 import { OAuthConnector } from "../connectors/OAuthConnector";
 import { getAuthData, updateAuthDataState } from "../base/auth";
 import invariant from "tiny-invariant";
@@ -23,7 +22,7 @@ export async function handleRefreshAccessToken({
     return handlerResult(400, "Missing authName");
   }
 
-  const item = authorizerIndex[customAppName];
+  const item = globalThis.authorizerIndex[customAppName];
 
   const authData = await getAuthData({
     customAppName: customAppName,
