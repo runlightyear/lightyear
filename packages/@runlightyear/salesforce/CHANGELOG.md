@@ -1,5 +1,14 @@
 # @runlightyear/salesforce
 
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies [e7add66c5]
+- Updated dependencies [ef13ac4a7]
+- Updated dependencies [2ac843f96]
+  - @runlightyear/lightyear@1.2.0
+
 ## 0.4.4
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @runlightyear/lightyear
 
+## 1.2.0
+
+### Minor Changes
+
+- e7add66c5: Added response_type code to authRequestUrl params
+- ef13ac4a7: Support for defineCustomApp
+- 2ac843f96: Support for custom app webhooks
+
 ## 1.1.0
 
 ### Minor Changes

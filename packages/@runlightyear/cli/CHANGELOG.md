@@ -1,5 +1,18 @@
 # @runlightyear/cli
 
+## 1.2.0
+
+### Minor Changes
+
+- 46760d8f7: Support for custom app webhooks
+
+### Patch Changes
+
+- Updated dependencies [e7add66c5]
+- Updated dependencies [ef13ac4a7]
+- Updated dependencies [2ac843f96]
+  - @runlightyear/lightyear@1.2.0
+
 ## 1.1.0
 
 ### Minor Changes
