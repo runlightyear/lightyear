@@ -1,4 +1,8 @@
-import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
+import {
+  AuthType,
+  RestConnector,
+  RestConnectorProps,
+} from "@runlightyear/lightyear";
 import { listCalendars, ListCalendarsProps } from "./calendars/listCalendars";
 import { listEvents, ListEventsProps } from "./events/listEvents";
 import { createEvent, CreateEventProps } from "./events/createEvent";
@@ -21,6 +25,7 @@ import {
 import { patchEvent, PatchEventProps } from "./events/patchEvent";
 import { getEvent, GetEventProps } from "./events/getEvent";
 import { onNewEvents, OnNewEventsProps } from "./listeners/onNewEvents";
+import { GoogleCalendarOAuth } from "./GoogleCalendarOAuth";
 
 /**
  * @beta
@@ -359,6 +364,9 @@ export interface GoogleCalendarProps extends RestConnectorProps {}
  *
  */
 export class GoogleCalendar extends RestConnector {
+  static authType: AuthType = "OAUTH2";
+  static OAuth = GoogleCalendarOAuth;
+
   constructor(props: GoogleCalendarProps) {
     super(props);
   }

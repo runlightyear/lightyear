@@ -1,10 +1,15 @@
-import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
+import {
+  AuthType,
+  RestConnector,
+  RestConnectorProps,
+} from "@runlightyear/lightyear";
 import { createRecord, CreateRecordProps } from "./records/createRecord";
 import { updateRecord, UpdateRecordProps } from "./records/updateRecord";
 import { deleteRecord, DeleteRecordProps } from "./records/deleteRecord";
 import { getRecord, GetRecordProps } from "./records/getRecord";
 import { query, QueryProps } from "./query/query";
 import { describeObject, DescribeObjectProps } from "./describe/describeObject";
+import { SalesforceOAuth } from "./SalesforceOAuth";
 
 /**
  * @alpha
@@ -129,6 +134,9 @@ export interface SalesforceProps extends RestConnectorProps {
  * ```
  */
 export class Salesforce extends RestConnector {
+  static authType: AuthType = "OAUTH2";
+  static OAuth = SalesforceOAuth;
+
   domain: string;
 
   constructor(props: SalesforceProps) {

@@ -1,4 +1,8 @@
-import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
+import {
+  AuthType,
+  RestConnector,
+  RestConnectorProps,
+} from "@runlightyear/lightyear";
 import { appendValues, AppendValuesProps } from "./values/appendValues";
 import { updateValues, UpdateValuesProps } from "./values/updateValues";
 import { clearValues, ClearValuesProps } from "./values/clearValues";
@@ -348,6 +352,10 @@ export interface GoogleSheetsProps extends RestConnectorProps {}
 export class GoogleSheets extends RestConnector {
   constructor(props: GoogleSheetsProps) {
     super(props);
+  }
+
+  getAuthType(): AuthType {
+    return "OAUTH2";
   }
 
   getBaseUrl() {
