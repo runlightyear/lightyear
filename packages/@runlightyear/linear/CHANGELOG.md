@@ -1,5 +1,16 @@
 # @runlightyear/linear
 
+## 0.9.0
+
+### Minor Changes
+
+- f7eaf2615: Support for custom apps
+
+### Patch Changes
+
+- Updated dependencies [f7eaf2615]
+  - @runlightyear/lightyear@1.3.0
+
 ## 0.8.5
 
 ### Patch Changes
