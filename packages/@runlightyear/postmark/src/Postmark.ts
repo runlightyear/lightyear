@@ -1,4 +1,8 @@
-import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
+import {
+  AuthType,
+  RestConnector,
+  RestConnectorProps,
+} from "@runlightyear/lightyear";
 import {
   sendSingleEmail,
   SendSingleEmailProps,
@@ -14,6 +18,8 @@ export interface PostmarkProps extends RestConnectorProps {}
  * @alpha
  */
 export class Postmark extends RestConnector {
+  static authType: AuthType = "APIKEY";
+
   constructor(props: PostmarkProps) {
     super({
       camelize: false,

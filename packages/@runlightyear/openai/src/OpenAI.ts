@@ -1,4 +1,8 @@
-import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
+import {
+  AuthType,
+  RestConnector,
+  RestConnectorProps,
+} from "@runlightyear/lightyear";
 import {
   createCompletion,
   CreateCompletionProps,
@@ -135,6 +139,8 @@ export interface OpenAIProps extends RestConnectorProps {}
  * ```
  */
 export class OpenAI extends RestConnector {
+  static authType: AuthType = "APIKEY";
+
   /**
    * @example
    * ```typescript

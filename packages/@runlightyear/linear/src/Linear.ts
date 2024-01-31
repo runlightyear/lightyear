@@ -1,4 +1,5 @@
 import {
+  AuthType,
   GraphQLConnector,
   GraphQLConnectorQueryProps,
   RestConnectorProps,
@@ -26,6 +27,7 @@ import {
   findWorkflowStateByName,
   FindWorkflowStateByNameProps,
 } from "./helpers/findWorkflowStateByName";
+import { LinearOAuth } from "./LinearOAuth";
 
 /**
  * @beta
@@ -60,6 +62,9 @@ export interface LinearProps extends RestConnectorProps {}
  * ```
  */
 export class Linear extends GraphQLConnector {
+  static authType: AuthType = "OAUTH2";
+  static OAuth = LinearOAuth;
+
   constructor(props: LinearProps) {
     super(props);
   }

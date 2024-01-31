@@ -1,4 +1,8 @@
-import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
+import {
+  AuthType,
+  RestConnector,
+  RestConnectorProps,
+} from "@runlightyear/lightyear";
 import { appendValues, AppendValuesProps } from "./values/appendValues";
 import { updateValues, UpdateValuesProps } from "./values/updateValues";
 import { clearValues, ClearValuesProps } from "./values/clearValues";
@@ -8,6 +12,7 @@ import {
 } from "./spreadsheets/createSpreadsheet";
 import { getValues, GetValuesProps } from "./values/getValues";
 import { onNewRows, OnNewRowsProps } from "./listeners/onNewRows";
+import { GoogleSheetsOAuth } from "./GoogleSheetsOAuth";
 
 /**
  * @beta
@@ -346,6 +351,9 @@ export interface GoogleSheetsProps extends RestConnectorProps {}
  * ```
  */
 export class GoogleSheets extends RestConnector {
+  static authType: AuthType = "OAUTH2";
+  static OAuth = GoogleSheetsOAuth;
+
   constructor(props: GoogleSheetsProps) {
     super(props);
   }

@@ -1,4 +1,8 @@
-import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
+import {
+  AuthType,
+  RestConnector,
+  RestConnectorProps,
+} from "@runlightyear/lightyear";
 import { listMeetings, ListMeetingsProps } from "./meetings/listMeetings";
 import {
   listRecordings,
@@ -70,12 +74,17 @@ export interface ZoomProps extends RestConnectorProps {}
  * ```
  */
 export class Zoom extends RestConnector {
+  static authType: AuthType = "OAUTH2";
   static OAuth = ZoomOAuth;
   static AppWebhook = ZoomAppWebhook;
   static secrets: ["secretToken"];
 
   constructor(props: ZoomProps) {
     super({ ...props, camelize: true });
+  }
+
+  getAuthType(): AuthType {
+    return "OAUTH2";
   }
 
   getBaseUrl(): string {

@@ -1,4 +1,4 @@
-import { BaseConnector, BaseConnectorProps } from "./BaseConnector";
+import { AuthType, BaseConnector, BaseConnectorProps } from "./BaseConnector";
 import { AuthData } from "../base/auth";
 
 /**
@@ -16,7 +16,7 @@ export interface AuthConnectorProps extends BaseConnectorProps {
  *
  * Docs for AuthConnector
  */
-export class AuthConnector extends BaseConnector {
+export abstract class AuthConnector extends BaseConnector {
   _auth: AuthData;
 
   constructor(props: AuthConnectorProps) {

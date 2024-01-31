@@ -1,4 +1,5 @@
 import {
+  AuthType,
   HttpProxyResponse,
   RestConnector,
   RestConnectorProps,
@@ -431,6 +432,7 @@ export interface GitHubDefineAuthProps {
  *
  *  */
 export class GitHub extends RestConnector {
+  static authType: AuthType = "OAUTH2";
   static OAuth = GitHubOAuth;
 
   /**

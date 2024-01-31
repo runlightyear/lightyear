@@ -31,11 +31,21 @@ export type CustomAppWebhookIndex = {
   [customAppName: string]: AppWebhookFunc;
 };
 
+export interface DefineCustomAppConnectorProps {
+  authType?: undefined;
+  name: string;
+  title: string;
+  connector: typeof BaseConnector;
+  oauth?: (props: OAuthConnectorProps) => OAuthConnector;
+  appWebhook?: AppWebhookFunc;
+  variables?: Array<VariableDef>;
+  secrets?: Array<VariableDef>;
+}
+
 export interface DefineCustomAppBasicProps {
   authType: "BASIC";
   name: string;
   title: string;
-  connector?: typeof BaseConnector;
   variables?: Array<VariableDef>;
   secrets?: Array<VariableDef>;
 }
@@ -44,7 +54,6 @@ export interface DefineCustomAppApiKeyProps {
   authType: "APIKEY";
   name: string;
   title: string;
-  connector?: typeof BaseConnector;
   variables?: Array<VariableDef>;
   secrets?: Array<VariableDef>;
 }
@@ -53,7 +62,6 @@ export interface DefineCustomAppOAuthProps {
   authType: "OAUTH2";
   name: string;
   title: string;
-  connector?: typeof BaseConnector;
   oauth?: (props: OAuthConnectorProps) => OAuthConnector;
   appWebhook?: AppWebhookFunc;
   variables?: Array<VariableDef>;
@@ -61,6 +69,7 @@ export interface DefineCustomAppOAuthProps {
 }
 
 export type DefineCustomAppProps =
+  | DefineCustomAppConnectorProps
   | DefineCustomAppBasicProps
   | DefineCustomAppApiKeyProps
   | DefineCustomAppOAuthProps;
@@ -76,7 +85,6 @@ export interface DeployCustomAppApiKeyProps {
   authType: "APIKEY";
   name: string;
   title: string;
-  connector?: typeof BaseConnector;
   variables?: Array<VariableDef>;
   secrets?: Array<VariableDef>;
 }
@@ -96,7 +104,7 @@ export type DeployCustomAppProps =
   | DeployCustomAppOAuthProps;
 
 export function validateCustomAppProps(props: DefineCustomAppProps) {
-  const { name, title, authType } = props;
+  const { name, title } = props;
 
   const NameSchema = z.string().min(1).regex(validNameRegex);
   const TitleSchema = z.string().min(1);
@@ -132,10 +140,21 @@ export function validateCustomAppProps(props: DefineCustomAppProps) {
   const DefineCustomAppSchema = z.discriminatedUnion("authType", [
     z
       .object({
-        authType: z.literal("BASIC"),
+        authType: z.undefined(),
         name: NameSchema,
         title: TitleSchema,
         connector: ConnectorSchema.optional(),
+        oauth: OAuthSchema.optional(),
+        appWebhook: AppWebhookSchema.optional(),
+        variables: VariablesSchema.optional(),
+        secrets: SecretsSchema.optional(),
+      })
+      .strict(),
+    z
+      .object({
+        authType: z.literal("BASIC"),
+        name: NameSchema,
+        title: TitleSchema,
         variables: VariablesSchema.optional(),
         secrets: SecretsSchema.optional(),
       })
@@ -145,7 +164,6 @@ export function validateCustomAppProps(props: DefineCustomAppProps) {
         authType: z.literal("APIKEY"),
         name: NameSchema,
         title: TitleSchema,
-        connector: ConnectorSchema.optional(),
         variables: VariablesSchema.optional(),
         secrets: SecretsSchema.optional(),
       })
@@ -155,7 +173,6 @@ export function validateCustomAppProps(props: DefineCustomAppProps) {
         authType: z.literal("OAUTH2"),
         name: NameSchema,
         title: TitleSchema,
-        connector: ConnectorSchema.optional(),
         oauth: OAuthSchema.optional(),
         appWebhook: AppWebhookSchema.optional(),
         variables: VariablesSchema.optional(),
@@ -173,11 +190,15 @@ export function validateCustomAppProps(props: DefineCustomAppProps) {
   }
 
   if (title === undefined) {
-    throw new Error("Custom app missing required title");
+    throw new Error(`Custom app missing required title: ${name}`);
   }
 
   if (!TitleSchema.safeParse(title).success) {
-    throw new Error(`Invalid custom app title: ${title}`);
+    throw new Error(`Invalid custom app title '${title}' for: ${name}`);
+  }
+
+  if ("authType" in props && "connector" in props) {
+    throw new Error(`Cannot specify both authType and connector for: ${name}`);
   }
 
   const fullResult = DefineCustomAppSchema.safeParse(props);
@@ -202,13 +223,33 @@ export function defineCustomApp(props: DefineCustomAppProps) {
 
   const validatedProps = validateCustomAppProps(props);
 
-  const connectorOAuth = validatedProps.connector?.OAuth;
-  const connectorAppWebhook = validatedProps.connector?.AppWebhook;
-  const connectorVariables = validatedProps.connector?.variables ?? [];
-  const connectorSecrets = validatedProps.connector?.secrets ?? [];
+  const connectorOAuth =
+    "connector" in validatedProps ? validatedProps.connector?.OAuth : null;
+  const connectorAppWebhook =
+    "connector" in validatedProps ? validatedProps.connector?.AppWebhook : null;
+  const connectorVariables =
+    "connector" in validatedProps ? validatedProps.connector?.variables : [];
+  const connectorSecrets =
+    "connector" in validatedProps ? validatedProps.connector?.secrets : [];
+
+  const authType =
+    "connector" in validatedProps
+      ? validatedProps.connector?.authType
+      : validatedProps.authType;
+
+  if (authType === undefined) {
+    if ("connector" in validatedProps) {
+      throw new Error(
+        `authType is undefined, check the connector definition for ${validatedProps.name}`
+      );
+    } else {
+      throw new Error(`authType is undefined for ${validatedProps.name}`);
+    }
+  }
 
   const deployProps = {
     ...validatedProps,
+    authType,
     ...(connectorOAuth ||
     (validatedProps.authType === "OAUTH2" && validatedProps.oauth)
       ? { hasOAuth: true }
@@ -221,7 +262,9 @@ export function defineCustomApp(props: DefineCustomAppProps) {
     secrets: validatedProps.secrets ?? connectorSecrets,
   };
 
-  delete deployProps.connector;
+  if ("connector" in deployProps) {
+    delete deployProps.connector;
+  }
   if ("oauth" in deployProps) {
     delete deployProps.oauth;
   }
@@ -235,6 +278,16 @@ export function defineCustomApp(props: DefineCustomAppProps) {
   });
 
   if (validatedProps.authType === "OAUTH2") {
+    const { oauth, appWebhook } = validatedProps;
+
+    if (oauth) {
+      globalThis.authorizerIndex[props.name] = oauth;
+    }
+
+    if (appWebhook) {
+      globalThis.customAppWebhookIndex[props.name] = appWebhook;
+    }
+  } else if (validatedProps.authType === undefined) {
     const { connector, oauth, appWebhook } = validatedProps;
 
     if (oauth) {

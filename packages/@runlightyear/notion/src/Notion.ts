@@ -1,4 +1,5 @@
 import {
+  AuthType,
   HttpProxyRequestProps,
   HttpProxyResponse,
   RestConnector,
@@ -35,6 +36,7 @@ import {
   onUpdatedDatabaseItems,
   OnUpdatedDatabaseItemsProps,
 } from "./methods/listeners/onUpdatedDatabaseItems";
+import { NotionOAuth } from "./NotionOAuth";
 
 export interface NotionProps extends RestConnectorProps {}
 
@@ -506,6 +508,9 @@ export interface NotionProps extends RestConnectorProps {}
  *
  */
 export class Notion extends RestConnector {
+  static authType: AuthType = "OAUTH2";
+  static OAuth = NotionOAuth;
+
   constructor(props: NotionProps) {
     super({ ...props, camelize: false });
   }

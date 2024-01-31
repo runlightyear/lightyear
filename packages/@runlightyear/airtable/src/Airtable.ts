@@ -1,4 +1,8 @@
-import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
+import {
+  AuthType,
+  RestConnector,
+  RestConnectorProps,
+} from "@runlightyear/lightyear";
 import { listRecords, ListRecordsProps } from "./records/listRecords";
 import { whoami } from "./meta/whoami";
 import { createRecords, CreateRecordsProps } from "./records/createRecords";
@@ -25,6 +29,7 @@ import {
   OnNewOrUpdatedRecordsProps,
 } from "./listeners/onNewOrUpdatedRecords";
 import { refreshWebhook, RefreshWebhookProps } from "./webhooks/refreshWebhook";
+import { AirtableOAuth } from "./AirtableOAuth";
 
 export interface AirtableProps extends RestConnectorProps {}
 
@@ -238,6 +243,9 @@ export interface AirtableProps extends RestConnectorProps {}
  * ```
  */
 export class Airtable extends RestConnector {
+  static authType: AuthType = "OAUTH2";
+  static OAuth = AirtableOAuth;
+
   constructor(props: AirtableProps) {
     super({
       ...props,
