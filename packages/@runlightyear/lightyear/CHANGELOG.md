@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 1.3.0
+
+### Minor Changes
+
+- f7eaf2615: defineCustomApp specified with connector prop does not require (or allow) authType
+
 ## 1.2.0
 
 ### Minor Changes

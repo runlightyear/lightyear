@@ -1,5 +1,16 @@
 # @runlightyear/github
 
+## 1.2.0
+
+### Minor Changes
+
+- f7eaf2615: Support for custom apps
+
+### Patch Changes
+
+- Updated dependencies [f7eaf2615]
+  - @runlightyear/lightyear@1.3.0
+
 ## 1.1.0
 
 ### Minor Changes
