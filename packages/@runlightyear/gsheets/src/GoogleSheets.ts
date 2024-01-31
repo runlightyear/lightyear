@@ -12,6 +12,7 @@ import {
 } from "./spreadsheets/createSpreadsheet";
 import { getValues, GetValuesProps } from "./values/getValues";
 import { onNewRows, OnNewRowsProps } from "./listeners/onNewRows";
+import { GoogleSheetsOAuth } from "./GoogleSheetsOAuth";
 
 /**
  * @beta
@@ -350,12 +351,11 @@ export interface GoogleSheetsProps extends RestConnectorProps {}
  * ```
  */
 export class GoogleSheets extends RestConnector {
+  static authType: AuthType = "OAUTH2";
+  static OAuth = GoogleSheetsOAuth;
+
   constructor(props: GoogleSheetsProps) {
     super(props);
-  }
-
-  getAuthType(): AuthType {
-    return "OAUTH2";
   }
 
   getBaseUrl() {
