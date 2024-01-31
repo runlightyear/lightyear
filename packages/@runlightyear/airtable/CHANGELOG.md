@@ -5,7 +5,6 @@
 ### Minor Changes
 
 - f7eaf2615: Support for custom apps
-- f7eaf2615: Support for custom apps
 
 ### Patch Changes
 
