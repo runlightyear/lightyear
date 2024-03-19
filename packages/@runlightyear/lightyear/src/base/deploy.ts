@@ -16,6 +16,7 @@ import { subscribeProps } from "../subscriptionActivities";
 import { getEnvName } from "../util/getEnvName";
 import { DefineAuthorizerProps } from "./authorizer";
 import { DefineCustomAppProps, DeployCustomAppProps } from "./customApp";
+import { DeployIntegrationProps } from "./integration";
 
 interface Props {
   envName: string;
@@ -38,11 +39,18 @@ export type DeployFunc = (
 
 export type DeployItem = {
   // type: "action" | "auth" | "variable" | "secret" | "subscription" | "webhook";
-  type: "customApp" | "action" | "webhook" | "authorizer" | "customAppWebhook";
+  type:
+    | "customApp"
+    | "action"
+    | "integration"
+    | "webhook"
+    | "authorizer"
+    | "customAppWebhook";
   // data: DeployActionProps | AuthProps | WebhookProps;
   customAppProps?: DeployCustomAppProps;
   actionProps?: DeployActionProps;
   // authProps?: AuthProps;
+  integrationProps?: DeployIntegrationProps;
   webhookProps?: DefineWebhookProps;
   authorizerProps?: DefineAuthorizerProps;
   // subscribeArgs?: (props: SubscribeArgsProps) => Promise<object>;
@@ -74,6 +82,8 @@ export async function deploy({ envName }: Props) {
       return item.customAppProps?.name;
     } else if (item.type === "action") {
       return item.actionProps?.name;
+    } else if (item.type === "integration") {
+      return item.integrationProps?.name;
     } else if (item.type === "webhook") {
       return item.webhookProps?.name;
     } else if (item.type === "authorizer") {

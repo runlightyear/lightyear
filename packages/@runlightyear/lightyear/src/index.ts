@@ -67,6 +67,10 @@ export type {
   HttpProxyResponseError,
 } from "./base/http";
 
+/* Integration */
+export { defineIntegration } from "./base/integration";
+export type { DefineIntegrationProps } from "./base/integration";
+
 /* OAuth */
 export { defineAuthorizer, defineOAuth } from "./base/authorizer";
 export type {
