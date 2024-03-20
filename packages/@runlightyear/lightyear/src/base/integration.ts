@@ -7,6 +7,8 @@ export interface DefineIntegrationProps {
   name: string;
   title: string;
   description?: string;
+  actions?: Array<string>;
+  webhooks?: Array<string>;
 }
 
 /**
@@ -16,6 +18,8 @@ export interface DeployIntegrationProps {
   name: string;
   title: string;
   description?: string;
+  actions?: Array<string>;
+  webhooks?: Array<string>;
 }
 
 /**
