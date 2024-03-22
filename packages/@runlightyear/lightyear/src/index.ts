@@ -37,6 +37,10 @@ export type { BaseRequestProps } from "./base/baseRequest";
 export { getCache, saveCache } from "./base/cache";
 export type { GetCacheProps, SaveCacheProps, CacheData } from "./base/cache";
 
+/* Collection */
+export { defineCollection } from "./base/collection";
+export type { DefineCollectionProps } from "./base/collection";
+
 /* Custom App */
 export { defineCustomApp } from "./base/customApp";
 export type {

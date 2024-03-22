@@ -17,6 +17,7 @@ import { getEnvName } from "../util/getEnvName";
 import { DefineAuthorizerProps } from "./authorizer";
 import { DefineCustomAppProps, DeployCustomAppProps } from "./customApp";
 import { DeployIntegrationProps } from "./integration";
+import { DeployCollectionProps } from "./collection";
 
 interface Props {
   envName: string;
@@ -42,6 +43,7 @@ export type DeployItem = {
   type:
     | "customApp"
     | "action"
+    | "collection"
     | "integration"
     | "webhook"
     | "authorizer"
@@ -50,6 +52,7 @@ export type DeployItem = {
   customAppProps?: DeployCustomAppProps;
   actionProps?: DeployActionProps;
   // authProps?: AuthProps;
+  collectionProps?: DeployCollectionProps;
   integrationProps?: DeployIntegrationProps;
   webhookProps?: DefineWebhookProps;
   authorizerProps?: DefineAuthorizerProps;
