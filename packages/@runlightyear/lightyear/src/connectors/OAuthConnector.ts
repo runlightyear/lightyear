@@ -338,7 +338,7 @@ export abstract class OAuthConnector {
       text: JSON.stringify(response.data),
     });
 
-    const authName = this.appName || this.customAppName;
+    const authName = this.authData?.authName;
     invariant(authName, "Need an auth name");
 
     await updateAuthData({
