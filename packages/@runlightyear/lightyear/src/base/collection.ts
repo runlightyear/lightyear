@@ -6,6 +6,10 @@ import { pushToDeployList } from "./deploy";
 export interface DefineCollectionProps {
   name: string;
   title: string;
+  models?: Array<{
+    name: string;
+    title: string;
+  }>;
 }
 
 /**
@@ -14,6 +18,10 @@ export interface DefineCollectionProps {
 export interface DeployCollectionProps {
   name: string;
   title: string;
+  models?: Array<{
+    name: string;
+    title: string;
+  }>;
 }
 
 /**
