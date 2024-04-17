@@ -49,6 +49,7 @@ export interface UpsertObjectProps {
   managedUserExternalId: string;
   externalId: string;
   data: unknown;
+  overwrite?: boolean;
 }
 
 export async function upsertObject(props: UpsertObjectProps) {
@@ -59,6 +60,7 @@ export async function upsertObject(props: UpsertObjectProps) {
     managedUserExternalId,
     externalId,
     data,
+    overwrite,
   } = props;
 
   const envName = getEnvName();
@@ -71,6 +73,7 @@ export async function upsertObject(props: UpsertObjectProps) {
       managedUserExternalId,
       externalId,
       data,
+      overwrite,
     },
   });
 }
