@@ -1,4 +1,6 @@
 import { pushToDeployList } from "./deploy";
+import { getEnvName } from "../util/getEnvName";
+import baseRequest from "./baseRequest";
 
 /**
  * @alpha
@@ -9,6 +11,7 @@ export interface DefineCollectionProps {
   models?: Array<{
     name: string;
     title: string;
+    schema?: unknown;
   }>;
 }
 
@@ -21,6 +24,7 @@ export interface DeployCollectionProps {
   models?: Array<{
     name: string;
     title: string;
+    schema?: unknown;
   }>;
 }
 
@@ -36,4 +40,37 @@ export function defineCollection(props: DefineCollectionProps) {
   });
 
   return props.name;
+}
+
+export interface UpsertObjectProps {
+  collection: string;
+  model: string;
+  customApp: string;
+  managedUserExternalId: string;
+  externalId: string;
+  data: unknown;
+}
+
+export async function upsertObject(props: UpsertObjectProps) {
+  const {
+    collection,
+    model,
+    customApp,
+    managedUserExternalId,
+    externalId,
+    data,
+  } = props;
+
+  const envName = getEnvName();
+
+  return baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects`,
+    data: {
+      customAppName: customApp,
+      managedUserExternalId,
+      externalId,
+      data,
+    },
+  });
 }
