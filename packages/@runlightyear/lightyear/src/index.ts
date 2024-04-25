@@ -38,10 +38,17 @@ export { getCache, saveCache } from "./base/cache";
 export type { GetCacheProps, SaveCacheProps, CacheData } from "./base/cache";
 
 /* Collection */
-export { defineCollection, upsertObject } from "./base/collection";
+export {
+  defineCollection,
+  getDelta,
+  upsertObject,
+  deleteObject,
+} from "./base/collection";
 export type {
   DefineCollectionProps,
+  GetDeltaProps,
   UpsertObjectProps,
+  DeleteObjectProps,
 } from "./base/collection";
 
 /* Custom App */
