@@ -151,3 +151,25 @@ export async function deleteObject(props: DeleteObjectProps) {
     },
   });
 }
+
+export interface DetectHardDeletesProps {
+  collection: string;
+  model: string;
+  customApp: string;
+  managedUserExternalId: string;
+  remainingIds: Array<string>;
+}
+
+export async function detectHardDeletes(props: DetectHardDeletesProps) {
+  const envName = getEnvName();
+  const { collection, model, customApp, managedUserExternalId, remainingIds } =
+    props;
+
+  return baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/custom-apps/${customApp}/managed-users/${managedUserExternalId}/detect-hard-deletes`,
+    data: {
+      remainingIds,
+    },
+  });
+}

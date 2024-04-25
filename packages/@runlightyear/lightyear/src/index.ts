@@ -43,12 +43,14 @@ export {
   getDelta,
   upsertObject,
   deleteObject,
+  detectHardDeletes,
 } from "./base/collection";
 export type {
   DefineCollectionProps,
   GetDeltaProps,
   UpsertObjectProps,
   DeleteObjectProps,
+  DetectHardDeletesProps,
 } from "./base/collection";
 
 /* Custom App */
