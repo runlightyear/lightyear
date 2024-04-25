@@ -4,7 +4,7 @@ import { prefixedRedactedConsole } from "../logging";
 /**
  * @public
  */
-export type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /**
  * @public

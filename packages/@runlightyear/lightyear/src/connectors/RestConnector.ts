@@ -141,23 +141,23 @@ export abstract class RestConnector extends AuthConnector {
   }
 
   async get(props: HttpProxyRequestProps) {
-    return await this.request({ ...props, method: "get" });
+    return await this.request({ ...props, method: "GET" });
   }
 
   async post(props: HttpProxyRequestProps) {
-    return await this.request({ ...props, method: "post" });
+    return await this.request({ ...props, method: "POST" });
   }
 
   async put(props: HttpProxyRequestProps) {
-    return await this.request({ ...props, method: "put" });
+    return await this.request({ ...props, method: "PUT" });
   }
 
   async patch(props: HttpProxyRequestProps) {
-    return await this.request({ ...props, method: "patch" });
+    return await this.request({ ...props, method: "PATCH" });
   }
 
   async delete(props: HttpProxyRequestProps) {
-    return await this.request({ ...props, method: "delete" });
+    return await this.request({ ...props, method: "DELETE" });
   }
 
   static processDelivery(delivery: WebhookDeliveryData): WebhookDeliveryData {

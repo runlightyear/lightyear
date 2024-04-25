@@ -313,7 +313,7 @@ export abstract class OAuthConnector {
   }
 
   async post(props: HttpProxyRequestProps) {
-    return await this.request({ ...props, method: "post" });
+    return await this.request({ ...props, method: "POST" });
   }
 
   async requestAccessToken(code: string) {
