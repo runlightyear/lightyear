@@ -10,6 +10,7 @@ import { getRecord, GetRecordProps } from "./records/getRecord";
 import { query, QueryProps } from "./query/query";
 import { describeObject, DescribeObjectProps } from "./describe/describeObject";
 import { SalesforceOAuth } from "./SalesforceOAuth";
+import { queryAll, QueryAllProps } from "./query/queryAll";
 
 /**
  * @alpha
@@ -260,6 +261,10 @@ export class Salesforce extends RestConnector {
    */
   async query(props: QueryProps) {
     return query(this)(props);
+  }
+
+  async queryAll(props: QueryAllProps) {
+    return queryAll(this)(props);
   }
 
   /**
