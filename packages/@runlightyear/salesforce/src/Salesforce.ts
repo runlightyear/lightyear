@@ -11,7 +11,7 @@ import { query, QueryProps } from "./query/query";
 import { describeObject, DescribeObjectProps } from "./describe/describeObject";
 import { SalesforceOAuth } from "./SalesforceOAuth";
 import { queryAll, QueryAllProps } from "./query/queryAll";
-import { SalesforceSync } from "./sync/SalesforceSync";
+import { SalesforceSync } from "./SalesforceSync";
 
 /**
  * @alpha

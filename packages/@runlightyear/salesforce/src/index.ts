@@ -44,7 +44,7 @@ export type {
 /* Sync */
 export { AccountSync } from "./sync/AccountSync";
 export { ContactSync } from "./sync/ContactSync";
-export { SalesforceSync } from "./sync/SalesforceSync";
+export { SalesforceSync } from "./SalesforceSync";
 
 /* Types */
 export type { ActionOverride } from "./types/ActionOverride";

@@ -8,3 +8,4 @@ export { HubspotAppWebhook } from "./HubSpotAppWebhook";
 
 export { AccountSync } from "./sync/AccountSync";
 export { ContactSync } from "./sync/ContactSync";
+export { HubSpotSync } from "./HubSpotSync";

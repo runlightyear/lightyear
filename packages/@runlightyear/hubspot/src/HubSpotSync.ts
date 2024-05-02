@@ -1,25 +1,25 @@
-import { AccountSync } from "./AccountSync";
-import { ContactSync } from "./ContactSync";
-import { CollectionSyncConnector } from "@runlightyear/lightyear/src/connectors/CollectionSyncConnector";
-import { Salesforce } from "../Salesforce";
+import { HubSpot } from "./HubSpot";
 import { ModelSyncConnector } from "@runlightyear/lightyear/src/connectors/ModelSyncConnector";
+import { CollectionSyncConnector } from "@runlightyear/lightyear/src/connectors/CollectionSyncConnector";
+import { AccountSync } from "./sync/AccountSync";
+import { ContactSync } from "./sync/ContactSync";
 
-export interface SalesforceSyncProps {
-  salesforce: Salesforce;
+export interface HubSpotSyncProps {
+  hubspot: HubSpot;
   customApp: string;
   managedUserExternalId: string;
   collection?: string;
   models?: Array<ModelSyncConnector>;
 }
 
-export class SalesforceSync extends CollectionSyncConnector {
-  salesforce: Salesforce;
+export class HubSpotSync extends CollectionSyncConnector {
+  hubspot: HubSpot;
   customApp: string;
   managedUserExternalId: string;
 
-  constructor(props: SalesforceSyncProps) {
+  constructor(props: HubSpotSyncProps) {
     const {
-      salesforce,
+      hubspot,
       customApp,
       managedUserExternalId,
       collection = "crm",
@@ -27,7 +27,7 @@ export class SalesforceSync extends CollectionSyncConnector {
     } = props;
 
     const modelProps = {
-      salesforce,
+      hubspot,
       collection,
       customApp,
       managedUserExternalId,
@@ -42,7 +42,7 @@ export class SalesforceSync extends CollectionSyncConnector {
       ],
     });
 
-    this.salesforce = salesforce;
+    this.hubspot = hubspot;
     this.customApp = customApp;
     this.managedUserExternalId = managedUserExternalId;
   }
