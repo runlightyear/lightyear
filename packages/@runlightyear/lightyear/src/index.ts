@@ -153,6 +153,10 @@ export type { AppWebhookConnectorProps } from "./connectors/AppWebhookConnector"
 export { AuthConnector } from "./connectors/AuthConnector";
 export type { AuthConnectorProps } from "./connectors/AuthConnector";
 
+/* Crm Connector */
+// export { CrmConnector } from "./connectors/CrmConnector";
+// export type { CrmConnectorProps } from "./connectors/CrmConnector";
+
 /* OAuth Connector */
 export { OAuthConnector } from "./connectors/OAuthConnector";
 export type {

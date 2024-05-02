@@ -11,6 +11,7 @@ import { query, QueryProps } from "./query/query";
 import { describeObject, DescribeObjectProps } from "./describe/describeObject";
 import { SalesforceOAuth } from "./SalesforceOAuth";
 import { queryAll, QueryAllProps } from "./query/queryAll";
+import { SalesforceSync } from "./sync/SalesforceSync";
 
 /**
  * @alpha
@@ -141,9 +142,9 @@ export class Salesforce extends RestConnector {
   domain: string;
 
   constructor(props: SalesforceProps) {
-    const { domain, ...rest } = props;
+    const { domain, camelize, ...rest } = props;
 
-    super(rest);
+    super({ ...rest, camelize: false });
 
     this.domain = domain;
   }

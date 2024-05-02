@@ -41,6 +41,11 @@ export type {
   UpdateRecordResponse,
 } from "./records/updateRecord";
 
+/* Sync */
+export { AccountSync } from "./sync/AccountSync";
+export { ContactSync } from "./sync/ContactSync";
+export { SalesforceSync } from "./sync/SalesforceSync";
+
 /* Types */
 export type { ActionOverride } from "./types/ActionOverride";
 export type { Attributes } from "./types/Attributes";
