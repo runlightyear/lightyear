@@ -60,11 +60,32 @@ export function defineCollection(props: DefineCollectionProps) {
   return props.name;
 }
 
+export interface GetModelProps {
+  collection: string;
+}
+
+export async function getModels(props: GetModelProps) {
+  const { collection } = props;
+
+  const envName = getEnvName();
+
+  const response = await baseRequest({
+    method: "GET",
+    uri: `/api/v1/envs/${envName}/collections/${collection}/models`,
+  });
+
+  if (response.ok) {
+    return await response.json();
+  } else {
+    throw new Error("Unable to get models");
+  }
+}
+
 export interface GetDeltaProps {
   collection: string;
   model: string;
-  customApp: string;
-  managedUserExternalId: string;
+  customApp: string | null;
+  managedUserExternalId?: string | null;
 }
 
 export async function getDelta(props: GetDeltaProps) {
@@ -73,8 +94,12 @@ export async function getDelta(props: GetDeltaProps) {
   const envName = getEnvName();
 
   const response = await baseRequest({
-    method: "GET",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/custom-apps/${customApp}/managed-users/${managedUserExternalId}/delta`,
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/delta`,
+    data: {
+      customAppName: customApp,
+      managedUserExternalId: managedUserExternalId ?? null,
+    },
   });
 
   if (response.ok) {
@@ -91,8 +116,9 @@ export async function getDelta(props: GetDeltaProps) {
 export interface UpsertObjectProps {
   collection: string;
   model: string;
-  customApp: string;
-  managedUserExternalId: string;
+  app?: string;
+  customApp?: string;
+  managedUserExternalId?: string | null;
   externalId: string;
   externalUpdatedAt: string;
   data: unknown;
@@ -103,6 +129,7 @@ export async function upsertObject(props: UpsertObjectProps) {
   const {
     collection,
     model,
+    app,
     customApp,
     managedUserExternalId,
     externalId,
@@ -117,6 +144,7 @@ export async function upsertObject(props: UpsertObjectProps) {
     method: "POST",
     uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects`,
     data: {
+      appName: app,
       customAppName: customApp,
       managedUserExternalId,
       externalId,
@@ -131,7 +159,7 @@ export interface DeleteObjectProps {
   collection: string;
   model: string;
   customApp: string;
-  managedUserExternalId: string;
+  managedUserExternalId?: string;
   externalId: string;
 }
 

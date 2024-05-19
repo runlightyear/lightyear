@@ -40,6 +40,7 @@ export type { GetCacheProps, SaveCacheProps, CacheData } from "./base/cache";
 /* Collection */
 export {
   defineCollection,
+  getModels,
   getDelta,
   upsertObject,
   deleteObject,
@@ -121,6 +122,13 @@ export type {
   EmailAddress,
 } from "./base/smtp";
 
+/* Sync Actions */
+export { defineSyncAction } from "./base/syncAction";
+export type {
+  DefineSyncActionProps,
+  SynchronizerProps,
+} from "./base/syncAction";
+
 /* Variables */
 export { getVariableData, setVariable } from "./base/variable";
 export type { VariableDef, VariableData } from "./base/variable";
@@ -153,10 +161,6 @@ export type { AppWebhookConnectorProps } from "./connectors/AppWebhookConnector"
 export { AuthConnector } from "./connectors/AuthConnector";
 export type { AuthConnectorProps } from "./connectors/AuthConnector";
 
-/* Crm Connector */
-// export { CrmConnector } from "./connectors/CrmConnector";
-// export type { CrmConnectorProps } from "./connectors/CrmConnector";
-
 /* OAuth Connector */
 export { OAuthConnector } from "./connectors/OAuthConnector";
 export type {
@@ -178,6 +182,12 @@ export type {
 /* Smtp Connector */
 export { SmtpConnector } from "./connectors/SmtpConnector";
 export type { SmtpConnectorProps } from "./connectors/SmtpConnector";
+
+/** Synchronizers **/
+export { CollectionSynchronizer } from "./synchronizers/CollectionSynchronizer";
+export type { CollectionSynchronizerProps } from "./synchronizers/CollectionSynchronizer";
+export { ModelSynchronizer } from "./synchronizers/ModelSynchronizer";
+export type { ModelSynchronizerProps } from "./synchronizers/ModelSynchronizer";
 
 /** Logging **/
 export { PrefixedRedactedConsole } from "./logging/PrefixedRedactedConsole";

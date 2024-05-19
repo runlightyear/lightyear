@@ -204,7 +204,7 @@ export abstract class OAuthConnector {
     console.debug("status", status);
     const data = JSON.parse(text);
 
-    const { appName, customAppName, authName } = data;
+    const { appName, customAppName, managedUser, authName } = data;
 
     const tokenType = data["token_type"];
     const accessToken = data["access_token"];
@@ -219,6 +219,7 @@ export abstract class OAuthConnector {
     return {
       appName,
       customAppName,
+      managedUser,
       authName,
       tokenType,
       accessToken,
