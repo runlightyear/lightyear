@@ -42,9 +42,9 @@ export type {
 } from "./records/updateRecord";
 
 /* Sync */
-export { AccountSync } from "./sync/AccountSync";
-export { ContactSync } from "./sync/ContactSync";
-export { SalesforceSync } from "./SalesforceSync";
+export { AccountSynchronizer } from "./synchronizers/AccountSynchronizer";
+export { ContactSynchronizer } from "./synchronizers/ContactSynchronizer";
+export { SalesforceSynchronizer } from "./synchronizers/SalesforceSynchronizer";
 
 /* Types */
 export type { ActionOverride } from "./types/ActionOverride";
