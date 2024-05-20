@@ -45,7 +45,7 @@ export class AccountSynchronizer<T = object> extends ModelSynchronizer<T> {
     const response = await this.salesforce.queryAll({
       q: `SELECT Id, LastModifiedDate, IsDeleted, ${this.getSourceFields().join(
         ", "
-      )} FROM Account`,
+      )} FROM Account ORDER BY LastModifiedDate ASC`,
     });
 
     return response.data.records.map((record: any) => ({
@@ -79,9 +79,6 @@ export class AccountSynchronizer<T = object> extends ModelSynchronizer<T> {
   }
 
   async create(object: CreateObjectProps<T>) {
-    console.log("object", object);
-    console.log("this.mapToSource(object.data)", this.mapToSource(object.data));
-
     const response = await this.salesforce.createRecord({
       objectType: "Account",
       fieldValues: this.mapToSource(object.data),

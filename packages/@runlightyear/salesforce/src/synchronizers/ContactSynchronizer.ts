@@ -44,7 +44,7 @@ export class ContactSynchronizer<T = object> extends ModelSynchronizer<T> {
 
   async list() {
     const response = await this.salesforce.queryAll({
-      q: `SELECT Id, Owner, LastModifiedDate, isDeleted, ${this.getSourceFields().join(
+      q: `SELECT Id, LastModifiedDate, isDeleted, ${this.getSourceFields().join(
         ", "
       )} FROM Contact`,
     });
@@ -64,7 +64,6 @@ export class ContactSynchronizer<T = object> extends ModelSynchronizer<T> {
       objectId: id,
       fields: [
         "Id",
-        "Owner",
         "LastModifiedDate",
         "IsDeleted",
         ...this.getSourceFields(),
@@ -73,7 +72,6 @@ export class ContactSynchronizer<T = object> extends ModelSynchronizer<T> {
 
     return {
       id: response.data.Id,
-      userId: response.data.Owner,
       updatedAt: response.data.LastModifiedDate,
       isDeleted: response.data.IsDeleted,
       data: this.mapToObject(response.data),

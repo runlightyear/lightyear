@@ -78,6 +78,11 @@ export const httpRequest: HttpRequest = async (props) => {
     data: rest,
   });
 
+  const parsedUrl = new URL(props.url);
+  const displayUrl = `${parsedUrl.protocol}://${parsedUrl.host}${parsedUrl.pathname}`;
+
+  console.info(props.method, displayUrl, response.status, response.statusText);
+
   console.debug(`response.status`, response.status);
   console.debug(`response.statusText`, response.statusText);
   const proxyResponse = (await response.json()) as HttpProxyResponse;

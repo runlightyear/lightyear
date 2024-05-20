@@ -36,19 +36,10 @@ export abstract class CollectionSynchronizer {
   abstract getModel(name: string): any;
 
   async sync() {
-    console.log("about to get model order");
-
     const modelsToSync = await this.getModelOrder();
-
-    console.log("modelsToSync", modelsToSync);
 
     for (const modelName of modelsToSync) {
       const model = await this.getModel(modelName);
-
-      console.log("about to sync model", modelName, model);
-
-      console.log("model.collection", model.collection);
-      console.log("model.model", model.model);
 
       if (model) {
         await model.sync();

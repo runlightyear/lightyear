@@ -116,8 +116,8 @@ export async function getDelta(props: GetDeltaProps) {
 export interface UpsertObjectProps {
   collection: string;
   model: string;
-  app?: string;
-  customApp?: string;
+  app: string | undefined;
+  customApp: string | undefined;
   managedUserExternalId?: string | null;
   externalId: string;
   externalUpdatedAt: string;
@@ -140,7 +140,7 @@ export async function upsertObject(props: UpsertObjectProps) {
 
   const envName = getEnvName();
 
-  return baseRequest({
+  const response = await baseRequest({
     method: "POST",
     uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects`,
     data: {
@@ -153,6 +153,17 @@ export async function upsertObject(props: UpsertObjectProps) {
       overwrite,
     },
   });
+
+  console.info(
+    "Upsert",
+    collection,
+    model,
+    externalId,
+    response.status,
+    response.statusText
+  );
+
+  return response;
 }
 
 export interface DeleteObjectProps {
@@ -169,7 +180,7 @@ export async function deleteObject(props: DeleteObjectProps) {
 
   const envName = getEnvName();
 
-  return baseRequest({
+  const response = await baseRequest({
     method: "DELETE",
     uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects`,
     data: {
@@ -178,6 +189,17 @@ export async function deleteObject(props: DeleteObjectProps) {
       externalId,
     },
   });
+
+  console.info(
+    "Delete object",
+    collection,
+    model,
+    externalId,
+    response.status,
+    response.statusText
+  );
+
+  return response;
 }
 
 export interface DetectHardDeletesProps {

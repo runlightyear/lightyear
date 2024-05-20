@@ -109,18 +109,16 @@ export abstract class ModelSynchronizer<T> {
   }
 
   async sync() {
-    console.log("ready to sync model", this.model);
+    console.log("Syncing objects", this.collection, this.model);
     const authData = this.getConnector().getAuthData();
     if (!authData) {
       throw new Error("Must have auth to sync");
     }
-    console.log("authData", authData);
     const objects = await this.list();
     for (const obj of objects) {
       if (obj.isDeleted) {
         await this.delete(obj.id);
       } else {
-        console.log("obj", obj);
         await upsertObject({
           collection: this.collection,
           model: this.model,
@@ -134,6 +132,7 @@ export abstract class ModelSynchronizer<T> {
       }
     }
 
+    console.log("Processing delta");
     let more;
     do {
       const delta = await getDelta({
@@ -145,6 +144,7 @@ export abstract class ModelSynchronizer<T> {
       more = delta.more;
 
       console.log("delta", delta);
+      // return;
 
       for (const change of delta.changes) {
         if (change.operation === "CREATE") {
@@ -157,6 +157,8 @@ export abstract class ModelSynchronizer<T> {
           await upsertObject({
             collection: this.collection,
             model: this.model,
+            app: authData.appName ?? undefined,
+            customApp: authData.customAppName ?? undefined,
             managedUserExternalId: authData.managedUser?.externalId ?? null,
             externalId: newObject.id,
             externalUpdatedAt: newObject.updatedAt,
@@ -173,6 +175,8 @@ export abstract class ModelSynchronizer<T> {
           await upsertObject({
             collection: this.collection,
             model: this.model,
+            app: authData.appName ?? undefined,
+            customApp: authData.customAppName ?? undefined,
             managedUserExternalId: authData.managedUser?.externalId ?? null,
             externalId: updatedObject.id,
             externalUpdatedAt: updatedObject.updatedAt,

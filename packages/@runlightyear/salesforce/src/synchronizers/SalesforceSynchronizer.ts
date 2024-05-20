@@ -28,8 +28,6 @@ export class SalesforceSynchronizer extends CollectionSynchronizer {
 
     const modelDef = this.models[name];
 
-    console.log("modelDef", modelDef);
-
     switch (name) {
       case "account": {
         if (modelDef === true) {
