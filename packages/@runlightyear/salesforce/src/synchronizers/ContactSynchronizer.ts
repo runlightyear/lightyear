@@ -30,6 +30,7 @@ export class ContactSynchronizer<T = object> extends ModelSynchronizer<T> {
       lastName: "LastName",
       primaryPhone: "Phone",
       primaryEmail: "Email",
+      accountId: "AccountId",
     };
   }
 
@@ -39,6 +40,7 @@ export class ContactSynchronizer<T = object> extends ModelSynchronizer<T> {
       LastName: "lastName",
       Phone: "primaryPhone",
       Email: "primaryEmail",
+      AccountId: "accountId",
     };
   }
 
