@@ -142,7 +142,7 @@ export async function upsertObject(props: UpsertObjectProps) {
 
   const response = await baseRequest({
     method: "POST",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects`,
+    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/upsert`,
     data: {
       appName: app,
       customAppName: customApp,
@@ -181,8 +181,8 @@ export async function deleteObject(props: DeleteObjectProps) {
   const envName = getEnvName();
 
   const response = await baseRequest({
-    method: "DELETE",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects`,
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/delete`,
     data: {
       customAppName: customApp,
       managedUserExternalId,
@@ -217,7 +217,7 @@ export async function detectHardDeletes(props: DetectHardDeletesProps) {
 
   return baseRequest({
     method: "POST",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/custom-apps/${customApp}/managed-users/${managedUserExternalId}/detect-hard-deletes`,
+    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/detect-hard-deletes`,
     data: {
       remainingIds,
     },
