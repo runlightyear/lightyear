@@ -54,6 +54,10 @@ export type {
   DetectHardDeletesProps,
 } from "./base/collection";
 
+/* Collection: CRM */
+export type { DefineCrmCollectionProps } from "./collections/crm";
+export { defineCrmCollection } from "./collections/crm";
+
 /* Custom App */
 export { defineCustomApp } from "./base/customApp";
 export type {

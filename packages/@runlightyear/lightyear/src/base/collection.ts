@@ -14,7 +14,8 @@ export type MatchCompoundObject =
     }
   | {
       AND: Array<MatchPropertySpec>;
-    };
+    }
+  | { OVERLAP: MatchPropertySpec };
 
 export type MatchSpec = MatchPropertySpec | MatchCompoundObject;
 

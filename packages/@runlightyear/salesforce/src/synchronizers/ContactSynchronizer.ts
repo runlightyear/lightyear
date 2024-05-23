@@ -28,8 +28,18 @@ export class ContactSynchronizer<T = object> extends ModelSynchronizer<T> {
     return {
       firstName: "FirstName",
       lastName: "LastName",
-      primaryPhone: "Phone",
-      primaryEmail: "Email",
+      emailAddresses: (source: any) => {
+        if (source.Email && source.Email.length > 0) {
+          return [{ address: source.Email }];
+        }
+        return [];
+      },
+      phoneNumbers: (source: any) => {
+        if (source.Phone && source.Phone.length > 0) {
+          return [{ number: source.Phone }];
+        }
+        return [];
+      },
       accountId: "AccountId",
     };
   }
@@ -38,8 +48,8 @@ export class ContactSynchronizer<T = object> extends ModelSynchronizer<T> {
     return {
       FirstName: "firstName",
       LastName: "lastName",
-      Phone: "primaryPhone",
-      Email: "primaryEmail",
+      Email: (object: any) => object.emailAddresses[0]?.address,
+      Phone: (object: any) => object.phoneNumbers[0]?.number,
       AccountId: "accountId",
     };
   }
