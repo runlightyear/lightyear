@@ -79,7 +79,7 @@ export const httpRequest: HttpRequest = async (props) => {
   });
 
   const parsedUrl = new URL(props.url);
-  const displayUrl = `${parsedUrl.protocol}://${parsedUrl.host}${parsedUrl.pathname}`;
+  const displayUrl = `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`;
 
   console.info(props.method, displayUrl, response.status, response.statusText);
 
