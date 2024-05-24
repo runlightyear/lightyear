@@ -59,24 +59,29 @@ export class SalesforceOAuth extends OAuthConnector {
     return "https://login.salesforce.com/services/oauth2/token";
   }
 
-  processRequestAccessTokenResponse({
-    status,
-    statusText,
-    headers,
-    text,
-  }: {
+  processRequestAccessTokenResponse(props: {
     status: number;
     statusText: string;
     headers: Record<string, string>;
     text: string;
   }): AuthData {
     return {
-      ...super.processRequestAccessTokenResponse({
-        status,
-        statusText,
-        headers,
-        text,
-      }),
+      ...super.processRequestAccessTokenResponse(props),
+      expiresAt: dayjsUtc().add(1, "hour").format(),
+    };
+  }
+
+  processRefreshAccessTokenResponse(props: {
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    text: string;
+  }): AuthData {
+    if (!this.authData) throw new Error("No auth data");
+
+    return {
+      ...super.processRefreshAccessTokenResponse(props),
+      refreshToken: this.authData.refreshToken,
       expiresAt: dayjsUtc().add(1, "hour").format(),
     };
   }
