@@ -1,21 +1,13 @@
 import { DeployActionProps, ActionData } from "./action";
-import {
-  WebhookData,
-  DefineWebhookProps,
-  SubscribeFunc,
-  UnsubscribeFunc,
-  RefreshSubscriptionFunc,
-  ReceiveWebhookFunc,
-} from "./webhook";
+import { WebhookData, DefineWebhookProps } from "./webhook";
 import baseRequest from "./baseRequest";
 import { Initializer } from "./Initializer";
 import invariant from "tiny-invariant";
 import { prefixedRedactedConsole } from "../logging";
-import { Auths, RunFunc, Secrets, Variables } from "../run";
-import { subscribeProps } from "../subscriptionActivities";
+import { Auths, Secrets, Variables } from "../run";
 import { getEnvName } from "../util/getEnvName";
 import { DefineAuthorizerProps } from "./authorizer";
-import { DefineCustomAppProps, DeployCustomAppProps } from "./customApp";
+import { DeployCustomAppProps } from "./customApp";
 import { DeployIntegrationProps } from "./integration";
 import { DeployCollectionProps } from "./collection";
 
@@ -85,6 +77,8 @@ export async function deploy({ envName }: Props) {
       return item.customAppProps?.name;
     } else if (item.type === "action") {
       return item.actionProps?.name;
+    } else if (item.type === "collection") {
+      return item.collectionProps?.name;
     } else if (item.type === "integration") {
       return item.integrationProps?.name;
     } else if (item.type === "webhook") {
@@ -102,14 +96,10 @@ export async function deploy({ envName }: Props) {
     data: globalThis.deployList,
   });
 
-  console.debug("back from baseRequest");
-
   if (!response.ok) {
     console.error(await response.json());
     throw new Error(`deploy failed`);
   }
-
-  console.debug("response was OK");
 
   console.info("Deploy succeeded");
 }
