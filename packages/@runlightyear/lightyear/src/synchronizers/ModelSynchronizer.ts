@@ -147,8 +147,6 @@ export abstract class ModelSynchronizer<T> {
     }
     const objects = await this.list();
 
-    console.log("objects", objects);
-
     for (const obj of objects) {
       if (obj.isDeleted) {
         await this.delete(obj.id);
@@ -176,9 +174,6 @@ export abstract class ModelSynchronizer<T> {
         model: this.model,
       });
       more = delta.more;
-
-      console.log("delta", delta);
-      // return;
 
       for (const change of delta.changes) {
         if (change.operation === "CREATE") {

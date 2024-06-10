@@ -58,10 +58,6 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
       },
     });
 
-    console.log("response.data.results", response.data.results);
-
-    console.log("this.mapToObject", this.mapToObject);
-
     return response.data.results.map((result: any) => this.mapToObject(result));
   }
 

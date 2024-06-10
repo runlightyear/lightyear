@@ -65,8 +65,6 @@ export function defineSyncAction(props: DefineSyncActionProps) {
     // apps: props.app ? [props.app] : [],
     // customApps: props.customApp ? [props.customApp] : [],
     run: async (runProps) => {
-      console.log("Ready to run sync action!", props);
-
       const appName = props.app || props.customApp;
       if (!appName) {
         throw new Error("No app or custom app provided");
@@ -81,10 +79,8 @@ export function defineSyncAction(props: DefineSyncActionProps) {
       let connector: AuthConnector | undefined = undefined;
 
       if (isConnectorFunction(props.connector)) {
-        console.log("got a connector function");
         connector = props.connector(connectorProps);
       } else if (isConnectorClass(props.connector)) {
-        console.log("got a connector class");
         // @ts-ignore - We are assuming the user passed in a concrete class.
         connector = new props.connector(connectorProps);
       } else {
@@ -95,28 +91,15 @@ export function defineSyncAction(props: DefineSyncActionProps) {
         throw new Error("No connector provided");
       }
 
-      console.log("Got a connector", connector);
-
       const synchronizerProps: SynchronizerProps = { connector };
 
       let synchronizer: CollectionSynchronizer | null | undefined = undefined;
 
       if (!props.synchronizer) {
-        console.log("No explicit synchronizer provided on action");
-
         const connectorType = typeof connector;
-        console.log("connectorType", connectorType);
-        console.log("constructor", connector.constructor);
-        // console.log(
-        //   "constructor synchronizer",
-        //   connector.constructor["Synchronizer"]
-        // );
 
         // @ts-ignore
         const synchronizerClass = connector.constructor["Synchronizer"];
-
-        // const synchronizerClass = connector.getSynchronizerClass();
-        console.log("synchronizerClass", synchronizerClass);
 
         if (!synchronizerClass) {
           throw new Error("No synchronizer provided on connector");
