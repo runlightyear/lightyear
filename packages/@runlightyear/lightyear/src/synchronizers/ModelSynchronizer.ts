@@ -1,5 +1,6 @@
 import { deleteObject, getDelta, upsertObject } from "../base/collection";
 import { AuthConnector } from "../connectors/AuthConnector";
+import { get } from "lodash";
 
 export type Prettify<T> = {
   [K in keyof T]: T[K];
@@ -97,10 +98,10 @@ export abstract class ModelSynchronizer<T> {
       for (const [objectFieldName, transform] of Object.entries(
         this.toObject
       )) {
-        if (typeof transform === "string") {
-          object[objectFieldName] = source[transform];
-        } else {
+        if (typeof transform === "function") {
           object[objectFieldName] = transform(source);
+        } else {
+          object[objectFieldName] = get(source, transform);
         }
       }
     }
@@ -109,10 +110,10 @@ export abstract class ModelSynchronizer<T> {
       for (const [objectFieldName, transform] of Object.entries(
         this.toObjectData
       )) {
-        if (typeof transform === "string") {
-          object.data[objectFieldName] = source[transform];
-        } else {
+        if (typeof transform === "function") {
           object.data[objectFieldName] = transform(source);
+        } else {
+          object.data[objectFieldName] = get(source, transform);
         }
       }
     }
@@ -127,10 +128,10 @@ export abstract class ModelSynchronizer<T> {
       for (const [sourceFieldName, transform] of Object.entries(
         this.fromObjectData
       )) {
-        if (typeof transform === "string") {
-          external[sourceFieldName] = object.data[transform];
-        } else {
+        if (typeof transform === "function") {
           external[sourceFieldName] = transform(object.data);
+        } else {
+          external[sourceFieldName] = get(object.data, transform);
         }
       }
     }
