@@ -1,23 +1,33 @@
 import { ModelSynchronizer, ModelSynchronizerProps } from "./ModelSynchronizer";
 import { getModels } from "../base/collection";
+import { AuthConnector } from "../connectors/AuthConnector";
 
 export interface CollectionSynchronizerProps {
+  connector: AuthConnector;
   collection: string;
-  models: {
-    [name: string]: boolean | ModelSynchronizerProps;
+  models?: {
+    [name: string]: boolean | ((props: any) => ModelSynchronizer<any>);
+  };
+  modelSynchronizers?: {
+    [name: string]: (props: ModelSynchronizerProps) => ModelSynchronizer<any>;
   };
 }
 
 export abstract class CollectionSynchronizer {
+  connector: AuthConnector;
   collection: string;
-  models: {
-    [name: string]: boolean | ModelSynchronizerProps | ModelSynchronizer<any>;
+  modelSynchronizers: {
+    [name: string]: (props: ModelSynchronizerProps) => ModelSynchronizer<any>;
   };
 
   constructor(props: CollectionSynchronizerProps) {
-    const { collection, models, ...rest } = props;
+    this.connector = props.connector;
     this.collection = props.collection;
-    this.models = props.models;
+
+    this.modelSynchronizers = {
+      ...this.getDefaultModelSynchronizers(),
+      ...props.modelSynchronizers,
+    };
   }
 
   async getModelOrder() {
@@ -25,7 +35,10 @@ export abstract class CollectionSynchronizer {
 
     const result = [];
     for (const model of models) {
-      if (model.name in this.models && this.models[model.name]) {
+      if (
+        model.name in this.modelSynchronizers &&
+        this.modelSynchronizers[model.name]
+      ) {
         result.push(model.name);
       }
     }
@@ -33,7 +46,28 @@ export abstract class CollectionSynchronizer {
     return result;
   }
 
-  abstract getModel(name: string): any;
+  // force
+
+  abstract getDefaultModelSynchronizers(): {
+    [name: string]: (props: ModelSynchronizerProps) => ModelSynchronizer<any>;
+  };
+
+  getModelSynchronizerProps(model: string): ModelSynchronizerProps {
+    return {
+      connector: this.connector,
+      collection: this.collection,
+      model,
+    };
+  }
+
+  async getModel(name: string) {
+    const modelSynchronizer = this.modelSynchronizers[name];
+    if (!modelSynchronizer) {
+      return null;
+    }
+
+    return modelSynchronizer(this.getModelSynchronizerProps(name));
+  }
 
   async sync() {
     const modelsToSync = await this.getModelOrder();

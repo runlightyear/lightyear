@@ -8,72 +8,31 @@ import {
 } from "@runlightyear/lightyear";
 import { ContactSynchronizer } from "./ContactSynchronizer";
 
-export interface SalesforceSyncProps extends CollectionSynchronizerProps {
-  salesforce: Salesforce;
+export interface SalesforceSyncProps
+  extends Omit<CollectionSynchronizerProps, "collection"> {
+  collection?: string;
 }
 
 export class SalesforceSynchronizer extends CollectionSynchronizer {
   salesforce: Salesforce;
 
   constructor(props: SalesforceSyncProps) {
-    const { salesforce, ...rest } = props;
-    super(rest);
-    this.salesforce = salesforce;
+    const { collection = "crm", ...rest } = props;
+    super({ collection, ...rest });
+
+    if (props.connector instanceof Salesforce) {
+      this.salesforce = props.connector;
+    } else {
+      throw new Error("SalesforceSynchronizer requires a Salesforce connector");
+    }
   }
 
-  async getModel(name: string) {
-    if (!(name in this.models)) {
-      throw new Error(`Model not configured: ${name}`);
-    }
-
-    const modelDef = this.models[name];
-
-    switch (name) {
-      case "account": {
-        if (modelDef === true) {
-          return new AccountSynchronizer({
-            salesforce: this.salesforce,
-            collection: this.collection,
-            model: "account",
-          });
-        } else if (modelDef instanceof ModelSynchronizer) {
-          return modelDef;
-        } else {
-          return new AccountSynchronizer({
-            salesforce: this.salesforce,
-            collection: this.collection,
-            model: "account",
-            ...modelDef,
-          });
-        }
-      }
-      case "contact": {
-        if (modelDef === true) {
-          return new ContactSynchronizer({
-            salesforce: this.salesforce,
-            collection: this.collection,
-            model: "contact",
-          });
-        } else if (modelDef instanceof ModelSynchronizer) {
-          return modelDef;
-        } else {
-          return new ContactSynchronizer({
-            salesforce: this.salesforce,
-            collection: this.collection,
-            model: "contact",
-            ...modelDef,
-          });
-        }
-      }
-      default: {
-        if (modelDef instanceof ModelSynchronizer) {
-          return modelDef;
-        } else {
-          throw new Error(
-            `Must supply model synchronizer instance for custom models: ${name}`
-          );
-        }
-      }
-    }
+  getDefaultModelSynchronizers(): {
+    [name: string]: (props: ModelSynchronizerProps) => ModelSynchronizer<any>;
+  } {
+    return {
+      account: (props) => new AccountSynchronizer(props),
+      contact: (props) => new ContactSynchronizer(props),
+    };
   }
 }

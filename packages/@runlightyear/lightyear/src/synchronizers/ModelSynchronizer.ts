@@ -20,60 +20,78 @@ export interface FullObjectProps<T> extends UpdateObjectProps<T> {
   isDeleted?: boolean;
 }
 
-export interface ModelSynchronizerConfig {
-  toObject?: {
-    [objectFieldName: string]: string | ((source: any) => any);
-  };
-  toSource?: {
-    [sourceFieldName: string]: string | ((model: any) => any);
-  };
-}
-
-export interface ModelSynchronizerProps extends ModelSynchronizerConfig {
+export interface ModelSynchronizerProps {
+  connector: AuthConnector;
   collection: string;
   model: string;
+  toObject?: {
+    [objectFieldName: string]: string | ((external: any) => any);
+  };
+  toObjectData?: {
+    [objectFieldName: string]: string | ((external: any) => any);
+  };
+  fromObject?: {
+    [externalFieldName: string]: string | ((object: any) => any);
+  };
+  fromObjectData?: {
+    [externalFieldName: string]: string | ((object: any) => any);
+  };
 }
 
 export abstract class ModelSynchronizer<T> {
+  connector: AuthConnector;
   collection: string;
   model: string;
   toObject?: {
     [objectFieldName: string]: string | ((source: any) => any);
   };
-  toSource?: {
+  toObjectData?: {
+    [objectFieldName: string]: string | ((source: any) => any);
+  };
+  fromObject?: {
+    [sourceFieldName: string]: string | ((model: any) => any);
+  };
+  fromObjectData?: {
     [sourceFieldName: string]: string | ((model: any) => any);
   };
 
   constructor(props: ModelSynchronizerProps) {
+    this.connector = props.connector;
     this.collection = props.collection;
     this.model = props.model;
-    this.toObject = { ...this.getDefaultToObject(), ...props.toObject };
-    this.toSource = { ...this.getDefaultToSource(), ...props.toSource };
+    this.toObject = { ...this.getToObject(), ...props.toObject };
+    this.toObjectData = { ...this.getToObjectData(), ...props.toObjectData };
+    this.fromObject = { ...this.getFromObject(), ...props.fromObject };
+    this.fromObjectData = {
+      ...this.getFromObjectData(),
+      ...props.fromObjectData,
+    };
   }
 
-  abstract getConnector(): AuthConnector;
-  abstract getDefaultToObject(): {
-    [objectFieldName: string]: string | ((source: any) => any);
-  };
-  abstract getDefaultToSource(): {
-    [sourceFieldName: string]: string | ((model: any) => any);
-  };
+  abstract getToObject(): any;
+  abstract getToObjectData(): any;
+  abstract getFromObject(): any;
+  abstract getFromObjectData(): any;
+
   abstract list(): Promise<Array<FullObjectProps<T>>>;
   abstract get(id: string): Promise<FullObjectProps<T>>;
   abstract create(obj: CreateObjectProps<T>): Promise<string>;
   abstract update(obj: UpdateObjectProps<T>): Promise<void>;
   abstract delete(id: string): Promise<void>;
 
-  getSourceFields() {
-    return this.toSource ? Object.keys(this.toSource) : [];
+  getExternalKeys() {
+    return [
+      ...(this.fromObject ? Object.keys(this.fromObject) : []),
+      ...(this.fromObjectData ? Object.keys(this.fromObjectData) : []),
+    ];
   }
 
-  getObjectFields() {
-    return this.toObject ? Object.keys(this.toObject) : [];
+  getObjectKeys() {
+    return this.toObjectData ? Object.keys(this.toObjectData) : [];
   }
 
   mapToObject(source: any) {
-    const object: any = {};
+    const object: any = { data: {} };
 
     if (this.toObject) {
       for (const [objectFieldName, transform] of Object.entries(
@@ -87,34 +105,49 @@ export abstract class ModelSynchronizer<T> {
       }
     }
 
-    return object;
-  }
-
-  mapToSource(object: any) {
-    const source: any = {};
-
-    if (this.toSource) {
-      for (const [sourceFieldName, transform] of Object.entries(
-        this.toSource
+    if (this.toObjectData) {
+      for (const [objectFieldName, transform] of Object.entries(
+        this.toObjectData
       )) {
         if (typeof transform === "string") {
-          source[sourceFieldName] = object[transform];
+          object.data[objectFieldName] = source[transform];
         } else {
-          source[sourceFieldName] = transform(object);
+          object.data[objectFieldName] = transform(source);
         }
       }
     }
 
-    return source;
+    return object;
+  }
+
+  mapFromObject(object: any) {
+    const external: any = {};
+
+    if (this.fromObjectData) {
+      for (const [sourceFieldName, transform] of Object.entries(
+        this.fromObjectData
+      )) {
+        if (typeof transform === "string") {
+          external[sourceFieldName] = object.data[transform];
+        } else {
+          external[sourceFieldName] = transform(object.data);
+        }
+      }
+    }
+
+    return external;
   }
 
   async sync() {
     console.log("Syncing objects", this.collection, this.model);
-    const authData = this.getConnector().getAuthData();
+    const authData = this.connector.getAuthData();
     if (!authData) {
       throw new Error("Must have auth to sync");
     }
     const objects = await this.list();
+
+    console.log("objects", objects);
+
     for (const obj of objects) {
       if (obj.isDeleted) {
         await this.delete(obj.id);

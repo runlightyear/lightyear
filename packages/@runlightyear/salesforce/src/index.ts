@@ -44,6 +44,7 @@ export type {
 /* Sync */
 export { AccountSynchronizer } from "./synchronizers/AccountSynchronizer";
 export { ContactSynchronizer } from "./synchronizers/ContactSynchronizer";
+export { SalesforceModelSynchronizer } from "./synchronizers/SalesforceModelSynchronizer";
 export { SalesforceSynchronizer } from "./synchronizers/SalesforceSynchronizer";
 
 /* Types */
