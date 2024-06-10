@@ -31,7 +31,7 @@ export abstract class SalesforceModelSynchronizer extends ModelSynchronizer<any>
     return `${this.getNoun()}s`;
   }
 
-  getToObject() {
+  getToObjectMeta() {
     return {
       id: "Id",
       updatedAt: "LastModifiedDate",
@@ -43,7 +43,7 @@ export abstract class SalesforceModelSynchronizer extends ModelSynchronizer<any>
     return {};
   }
 
-  getFromObject() {
+  getFromObjectMeta() {
     return {
       Id: "id",
       LastModifiedDate: "updatedAt",

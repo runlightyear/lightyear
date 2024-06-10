@@ -29,7 +29,7 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
     return `${this.getNoun()}s`;
   }
 
-  getToObject() {
+  getToObjectMeta() {
     return {
       id: "id",
       updatedAt: "updatedAt",
@@ -41,7 +41,7 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
     return {};
   }
 
-  getFromObject() {
+  getFromObjectMeta() {
     return {};
   }
 

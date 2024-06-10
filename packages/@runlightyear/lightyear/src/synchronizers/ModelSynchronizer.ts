@@ -25,13 +25,13 @@ export interface ModelSynchronizerProps {
   connector: AuthConnector;
   collection: string;
   model: string;
-  toObject?: {
+  toObjectMeta?: {
     [objectFieldName: string]: string | ((external: any) => any);
   };
   toObjectData?: {
     [objectFieldName: string]: string | ((external: any) => any);
   };
-  fromObject?: {
+  fromObjectMeta?: {
     [externalFieldName: string]: string | ((object: any) => any);
   };
   fromObjectData?: {
@@ -43,13 +43,13 @@ export abstract class ModelSynchronizer<T> {
   connector: AuthConnector;
   collection: string;
   model: string;
-  toObject?: {
+  toObjectMeta?: {
     [objectFieldName: string]: string | ((source: any) => any);
   };
   toObjectData?: {
     [objectFieldName: string]: string | ((source: any) => any);
   };
-  fromObject?: {
+  fromObjectMeta?: {
     [sourceFieldName: string]: string | ((model: any) => any);
   };
   fromObjectData?: {
@@ -60,18 +60,21 @@ export abstract class ModelSynchronizer<T> {
     this.connector = props.connector;
     this.collection = props.collection;
     this.model = props.model;
-    this.toObject = { ...this.getToObject(), ...props.toObject };
+    this.toObjectMeta = { ...this.getToObjectMeta(), ...props.toObjectMeta };
     this.toObjectData = { ...this.getToObjectData(), ...props.toObjectData };
-    this.fromObject = { ...this.getFromObject(), ...props.fromObject };
+    this.fromObjectMeta = {
+      ...this.getFromObjectMeta(),
+      ...props.fromObjectMeta,
+    };
     this.fromObjectData = {
       ...this.getFromObjectData(),
       ...props.fromObjectData,
     };
   }
 
-  abstract getToObject(): any;
+  abstract getToObjectMeta(): any;
   abstract getToObjectData(): any;
-  abstract getFromObject(): any;
+  abstract getFromObjectMeta(): any;
   abstract getFromObjectData(): any;
 
   abstract list(): Promise<Array<FullObjectProps<T>>>;
@@ -82,7 +85,7 @@ export abstract class ModelSynchronizer<T> {
 
   getExternalKeys() {
     return [
-      ...(this.fromObject ? Object.keys(this.fromObject) : []),
+      ...(this.fromObjectMeta ? Object.keys(this.fromObjectMeta) : []),
       ...(this.fromObjectData ? Object.keys(this.fromObjectData) : []),
     ];
   }
@@ -94,9 +97,9 @@ export abstract class ModelSynchronizer<T> {
   mapToObject(source: any) {
     const object: any = { data: {} };
 
-    if (this.toObject) {
+    if (this.toObjectMeta) {
       for (const [objectFieldName, transform] of Object.entries(
-        this.toObject
+        this.toObjectMeta
       )) {
         if (typeof transform === "function") {
           object[objectFieldName] = transform(source);
