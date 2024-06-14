@@ -1,5 +1,21 @@
 # @runlightyear/salesforce
 
+## 0.6.0
+
+### Minor Changes
+
+- e32c4df08: Specify prompt parameter to SalesforceOAuth
+- a4b6a32c3: Synchronize accounts and contacts to crm collection
+- dbb1d29d3: Support for queryAll endpoint
+
+### Patch Changes
+
+- Updated dependencies [f0077c3b3]
+- Updated dependencies [8c67e780f]
+- Updated dependencies [1b4c630f9]
+- Updated dependencies [686dd6441]
+  - @runlightyear/lightyear@1.4.0
+
 ## 0.5.0
 
 ### Minor Changes

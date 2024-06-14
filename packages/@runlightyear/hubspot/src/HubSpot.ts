@@ -5,6 +5,7 @@ import {
 } from "@runlightyear/lightyear";
 import { HubspotOAuth } from "./HubSpotOAuth";
 import { HubspotAppWebhook } from "./HubSpotAppWebhook";
+import { HubSpotSynchronizer } from "./synchronizers/HubSpotSynchronizer";
 
 /**
  * @alpha
@@ -19,6 +20,7 @@ export class HubSpot extends RestConnector {
   static OAuth = HubspotOAuth;
   static AppWebhook = HubspotAppWebhook;
   static variables = ["appId"];
+  static Synchronizer = HubSpotSynchronizer;
 
   getBaseUrl(): string {
     return "https://api.hubapi.com";

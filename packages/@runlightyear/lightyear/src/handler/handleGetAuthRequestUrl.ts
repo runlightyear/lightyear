@@ -20,7 +20,7 @@ export async function handleGetAuthRequestUrl({
 
   const item = globalThis.authorizerIndex[customApp];
 
-  await updateAuthDataState({ customAppName: customApp, authName });
+  // await updateAuthDataState({ customAppName: customApp, authName });
 
   const authData = await getAuthData({ customAppName: customApp, authName });
 

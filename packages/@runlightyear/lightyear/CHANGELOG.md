@@ -1,5 +1,14 @@
 # @runlightyear/lightyear
 
+## 1.4.0
+
+### Minor Changes
+
+- f0077c3b3: Developer can define an integration
+- 8c67e780f: Developer can define a collection
+- 1b4c630f9: Actions can run on behalf of managed users and receive integration and managedUser props
+- 686dd6441: Support for synchronizing collections and models
+
 ## 1.3.0
 
 ### Minor Changes

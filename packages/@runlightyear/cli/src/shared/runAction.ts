@@ -59,6 +59,7 @@ export default async function runAction({
     const handlerResult = await handler({
       operation: "run",
       actionName,
+      runId,
       data,
       logDisplayLevel,
     });

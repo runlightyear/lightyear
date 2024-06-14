@@ -4,7 +4,7 @@ import { prefixedRedactedConsole } from "../logging";
 /**
  * @public
  */
-export type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /**
  * @public
@@ -77,6 +77,11 @@ export const httpRequest: HttpRequest = async (props) => {
     uri: "/api/v1/httpRequest",
     data: rest,
   });
+
+  const parsedUrl = new URL(props.url);
+  const displayUrl = `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`;
+
+  console.info(props.method, displayUrl, response.status, response.statusText);
 
   console.debug(`response.status`, response.status);
   console.debug(`response.statusText`, response.statusText);
