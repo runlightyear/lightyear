@@ -1,5 +1,20 @@
 # @runlightyear/hubspot
 
+## 0.3.0
+
+### Minor Changes
+
+- 02665841d: Connector defines OAuth settings
+- ba73d5eba: Support for synchronizing companies and contacts
+
+### Patch Changes
+
+- Updated dependencies [f0077c3b3]
+- Updated dependencies [8c67e780f]
+- Updated dependencies [1b4c630f9]
+- Updated dependencies [686dd6441]
+  - @runlightyear/lightyear@1.4.0
+
 ## 0.2.0
 
 ### Minor Changes

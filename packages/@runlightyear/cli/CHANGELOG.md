@@ -1,5 +1,20 @@
 # @runlightyear/cli
 
+## 1.3.0
+
+### Minor Changes
+
+- cfb870d49: Generate typescript declarations from collection models
+- 1b4c630f9: Actions can run on behalf of managed users and receive integration and managedUser props
+
+### Patch Changes
+
+- Updated dependencies [f0077c3b3]
+- Updated dependencies [8c67e780f]
+- Updated dependencies [1b4c630f9]
+- Updated dependencies [686dd6441]
+  - @runlightyear/lightyear@1.4.0
+
 ## 1.2.1
 
 ### Patch Changes
