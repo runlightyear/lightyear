@@ -1,5 +1,16 @@
 # @runlightyear/salesforce
 
+## 0.7.0
+
+### Minor Changes
+
+- 55871089b: Get domain from auth data
+
+### Patch Changes
+
+- Updated dependencies [f5e7184d9]
+  - @runlightyear/lightyear@1.5.0
+
 ## 0.6.0
 
 ### Minor Changes

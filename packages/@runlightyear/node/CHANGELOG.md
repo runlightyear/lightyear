@@ -1,5 +1,17 @@
 # @runlightyear/node
 
+## 0.2.0
+
+### Minor Changes
+
+- 7ffa4605d: Fix bug related to former .lightyear directory
+- 8e38746a8: Allow developer to pass alternate baseUrl
+
+### Patch Changes
+
+- Updated dependencies [f5e7184d9]
+  - @runlightyear/lightyear@1.5.0
+
 ## 0.1.0
 
 ### Minor Changes
