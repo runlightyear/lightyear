@@ -48,7 +48,7 @@ export interface SalesforceProps extends RestConnectorProps {
  *   run: async ({ auths }) => {
  *     const salesforce = new Salesforce({
  *       auth: auths.salesforce,
- *       domain: "<your salesforce domain name>",
+ *       domain: "https://lightyear2-dev-ed.develop.my.salesforce.com",
  *     });
  * });
  * ```
@@ -163,7 +163,7 @@ export class Salesforce extends RestConnector {
   }
 
   getBaseUrl(): string {
-    return `https://${this.domain}/services/data/v57.0`;
+    return `${this.domain}/services/data/v57.0`;
   }
 
   /**
