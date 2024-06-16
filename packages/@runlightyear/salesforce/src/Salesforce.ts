@@ -21,7 +21,7 @@ import { ContactSynchronizer } from "./synchronizers/ContactSynchronizer";
  * @alpha
  */
 export interface SalesforceProps extends RestConnectorProps {
-  domain: string;
+  domain?: string;
 }
 
 /**
@@ -48,7 +48,7 @@ export interface SalesforceProps extends RestConnectorProps {
  *   run: async ({ auths }) => {
  *     const salesforce = new Salesforce({
  *       auth: auths.salesforce,
- *       domain: "<your salesforce domain name>",
+ *       domain: "https://lightyear2-dev-ed.develop.my.salesforce.com",
  *     });
  * });
  * ```
@@ -151,11 +151,19 @@ export class Salesforce extends RestConnector {
 
     super({ ...rest, camelize: false });
 
-    this.domain = domain;
+    const extraData = this.getAuthData().extraData;
+
+    if (domain) {
+      this.domain = domain;
+    } else if (extraData && ("instanceUrl" as string) in extraData) {
+      this.domain = extraData["instanceUrl"];
+    } else {
+      throw new Error("Missing instanceUrl in auth data");
+    }
   }
 
   getBaseUrl(): string {
-    return `https://${this.domain}.my.salesforce.com/services/data/v57.0`;
+    return `${this.domain}/services/data/v57.0`;
   }
 
   /**

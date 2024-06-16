@@ -65,9 +65,14 @@ export class SalesforceOAuth extends OAuthConnector {
     headers: Record<string, string>;
     text: string;
   }): AuthData {
+    const data = JSON.parse(props.text);
+
     return {
       ...super.processRequestAccessTokenResponse(props),
       expiresAt: dayjsUtc().add(1, "hour").format(),
+      extraData: {
+        instanceUrl: data["instance_url"],
+      },
     };
   }
 

@@ -7,10 +7,3 @@ export type {
   ObjectMetaData,
 } from "./ModelSynchronizer";
 export { ModelSynchronizer } from "./ModelSynchronizer";
-
-try {
-  const test = require(".lightyear");
-  console.log("test", test);
-} catch (error) {
-  console.log(error);
-}

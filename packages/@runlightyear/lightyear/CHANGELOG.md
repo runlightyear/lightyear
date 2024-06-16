@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 1.5.0
+
+### Minor Changes
+
+- f5e7184d9: Allow use of extraData on auth
+
 ## 1.4.0
 
 ### Minor Changes
