@@ -1,5 +1,11 @@
 # @runlightyear/slack
 
+## 0.18.1
+
+### Patch Changes
+
+- Fixed malformed import
+
 ## 0.18.0
 
 ### Minor Changes

@@ -4,6 +4,7 @@ import {
   HttpProxyResponse,
   RestConnectorProps,
   WebhookDeliveryData,
+  AuthType,
 } from "@runlightyear/lightyear";
 import postMessage, { PostMessageProps } from "./chat/postMessage";
 import { scheduleMessage, ScheduleMessageProps } from "./chat/scheduleMessage";
@@ -45,7 +46,6 @@ import {
   KickFromConversationProps,
 } from "./conversations/kickFromConversation";
 import { SlackOAuth } from "./SlackOAuth";
-import { AuthType } from "@runlightyear/lightyear/src/connectors/BaseConnector";
 import { SlackAppWebhook } from "./SlackAppWebhook";
 import { getTeamInfo, GetTeamInfoProps } from "./team/getTeamInfo";
 import {

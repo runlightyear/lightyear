@@ -1,5 +1,11 @@
 # @runlightyear/zoom
 
+## 0.9.1
+
+### Patch Changes
+
+- Fixed malformed import
+
 ## 0.9.0
 
 ### Minor Changes
