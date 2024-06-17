@@ -1,5 +1,11 @@
 # @runlightyear/gmail
 
+## 0.6.1
+
+### Patch Changes
+
+- Fixed malformed import
+
 ## 0.6.0
 
 ### Minor Changes

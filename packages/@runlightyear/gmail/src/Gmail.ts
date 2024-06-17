@@ -1,5 +1,8 @@
-import { RestConnector, RestConnectorProps } from "@runlightyear/lightyear";
-import { AuthType } from "@runlightyear/lightyear/src";
+import {
+  RestConnector,
+  RestConnectorProps,
+  AuthType,
+} from "@runlightyear/lightyear";
 import { GmailOAuth } from "./GmailOAuth";
 
 /**
