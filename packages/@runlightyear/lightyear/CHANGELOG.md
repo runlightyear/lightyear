@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 1.6.0
+
+### Minor Changes
+
+- Added module setting to package.json
+
 ## 1.5.0
 
 ### Minor Changes

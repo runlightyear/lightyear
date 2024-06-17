@@ -1,5 +1,16 @@
 # @runlightyear/airtable
 
+## 1.2.0
+
+### Minor Changes
+
+- Added module setting to package.json
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@1.6.0
+
 ## 1.1.2
 
 ### Patch Changes

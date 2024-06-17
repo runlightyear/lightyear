@@ -1,5 +1,16 @@
 # @runlightyear/slack
 
+## 0.18.0
+
+### Minor Changes
+
+- Added module setting to package.json
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@1.6.0
+
 ## 0.17.3
 
 ### Patch Changes

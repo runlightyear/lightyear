@@ -1,5 +1,16 @@
 # @runlightyear/salesforce
 
+## 0.8.0
+
+### Minor Changes
+
+- Added module setting to package.json
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@1.6.0
+
 ## 0.7.0
 
 ### Minor Changes

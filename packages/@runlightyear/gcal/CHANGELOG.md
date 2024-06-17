@@ -1,5 +1,16 @@
 # @runlightyear/gcal
 
+## 0.11.0
+
+### Minor Changes
+
+- Added module setting to package.json
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@1.6.0
+
 ## 0.10.2
 
 ### Patch Changes
