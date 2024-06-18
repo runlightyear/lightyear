@@ -3,10 +3,10 @@ import {
   RunFuncProps,
   setVariable,
   SKIPPED,
+  AppName,
 } from "@runlightyear/lightyear";
 import { Zoom } from "../Zoom";
 import { RecordingMeeting } from "../types/RecordingMeeting";
-import { AppName } from "@runlightyear/lightyear/src/base/action";
 import { RecordingStatus } from "../types/RecordingStatus";
 import { FileType } from "../types/FileType";
 
