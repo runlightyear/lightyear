@@ -10,13 +10,17 @@ export class ContactSynchronizer extends HubSpotModelSynchronizer {
       ...super.getToObjectData(),
       firstName: "properties.firstname",
       lastName: "properties.lastname",
-      emailAddresses: (external: any) => {
-        if (external.properties.email) {
-          return [{ address: external.properties.email }];
-        }
-
-        return [];
-      },
+      email: "properties.email",
+      phone: "properties.phone",
+      mobile: "properties.mobilephone",
+      address: (source: any) => ({
+        street: source.properties.address,
+        street2: source.properties.address2,
+        city: source.properties.city,
+        state: source.properties.state,
+        postalCode: source.properties.zip,
+        country: source.properties.country,
+      }),
       accountId: "properties.associatedcompanyid",
     };
   }
@@ -26,7 +30,15 @@ export class ContactSynchronizer extends HubSpotModelSynchronizer {
       ...super.getFromObjectData(),
       firstname: "firstName",
       lastname: "lastName",
-      email: (source: any) => source.emailAddresses[0]?.address,
+      email: "email",
+      phone: "phone",
+      mobilephone: "mobile",
+      address: "street",
+      address2: "street2",
+      city: "city",
+      state: "state",
+      zip: "postalCode",
+      country: "country",
       associatedcompanyid: "accountId",
     };
   }

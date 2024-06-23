@@ -9,11 +9,8 @@ export class AccountSynchronizer extends SalesforceModelSynchronizer {
     return {
       ...super.getToObjectData(),
       name: "Name",
-      domain: (source: any) =>
-        source.Website?.replace("http://", "")
-          .replace("https://", "")
-          .replace("www.", "") ?? null,
       website: "Website",
+      phone: "Phone",
     };
   }
 
@@ -22,6 +19,7 @@ export class AccountSynchronizer extends SalesforceModelSynchronizer {
       ...super.getFromObjectData(),
       Name: "name",
       Website: "website",
+      Phone: "phone",
     };
   }
 }

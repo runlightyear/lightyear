@@ -10,18 +10,19 @@ export class ContactSynchronizer extends SalesforceModelSynchronizer {
       ...super.getToObjectData(),
       firstName: "FirstName",
       lastName: "LastName",
-      emailAddresses: (external: any) => {
-        if (external.Email && external.Email.length > 0) {
-          return [{ address: external.Email }];
-        }
-        return [];
-      },
-      phoneNumbers: (external: any) => {
-        if (external.Phone && external.Phone.length > 0) {
-          return [{ number: external.Phone }];
-        }
-        return [];
-      },
+      email: "Email",
+      phone: "Phone",
+      mobile: "MobilePhone",
+      address: (source: any) =>
+        source.MailingAddress
+          ? {
+              street: source.MailingAddress.street,
+              city: source.MailingAddress.city,
+              state: source.MailingAddress.state,
+              postalCode: source.MailingAddress.postalCode,
+              country: source.MailingAddress.country,
+            }
+          : null,
       accountId: "AccountId",
     };
   }
@@ -31,8 +32,19 @@ export class ContactSynchronizer extends SalesforceModelSynchronizer {
       ...super.getFromObjectData(),
       FirstName: "firstName",
       LastName: "lastName",
-      Email: (object: any) => object.emailAddresses[0]?.address,
-      Phone: (object: any) => object.phoneNumbers[0]?.number,
+      Email: "email",
+      Phone: "phone",
+      MobilePhone: "mobile",
+      MailingAddress: (object: any) =>
+        object.address
+          ? {
+              street: object.address.street,
+              city: object.address.city,
+              state: object.address.state,
+              postalCode: object.address.postalCode,
+              country: object.address.country,
+            }
+          : null,
       AccountId: "accountId",
     };
   }
