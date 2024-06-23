@@ -1,5 +1,11 @@
 # @runlightyear/hubspot
 
+## 0.4.1
+
+### Patch Changes
+
+- ce75f448e: Fix bug in HubSpotModelSynchronizer.get url
+
 ## 0.4.0
 
 ### Minor Changes

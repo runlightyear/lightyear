@@ -61,9 +61,9 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
     return response.data.results.map((result: any) => this.mapToObject(result));
   }
 
-  async get() {
+  async get(id: string) {
     const response = await this.hubspot.get({
-      url: `/crm/v3/objects/${this.getPluralNoun()}/{id}`,
+      url: `/crm/v3/objects/${this.getPluralNoun()}/${id}`,
       params: {
         properties: this.getExternalKeys().join(","),
       },
