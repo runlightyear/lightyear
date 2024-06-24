@@ -1,5 +1,12 @@
 # @runlightyear/lightyear
 
+## 1.7.0
+
+### Minor Changes
+
+- feacfd6c3: Update format of email addresses, phone numbers, and physical addresses for crm collections
+- 83a17db8c: Enable some models in a collection
+
 ## 1.6.0
 
 ### Minor Changes

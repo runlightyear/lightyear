@@ -1,5 +1,17 @@
 # @runlightyear/salesforce
 
+## 0.9.0
+
+### Minor Changes
+
+- feacfd6c3: Update format of email addresses, phone numbers, and physical addresses for crm collections
+
+### Patch Changes
+
+- Updated dependencies [feacfd6c3]
+- Updated dependencies [83a17db8c]
+  - @runlightyear/lightyear@1.7.0
+
 ## 0.8.0
 
 ### Minor Changes

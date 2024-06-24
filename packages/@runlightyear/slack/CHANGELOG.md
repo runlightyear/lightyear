@@ -1,5 +1,13 @@
 # @runlightyear/slack
 
+## 0.18.2
+
+### Patch Changes
+
+- Updated dependencies [feacfd6c3]
+- Updated dependencies [83a17db8c]
+  - @runlightyear/lightyear@1.7.0
+
 ## 0.18.1
 
 ### Patch Changes
