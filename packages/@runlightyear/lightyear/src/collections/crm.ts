@@ -1,10 +1,7 @@
-import { defineCollection } from "../base/collection";
+import { defineCollection, DefineCollectionProps } from "../base/collection";
 
-export interface DefineCrmCollectionProps {
-  enable: {
-    [name: "account" | "contact" | string]: boolean;
-  };
-}
+export interface DefineCrmCollectionProps
+  extends Partial<DefineCollectionProps> {}
 
 const Email = { type: ["string", "null"] };
 
@@ -29,9 +26,12 @@ const Address = {
 };
 
 export function defineCrmCollection(props?: DefineCrmCollectionProps) {
+  const { name = "crm", title = "CRM", enabled, models } = props || {};
+
   return defineCollection({
-    name: "crm",
-    title: "CRM",
+    name,
+    title,
+    enabled,
     models: [
       {
         name: "account",

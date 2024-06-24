@@ -31,6 +31,9 @@ export interface DefineCollectionProps {
     schema?: unknown;
     matchOn?: MatchSpec;
   }>;
+  enabled?: {
+    [modelName: string]: boolean;
+  };
 }
 
 /**
@@ -53,9 +56,20 @@ export interface DeployCollectionProps {
 export function defineCollection(props: DefineCollectionProps) {
   console.debug("defineCollection", props);
 
+  const { enabled, ...rest } = props;
+
+  let enabledModels = props.models;
+  if (props.models) {
+    if (enabled) {
+      enabledModels = props.models.filter((model) => {
+        return enabled[model.name] ?? false;
+      });
+    }
+  }
+
   pushToDeployList({
     type: "collection",
-    collectionProps: props,
+    collectionProps: { ...rest, models: enabledModels },
   });
 
   return props.name;
