@@ -519,11 +519,8 @@ export class Notion extends RestConnector {
     return "https://api.notion.com/v1";
   }
 
-  /**
-   * @internal
-   */
-  authorizationHeaders(): { [p: string]: string } {
-    return { ...super.authorizationHeaders(), "Notion-Version": "2022-06-28" };
+  getDefaultHeaders(): Record<string, any> {
+    return { ...super.getDefaultHeaders(), "Notion-Version": "2022-06-28" };
   }
 
   /**

@@ -1,5 +1,11 @@
 # @runlightyear/notion
 
+## 1.3.0
+
+### Minor Changes
+
+- Construct headers using getDefaultHeaders instead of deprecated method
+
 ## 1.2.1
 
 ### Patch Changes
