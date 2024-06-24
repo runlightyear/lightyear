@@ -1,5 +1,17 @@
 # @runlightyear/hubspot
 
+## 0.5.0
+
+### Minor Changes
+
+- feacfd6c3: Update format of email addresses, phone numbers, and physical addresses for crm collections
+
+### Patch Changes
+
+- Updated dependencies [feacfd6c3]
+- Updated dependencies [83a17db8c]
+  - @runlightyear/lightyear@1.7.0
+
 ## 0.4.1
 
 ### Patch Changes

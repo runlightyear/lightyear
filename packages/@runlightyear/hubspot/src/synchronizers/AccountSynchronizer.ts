@@ -6,8 +6,6 @@ import {
 export interface AccountSynchronizerProps
   extends HubSpotModelSynchronizerProps {}
 
-// force recompile
-
 export class AccountSynchronizer extends HubSpotModelSynchronizer {
   constructor(props: AccountSynchronizerProps) {
     const { model = "account", ...rest } = props;
@@ -26,7 +24,16 @@ export class AccountSynchronizer extends HubSpotModelSynchronizer {
     return {
       ...super.getToObjectData(),
       name: "properties.name",
-      domain: "properties.domain",
+      website: "properties.website",
+      phone: "properties.phone",
+      address: (source: any) => ({
+        street: source.properties.address,
+        street2: source.properties.address2,
+        city: source.properties.city,
+        state: source.properties.state,
+        postalCode: source.properties.zip,
+        country: source.properties.country,
+      }),
     };
   }
 
@@ -34,7 +41,14 @@ export class AccountSynchronizer extends HubSpotModelSynchronizer {
     return {
       ...super.getFromObjectData(),
       name: "name",
-      domain: "domain",
+      website: "website",
+      phone: "phone",
+      street: "address.street",
+      street2: "address.street2",
+      city: "address.city",
+      state: "address.state",
+      zip: "address.postalCode",
+      country: "address.country",
     };
   }
 }

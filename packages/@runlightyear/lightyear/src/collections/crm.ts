@@ -1,44 +1,37 @@
-import { defineCollection } from "../base/collection";
+import { defineCollection, DefineCollectionProps } from "../base/collection";
 
-export interface DefineCrmCollectionProps {
-  models: {
-    [name: string]: boolean;
-  };
-}
+export interface DefineCrmCollectionProps
+  extends Partial<DefineCollectionProps> {}
 
-const EmailAddress = {
-  type: "object",
-  properties: {
-    type: { type: ["string", "null"] },
-    address: { type: "string" },
-  },
-};
+const Email = { type: ["string", "null"] };
 
-const PhoneNumber = {
-  type: "object",
-  properties: {
-    type: { type: ["string", "null"] },
-    number: { type: "string" },
-  },
-};
+const Phone = { type: ["string", "null"] };
 
 const Address = {
-  type: "object",
-  properties: {
-    type: { type: ["string", "null"] },
-    street: { type: ["string", "null"] },
-    street2: { type: ["string", "null"] },
-    city: { type: ["string", "null"] },
-    state: { type: ["string", "null"] },
-    postalCode: { type: ["string", "null"] },
-    country: { type: ["string", "null"] },
-  },
+  anyOf: [
+    {
+      type: "object",
+      properties: {
+        type: { type: ["string", "null"] },
+        street: { type: ["string", "null"] },
+        street2: { type: ["string", "null"] },
+        city: { type: ["string", "null"] },
+        state: { type: ["string", "null"] },
+        postalCode: { type: ["string", "null"] },
+        country: { type: ["string", "null"] },
+      },
+    },
+    { type: "null" },
+  ],
 };
 
 export function defineCrmCollection(props?: DefineCrmCollectionProps) {
+  const { name = "crm", title = "CRM", enabled, models } = props || {};
+
   return defineCollection({
-    name: "crm",
-    title: "CRM",
+    name,
+    title,
+    enabled,
     models: [
       {
         name: "account",
@@ -47,18 +40,14 @@ export function defineCrmCollection(props?: DefineCrmCollectionProps) {
           type: "object",
           properties: {
             name: { type: ["string", "null"] },
-            domain: { type: ["string", "null"] },
-            addresses: {
-              type: "array",
-              items: Address,
-            },
-            phoneNumbers: {
-              type: "array",
-              items: PhoneNumber,
-            },
+            website: { type: ["string", "null"] },
+            phone: Phone,
+            address: Address,
+            billingAddress: Address,
+            shippingAddress: Address,
           },
         },
-        matchOn: { OR: ["name", "domain"] },
+        matchOn: { OR: ["name", "website"] },
       },
       {
         name: "contact",
@@ -68,14 +57,12 @@ export function defineCrmCollection(props?: DefineCrmCollectionProps) {
           properties: {
             firstName: { type: ["string", "null"] },
             lastName: { type: ["string", "null"] },
-            emailAddresses: {
-              type: "array",
-              items: EmailAddress,
-            },
-            phoneNumbers: {
-              type: "array",
-              items: PhoneNumber,
-            },
+            email: Email,
+            phone: Phone,
+            mobile: Phone,
+            address: Address,
+            mailingAddress: Address,
+            otherAddress: Address,
             accountId: {
               anyOf: [
                 {
@@ -87,9 +74,7 @@ export function defineCrmCollection(props?: DefineCrmCollectionProps) {
             },
           },
         },
-        matchOn: {
-          OVERLAP: "$.emailAddresses[*].address",
-        },
+        matchOn: "email",
       },
     ],
   });
