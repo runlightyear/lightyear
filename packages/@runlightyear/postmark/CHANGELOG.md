@@ -1,5 +1,12 @@
 # @runlightyear/postmark
 
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [05a3de7e4]
+  - @runlightyear/lightyear@1.8.0
+
 ## 0.5.1
 
 ### Patch Changes
