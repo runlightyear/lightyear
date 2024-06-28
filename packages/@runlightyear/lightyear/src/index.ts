@@ -133,6 +133,10 @@ export type {
   SynchronizerProps,
 } from "./base/syncAction";
 
+/* Sync Integrations */
+export { defineSyncIntegration } from "./base/syncIntegration";
+export type { DefineSyncIntegrationProps } from "./base/syncIntegration";
+
 /* Variables */
 export { getVariableData, setVariable } from "./base/variable";
 export type { VariableDef, VariableData } from "./base/variable";
