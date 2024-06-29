@@ -11,7 +11,7 @@ export interface HubSpotOAuthProps extends OAuthConnectorProps {
 /**
  * @alpha
  */
-export class HubspotOAuth extends OAuthConnector {
+export class HubSpotOAuth extends OAuthConnector {
   scopes: Array<HubSpotScope>;
 
   constructor(props: HubSpotOAuthProps) {

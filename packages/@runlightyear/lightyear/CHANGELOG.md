@@ -1,5 +1,13 @@
 # @runlightyear/lightyear
 
+## 1.8.0
+
+### Minor Changes
+
+- 05a3de7e4: Added defineSyncIntegration
+- Added hubspot as an app
+- Added defineSyncIntegration
+
 ## 1.7.0
 
 ### Minor Changes

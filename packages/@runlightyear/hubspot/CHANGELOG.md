@@ -1,5 +1,18 @@
 # @runlightyear/hubspot
 
+## 0.6.0
+
+### Minor Changes
+
+- Fixed naming issue for HubSpotOAuth
+
+### Patch Changes
+
+- Updated dependencies [05a3de7e4]
+- Updated dependencies
+- Updated dependencies
+  - @runlightyear/lightyear@1.8.0
+
 ## 0.5.0
 
 ### Minor Changes
