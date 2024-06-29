@@ -9,7 +9,7 @@ import { HubSpot } from "./HubSpot";
 /**
  * @alpha
  */
-export class HubspotAppWebhook extends AppWebhookConnector {
+export class HubSpotAppWebhook extends AppWebhookConnector {
   async getIdentifier(): Promise<string> {
     const hubspot = new HubSpot({
       auth: this.getAuthData(),

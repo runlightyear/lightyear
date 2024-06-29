@@ -4,7 +4,7 @@ import {
   RestConnectorProps,
 } from "@runlightyear/lightyear";
 import { HubSpotOAuth } from "./HubSpotOAuth";
-import { HubspotAppWebhook } from "./HubSpotAppWebhook";
+import { HubSpotAppWebhook } from "./HubSpotAppWebhook";
 import { HubSpotSynchronizer } from "./synchronizers/HubSpotSynchronizer";
 
 /**
@@ -18,7 +18,7 @@ export interface HubSpotProps extends RestConnectorProps {}
 export class HubSpot extends RestConnector {
   static authType: AuthType = "OAUTH2";
   static OAuth = HubSpotOAuth;
-  static AppWebhook = HubspotAppWebhook;
+  static AppWebhook = HubSpotAppWebhook;
   static variables = ["appId"];
   static Synchronizer = HubSpotSynchronizer;
 
