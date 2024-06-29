@@ -1,5 +1,11 @@
 # @runlightyear/hubspot
 
+## 0.7.0
+
+### Minor Changes
+
+- d42cc8404: Fix spelling error with HubSpotAppWebhook
+
 ## 0.6.0
 
 ### Minor Changes
