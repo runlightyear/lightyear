@@ -63,11 +63,13 @@ export function defineSyncIntegration(props: DefineSyncIntegrationProps) {
     name: props.name,
     title: props.title,
     description: props.description,
+    app: props.app,
     customApp: props.customApp,
     actions: [
       defineSyncAction({
         name: `${props.name}_sync`,
         title: `${props.title} Sync`,
+        app: props.app,
         customApp: props.customApp,
         connector: props.connector,
         synchronizer: props.synchronizer,
