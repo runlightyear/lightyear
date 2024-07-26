@@ -1,5 +1,12 @@
 # @runlightyear/lightyear
 
+## 1.9.0
+
+### Minor Changes
+
+- 224005137: Unprotect constructor for GraphQLConnector
+- 9ce4aae92: Sync action works with apps
+
 ## 1.8.0
 
 ### Minor Changes
