@@ -173,6 +173,7 @@ export abstract class ModelSynchronizer<T> {
       const delta = await getDelta({
         collection: this.collection,
         managedUserExternalId: authData.managedUser?.externalId ?? null,
+        app: authData.appName,
         customApp: authData.customAppName,
         model: this.model,
       });

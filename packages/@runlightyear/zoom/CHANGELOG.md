@@ -1,5 +1,13 @@
 # @runlightyear/zoom
 
+## 0.9.4
+
+### Patch Changes
+
+- Updated dependencies [224005137]
+- Updated dependencies [9ce4aae92]
+  - @runlightyear/lightyear@1.9.0
+
 ## 0.9.3
 
 ### Patch Changes

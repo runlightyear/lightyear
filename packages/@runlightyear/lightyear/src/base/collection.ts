@@ -99,12 +99,13 @@ export async function getModels(props: GetModelProps) {
 export interface GetDeltaProps {
   collection: string;
   model: string;
+  app: string | null;
   customApp: string | null;
   managedUserExternalId?: string | null;
 }
 
 export async function getDelta(props: GetDeltaProps) {
-  const { collection, model, customApp, managedUserExternalId } = props;
+  const { collection, model, app, customApp, managedUserExternalId } = props;
 
   const envName = getEnvName();
 
@@ -112,6 +113,7 @@ export async function getDelta(props: GetDeltaProps) {
     method: "POST",
     uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/delta`,
     data: {
+      appName: app,
       customAppName: customApp,
       managedUserExternalId: managedUserExternalId ?? null,
     },
