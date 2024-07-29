@@ -17,6 +17,10 @@ export interface AuthProps {
  * @internal
  */
 export type AuthData = {
+  managedUser: {
+    id: string;
+    externalId: string;
+  } | null;
   appName: string | null;
   customAppName: string | null;
   authName: string;
@@ -54,7 +58,7 @@ export type AuthData = {
   /**
    * Store app-specific data beyond the OAuth spec
    */
-  extraData?: string | null;
+  extraData?: Record<string, any> | null;
   /**
    * Custom app data
    */

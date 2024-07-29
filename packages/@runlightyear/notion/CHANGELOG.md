@@ -1,5 +1,64 @@
 # @runlightyear/notion
 
+## 1.3.2
+
+### Patch Changes
+
+- Updated dependencies [224005137]
+- Updated dependencies [9ce4aae92]
+  - @runlightyear/lightyear@1.9.0
+
+## 1.3.1
+
+### Patch Changes
+
+- Updated dependencies [05a3de7e4]
+- Updated dependencies
+- Updated dependencies
+  - @runlightyear/lightyear@1.8.0
+
+## 1.3.0
+
+### Minor Changes
+
+- Construct headers using getDefaultHeaders instead of deprecated method
+
+## 1.2.1
+
+### Patch Changes
+
+- Updated dependencies [feacfd6c3]
+- Updated dependencies [83a17db8c]
+  - @runlightyear/lightyear@1.7.0
+
+## 1.2.0
+
+### Minor Changes
+
+- Added module setting to package.json
+
+### Patch Changes
+
+- Updated dependencies
+  - @runlightyear/lightyear@1.6.0
+
+## 1.1.2
+
+### Patch Changes
+
+- Updated dependencies [f5e7184d9]
+  - @runlightyear/lightyear@1.5.0
+
+## 1.1.1
+
+### Patch Changes
+
+- Updated dependencies [f0077c3b3]
+- Updated dependencies [8c67e780f]
+- Updated dependencies [1b4c630f9]
+- Updated dependencies [686dd6441]
+  - @runlightyear/lightyear@1.4.0
+
 ## 1.1.0
 
 ### Minor Changes

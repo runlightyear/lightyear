@@ -37,6 +37,27 @@ export type { BaseRequestProps } from "./base/baseRequest";
 export { getCache, saveCache } from "./base/cache";
 export type { GetCacheProps, SaveCacheProps, CacheData } from "./base/cache";
 
+/* Collection */
+export {
+  defineCollection,
+  getModels,
+  getDelta,
+  upsertObject,
+  deleteObject,
+  detectHardDeletes,
+} from "./base/collection";
+export type {
+  DefineCollectionProps,
+  GetDeltaProps,
+  UpsertObjectProps,
+  DeleteObjectProps,
+  DetectHardDeletesProps,
+} from "./base/collection";
+
+/* Collection: CRM */
+export type { DefineCrmCollectionProps } from "./collections/crm";
+export { defineCrmCollection } from "./collections/crm";
+
 /* Custom App */
 export { defineCustomApp } from "./base/customApp";
 export type {
@@ -66,6 +87,10 @@ export type {
   HttpProxyResponse,
   HttpProxyResponseError,
 } from "./base/http";
+
+/* Integration */
+export { defineIntegration } from "./base/integration";
+export type { DefineIntegrationProps } from "./base/integration";
 
 /* OAuth */
 export { defineAuthorizer, defineOAuth } from "./base/authorizer";
@@ -100,6 +125,17 @@ export type {
   SmtpProxyResponse,
   EmailAddress,
 } from "./base/smtp";
+
+/* Sync Actions */
+export { defineSyncAction } from "./base/syncAction";
+export type {
+  DefineSyncActionProps,
+  SynchronizerProps,
+} from "./base/syncAction";
+
+/* Sync Integrations */
+export { defineSyncIntegration } from "./base/syncIntegration";
+export type { DefineSyncIntegrationProps } from "./base/syncIntegration";
 
 /* Variables */
 export { getVariableData, setVariable } from "./base/variable";
@@ -154,6 +190,12 @@ export type {
 /* Smtp Connector */
 export { SmtpConnector } from "./connectors/SmtpConnector";
 export type { SmtpConnectorProps } from "./connectors/SmtpConnector";
+
+/** Synchronizers **/
+export { CollectionSynchronizer } from "./synchronizers/CollectionSynchronizer";
+export type { CollectionSynchronizerProps } from "./synchronizers/CollectionSynchronizer";
+export { ModelSynchronizer } from "./synchronizers/ModelSynchronizer";
+export type { ModelSynchronizerProps } from "./synchronizers/ModelSynchronizer";
 
 /** Logging **/
 export { PrefixedRedactedConsole } from "./logging/PrefixedRedactedConsole";

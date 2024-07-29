@@ -28,6 +28,7 @@ export interface RepoInvocation extends APIGatewayEvent {
   operation: string;
   removed?: boolean;
   actionName?: string;
+  runId?: string;
   webhookName?: string;
   customAppName?: string;
   authName?: string;
@@ -81,6 +82,7 @@ export async function handler(
     webhookName,
     removed,
     actionName,
+    runId,
     customAppName,
     authName,
     code,
@@ -122,7 +124,7 @@ export async function handler(
   } else if (operation === "refreshSubscription") {
     return handleRefreshSubscription({ webhookName });
   } else if (operation === "run") {
-    return handleRun({ actionName, data, context });
+    return handleRun({ actionName, runId, data, context });
   } else if (operation === "getAuthRequestUrl") {
     if (!customAppName) {
       return handlerResult(400, "Missing customAppName");

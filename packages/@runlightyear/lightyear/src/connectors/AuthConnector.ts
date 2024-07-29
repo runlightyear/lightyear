@@ -30,6 +30,7 @@ export abstract class AuthConnector extends BaseConnector {
       this._auth = {
         appName: null,
         customAppName: null,
+        managedUser: null,
         authName: "null",
         username: null,
         password: null,

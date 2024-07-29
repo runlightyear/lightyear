@@ -1,5 +1,48 @@
 # @runlightyear/lightyear
 
+## 1.9.0
+
+### Minor Changes
+
+- 224005137: Unprotect constructor for GraphQLConnector
+- 9ce4aae92: Sync action works with apps
+
+## 1.8.0
+
+### Minor Changes
+
+- 05a3de7e4: Added defineSyncIntegration
+- Added hubspot as an app
+- Added defineSyncIntegration
+
+## 1.7.0
+
+### Minor Changes
+
+- feacfd6c3: Update format of email addresses, phone numbers, and physical addresses for crm collections
+- 83a17db8c: Enable some models in a collection
+
+## 1.6.0
+
+### Minor Changes
+
+- Added module setting to package.json
+
+## 1.5.0
+
+### Minor Changes
+
+- f5e7184d9: Allow use of extraData on auth
+
+## 1.4.0
+
+### Minor Changes
+
+- f0077c3b3: Developer can define an integration
+- 8c67e780f: Developer can define a collection
+- 1b4c630f9: Actions can run on behalf of managed users and receive integration and managedUser props
+- 686dd6441: Support for synchronizing collections and models
+
 ## 1.3.0
 
 ### Minor Changes

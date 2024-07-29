@@ -28,5 +28,5 @@ import { Attributes } from "./Attributes";
 export type SRecord = {
   id: string;
   attributes: Attributes;
-  [fieldName: string]: unknown;
+  [fieldName: string]: any;
 };

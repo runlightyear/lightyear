@@ -23,6 +23,8 @@ export const createRecord =
   async (props: CreateRecordProps): Promise<CreateRecordResponse> => {
     const { objectType, fieldValues } = props;
 
+    console.log("in Salesforce.createRecord", objectType, fieldValues);
+
     return await self.post({
       url: `/sobjects/${objectType}/`,
       data: fieldValues,

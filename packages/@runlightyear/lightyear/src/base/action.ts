@@ -20,6 +20,7 @@ export type AppName =
   | "github"
   | "gmail"
   | "gsheets"
+  | "hubspot"
   | "linear"
   | "notion"
   | "openai"

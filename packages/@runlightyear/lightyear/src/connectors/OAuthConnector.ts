@@ -204,7 +204,7 @@ export abstract class OAuthConnector {
     console.debug("status", status);
     const data = JSON.parse(text);
 
-    const { appName, customAppName, authName } = data;
+    const { appName, customAppName, managedUser, authName } = data;
 
     const tokenType = data["token_type"];
     const accessToken = data["access_token"];
@@ -219,6 +219,7 @@ export abstract class OAuthConnector {
     return {
       appName,
       customAppName,
+      managedUser,
       authName,
       tokenType,
       accessToken,
@@ -313,7 +314,7 @@ export abstract class OAuthConnector {
   }
 
   async post(props: HttpProxyRequestProps) {
-    return await this.request({ ...props, method: "post" });
+    return await this.request({ ...props, method: "POST" });
   }
 
   async requestAccessToken(code: string) {
@@ -338,7 +339,7 @@ export abstract class OAuthConnector {
       text: JSON.stringify(response.data),
     });
 
-    const authName = this.appName || this.customAppName;
+    const authName = this.authData?.authName;
     invariant(authName, "Need an auth name");
 
     await updateAuthData({
@@ -366,7 +367,7 @@ export abstract class OAuthConnector {
       text: JSON.stringify(response.data),
     });
 
-    const authName = this.appName || this.customAppName;
+    const authName = this.authData?.authName;
     invariant(authName, "Need an auth name");
 
     await updateAuthData({

@@ -1,5 +1,7 @@
 import {
   AuthType,
+  CollectionSynchronizer,
+  ModelSynchronizer,
   RestConnector,
   RestConnectorProps,
 } from "@runlightyear/lightyear";
@@ -10,12 +12,16 @@ import { getRecord, GetRecordProps } from "./records/getRecord";
 import { query, QueryProps } from "./query/query";
 import { describeObject, DescribeObjectProps } from "./describe/describeObject";
 import { SalesforceOAuth } from "./SalesforceOAuth";
+import { queryAll, QueryAllProps } from "./query/queryAll";
+import { SalesforceSynchronizer } from "./synchronizers/SalesforceSynchronizer";
+import { AccountSynchronizer } from "./synchronizers/AccountSynchronizer";
+import { ContactSynchronizer } from "./synchronizers/ContactSynchronizer";
 
 /**
  * @alpha
  */
 export interface SalesforceProps extends RestConnectorProps {
-  domain: string;
+  domain?: string;
 }
 
 /**
@@ -42,7 +48,7 @@ export interface SalesforceProps extends RestConnectorProps {
  *   run: async ({ auths }) => {
  *     const salesforce = new Salesforce({
  *       auth: auths.salesforce,
- *       domain: "<your salesforce domain name>",
+ *       domain: "https://lightyear2-dev-ed.develop.my.salesforce.com",
  *     });
  * });
  * ```
@@ -136,19 +142,28 @@ export interface SalesforceProps extends RestConnectorProps {
 export class Salesforce extends RestConnector {
   static authType: AuthType = "OAUTH2";
   static OAuth = SalesforceOAuth;
+  static Synchronizer = SalesforceSynchronizer;
 
   domain: string;
 
   constructor(props: SalesforceProps) {
-    const { domain, ...rest } = props;
+    const { domain, camelize, ...rest } = props;
 
-    super(rest);
+    super({ ...rest, camelize: false });
 
-    this.domain = domain;
+    const extraData = this.getAuthData().extraData;
+
+    if (domain) {
+      this.domain = domain;
+    } else if (extraData && ("instanceUrl" as string) in extraData) {
+      this.domain = extraData["instanceUrl"];
+    } else {
+      throw new Error("Missing instanceUrl in auth data");
+    }
   }
 
   getBaseUrl(): string {
-    return `https://${this.domain}.my.salesforce.com/services/data/v57.0`;
+    return `${this.domain}/services/data/v57.0`;
   }
 
   /**
@@ -262,6 +277,10 @@ export class Salesforce extends RestConnector {
     return query(this)(props);
   }
 
+  async queryAll(props: QueryAllProps) {
+    return queryAll(this)(props);
+  }
+
   /**
    * Describe an Object
    *
@@ -279,5 +298,13 @@ export class Salesforce extends RestConnector {
    */
   async describeObject(props: DescribeObjectProps) {
     return describeObject(this)(props);
+  }
+
+  // asdf
+
+  getSynchronizer() {
+    return new SalesforceSynchronizer({
+      connector: this,
+    });
   }
 }

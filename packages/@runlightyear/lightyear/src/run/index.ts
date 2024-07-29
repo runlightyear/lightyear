@@ -31,12 +31,22 @@ export interface RunFuncProps {
   variables: Variables;
   secrets: Secrets;
   webhook: string | null;
+  integration: {
+    id: string;
+    name: string;
+    title: string;
+  } | null;
+  managedUser: {
+    id: string;
+    externalId: string;
+    displayName: string | null;
+  } | null;
 }
 
 /**
  * @public
  */
-export type RunFunc = (props: RunFuncProps) => void;
+export type RunFunc = (props: RunFuncProps) => Promise<void>;
 
 /**
  * @internal
@@ -50,6 +60,16 @@ export type ActionIndex = {
  */
 export interface RunProps {
   name: string;
+  integration: {
+    id: string;
+    name: string;
+    title: string;
+  } | null;
+  managedUser: {
+    id: string;
+    externalId: string;
+    displayName: string | null;
+  } | null;
   data?: any;
   auths: Auths;
   variables: Variables;
@@ -64,7 +84,17 @@ export interface RunProps {
  * @param props
  */
 export async function run(props: RunProps) {
-  const { name, data, auths, variables, secrets, webhook, context } = props;
+  const {
+    name,
+    data,
+    auths,
+    variables,
+    secrets,
+    webhook,
+    context,
+    integration,
+    managedUser,
+  } = props;
   console.debug("actionIndex", Object.keys(globalThis.actionIndex));
 
   const fn = globalThis.actionIndex[name];
@@ -78,5 +108,14 @@ export async function run(props: RunProps) {
   }
 
   console.debug("Running the action function");
-  await fn({ data, auths, variables, secrets, webhook, context });
+  await fn({
+    data,
+    auths,
+    variables,
+    secrets,
+    webhook,
+    context,
+    integration,
+    managedUser,
+  });
 }
