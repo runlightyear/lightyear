@@ -49,12 +49,28 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
     return {};
   }
 
-  async list() {
-    const response = await this.hubspot.get({
-      url: `/crm/v3/objects/${this.getPluralNoun()}`,
-      params: {
+  async list(lastUpdatedAt: string | null) {
+    const response = await this.hubspot.post({
+      url: `/crm/v3/objects/${this.getPluralNoun()}/search`,
+      data: {
         limit: 100,
-        properties: this.getExternalKeys().join(","),
+        properties: this.getExternalKeys(),
+        sorts: ["hs_lastmodifieddate"],
+        ...(lastUpdatedAt
+          ? {
+              filterGroups: [
+                {
+                  filters: [
+                    {
+                      propertyName: "hs_lastmodifieddate",
+                      operator: "GT",
+                      value: lastUpdatedAt,
+                    },
+                  ],
+                },
+              ],
+            }
+          : null),
       },
     });
 

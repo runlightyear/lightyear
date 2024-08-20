@@ -34,6 +34,9 @@ export class AccountSynchronizer extends HubSpotModelSynchronizer {
         postalCode: source.properties.zip,
         country: source.properties.country,
       }),
+      industry: "properties.industry",
+      numberOfEmployees: "properties.numberofemployees",
+      ownerId: "properties.hubspot_owner_id",
     };
   }
 
@@ -49,6 +52,9 @@ export class AccountSynchronizer extends HubSpotModelSynchronizer {
       state: "address.state",
       zip: "address.postalCode",
       country: "address.country",
+      industry: "industry",
+      numberofemployees: "numberOfEmployees",
+      hubspot_owner_id: "ownerId",
     };
   }
 }

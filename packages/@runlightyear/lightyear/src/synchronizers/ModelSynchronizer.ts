@@ -1,4 +1,10 @@
-import { deleteObject, getDelta, upsertObject } from "../base/collection";
+import {
+  deleteObject,
+  getDelta,
+  getLastUpdatedObject,
+  getSync,
+  upsertObject,
+} from "../base/collection";
 import { AuthConnector } from "../connectors/AuthConnector";
 import { get } from "lodash";
 
@@ -77,7 +83,9 @@ export abstract class ModelSynchronizer<T> {
   abstract getFromObjectMeta(): any;
   abstract getFromObjectData(): any;
 
-  abstract list(): Promise<Array<FullObjectProps<T>>>;
+  abstract list(
+    lastUpdatedAt: string | null
+  ): Promise<Array<FullObjectProps<T>>>;
   abstract get(id: string): Promise<FullObjectProps<T>>;
   abstract create(obj: CreateObjectProps<T>): Promise<string>;
   abstract update(obj: UpdateObjectProps<T>): Promise<void>;
@@ -109,13 +117,18 @@ export abstract class ModelSynchronizer<T> {
       }
     }
 
+    console.debug("about to map object data");
     if (this.toObjectData) {
+      console.debug("using this.toObjectData", this.toObjectData);
       for (const [objectFieldName, transform] of Object.entries(
         this.toObjectData
       )) {
+        console.debug("objectFieldName", objectFieldName);
+        console.debug("transform", transform);
         if (typeof transform === "function") {
           object.data[objectFieldName] = transform(source);
         } else {
+          console.debug("doing the get on source", source);
           object.data[objectFieldName] = get(source, transform);
         }
       }
@@ -142,13 +155,19 @@ export abstract class ModelSynchronizer<T> {
     return external;
   }
 
-  async sync() {
-    console.log("Syncing objects", this.collection, this.model);
+  async sync(syncId: string) {
     const authData = this.connector.getAuthData();
     if (!authData) {
       throw new Error("Must have auth to sync");
     }
-    const objects = await this.list();
+
+    const syncResponse = await getSync({ collection: this.collection, syncId });
+
+    const { modelStatuses } = syncResponse;
+    const lastUpdatedAt =
+      modelStatuses[this.model]?.lastExternalUpdatedAt ?? null;
+
+    const objects = await this.list(lastUpdatedAt);
 
     for (const obj of objects) {
       if (obj.isDeleted) {
@@ -156,6 +175,7 @@ export abstract class ModelSynchronizer<T> {
       } else {
         await upsertObject({
           collection: this.collection,
+          syncId,
           model: this.model,
           app: authData.appName ?? undefined,
           customApp: authData.customAppName ?? undefined,
@@ -189,6 +209,7 @@ export abstract class ModelSynchronizer<T> {
 
           await upsertObject({
             collection: this.collection,
+            syncId,
             model: this.model,
             app: authData.appName ?? undefined,
             customApp: authData.customAppName ?? undefined,
@@ -207,6 +228,7 @@ export abstract class ModelSynchronizer<T> {
 
           await upsertObject({
             collection: this.collection,
+            syncId,
             model: this.model,
             app: authData.appName ?? undefined,
             customApp: authData.customAppName ?? undefined,

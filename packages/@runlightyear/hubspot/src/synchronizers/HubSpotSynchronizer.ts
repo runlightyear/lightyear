@@ -7,6 +7,12 @@ import {
 } from "@runlightyear/lightyear";
 import { ContactSynchronizer } from "./ContactSynchronizer";
 import { AccountSynchronizer } from "./AccountSynchronizer";
+import { OpportunitySynchronizer } from "./OpportunitySynchronizer";
+import { NoteSynchronizer } from "./NoteSynchronizer";
+import { MeetingSynchronizer } from "./MeetingSynchronizer";
+import { CallSynchronizer } from "./CallSynchronizer";
+import { TaskSynchronizer } from "./TaskSynchronizer";
+import { UserSynchronizer } from "./UserSynchronizer";
 
 export interface HubSpotSynchronizerProps
   extends Omit<CollectionSynchronizerProps, "collection"> {
@@ -31,8 +37,14 @@ export class HubSpotSynchronizer extends CollectionSynchronizer {
     [p: string]: (props: ModelSynchronizerProps) => ModelSynchronizer<any>;
   } {
     return {
+      user: (props) => new UserSynchronizer(props),
       account: (props) => new AccountSynchronizer(props),
       contact: (props) => new ContactSynchronizer(props),
+      opportunity: (props) => new OpportunitySynchronizer(props),
+      call: (props) => new CallSynchronizer(props),
+      note: (props) => new NoteSynchronizer(props),
+      meeting: (props) => new MeetingSynchronizer(props),
+      task: (props) => new TaskSynchronizer(props),
     };
   }
 }

@@ -34,6 +34,19 @@ export function defineCrmCollection(props?: DefineCrmCollectionProps) {
     enabled,
     models: [
       {
+        name: "user",
+        title: "User",
+        schema: {
+          type: "object",
+          properties: {
+            username: { type: ["string", "null"] },
+            email: Email,
+            firstName: { type: ["string", "null"] },
+            lastName: { type: ["string", "null"] },
+          },
+        },
+      },
+      {
         name: "account",
         title: "Account",
         schema: {
@@ -45,6 +58,17 @@ export function defineCrmCollection(props?: DefineCrmCollectionProps) {
             address: Address,
             billingAddress: Address,
             shippingAddress: Address,
+            industry: { type: ["string", "null"] },
+            numberOfEmployees: { type: ["string", "null"] },
+            ownerId: {
+              anyOf: [
+                {
+                  type: "string",
+                  references: "user",
+                },
+                { type: "null" },
+              ],
+            },
           },
         },
         matchOn: { OR: ["name", "website"] },
@@ -57,6 +81,7 @@ export function defineCrmCollection(props?: DefineCrmCollectionProps) {
           properties: {
             firstName: { type: ["string", "null"] },
             lastName: { type: ["string", "null"] },
+            title: { type: ["string", "null"] },
             email: Email,
             phone: Phone,
             mobile: Phone,
@@ -72,9 +97,128 @@ export function defineCrmCollection(props?: DefineCrmCollectionProps) {
                 { type: "null" },
               ],
             },
+            ownerId: {
+              anyOf: [
+                {
+                  type: "string",
+                  references: "user",
+                },
+                { type: "null" },
+              ],
+            },
           },
         },
         matchOn: "email",
+      },
+      {
+        name: "opportunity",
+        title: "Opportunity",
+        schema: {
+          type: "object",
+          properties: {
+            name: { type: ["string", "null"] },
+            amount: { type: ["string", "null"] },
+            closeDate: { type: ["string", "null"] },
+            stage: { type: ["string", "null"] },
+            accountId: {
+              anyOf: [
+                {
+                  type: "string",
+                  references: "account",
+                },
+                { type: "null" },
+              ],
+            },
+            ownerId: {
+              anyOf: [
+                {
+                  type: "string",
+                  references: "user",
+                },
+                { type: "null" },
+              ],
+            },
+          },
+        },
+        matchOn: "name",
+      },
+      {
+        name: "lead",
+        title: "Lead",
+        schema: {
+          type: "object",
+          properties: {
+            firstName: { type: ["string", "null"] },
+            lastName: { type: ["string", "null"] },
+            email: Email,
+            phone: Phone,
+            mobile: Phone,
+            address: Address,
+            mailingAddress: Address,
+            otherAddress: Address,
+            ownerId: {
+              anyOf: [
+                {
+                  type: "string",
+                  references: "user",
+                },
+                { type: "null" },
+              ],
+            },
+          },
+        },
+      },
+      {
+        name: "call",
+        title: "Call",
+        schema: {
+          type: "object",
+          properties: {
+            subject: { type: ["string", "null"] },
+            content: { type: ["string", "null"] },
+            timestamp: { type: ["string", "null"] },
+            duration: { type: ["string", "null"] },
+          },
+        },
+      },
+      {
+        name: "task",
+        title: "Task",
+        schema: {
+          type: "object",
+          properties: {
+            subject: { type: ["string", "null"] },
+            content: { type: ["string", "null"] },
+            dueDate: { type: ["string", "null"] },
+            status: { type: ["string", "null"] },
+            completedDate: { type: ["string", "null"] },
+          },
+        },
+      },
+      {
+        name: "meeting",
+        title: "Meeting",
+        schema: {
+          type: "object",
+          properties: {
+            subject: { type: ["string", "null"] },
+            description: { type: ["string", "null"] },
+            startTime: { type: ["string", "null"] },
+            endTime: { type: ["string", "null"] },
+          },
+        },
+      },
+      {
+        name: "note",
+        title: "Note",
+        schema: {
+          type: "object",
+          properties: {
+            title: { type: ["string", "null"] },
+            content: { type: ["string", "null"] },
+            timestamp: { type: ["string", "null"] },
+          },
+        },
       },
     ],
   });

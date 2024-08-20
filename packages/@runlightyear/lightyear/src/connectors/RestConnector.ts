@@ -33,7 +33,7 @@ export abstract class RestConnector extends AuthConnector {
   camelize: boolean;
 
   constructor(props: RestConnectorProps) {
-    const { camelize = true, ...rest } = props;
+    const { camelize = false, ...rest } = props;
     super(rest);
 
     this.camelize = camelize;

@@ -2,6 +2,8 @@ import { CollectionSynchronizer } from "../synchronizers/CollectionSynchronizer"
 import { AppName, defineAction } from "./action";
 import { AuthData } from "./auth";
 import { AuthConnector } from "../connectors/AuthConnector";
+import { startSync, updateSync } from "./collection";
+import { dayjsUtc } from "../util/dayjsUtc";
 
 export interface ConnectorProps {
   auth: AuthData;
@@ -15,6 +17,7 @@ export interface DefineSyncActionProps {
   name: string;
   title: string;
   connector: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector);
+  collection: string;
   synchronizer?:
     | typeof CollectionSynchronizer
     | ((props: SynchronizerProps) => CollectionSynchronizer);
@@ -119,7 +122,52 @@ export function defineSyncAction(props: DefineSyncActionProps) {
         throw new Error("No synchronizer provided");
       }
 
-      await synchronizer.sync();
+      console.debug("Attempting to start sync");
+      const startSyncResponse = await startSync({
+        collection: props.collection,
+        app: props.app ?? null,
+        customApp: props.customApp ?? null,
+        managedUserExternalId: runProps.managedUser?.externalId ?? null,
+      });
+      console.info("Started sync");
+      console.debug(startSyncResponse);
+      const { sync, prevFullSync } = startSyncResponse;
+
+      let syncType: "FULL" | "INCREMENTAL" = "INCREMENTAL";
+      if (!prevFullSync) {
+        syncType = "FULL";
+      } else if (
+        dayjsUtc(prevFullSync.createdAt)
+          .add(props.frequency?.full ?? 10, "minutes")
+          .isBefore(dayjsUtc(sync.createdAt))
+      ) {
+        syncType = "FULL";
+      }
+
+      await updateSync({
+        collection: props.collection,
+        syncId: sync.id,
+        type: syncType,
+      });
+      console.info(`Updated sync type to ${syncType}`);
+
+      try {
+        await synchronizer.sync(sync.id);
+        await updateSync({
+          collection: props.collection,
+          syncId: sync.id,
+          status: "SUCCEEDED",
+        });
+        console.info("Updated sync status to SUCCEEDED");
+      } catch (error) {
+        await updateSync({
+          collection: props.collection,
+          syncId: sync.id,
+          status: "FAILED",
+        });
+        console.info("Updated sync status to FAILED");
+        throw error;
+      }
     },
   });
 }
