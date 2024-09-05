@@ -43,6 +43,7 @@ export {
   getModels,
   getDelta,
   upsertObject,
+  upsertObjectBatch,
   deleteObject,
   detectHardDeletes,
 } from "./base/collection";

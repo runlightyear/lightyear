@@ -272,6 +272,63 @@ export async function upsertObject(props: UpsertObjectProps) {
   return response;
 }
 
+export interface UpsertObjectBatchProps {
+  collection: string;
+  syncId: string;
+  model: string;
+  app: string | undefined;
+  customApp: string | undefined;
+  managedUserExternalId?: string | null;
+  objects: Array<{
+    externalId: string;
+    externalUpdatedAt: string;
+    data: unknown;
+  }>;
+  overwrite?: boolean;
+  async?: boolean;
+}
+
+export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
+  const {
+    collection,
+    syncId,
+    model,
+    app,
+    customApp,
+    managedUserExternalId,
+    objects,
+    overwrite,
+    async,
+  } = props;
+
+  const envName = getEnvName();
+
+  const response = await baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/upsert/batch`,
+    data: {
+      syncId,
+      appName: app,
+      customAppName: customApp,
+      managedUserExternalId,
+      objects,
+      overwrite,
+      async,
+    },
+  });
+
+  console.info(
+    "Upsert",
+    collection,
+    model,
+    objects.length,
+    response.status,
+    response.statusText
+  );
+
+  return response;
+}
+
 export interface DeleteObjectProps {
   collection: string;
   model: string;

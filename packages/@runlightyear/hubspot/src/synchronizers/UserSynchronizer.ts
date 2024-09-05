@@ -50,12 +50,24 @@ export class UserSynchronizer extends ModelSynchronizer<any> {
     };
   }
 
-  async list(lastUpdatedAt: string | null) {
+  async list(props: {
+    syncType: "FULL" | "INCREMENTAL";
+    lastUpdatedAt?: string;
+    cursor?: string;
+  }) {
+    if (props.lastUpdatedAt) {
+      return { objects: [] };
+    }
+
     const response = await this.hubspot.get({
       url: `/crm/v3/owners`,
     });
 
-    return response.data.results.map((result: any) => this.mapToObject(result));
+    return {
+      objects: response.data.results.map((result: any) =>
+        this.mapToObject(result)
+      ),
+    };
   }
 
   async get(id: string) {
