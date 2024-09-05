@@ -18,6 +18,7 @@ export interface DefineSyncIntegrationProps {
   title: string;
   description?: string;
   connector: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector);
+  collection: string;
   synchronizer?:
     | typeof CollectionSynchronizer
     | ((props: SynchronizerProps) => CollectionSynchronizer);
@@ -72,6 +73,7 @@ export function defineSyncIntegration(props: DefineSyncIntegrationProps) {
         app: props.app,
         customApp: props.customApp,
         connector: props.connector,
+        collection: props.collection,
         synchronizer: props.synchronizer,
         frequency: props.frequency,
       }),

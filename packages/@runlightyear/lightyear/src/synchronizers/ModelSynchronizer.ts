@@ -1,4 +1,11 @@
-import { deleteObject, getDelta, upsertObject } from "../base/collection";
+import {
+  deleteObject,
+  getDelta,
+  getLastUpdatedObject,
+  getSync,
+  upsertObject,
+  upsertObjectBatch,
+} from "../base/collection";
 import { AuthConnector } from "../connectors/AuthConnector";
 import { get } from "lodash";
 
@@ -77,7 +84,11 @@ export abstract class ModelSynchronizer<T> {
   abstract getFromObjectMeta(): any;
   abstract getFromObjectData(): any;
 
-  abstract list(): Promise<Array<FullObjectProps<T>>>;
+  abstract list(props: {
+    syncType: "FULL" | "INCREMENTAL";
+    lastUpdatedAt?: string;
+    cursor?: string;
+  }): Promise<{ objects: Array<FullObjectProps<T>>; cursor?: string }>;
   abstract get(id: string): Promise<FullObjectProps<T>>;
   abstract create(obj: CreateObjectProps<T>): Promise<string>;
   abstract update(obj: UpdateObjectProps<T>): Promise<void>;
@@ -109,13 +120,18 @@ export abstract class ModelSynchronizer<T> {
       }
     }
 
+    console.debug("about to map object data");
     if (this.toObjectData) {
+      console.debug("using this.toObjectData", this.toObjectData);
       for (const [objectFieldName, transform] of Object.entries(
         this.toObjectData
       )) {
+        console.debug("objectFieldName", objectFieldName);
+        console.debug("transform", transform);
         if (typeof transform === "function") {
           object.data[objectFieldName] = transform(source);
         } else {
+          console.debug("doing the get on source", source);
           object.data[objectFieldName] = get(source, transform);
         }
       }
@@ -142,33 +158,67 @@ export abstract class ModelSynchronizer<T> {
     return external;
   }
 
-  async sync() {
-    console.log("Syncing objects", this.collection, this.model);
+  async sync(syncId: string) {
     const authData = this.connector.getAuthData();
     if (!authData) {
       throw new Error("Must have auth to sync");
     }
-    const objects = await this.list();
 
-    for (const obj of objects) {
-      if (obj.isDeleted) {
-        await this.delete(obj.id);
+    const syncResponse = await getSync({ collection: this.collection, syncId });
+
+    const { type: syncType, modelStatuses } = syncResponse;
+
+    let lastUpdatedAt =
+      modelStatuses[this.model]?.lastExternalUpdatedAt ?? null;
+
+    let objects;
+    let cursor = undefined;
+
+    let listCounter = 0;
+
+    do {
+      const listResponse: {
+        objects: Array<FullObjectProps<T>>;
+        cursor?: string;
+      } = await this.list({ syncType, lastUpdatedAt, cursor });
+      objects = listResponse.objects;
+      cursor = listResponse.cursor;
+
+      // for (const obj of objects) {
+      //   if (obj.isDeleted) {
+      //     await this.delete(obj.id);
+      //   } else {
+      // console.log("Skipping upsert for now");
+      if (objects.length === 0) {
+        console.info("Nothing to upsert");
       } else {
-        await upsertObject({
+        await upsertObjectBatch({
           collection: this.collection,
+          syncId,
           model: this.model,
           app: authData.appName ?? undefined,
           customApp: authData.customAppName ?? undefined,
           managedUserExternalId: authData.managedUser?.externalId ?? null,
-          externalId: obj.id,
-          externalUpdatedAt: obj.updatedAt,
-          data: obj.data,
+          objects: objects.map((obj) => ({
+            externalId: obj.id,
+            externalUpdatedAt: obj.updatedAt,
+            data: obj.data,
+          })),
+          async: true,
         });
+        console.info("Upserted batch");
+        // lastUpdatedAt = obj.updatedAt;
+        // console.log("lastUpdatedAt", lastUpdatedAt);
+        listCounter += objects.length;
+        console.info("Objects processed:", listCounter);
+        // }
+        // }
       }
-    }
+    } while (cursor);
 
-    console.log("Processing delta");
+    console.info("Processing delta");
     let more;
+    let changeCounter = 0;
     do {
       const delta = await getDelta({
         collection: this.collection,
@@ -189,6 +239,7 @@ export abstract class ModelSynchronizer<T> {
 
           await upsertObject({
             collection: this.collection,
+            syncId,
             model: this.model,
             app: authData.appName ?? undefined,
             customApp: authData.customAppName ?? undefined,
@@ -207,6 +258,7 @@ export abstract class ModelSynchronizer<T> {
 
           await upsertObject({
             collection: this.collection,
+            syncId,
             model: this.model,
             app: authData.appName ?? undefined,
             customApp: authData.customAppName ?? undefined,
@@ -224,6 +276,9 @@ export abstract class ModelSynchronizer<T> {
           //   });
         }
       }
+
+      changeCounter += delta.changes.length;
+      console.info("Changes processed:", changeCounter);
     } while (more);
   }
 }

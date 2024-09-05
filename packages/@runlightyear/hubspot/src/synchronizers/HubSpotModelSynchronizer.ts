@@ -49,16 +49,72 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
     return {};
   }
 
-  async list() {
-    const response = await this.hubspot.get({
-      url: `/crm/v3/objects/${this.getPluralNoun()}`,
-      params: {
-        limit: 100,
-        properties: this.getExternalKeys().join(","),
-      },
-    });
+  async list(props: {
+    syncType: "FULL" | "INCREMENTAL";
+    lastUpdatedAt?: string;
+    cursor?: string;
+  }) {
+    const { syncType, lastUpdatedAt, cursor } = props;
 
-    return response.data.results.map((result: any) => this.mapToObject(result));
+    console.debug("list", syncType, lastUpdatedAt, cursor);
+
+    if (syncType === "FULL") {
+      const response = await this.hubspot.get({
+        url: `/crm/v3/objects/${this.getPluralNoun()}`,
+        params: {
+          limit: 100,
+          properties: this.getExternalKeys(),
+          after: cursor ?? undefined,
+        },
+      });
+
+      console.debug("response.data", response.data);
+
+      return {
+        objects: response.data.results.map((result: any) =>
+          this.mapToObject(result)
+        ),
+        cursor: response.data.paging?.next?.after ?? undefined,
+      };
+    } else if (syncType === "INCREMENTAL") {
+      const response = await this.hubspot.post({
+        url: `/crm/v3/objects/${this.getPluralNoun()}/search`,
+        data: {
+          limit: 100,
+          properties: this.getExternalKeys(),
+          sorts: [
+            { propertyName: "hs_lastmodifieddate", direction: "ASCENDING" },
+          ],
+          ...(lastUpdatedAt
+            ? {
+                filterGroups: [
+                  {
+                    filters: [
+                      {
+                        propertyName: "hs_lastmodifieddate",
+                        operator: "GT",
+                        value: lastUpdatedAt,
+                      },
+                    ],
+                  },
+                ],
+              }
+            : null),
+          after: cursor ?? undefined,
+        },
+      });
+
+      console.debug("response.data", response.data);
+
+      return {
+        objects: response.data.results.map((result: any) =>
+          this.mapToObject(result)
+        ),
+        cursor: response.data.paging?.next?.after ?? undefined,
+      };
+    } else {
+      throw new Error(`Unknown syncType: ${syncType}`);
+    }
   }
 
   async get(id: string) {

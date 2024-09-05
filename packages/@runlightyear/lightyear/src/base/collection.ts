@@ -1,6 +1,8 @@
 import { pushToDeployList } from "./deploy";
 import { getEnvName } from "../util/getEnvName";
 import baseRequest from "./baseRequest";
+import { HttpProxyResponseError, SKIPPED } from "../index";
+import { BaseRequestError } from "./BaseRequestError";
 
 export type MatchPropertyStr = string;
 export type MatchNestedProperty = Array<MatchPropertyStr>;
@@ -130,8 +132,93 @@ export async function getDelta(props: GetDeltaProps) {
   }
 }
 
+export interface StartSyncProps {
+  collection: string;
+  app: string | null;
+  customApp: string | null;
+  managedUserExternalId?: string | null;
+}
+
+export async function startSync(props: StartSyncProps) {
+  const { collection, app, customApp, managedUserExternalId } = props;
+
+  const envName = getEnvName();
+
+  try {
+    const response = await baseRequest({
+      method: "POST",
+      uri: `/api/v1/envs/${envName}/collections/${collection}/syncs`,
+      data: {
+        appName: app,
+        customAppName: customApp,
+        managedUserId: managedUserExternalId ?? null,
+      },
+    });
+
+    return await response.json();
+  } catch (error) {
+    if (error instanceof BaseRequestError) {
+      if (error.response.status === 423) {
+        console.info("Another sync is running");
+        throw SKIPPED;
+      }
+    }
+  }
+}
+
+export interface GetSyncProps {
+  collection: string;
+  syncId: string;
+}
+
+export async function getSync(props: GetSyncProps) {
+  const { collection, syncId } = props;
+
+  const envName = getEnvName();
+
+  const response = await baseRequest({
+    method: "GET",
+    uri: `/api/v1/envs/${envName}/collections/${collection}/syncs/${syncId}`,
+  });
+
+  if (response.ok) {
+    return await response.json();
+  } else {
+    throw new Error("Unable to get sync");
+  }
+}
+
+export interface UpdateSyncProps {
+  collection: string;
+  syncId: string;
+  type?: "FULL" | "INCREMENTAL";
+  status?: "PAUSED" | "SUCCEEDED" | "FAILED";
+}
+
+export async function updateSync(props: UpdateSyncProps) {
+  const { collection, syncId, type, status } = props;
+
+  const envName = getEnvName();
+
+  const response = await baseRequest({
+    method: "PATCH",
+    uri: `/api/v1/envs/${envName}/collections/${collection}/syncs/${syncId}`,
+    data: {
+      type,
+      status,
+    },
+  });
+
+  if (response.ok) {
+    return await response.json();
+  } else {
+    throw new Error("Unable to update sync");
+  }
+}
+
 export interface UpsertObjectProps {
   collection: string;
+  syncId: string;
   model: string;
   app: string | undefined;
   customApp: string | undefined;
@@ -145,6 +232,7 @@ export interface UpsertObjectProps {
 export async function upsertObject(props: UpsertObjectProps) {
   const {
     collection,
+    syncId,
     model,
     app,
     customApp,
@@ -161,6 +249,7 @@ export async function upsertObject(props: UpsertObjectProps) {
     method: "POST",
     uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/upsert`,
     data: {
+      syncId,
       appName: app,
       customAppName: customApp,
       managedUserExternalId,
@@ -176,6 +265,63 @@ export async function upsertObject(props: UpsertObjectProps) {
     collection,
     model,
     externalId,
+    response.status,
+    response.statusText
+  );
+
+  return response;
+}
+
+export interface UpsertObjectBatchProps {
+  collection: string;
+  syncId: string;
+  model: string;
+  app: string | undefined;
+  customApp: string | undefined;
+  managedUserExternalId?: string | null;
+  objects: Array<{
+    externalId: string;
+    externalUpdatedAt: string;
+    data: unknown;
+  }>;
+  overwrite?: boolean;
+  async?: boolean;
+}
+
+export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
+  const {
+    collection,
+    syncId,
+    model,
+    app,
+    customApp,
+    managedUserExternalId,
+    objects,
+    overwrite,
+    async,
+  } = props;
+
+  const envName = getEnvName();
+
+  const response = await baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/upsert/batch`,
+    data: {
+      syncId,
+      appName: app,
+      customAppName: customApp,
+      managedUserExternalId,
+      objects,
+      overwrite,
+      async,
+    },
+  });
+
+  console.info(
+    "Upsert",
+    collection,
+    model,
+    objects.length,
     response.status,
     response.statusText
   );
@@ -217,6 +363,32 @@ export async function deleteObject(props: DeleteObjectProps) {
   );
 
   return response;
+}
+
+export interface GetLastUpdatedObjectProps {
+  collection: string;
+  model: string;
+  app: string | null;
+  customApp: string | null;
+  managedUserExternalId: string | null;
+}
+
+export async function getLastUpdatedObject(props: GetLastUpdatedObjectProps) {
+  const { collection, model, app, customApp, managedUserExternalId } = props;
+
+  const envName = getEnvName();
+
+  const response = await baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/last-updated`,
+    data: {
+      appName: app,
+      customAppName: customApp,
+      managedUserExternalId,
+    },
+  });
+
+  return await response.json();
 }
 
 export interface DetectHardDeletesProps {

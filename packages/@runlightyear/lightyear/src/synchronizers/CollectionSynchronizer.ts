@@ -46,8 +46,6 @@ export abstract class CollectionSynchronizer {
     return result;
   }
 
-  // force
-
   abstract getDefaultModelSynchronizers(): {
     [name: string]: (props: ModelSynchronizerProps) => ModelSynchronizer<any>;
   };
@@ -69,14 +67,14 @@ export abstract class CollectionSynchronizer {
     return modelSynchronizer(this.getModelSynchronizerProps(name));
   }
 
-  async sync() {
+  async sync(syncId: string) {
     const modelsToSync = await this.getModelOrder();
 
     for (const modelName of modelsToSync) {
       const model = await this.getModel(modelName);
 
       if (model) {
-        await model.sync();
+        await model.sync(syncId);
       }
     }
   }

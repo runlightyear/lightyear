@@ -55,14 +55,23 @@ export abstract class SalesforceModelSynchronizer extends ModelSynchronizer<any>
     return {};
   }
 
-  async list() {
+  async list(props: {
+    syncType: "FULL" | "INCREMENTAL";
+    lastUpdatedAt?: string;
+    cursor?: string;
+  }) {
     const response = await this.salesforce.queryAll({
       q: `SELECT ${this.getExternalKeys().join(
         ", "
       )} FROM ${this.getNoun()} ORDER BY LastModifiedDate ASC`,
     });
 
-    return response.data.records.map((record: any) => this.mapToObject(record));
+    return {
+      objects: response.data.records.map((record: any) =>
+        this.mapToObject(record)
+      ),
+      cursor: "not working yet",
+    };
   }
 
   async get(id: string) {
