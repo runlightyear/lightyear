@@ -117,46 +117,6 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
     }
   }
 
-  // async list(props: { lastUpdatedAt?: string; cursor?: string }) {
-  //   const { lastUpdatedAt, cursor } = props;
-  //
-  //   const response = await this.hubspot.post({
-  //     url: `/crm/v3/objects/${this.getPluralNoun()}/search`,
-  //     data: {
-  //       limit: 100,
-  //       properties: this.getExternalKeys(),
-  //       sorts: [
-  //         { propertyName: "hs_lastmodifieddate", direction: "ASCENDING" },
-  //       ],
-  //       ...(lastUpdatedAt
-  //         ? {
-  //             filterGroups: [
-  //               {
-  //                 filters: [
-  //                   {
-  //                     propertyName: "hs_lastmodifieddate",
-  //                     operator: "GT",
-  //                     value: lastUpdatedAt,
-  //                   },
-  //                 ],
-  //               },
-  //             ],
-  //           }
-  //         : null),
-  //       after: cursor ?? undefined,
-  //     },
-  //   });
-  //
-  //   console.log("response.data", response.data);
-  //
-  //   return {
-  //     objects: response.data.results.map((result: any) =>
-  //       this.mapToObject(result)
-  //     ),
-  //     cursor: response.data.paging?.next?.after ?? undefined,
-  //   };
-  // }
-  //
   async get(id: string) {
     const response = await this.hubspot.get({
       url: `/crm/v3/objects/${this.getPluralNoun()}/${id}`,
