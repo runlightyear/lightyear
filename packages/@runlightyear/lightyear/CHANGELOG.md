@@ -1,5 +1,12 @@
 # @runlightyear/lightyear
 
+## 1.10.0
+
+### Minor Changes
+
+- e7dcf91c1: Added all major models for CRM collection
+- e7dcf91c1: Use and update sync status
+
 ## 1.9.0
 
 ### Minor Changes

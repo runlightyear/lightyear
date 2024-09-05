@@ -1,5 +1,17 @@
 # @runlightyear/hubspot
 
+## 0.8.0
+
+### Minor Changes
+
+- e7dcf91c1: Support for syncing all major HubSpot CRM models
+
+### Patch Changes
+
+- Updated dependencies [e7dcf91c1]
+- Updated dependencies [e7dcf91c1]
+  - @runlightyear/lightyear@1.10.0
+
 ## 0.7.0
 
 ### Minor Changes
