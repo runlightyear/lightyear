@@ -71,8 +71,6 @@ export interface HttpRequest {
 export const httpRequest: HttpRequest = async (props) => {
   const { redactKeys, ...rest } = props;
 
-  console.log("httpRequest with props", JSON.stringify(props, null, 2));
-
   const response = await baseRequest({
     uri: "/api/v1/httpRequest",
     data: rest,

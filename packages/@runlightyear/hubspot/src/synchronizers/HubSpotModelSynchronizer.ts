@@ -56,7 +56,7 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
   }) {
     const { syncType, lastUpdatedAt, cursor } = props;
 
-    console.log("list", syncType, lastUpdatedAt, cursor);
+    console.debug("list", syncType, lastUpdatedAt, cursor);
 
     if (syncType === "FULL") {
       const response = await this.hubspot.get({
@@ -68,7 +68,7 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
         },
       });
 
-      console.log("response.data", response.data);
+      console.debug("response.data", response.data);
 
       return {
         objects: response.data.results.map((result: any) =>
@@ -104,7 +104,7 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
         },
       });
 
-      console.log("response.data", response.data);
+      console.debug("response.data", response.data);
 
       return {
         objects: response.data.results.map((result: any) =>

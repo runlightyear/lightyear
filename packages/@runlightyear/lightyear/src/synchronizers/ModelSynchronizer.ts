@@ -176,8 +176,6 @@ export abstract class ModelSynchronizer<T> {
 
     let listCounter = 0;
 
-    console.time("list");
-
     do {
       const listResponse: {
         objects: Array<FullObjectProps<T>>;
@@ -192,7 +190,7 @@ export abstract class ModelSynchronizer<T> {
       //   } else {
       // console.log("Skipping upsert for now");
       if (objects.length === 0) {
-        console.log("Nothing to upsert");
+        console.info("Nothing to upsert");
       } else {
         await upsertObjectBatch({
           collection: this.collection,
@@ -208,18 +206,15 @@ export abstract class ModelSynchronizer<T> {
           })),
           async: true,
         });
+        console.info("Upserted batch");
         // lastUpdatedAt = obj.updatedAt;
         // console.log("lastUpdatedAt", lastUpdatedAt);
         listCounter += objects.length;
-        console.log("listCounter", listCounter);
+        console.info("objects processed:", listCounter);
         // }
         // }
       }
     } while (cursor);
-
-    console.timeEnd("list");
-
-    console.log("final listCounter", listCounter);
 
     // console.log("Processing delta");
     // let more;
