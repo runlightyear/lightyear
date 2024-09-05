@@ -210,71 +210,75 @@ export abstract class ModelSynchronizer<T> {
         // lastUpdatedAt = obj.updatedAt;
         // console.log("lastUpdatedAt", lastUpdatedAt);
         listCounter += objects.length;
-        console.info("objects processed:", listCounter);
+        console.info("Objects processed:", listCounter);
         // }
         // }
       }
     } while (cursor);
 
-    // console.log("Processing delta");
-    // let more;
-    // do {
-    //   const delta = await getDelta({
-    //     collection: this.collection,
-    //     managedUserExternalId: authData.managedUser?.externalId ?? null,
-    //     app: authData.appName,
-    //     customApp: authData.customAppName,
-    //     model: this.model,
-    //   });
-    //   more = delta.more;
-    //
-    //   for (const change of delta.changes) {
-    //     if (change.operation === "CREATE") {
-    //       const newObjectId = await this.create({
-    //         data: change.data,
-    //       });
-    //
-    //       const newObject = await this.get(newObjectId);
-    //
-    //       await upsertObject({
-    //         collection: this.collection,
-    //         syncId,
-    //         model: this.model,
-    //         app: authData.appName ?? undefined,
-    //         customApp: authData.customAppName ?? undefined,
-    //         managedUserExternalId: authData.managedUser?.externalId ?? null,
-    //         externalId: newObject.id,
-    //         externalUpdatedAt: newObject.updatedAt,
-    //         data: newObject.data,
-    //       });
-    //     } else if (change.operation === "UPDATE") {
-    //       await this.update({
-    //         id: change.objectId,
-    //         data: change.data,
-    //       });
-    //
-    //       const updatedObject = await this.get(change.objectId);
-    //
-    //       await upsertObject({
-    //         collection: this.collection,
-    //         syncId,
-    //         model: this.model,
-    //         app: authData.appName ?? undefined,
-    //         customApp: authData.customAppName ?? undefined,
-    //         managedUserExternalId: authData.managedUser?.externalId ?? null,
-    //         externalId: updatedObject.id,
-    //         externalUpdatedAt: updatedObject.updatedAt,
-    //         data: updatedObject.data,
-    //       });
-    //       // } else if (change.operation === "DELETE") {
-    //       //   await this.delete(change.objectId);
-    //       //   await deleteObject({
-    //       //     collection: this.collection,
-    //       //     model: this.model,
-    //       //     externalId: change.objectId,
-    //       //   });
-    //     }
-    //   }
-    // } while (more);
+    console.info("Processing delta");
+    let more;
+    let changeCounter = 0;
+    do {
+      const delta = await getDelta({
+        collection: this.collection,
+        managedUserExternalId: authData.managedUser?.externalId ?? null,
+        app: authData.appName,
+        customApp: authData.customAppName,
+        model: this.model,
+      });
+      more = delta.more;
+
+      for (const change of delta.changes) {
+        if (change.operation === "CREATE") {
+          const newObjectId = await this.create({
+            data: change.data,
+          });
+
+          const newObject = await this.get(newObjectId);
+
+          await upsertObject({
+            collection: this.collection,
+            syncId,
+            model: this.model,
+            app: authData.appName ?? undefined,
+            customApp: authData.customAppName ?? undefined,
+            managedUserExternalId: authData.managedUser?.externalId ?? null,
+            externalId: newObject.id,
+            externalUpdatedAt: newObject.updatedAt,
+            data: newObject.data,
+          });
+        } else if (change.operation === "UPDATE") {
+          await this.update({
+            id: change.objectId,
+            data: change.data,
+          });
+
+          const updatedObject = await this.get(change.objectId);
+
+          await upsertObject({
+            collection: this.collection,
+            syncId,
+            model: this.model,
+            app: authData.appName ?? undefined,
+            customApp: authData.customAppName ?? undefined,
+            managedUserExternalId: authData.managedUser?.externalId ?? null,
+            externalId: updatedObject.id,
+            externalUpdatedAt: updatedObject.updatedAt,
+            data: updatedObject.data,
+          });
+          // } else if (change.operation === "DELETE") {
+          //   await this.delete(change.objectId);
+          //   await deleteObject({
+          //     collection: this.collection,
+          //     model: this.model,
+          //     externalId: change.objectId,
+          //   });
+        }
+      }
+
+      changeCounter += delta.changes.length;
+      console.info("Changes processed:", changeCounter);
+    } while (more);
   }
 }
