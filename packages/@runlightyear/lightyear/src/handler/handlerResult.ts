@@ -1,6 +1,6 @@
 import { prefixedRedactedConsole } from "../logging";
 
-export function handlerResult(
+export async function handlerResult(
   statusCode: number,
   message: string,
   additionalData?: { [key: string]: any }
@@ -12,6 +12,8 @@ export function handlerResult(
   // // anything global
   // emptyLogs();
   // emptySecrets();
+
+  await prefixedRedactedConsole.flushQueue();
 
   return {
     statusCode,

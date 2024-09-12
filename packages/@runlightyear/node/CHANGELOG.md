@@ -1,5 +1,16 @@
 # @runlightyear/node
 
+## 0.4.0
+
+### Minor Changes
+
+- 016a33620: Require an env on init
+
+### Patch Changes
+
+- Updated dependencies [2d9ee36f2]
+  - @runlightyear/lightyear@1.11.0
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,5 +1,16 @@
 # @runlightyear/cli
 
+## 1.5.0
+
+### Minor Changes
+
+- 2d9ee36f2: Prepare to support streaming logs
+
+### Patch Changes
+
+- Updated dependencies [2d9ee36f2]
+  - @runlightyear/lightyear@1.11.0
+
 ## 1.4.4
 
 ### Patch Changes

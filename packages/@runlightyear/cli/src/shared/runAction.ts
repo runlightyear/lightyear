@@ -92,7 +92,7 @@ export default async function runAction({
       },
       body: JSON.stringify({
         status,
-        logs,
+        // logs,
         endedAt: "now",
         // deliveryId,
       }),
