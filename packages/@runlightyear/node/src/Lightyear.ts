@@ -3,6 +3,7 @@ import { ModelSynchronizer } from "./ModelSynchronizer";
 export interface LightyearProps {
   apiKey: string;
   baseUrl?: string;
+  env: string;
 }
 
 export interface SyncConfig {
@@ -17,17 +18,19 @@ const DEFAULT_BASE_URL = "http://localhost:3000";
 export class Lightyear {
   apiKey: string;
   baseUrl: string;
+  env: string;
 
   constructor(props: LightyearProps) {
     this.apiKey = props.apiKey;
     this.baseUrl = props.baseUrl ?? DEFAULT_BASE_URL;
+    this.env = props.env;
   }
 
   async getModels(props: { collection: string }) {
     const { collection } = props;
 
     const response = await fetch(
-      `${this.baseUrl}/api/v1/envs/dev/collections/${collection}/models`,
+      `${this.baseUrl}/api/v1/envs/${this.env}/collections/${collection}/models`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -54,7 +57,7 @@ export class Lightyear {
     const { collection, model, userId, objectId, updatedAt, data } = props;
 
     const response = await fetch(
-      `${this.baseUrl}/api/v1/envs/dev/collections/${collection}/models/${model}/objects/upsert`,
+      `${this.baseUrl}/api/v1/envs/${this.env}/collections/${collection}/models/${model}/objects/upsert`,
       {
         method: "POST",
         headers: {
@@ -86,7 +89,7 @@ export class Lightyear {
     const { collection, model, objectId } = props;
 
     const response = await fetch(
-      `${this.baseUrl}/api/v1/envs/dev/collections/${collection}/models/${model}/objects/delete`,
+      `${this.baseUrl}/api/v1/envs/${this.env}/collections/${collection}/models/${model}/objects/delete`,
       {
         method: "POST",
         headers: {
@@ -107,7 +110,7 @@ export class Lightyear {
     const { collection, model } = props;
 
     const response = await fetch(
-      `${this.baseUrl}/api/v1/envs/dev/collections/${collection}/models/${model}/objects/delta`,
+      `${this.baseUrl}/api/v1/envs/${this.env}/collections/${collection}/models/${model}/objects/delta`,
       {
         method: "POST",
         headers: {
