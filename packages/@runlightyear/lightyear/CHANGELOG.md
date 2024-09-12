@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 1.11.0
+
+### Minor Changes
+
+- 2d9ee36f2: Prepare to support streaming logs
+
 ## 1.10.0
 
 ### Minor Changes
