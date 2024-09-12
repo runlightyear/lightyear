@@ -120,18 +120,13 @@ export abstract class ModelSynchronizer<T> {
       }
     }
 
-    console.debug("about to map object data");
     if (this.toObjectData) {
-      console.debug("using this.toObjectData", this.toObjectData);
       for (const [objectFieldName, transform] of Object.entries(
         this.toObjectData
       )) {
-        console.debug("objectFieldName", objectFieldName);
-        console.debug("transform", transform);
         if (typeof transform === "function") {
           object.data[objectFieldName] = transform(source);
         } else {
-          console.debug("doing the get on source", source);
           object.data[objectFieldName] = get(source, transform);
         }
       }

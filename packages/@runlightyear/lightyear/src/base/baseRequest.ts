@@ -14,6 +14,7 @@ export interface BaseRequestProps {
   data?: {
     [key: string]: any;
   };
+  suppressLogs?: boolean;
 }
 
 /**
@@ -29,8 +30,10 @@ export default async function baseRequest({
   uri,
   params,
   data,
+  suppressLogs = false,
 }: BaseRequestProps): Promise<Response> {
-  console.debug("in baseRequest");
+  if (!suppressLogs) console.debug("in baseRequest");
+
   const baseUrl = getBaseUrl();
   invariant(baseUrl, "Missing BASE_URL");
 
@@ -52,20 +55,22 @@ export default async function baseRequest({
     body: data && JSON.stringify(data),
   };
 
-  console.debug(`baseRequest url: ${url}`);
-  console.debug("baseRequest props", props);
+  if (!suppressLogs) console.debug(`baseRequest url: ${url}`);
+  if (!suppressLogs) console.debug("baseRequest props", props);
 
   const response = await fetch(url, props);
 
   if (!response.ok) {
-    console.error(
-      `Base request error: ${response.status} ${response.statusText}`
-    );
-    console.error(JSON.stringify(await response.json(), null, 2));
+    if (!suppressLogs)
+      console.error(
+        `Base request error: ${response.status} ${response.statusText}`
+      );
+    if (!suppressLogs)
+      console.error(JSON.stringify(await response.json(), null, 2));
     throw new BaseRequestError(response);
   }
 
-  console.debug("about to return from baseRequest");
+  if (!suppressLogs) console.debug("about to return from baseRequest");
 
   return response;
 }

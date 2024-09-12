@@ -2,6 +2,9 @@ import argsToStr from "./argsToStr";
 import redactSecrets from "./redactSecrets";
 import isString from "../util/isString";
 import * as process from "process";
+import { dayjsUtc } from "../util/dayjsUtc";
+import baseRequest from "../base/baseRequest";
+import { getEnvName } from "../util/getEnvName";
 
 export type LogDisplayLevel = "DEBUG" | "INFO";
 
@@ -13,14 +16,26 @@ export class PrefixedRedactedConsole {
   secrets: Array<string> = [];
   history: Array<string> = [];
   logDisplayLevel: LogDisplayLevel = "DEBUG";
+  streamLogsTo: { runId?: string } | null = null;
+  streamCursor: number = 0;
+  logQueue: Array<{
+    message: string;
+    level: "INFO" | "DEBUG" | "WARN" | "ERROR" | "LOG" | "TRACE";
+    timestamp: string;
+  }> = [];
 
   setGlobalPrefix(prefix: string) {
     this.globalPrefix = prefix;
   }
 
+  setStreamLogsTo(props: { runId?: string }) {
+    this.streamLogsTo = props;
+  }
+
   initialize() {
     this.secrets = [];
     this.history = [];
+    this.logQueue = [];
   }
 
   addSecrets(secrets: Array<string | null>) {
@@ -112,12 +127,46 @@ export class PrefixedRedactedConsole {
     const { params, color, prefix, stream, display } = props;
     const message = `[${prefix}]: ${this._redactParams(params)}`;
     this.history.push(message);
+    this._enqueue({
+      message: this._redactParams(params),
+      prefix,
+      timestamp: dayjsUtc().toISOString(),
+    });
     if (display) {
       stream.write(
         `${
           this.globalPrefix ? this.globalPrefix + " " : ""
         }${color}${message}\x1b[0m\n`
       );
+    }
+  }
+
+  _enqueue(props: { message: string; prefix: string; timestamp: string }) {
+    if (this.streamLogsTo) {
+      this.logQueue.push({
+        message: props.message,
+        level: props.prefix as any,
+        timestamp: props.timestamp,
+      });
+    }
+
+    if (this.logQueue.length === 100) {
+      // do not await this so we can stream in the background
+      this.flushQueue();
+    }
+  }
+
+  async flushQueue() {
+    if (this.logQueue.length > 0) {
+      const envName = getEnvName();
+      const logsToStream = [...this.logQueue];
+      this.logQueue = [];
+      await baseRequest({
+        method: "POST",
+        uri: `/api/v1/envs/${envName}/logs`,
+        data: { ...this.streamLogsTo, logs: logsToStream },
+        suppressLogs: true,
+      });
     }
   }
 }
