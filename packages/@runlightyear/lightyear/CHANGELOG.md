@@ -1,5 +1,12 @@
 # @runlightyear/lightyear
 
+## 1.12.0
+
+### Minor Changes
+
+- 61ad46a3b: Turn on async logging of runs
+- bbf9983cb: Fix Synchronizer initialization bug
+
 ## 1.11.0
 
 ### Minor Changes

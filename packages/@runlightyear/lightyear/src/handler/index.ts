@@ -124,7 +124,7 @@ export async function handler(
   } else if (operation === "refreshSubscription") {
     return handleRefreshSubscription({ webhookName });
   } else if (operation === "run") {
-    // prefixedRedactedConsole.setStreamLogsTo({ runId });
+    prefixedRedactedConsole.setStreamLogsTo({ runId });
     return handleRun({ actionName, runId, data, context });
   } else if (operation === "getAuthRequestUrl") {
     if (!customAppName) {

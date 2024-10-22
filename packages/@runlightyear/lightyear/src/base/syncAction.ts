@@ -11,6 +11,7 @@ export interface ConnectorProps {
 
 export interface SynchronizerProps {
   connector: AuthConnector;
+  collection: string;
 }
 
 export interface DefineSyncActionProps {
@@ -94,7 +95,10 @@ export function defineSyncAction(props: DefineSyncActionProps) {
         throw new Error("No connector provided");
       }
 
-      const synchronizerProps: SynchronizerProps = { connector };
+      const synchronizerProps: SynchronizerProps = {
+        connector,
+        collection: props.collection,
+      };
 
       let synchronizer: CollectionSynchronizer | null | undefined = undefined;
 
