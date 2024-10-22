@@ -1,6 +1,6 @@
 {
   "name": "@runlightyear/gsheets",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "publishConfig": {
     "access": "public"
   },
