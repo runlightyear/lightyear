@@ -158,6 +158,10 @@ export abstract class ModelSynchronizer<T> {
     if (!authData) {
       throw new Error("Must have auth to sync");
     }
+    if (!authData.managedUser) {
+      throw new Error("Must have managed user to sync");
+    }
+    const managedUserId = authData.managedUser.externalId;
 
     const syncResponse = await getSync({ collection: this.collection, syncId });
 
@@ -193,10 +197,10 @@ export abstract class ModelSynchronizer<T> {
           model: this.model,
           app: authData.appName ?? undefined,
           customApp: authData.customAppName ?? undefined,
-          managedUserExternalId: authData.managedUser?.externalId ?? null,
           objects: objects.map((obj) => ({
-            externalId: obj.id,
-            externalUpdatedAt: obj.updatedAt,
+            managedUserId,
+            localObjectId: obj.id,
+            localUpdatedAt: obj.updatedAt,
             data: obj.data,
           })),
           async: true,
@@ -238,9 +242,9 @@ export abstract class ModelSynchronizer<T> {
             model: this.model,
             app: authData.appName ?? undefined,
             customApp: authData.customAppName ?? undefined,
-            managedUserExternalId: authData.managedUser?.externalId ?? null,
-            externalId: newObject.id,
-            externalUpdatedAt: newObject.updatedAt,
+            managedUserId: authData.managedUser?.externalId ?? null,
+            localObjectId: newObject.id,
+            localUpdatedAt: newObject.updatedAt,
             data: newObject.data,
           });
         } else if (change.operation === "UPDATE") {
@@ -257,9 +261,9 @@ export abstract class ModelSynchronizer<T> {
             model: this.model,
             app: authData.appName ?? undefined,
             customApp: authData.customAppName ?? undefined,
-            managedUserExternalId: authData.managedUser?.externalId ?? null,
-            externalId: updatedObject.id,
-            externalUpdatedAt: updatedObject.updatedAt,
+            managedUserId: authData.managedUser?.externalId ?? null,
+            localObjectId: updatedObject.id,
+            localUpdatedAt: updatedObject.updatedAt,
             data: updatedObject.data,
           });
           // } else if (change.operation === "DELETE") {
