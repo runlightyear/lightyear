@@ -150,7 +150,7 @@ export class PrefixedRedactedConsole {
       });
     }
 
-    if (this.logQueue.length === 100) {
+    if (this.logQueue.length === 50) {
       // do not await this so we can stream in the background
       this.flushQueue();
     }
