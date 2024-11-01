@@ -1,5 +1,14 @@
 # @runlightyear/lightyear
 
+## 1.13.0
+
+### Minor Changes
+
+- 41227e4f2: Reduce streaming log queue size to prevent errors
+- 82a84c202: Support for upserting objects that do not have an updatedAt field
+- ad4aaa49e: Use updated parameters for sync api calls
+- 4210fc632: Crm account just matches on name for now
+
 ## 1.12.0
 
 ### Minor Changes

@@ -71,7 +71,7 @@ export function defineCrmCollection(props?: DefineCrmCollectionProps) {
             },
           },
         },
-        matchOn: { OR: ["name", "website"] },
+        matchOn: "name",
       },
       {
         name: "contact",

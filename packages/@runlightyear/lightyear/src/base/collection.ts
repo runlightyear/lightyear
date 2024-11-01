@@ -222,9 +222,10 @@ export interface UpsertObjectProps {
   model: string;
   app: string | undefined;
   customApp: string | undefined;
-  managedUserExternalId?: string | null;
-  externalId: string;
-  externalUpdatedAt: string;
+  managedUserId?: string | null;
+  objectId?: string;
+  localObjectId: string;
+  localUpdatedAt: string | null;
   data: unknown;
   overwrite?: boolean;
 }
@@ -236,9 +237,10 @@ export async function upsertObject(props: UpsertObjectProps) {
     model,
     app,
     customApp,
-    managedUserExternalId,
-    externalId,
-    externalUpdatedAt,
+    managedUserId,
+    objectId,
+    localObjectId,
+    localUpdatedAt,
     data,
     overwrite,
   } = props;
@@ -252,9 +254,10 @@ export async function upsertObject(props: UpsertObjectProps) {
       syncId,
       appName: app,
       customAppName: customApp,
-      managedUserExternalId,
-      externalId,
-      externalUpdatedAt,
+      managedUserId,
+      objectId,
+      localObjectId,
+      localUpdatedAt,
       data,
       overwrite,
     },
@@ -264,7 +267,7 @@ export async function upsertObject(props: UpsertObjectProps) {
     "Upsert",
     collection,
     model,
-    externalId,
+    localObjectId,
     response.status,
     response.statusText
   );
@@ -278,10 +281,11 @@ export interface UpsertObjectBatchProps {
   model: string;
   app: string | undefined;
   customApp: string | undefined;
-  managedUserExternalId?: string | null;
+  managedUserId?: string | null;
   objects: Array<{
-    externalId: string;
-    externalUpdatedAt: string;
+    objectId?: string;
+    localObjectId: string;
+    localUpdatedAt: string | null;
     data: unknown;
   }>;
   overwrite?: boolean;
@@ -295,7 +299,7 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
     model,
     app,
     customApp,
-    managedUserExternalId,
+    managedUserId,
     objects,
     overwrite,
     async,
@@ -310,7 +314,7 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
       syncId,
       appName: app,
       customAppName: customApp,
-      managedUserExternalId,
+      managedUserId,
       objects,
       overwrite,
       async,
