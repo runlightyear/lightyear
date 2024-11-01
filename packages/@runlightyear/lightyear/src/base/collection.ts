@@ -225,7 +225,7 @@ export interface UpsertObjectProps {
   managedUserId?: string | null;
   objectId?: string;
   localObjectId: string;
-  localUpdatedAt: string;
+  localUpdatedAt: string | null;
   data: unknown;
   overwrite?: boolean;
 }
@@ -285,7 +285,7 @@ export interface UpsertObjectBatchProps {
   objects: Array<{
     objectId?: string;
     localObjectId: string;
-    localUpdatedAt: string;
+    localUpdatedAt: string | null;
     data: unknown;
   }>;
   overwrite?: boolean;
