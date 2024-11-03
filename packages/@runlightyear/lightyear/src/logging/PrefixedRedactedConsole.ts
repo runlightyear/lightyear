@@ -5,6 +5,7 @@ import * as process from "process";
 import { dayjsUtc } from "../util/dayjsUtc";
 import baseRequest from "../base/baseRequest";
 import { getEnvName } from "../util/getEnvName";
+import { BaseRequestError } from "../base/BaseRequestError";
 
 export type LogDisplayLevel = "DEBUG" | "INFO";
 
@@ -150,7 +151,7 @@ export class PrefixedRedactedConsole {
       });
     }
 
-    if (this.logQueue.length === 50) {
+    if (this.logQueue.length === 100) {
       // do not await this so we can stream in the background
       this.flushQueue();
     }
@@ -161,12 +162,20 @@ export class PrefixedRedactedConsole {
       const envName = getEnvName();
       const logsToStream = [...this.logQueue];
       this.logQueue = [];
-      await baseRequest({
-        method: "POST",
-        uri: `/api/v1/envs/${envName}/logs`,
-        data: { ...this.streamLogsTo, logs: logsToStream },
-        suppressLogs: true,
-      });
+      try {
+        await baseRequest({
+          method: "POST",
+          uri: `/api/v1/envs/${envName}/logs`,
+          data: { ...this.streamLogsTo, logs: logsToStream },
+          suppressLogs: true,
+        });
+      } catch (error) {
+        console.error("Error flushing logs to server", error);
+        if (error instanceof BaseRequestError) {
+          const json = await error.response.json();
+          console.error(json);
+        }
+      }
     }
   }
 }
