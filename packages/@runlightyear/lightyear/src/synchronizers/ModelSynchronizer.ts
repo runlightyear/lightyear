@@ -228,6 +228,8 @@ export abstract class ModelSynchronizer<T> {
       });
       more = delta.more;
 
+      console.debug("Delta:", delta);
+
       for (const change of delta.changes) {
         if (change.operation === "CREATE") {
           const newObjectId = await this.create({
@@ -242,6 +244,7 @@ export abstract class ModelSynchronizer<T> {
             model: this.model,
             app: authData.appName ?? undefined,
             customApp: authData.customAppName ?? undefined,
+            objectId: change.objectId,
             managedUserId: authData.managedUser?.externalId ?? null,
             localObjectId: newObject.id,
             localUpdatedAt: newObject.updatedAt,

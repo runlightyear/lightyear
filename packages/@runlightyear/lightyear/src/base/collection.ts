@@ -112,12 +112,12 @@ export async function getDelta(props: GetDeltaProps) {
   const envName = getEnvName();
 
   const response = await baseRequest({
-    method: "POST",
+    method: "GET",
     uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/delta`,
-    data: {
-      appName: app,
-      customAppName: customApp,
-      managedUserExternalId: managedUserExternalId ?? null,
+    params: {
+      // appName: app ?? undefined,
+      customAppName: customApp ?? undefined,
+      managedUserId: managedUserExternalId ?? undefined,
     },
   });
 
