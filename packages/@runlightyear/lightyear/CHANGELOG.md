@@ -1,5 +1,15 @@
 # @runlightyear/lightyear
 
+## 1.14.0
+
+### Minor Changes
+
+- 2945bf3af: Use the updated objects delta api
+
+### Patch Changes
+
+- 2c7824971: Fix bugs with streaming logs
+
 ## 1.13.0
 
 ### Minor Changes
