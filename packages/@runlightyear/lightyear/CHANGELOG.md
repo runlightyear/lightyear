@@ -1,5 +1,12 @@
 # @runlightyear/lightyear
 
+## 1.14.1
+
+### Patch Changes
+
+- ca9afa760: Remove unused aws-lambda package
+- 2a23428ce: Fixed: ModelSynchronizer using the wrong id during update
+
 ## 1.14.0
 
 ### Minor Changes
