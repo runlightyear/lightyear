@@ -252,11 +252,11 @@ export abstract class ModelSynchronizer<T> {
           });
         } else if (change.operation === "UPDATE") {
           await this.update({
-            id: change.objectId,
+            id: change.localObjectId,
             data: change.data,
           });
 
-          const updatedObject = await this.get(change.objectId);
+          const updatedObject = await this.get(change.localObjectId);
 
           await upsertObject({
             collection: this.collection,
