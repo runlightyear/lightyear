@@ -9,6 +9,8 @@ import { BaseRequestError } from "../base/BaseRequestError";
 
 export type LogDisplayLevel = "DEBUG" | "INFO";
 
+const LOG_QUEUE_SIZE = 50;
+
 /**
  * @internal
  */
@@ -151,7 +153,7 @@ export class PrefixedRedactedConsole {
       });
     }
 
-    if (this.logQueue.length === 100) {
+    if (this.logQueue.length === LOG_QUEUE_SIZE) {
       // do not await this so we can stream in the background
       this.flushQueue();
     }
@@ -163,12 +165,14 @@ export class PrefixedRedactedConsole {
       const logsToStream = [...this.logQueue];
       this.logQueue = [];
       try {
+        // process.stdout.write("Flushing logs to server\n");
         await baseRequest({
           method: "POST",
           uri: `/api/v1/envs/${envName}/logs`,
           data: { ...this.streamLogsTo, logs: logsToStream },
           suppressLogs: true,
         });
+        // process.stdout.write("Logs flushed to server\n");
       } catch (error) {
         console.error("Error flushing logs to server", error);
         if (error instanceof BaseRequestError) {
