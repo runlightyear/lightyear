@@ -153,7 +153,10 @@ export abstract class ModelSynchronizer<T> {
     return external;
   }
 
-  async sync(syncId: string) {
+  async sync(
+    syncId: string,
+    direction: "pull" | "push" | "bidirectional" = "bidirectional"
+  ) {
     const authData = this.connector.getAuthData();
     if (!authData) {
       throw new Error("Must have auth to sync");
@@ -175,112 +178,117 @@ export abstract class ModelSynchronizer<T> {
 
     let listCounter = 0;
 
-    do {
-      const listResponse: {
-        objects: Array<FullObjectProps<T>>;
-        cursor?: string;
-      } = await this.list({ syncType, lastUpdatedAt, cursor });
-      objects = listResponse.objects;
-      cursor = listResponse.cursor;
+    if (direction === "pull" || direction === "bidirectional") {
+      console.info("Pulling");
+      do {
+        const listResponse: {
+          objects: Array<FullObjectProps<T>>;
+          cursor?: string;
+        } = await this.list({ syncType, lastUpdatedAt, cursor });
+        objects = listResponse.objects;
+        cursor = listResponse.cursor;
 
-      // for (const obj of objects) {
-      //   if (obj.isDeleted) {
-      //     await this.delete(obj.id);
-      //   } else {
-      // console.log("Skipping upsert for now");
-      if (objects.length === 0) {
-        console.info("Nothing to upsert");
-      } else {
-        await upsertObjectBatch({
-          collection: this.collection,
-          syncId,
-          model: this.model,
-          app: authData.appName ?? undefined,
-          customApp: authData.customAppName ?? undefined,
-          objects: objects.map((obj) => ({
-            managedUserId,
-            localObjectId: obj.id,
-            localUpdatedAt: obj.updatedAt,
-            data: obj.data,
-          })),
-          async: true,
-        });
-        console.info("Upserted batch");
-        // lastUpdatedAt = obj.updatedAt;
-        // console.log("lastUpdatedAt", lastUpdatedAt);
-        listCounter += objects.length;
-        console.info("Objects processed:", listCounter);
-        // }
-        // }
-      }
-    } while (cursor);
-
-    console.info("Processing delta");
-    let more;
-    let changeCounter = 0;
-    do {
-      const delta = await getDelta({
-        collection: this.collection,
-        managedUserExternalId: authData.managedUser?.externalId ?? null,
-        app: authData.appName,
-        customApp: authData.customAppName,
-        model: this.model,
-      });
-      more = delta.more;
-
-      console.debug("Delta:", delta);
-
-      for (const change of delta.changes) {
-        if (change.operation === "CREATE") {
-          const newObjectId = await this.create({
-            data: change.data,
-          });
-
-          const newObject = await this.get(newObjectId);
-
-          await upsertObject({
+        // for (const obj of objects) {
+        //   if (obj.isDeleted) {
+        //     await this.delete(obj.id);
+        //   } else {
+        // console.log("Skipping upsert for now");
+        if (objects.length === 0) {
+          console.info("Nothing to upsert");
+        } else {
+          await upsertObjectBatch({
             collection: this.collection,
             syncId,
             model: this.model,
             app: authData.appName ?? undefined,
             customApp: authData.customAppName ?? undefined,
-            objectId: change.objectId,
-            managedUserId: authData.managedUser?.externalId ?? null,
-            localObjectId: newObject.id,
-            localUpdatedAt: newObject.updatedAt,
-            data: newObject.data,
+            objects: objects.map((obj) => ({
+              managedUserId,
+              localObjectId: obj.id,
+              localUpdatedAt: obj.updatedAt,
+              data: obj.data,
+            })),
+            async: true,
           });
-        } else if (change.operation === "UPDATE") {
-          await this.update({
-            id: change.localObjectId,
-            data: change.data,
-          });
-
-          const updatedObject = await this.get(change.localObjectId);
-
-          await upsertObject({
-            collection: this.collection,
-            syncId,
-            model: this.model,
-            app: authData.appName ?? undefined,
-            customApp: authData.customAppName ?? undefined,
-            managedUserId: authData.managedUser?.externalId ?? null,
-            localObjectId: updatedObject.id,
-            localUpdatedAt: updatedObject.updatedAt,
-            data: updatedObject.data,
-          });
-          // } else if (change.operation === "DELETE") {
-          //   await this.delete(change.objectId);
-          //   await deleteObject({
-          //     collection: this.collection,
-          //     model: this.model,
-          //     externalId: change.objectId,
-          //   });
+          console.info("Upserted batch");
+          // lastUpdatedAt = obj.updatedAt;
+          // console.log("lastUpdatedAt", lastUpdatedAt);
+          listCounter += objects.length;
+          console.info("Objects processed:", listCounter);
+          // }
+          // }
         }
-      }
+      } while (cursor);
+    }
 
-      changeCounter += delta.changes.length;
-      console.info("Changes processed:", changeCounter);
-    } while (more);
+    if (direction === "push" || direction === "bidirectional") {
+      console.info("Pushing");
+      let more;
+      let changeCounter = 0;
+      do {
+        const delta = await getDelta({
+          collection: this.collection,
+          managedUserExternalId: authData.managedUser?.externalId ?? null,
+          app: authData.appName,
+          customApp: authData.customAppName,
+          model: this.model,
+        });
+        more = delta.more;
+
+        console.debug("Delta:", delta);
+
+        for (const change of delta.changes) {
+          if (change.operation === "CREATE") {
+            const newObjectId = await this.create({
+              data: change.data,
+            });
+
+            const newObject = await this.get(newObjectId);
+
+            await upsertObject({
+              collection: this.collection,
+              syncId,
+              model: this.model,
+              app: authData.appName ?? undefined,
+              customApp: authData.customAppName ?? undefined,
+              objectId: change.objectId,
+              managedUserId: authData.managedUser?.externalId ?? null,
+              localObjectId: newObject.id,
+              localUpdatedAt: newObject.updatedAt,
+              data: newObject.data,
+            });
+          } else if (change.operation === "UPDATE") {
+            await this.update({
+              id: change.localObjectId,
+              data: change.data,
+            });
+
+            const updatedObject = await this.get(change.localObjectId);
+
+            await upsertObject({
+              collection: this.collection,
+              syncId,
+              model: this.model,
+              app: authData.appName ?? undefined,
+              customApp: authData.customAppName ?? undefined,
+              managedUserId: authData.managedUser?.externalId ?? null,
+              localObjectId: updatedObject.id,
+              localUpdatedAt: updatedObject.updatedAt,
+              data: updatedObject.data,
+            });
+            // } else if (change.operation === "DELETE") {
+            //   await this.delete(change.objectId);
+            //   await deleteObject({
+            //     collection: this.collection,
+            //     model: this.model,
+            //     externalId: change.objectId,
+            //   });
+          }
+        }
+
+        changeCounter += delta.changes.length;
+        console.info("Changes processed:", changeCounter);
+      } while (more);
+    }
   }
 }

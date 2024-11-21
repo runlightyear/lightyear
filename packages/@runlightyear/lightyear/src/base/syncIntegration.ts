@@ -29,6 +29,7 @@ export interface DefineSyncIntegrationProps {
     full?: number;
     hardDelete?: number;
   };
+  direction?: "pull" | "push" | "bidirectional";
 }
 
 function isConnectorClass(
@@ -76,6 +77,7 @@ export function defineSyncIntegration(props: DefineSyncIntegrationProps) {
         collection: props.collection,
         synchronizer: props.synchronizer,
         frequency: props.frequency,
+        direction: props.direction,
       }),
     ],
   });
