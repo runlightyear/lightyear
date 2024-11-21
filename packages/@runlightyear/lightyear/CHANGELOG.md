@@ -1,5 +1,16 @@
 # @runlightyear/lightyear
 
+## 1.15.0
+
+### Minor Changes
+
+- d359a75eb: Added sync direction parameter to defineSyncIntegration and defineSyncAction
+- ee03d9528: Added product and opportunityLineItem models to crm
+
+### Patch Changes
+
+- 7630cf2c1: Reduce log buffer size
+
 ## 1.14.1
 
 ### Patch Changes
