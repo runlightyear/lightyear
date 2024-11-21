@@ -49,6 +49,10 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
     return {};
   }
 
+  getAssociationKeys(): any {
+    return [];
+  }
+
   async list(props: {
     syncType: "FULL" | "INCREMENTAL";
     lastUpdatedAt?: string;
@@ -64,6 +68,7 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
         params: {
           limit: 100,
           properties: this.getExternalKeys(),
+          associations: this.getAssociationKeys(),
           after: cursor ?? undefined,
         },
       });
@@ -82,6 +87,7 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
         data: {
           limit: 100,
           properties: this.getExternalKeys(),
+          associations: this.getAssociationKeys(),
           sorts: [
             { propertyName: "hs_lastmodifieddate", direction: "ASCENDING" },
           ],
@@ -121,7 +127,8 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
     const response = await this.hubspot.get({
       url: `/crm/v3/objects/${this.getPluralNoun()}/${id}`,
       params: {
-        properties: this.getExternalKeys().join(","),
+        properties: this.getExternalKeys(),
+        associations: this.getAssociationKeys(),
       },
     });
 

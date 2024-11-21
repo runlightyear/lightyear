@@ -1,5 +1,18 @@
 # @runlightyear/hubspot
 
+## 0.9.0
+
+### Minor Changes
+
+- c7ce57fb4: Added Product and OpportunityLineItem synchronizers
+
+### Patch Changes
+
+- Updated dependencies [7630cf2c1]
+- Updated dependencies [d359a75eb]
+- Updated dependencies [ee03d9528]
+  - @runlightyear/lightyear@1.15.0
+
 ## 0.8.0
 
 ### Minor Changes

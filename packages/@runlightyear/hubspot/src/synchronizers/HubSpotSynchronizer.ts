@@ -13,6 +13,8 @@ import { MeetingSynchronizer } from "./MeetingSynchronizer";
 import { CallSynchronizer } from "./CallSynchronizer";
 import { TaskSynchronizer } from "./TaskSynchronizer";
 import { UserSynchronizer } from "./UserSynchronizer";
+import { ProductSynchronizer } from "./ProductSynchronizer";
+import { OpportunityLineItemSynchronizer } from "./OpportunityLineItemSynchronizer";
 
 export interface HubSpotSynchronizerProps
   extends Omit<CollectionSynchronizerProps, "collection"> {
@@ -40,7 +42,10 @@ export class HubSpotSynchronizer extends CollectionSynchronizer {
       user: (props) => new UserSynchronizer(props),
       account: (props) => new AccountSynchronizer(props),
       contact: (props) => new ContactSynchronizer(props),
+      product: (props) => new ProductSynchronizer(props),
       opportunity: (props) => new OpportunitySynchronizer(props),
+      opportunityLineItem: (props) =>
+        new OpportunityLineItemSynchronizer(props),
       call: (props) => new CallSynchronizer(props),
       note: (props) => new NoteSynchronizer(props),
       meeting: (props) => new MeetingSynchronizer(props),

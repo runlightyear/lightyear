@@ -29,6 +29,7 @@ export interface DefineSyncActionProps {
     full?: number;
     hardDelete?: number;
   };
+  direction?: "pull" | "push" | "bidirectional";
 }
 
 function isConnectorClass(
@@ -156,7 +157,7 @@ export function defineSyncAction(props: DefineSyncActionProps) {
       console.info(`Updated sync type to ${syncType}`);
 
       try {
-        await synchronizer.sync(sync.id);
+        await synchronizer.sync(sync.id, props.direction);
         await updateSync({
           collection: props.collection,
           syncId: sync.id,

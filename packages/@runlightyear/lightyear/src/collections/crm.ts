@@ -140,7 +140,6 @@ export function defineCrmCollection(props?: DefineCrmCollectionProps) {
             },
           },
         },
-        matchOn: "name",
       },
       {
         name: "lead",
@@ -217,6 +216,44 @@ export function defineCrmCollection(props?: DefineCrmCollectionProps) {
             title: { type: ["string", "null"] },
             content: { type: ["string", "null"] },
             timestamp: { type: ["string", "null"] },
+          },
+        },
+      },
+      {
+        name: "product",
+        title: "Product",
+        schema: {
+          type: "object",
+          properties: {
+            name: { type: ["string", "null"] },
+            description: { type: ["string", "null"] },
+            price: { type: ["string", "null"] },
+            code: { type: ["string", "null"] },
+          },
+        },
+      },
+      {
+        name: "opportunityLineItem",
+        title: "Opportunity Line Item",
+        schema: {
+          type: "object",
+          properties: {
+            name: { type: ["string", "null"] },
+            quantity: { type: ["string", "null"] },
+            price: { type: ["string", "null"] },
+            opportunityId: {
+              type: "string",
+              references: "opportunity",
+            },
+            productId: {
+              anyOf: [
+                {
+                  type: "string",
+                  references: "product",
+                },
+                { type: "null" },
+              ],
+            },
           },
         },
       },

@@ -67,14 +67,17 @@ export abstract class CollectionSynchronizer {
     return modelSynchronizer(this.getModelSynchronizerProps(name));
   }
 
-  async sync(syncId: string) {
+  async sync(
+    syncId: string,
+    direction: "push" | "pull" | "bidirectional" = "bidirectional"
+  ) {
     const modelsToSync = await this.getModelOrder();
 
     for (const modelName of modelsToSync) {
       const model = await this.getModel(modelName);
 
       if (model) {
-        await model.sync(syncId);
+        await model.sync(syncId, direction);
       }
     }
   }
