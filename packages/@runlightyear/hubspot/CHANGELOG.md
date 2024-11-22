@@ -1,5 +1,11 @@
 # @runlightyear/hubspot
 
+## 0.10.0
+
+### Minor Changes
+
+- d8bf8c020: Return opportunityId for opportunityLineItem even during incremental syncs
+
 ## 0.9.0
 
 ### Minor Changes
