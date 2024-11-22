@@ -17,7 +17,16 @@ export class OpportunityLineItemSynchronizer extends HubSpotModelSynchronizer {
       price: "properties.price",
       productId: "properties.hs_product_id",
       opportunityId: (source: any) => {
-        return source.associations.deals.results[0].id;
+        if (
+          "associations" in source &&
+          "deals" in source.associations &&
+          "results" in source.associations.deals &&
+          source.associations.deals.results.length > 0
+        ) {
+          return source.associations.deals.results[0].id;
+        }
+
+        return undefined;
       },
     };
   }
@@ -31,5 +40,25 @@ export class OpportunityLineItemSynchronizer extends HubSpotModelSynchronizer {
       hs_product_id: "productId",
       deal_id: "opportunityId",
     };
+  }
+
+  async list(props: {
+    syncType: "FULL" | "INCREMENTAL";
+    lastUpdatedAt?: string;
+    cursor?: string;
+  }): Promise<{ cursor: any; objects: any[] }> {
+    const superList = await super.list(props);
+
+    // associations aren't returned in incremental syncs, so we have to do gets for each object
+    if (props.syncType === "INCREMENTAL") {
+      const newObjects = [];
+      for (const object of superList.objects) {
+        const newObject = await this.get(object.id);
+        newObjects.push(newObject);
+      }
+      return { ...superList, objects: newObjects };
+    }
+
+    return superList;
   }
 }
