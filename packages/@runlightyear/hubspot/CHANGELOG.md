@@ -1,5 +1,11 @@
 # @runlightyear/hubspot
 
+## 0.11.0
+
+### Minor Changes
+
+- 7f5007a61: Associate accountIds with deals
+
 ## 0.10.0
 
 ### Minor Changes
