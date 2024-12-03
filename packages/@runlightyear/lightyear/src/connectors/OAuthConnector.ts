@@ -108,8 +108,7 @@ export abstract class OAuthConnector {
     const params = this.getAuthRequestUrlParams();
     console.debug("Params", params);
 
-    const url = new URL(`
-        }${base}?${new URLSearchParams(params)}`);
+    const url = new URL(`${base}?${new URLSearchParams(params)}`);
     console.debug("Auth request URL:", url.href);
 
     console.info("Generated url");
