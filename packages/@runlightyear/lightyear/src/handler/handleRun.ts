@@ -17,10 +17,12 @@ export async function handleRun({
   context,
 }: HandleRunProps) {
   if (!actionName) {
+    console.error("Missing actionName");
     return handlerResult(400, "Missing actionName");
   }
 
   if (!runId) {
+    console.error("Missing runId");
     return handlerResult(400, "Missing runId");
   }
 
