@@ -19,37 +19,58 @@ export async function execGetAuthRequestUrl(props: ExecGetAuthRequestUrlProps) {
   const compiledCode = getCompiledCode(pkg.main);
 
   let handler;
+  let status: "SUCCEEDED" | "FAILED";
+  let logs;
+
   try {
     handler = runInContext(compiledCode).handler;
   } catch (error) {
     prepareConsole();
     console.error(error);
-    return;
+    status = "FAILED";
+    logs = [`[ERROR] ${String(error)}`];
   }
 
-  const handlerResult = await handler({
-    operation: "getAuthRequestUrl",
-    customAppName,
-    authName,
-    logDisplayLevel,
-  });
+  if (handler) {
+    const handlerResult = await handler({
+      operation: "getAuthRequestUrl",
+      customAppName,
+      authName,
+      logDisplayLevel,
+    });
 
-  prepareConsole();
+    prepareConsole();
 
-  const { statusCode, body } = handlerResult;
-  const responseData = JSON.parse(body);
-  const { authRequestUrl, logs } = responseData;
+    const { statusCode, body } = handlerResult;
+    const responseData = JSON.parse(body);
+    const { authRequestUrl, message, logs: logsFromVm } = responseData;
 
-  const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
+    status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
-  console.debug(`about to upload authRequestUrl: ${authRequestUrl}`);
+    let localResponse;
 
-  await deliverLocalResponse({
-    localResponseId,
-    response: JSON.stringify({ authRequestUrl }),
-  });
+    if (status === "FAILED") {
+      localResponse = {
+        error: message,
+      };
+    } else {
+      console.debug(`about to upload authRequestUrl: ${authRequestUrl}`);
+      localResponse = {
+        authRequestUrl,
+      };
+    }
 
-  console.info(`Returned auth request url for ${customAppName}`);
+    await deliverLocalResponse({
+      localResponseId,
+      response: JSON.stringify(localResponse),
+    });
+
+    console.info(`Returned auth request url for ${customAppName}`);
+
+    logs = logsFromVm;
+  } else {
+    status = "FAILED";
+  }
 
   await createAuthorizerActivity({
     customAppName,
@@ -57,6 +78,4 @@ export async function execGetAuthRequestUrl(props: ExecGetAuthRequestUrlProps) {
     status,
     logs,
   });
-
-  return status;
 }

@@ -71,7 +71,7 @@ export abstract class OAuthConnector {
       console.error(
         `Custom app ${customAppName} is missing client id and/or client secret. Configure at https://app.runlightyear.com/envs/<envName>/custom-apps/${customAppName}`
       );
-      throw new Error("Custom app configuration error");
+      throw new Error("Custom app client id and/or client secret not set");
     }
 
     this.appName = appName;
