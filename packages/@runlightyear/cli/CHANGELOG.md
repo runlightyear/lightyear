@@ -1,5 +1,17 @@
 # @runlightyear/cli
 
+## 1.6.0
+
+### Minor Changes
+
+- 406c62ad1: Handle unconfigured custom apps gracefully
+
+### Patch Changes
+
+- Updated dependencies [406c62ad1]
+- Updated dependencies [dc17a6cb9]
+  - @runlightyear/lightyear@1.16.0
+
 ## 1.5.5
 
 ### Patch Changes

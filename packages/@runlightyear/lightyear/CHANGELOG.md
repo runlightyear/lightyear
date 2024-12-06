@@ -1,5 +1,15 @@
 # @runlightyear/lightyear
 
+## 1.16.0
+
+### Minor Changes
+
+- 406c62ad1: Handle unconfigured custom apps gracefully
+
+### Patch Changes
+
+- dc17a6cb9: Improve error message for misconfigured customApp
+
 ## 1.15.0
 
 ### Minor Changes
