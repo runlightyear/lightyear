@@ -61,8 +61,18 @@ export abstract class OAuthConnector {
     this.oauthConfigData = oauthConfigData;
 
     const { clientId, clientSecret, authRequestUrl } = this.oauthConfigData;
-    invariant(clientId, "Missing clientId");
-    invariant(clientSecret, "Missing clientSecret");
+
+    if (appName) {
+      invariant(clientId, "Client ID not set");
+      invariant(clientSecret, "Client secret not set");
+    }
+
+    if (!clientId || !clientSecret) {
+      console.error(
+        `Custom app ${customAppName} is missing client id and/or client secret. Configure at https://app.runlightyear.com/envs/<envName>/custom-apps/${customAppName}`
+      );
+      throw new Error("Custom app client id and/or client secret not set");
+    }
 
     this.appName = appName;
     this.customAppName = customAppName;

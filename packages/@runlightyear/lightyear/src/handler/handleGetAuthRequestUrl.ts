@@ -28,16 +28,19 @@ export async function handleGetAuthRequestUrl({
   invariant(authData.customAppData.oAuthConfigData, "Missing oAuthConfigData");
 
   let connector: OAuthConnector;
+  try {
+    connector = item({
+      customAppName: customApp,
+      oauthConfigData: authData.customAppData.oAuthConfigData,
+      authData,
+    });
 
-  connector = item({
-    customAppName: customApp,
-    oauthConfigData: authData.customAppData.oAuthConfigData,
-    authData,
-  });
+    console.debug("connector", connector);
 
-  console.debug("connector", connector);
-
-  const authRequestUrl = connector.getAuthRequestUrl();
-
-  return handlerResult(200, "Success", { authRequestUrl });
+    const authRequestUrl = connector.getAuthRequestUrl();
+    return handlerResult(200, "Success", { authRequestUrl });
+  } catch (error) {
+    console.error("Failed to get auth request url", String(error));
+    return handlerResult(500, String(error));
+  }
 }

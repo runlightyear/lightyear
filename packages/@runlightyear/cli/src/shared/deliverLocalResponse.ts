@@ -29,7 +29,7 @@ export async function deliverLocalResponse(props: DeliverAuthRequestUrlProps) {
   );
 
   if (deliveryResponse.ok) {
-    console.debug("Delivered localReponse");
+    console.debug("Delivered localResponse");
   } else {
     console.error(
       "Failed to deliver localResponse: ",

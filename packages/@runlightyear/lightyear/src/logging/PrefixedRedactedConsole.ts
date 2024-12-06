@@ -25,7 +25,9 @@ export class PrefixedRedactedConsole {
     message: string;
     level: "INFO" | "DEBUG" | "WARN" | "ERROR" | "LOG" | "TRACE";
     timestamp: string;
+    position: number;
   }> = [];
+  counter: number = 0;
 
   setGlobalPrefix(prefix: string) {
     this.globalPrefix = prefix;
@@ -39,6 +41,7 @@ export class PrefixedRedactedConsole {
     this.secrets = [];
     this.history = [];
     this.logQueue = [];
+    this.counter = 0;
   }
 
   addSecrets(secrets: Array<string | null>) {
@@ -150,6 +153,7 @@ export class PrefixedRedactedConsole {
         message: props.message,
         level: props.prefix as any,
         timestamp: props.timestamp,
+        position: this.counter++,
       });
     }
 
