@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 1.17.0
+
+### Minor Changes
+
+- 494972892: Model synchronizer uses updated sync api
+
 ## 1.16.0
 
 ### Minor Changes
