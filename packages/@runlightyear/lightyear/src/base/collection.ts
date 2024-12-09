@@ -132,6 +132,38 @@ export async function getDelta(props: GetDeltaProps) {
   }
 }
 
+export interface RetrieveDeltaProps {
+  collectionName: string;
+  syncId: string;
+  modelName?: string;
+  limit?: number;
+}
+
+export async function retrieveDelta(props: RetrieveDeltaProps) {
+  const { collectionName, syncId, modelName, limit } = props;
+
+  const envName = getEnvName();
+
+  const response = await baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/collections/${collectionName}/delta`,
+    data: {
+      syncId,
+      modelName,
+      limit,
+    },
+  });
+
+  if (response.ok) {
+    const json = await response.json();
+    return {
+      changes: json.changes,
+    };
+  } else {
+    throw new Error("Unable to get delta");
+  }
+}
+
 export interface StartSyncProps {
   collection: string;
   app: string | null;
@@ -323,6 +355,111 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
 
   console.info(
     "Upsert",
+    collection,
+    model,
+    objects.length,
+    response.status,
+    response.statusText
+  );
+
+  return response;
+}
+
+export interface ConfirmChangeProps {
+  collectionName: string;
+  modelName: string;
+  syncId: string;
+  changeId: string;
+  localObjectId: string;
+  localUpdatedAt: string | null;
+}
+
+export async function confirmObject(props: ConfirmChangeProps) {
+  const {
+    collectionName,
+    modelName,
+    syncId,
+    changeId,
+    localObjectId,
+    localUpdatedAt,
+  } = props;
+
+  const envName = getEnvName();
+
+  const response = await baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/collections/${collectionName}/models/${modelName}/objects/confirm`,
+    data: {
+      syncId,
+      changeId,
+      localObjectId,
+      localUpdatedAt,
+    },
+  });
+
+  console.info(
+    "Confirm",
+    collectionName,
+    modelName,
+    syncId,
+    changeId,
+    localObjectId,
+    localUpdatedAt,
+    response.status,
+    response.statusText
+  );
+
+  return response;
+}
+
+export interface ConfirmChangeBatchProps {
+  collection: string;
+  syncId: string;
+  model: string;
+  app: string | undefined;
+  customApp: string | undefined;
+  managedUserId?: string | null;
+  objects: Array<{
+    objectId?: string;
+    localObjectId: string;
+    localUpdatedAt: string | null;
+    data: unknown;
+  }>;
+  overwrite?: boolean;
+  async?: boolean;
+}
+
+export async function confirmObjectBatch(props: ConfirmChangeBatchProps) {
+  const {
+    collection,
+    syncId,
+    model,
+    app,
+    customApp,
+    managedUserId,
+    objects,
+    overwrite,
+    async,
+  } = props;
+
+  const envName = getEnvName();
+
+  const response = await baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/confirm/batch`,
+    data: {
+      syncId,
+      appName: app,
+      customAppName: customApp,
+      managedUserId,
+      objects,
+      overwrite,
+      async,
+    },
+  });
+
+  console.info(
+    "Confirm",
     collection,
     model,
     objects.length,

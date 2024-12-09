@@ -1,5 +1,16 @@
 # @runlightyear/hubspot
 
+## 0.12.0
+
+### Minor Changes
+
+- 086243822: Throw an error if there is an attempt to create a user/owner during sync
+
+### Patch Changes
+
+- Updated dependencies [494972892]
+  - @runlightyear/lightyear@1.17.0
+
 ## 0.11.0
 
 ### Minor Changes

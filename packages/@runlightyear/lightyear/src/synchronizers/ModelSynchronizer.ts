@@ -1,8 +1,10 @@
 import {
+  confirmObject,
   deleteObject,
   getDelta,
   getLastUpdatedObject,
   getSync,
+  retrieveDelta,
   upsertObject,
   upsertObjectBatch,
 } from "../base/collection";
@@ -179,7 +181,7 @@ export abstract class ModelSynchronizer<T> {
     let listCounter = 0;
 
     if (direction === "pull" || direction === "bidirectional") {
-      console.info("Pulling");
+      console.info(`Pulling model: ${this.model}`);
       do {
         const listResponse: {
           objects: Array<FullObjectProps<T>>;
@@ -211,33 +213,33 @@ export abstract class ModelSynchronizer<T> {
             async: true,
           });
           console.info("Upserted batch");
-          // lastUpdatedAt = obj.updatedAt;
-          // console.log("lastUpdatedAt", lastUpdatedAt);
           listCounter += objects.length;
           console.info("Objects processed:", listCounter);
-          // }
-          // }
         }
       } while (cursor);
     }
 
     if (direction === "push" || direction === "bidirectional") {
-      console.info("Pushing");
+      console.info(`Pushing model: ${this.model}`);
       let more;
       let changeCounter = 0;
       do {
-        const delta = await getDelta({
-          collection: this.collection,
-          managedUserExternalId: authData.managedUser?.externalId ?? null,
-          app: authData.appName,
-          customApp: authData.customAppName,
-          model: this.model,
+        const delta = await retrieveDelta({
+          collectionName: this.collection,
+          syncId,
+          modelName: this.model,
         });
-        more = delta.more;
 
         console.debug("Delta:", delta);
 
+        if (delta.changes.length === 0) {
+          console.info("Nothing more to push");
+          break;
+        }
+
         for (const change of delta.changes) {
+          console.debug("Change:", change);
+
           if (change.operation === "CREATE") {
             const newObjectId = await this.create({
               data: change.data,
@@ -245,17 +247,13 @@ export abstract class ModelSynchronizer<T> {
 
             const newObject = await this.get(newObjectId);
 
-            await upsertObject({
-              collection: this.collection,
+            await confirmObject({
+              collectionName: this.collection,
+              modelName: this.model,
               syncId,
-              model: this.model,
-              app: authData.appName ?? undefined,
-              customApp: authData.customAppName ?? undefined,
-              objectId: change.objectId,
-              managedUserId: authData.managedUser?.externalId ?? null,
+              changeId: change.changeId,
               localObjectId: newObject.id,
               localUpdatedAt: newObject.updatedAt,
-              data: newObject.data,
             });
           } else if (change.operation === "UPDATE") {
             await this.update({
@@ -265,17 +263,17 @@ export abstract class ModelSynchronizer<T> {
 
             const updatedObject = await this.get(change.localObjectId);
 
-            await upsertObject({
-              collection: this.collection,
+            console.log("About to confirm this change", change);
+
+            await confirmObject({
+              collectionName: this.collection,
+              modelName: this.model,
               syncId,
-              model: this.model,
-              app: authData.appName ?? undefined,
-              customApp: authData.customAppName ?? undefined,
-              managedUserId: authData.managedUser?.externalId ?? null,
+              changeId: change.changeId,
               localObjectId: updatedObject.id,
               localUpdatedAt: updatedObject.updatedAt,
-              data: updatedObject.data,
             });
+
             // } else if (change.operation === "DELETE") {
             //   await this.delete(change.objectId);
             //   await deleteObject({
@@ -288,7 +286,7 @@ export abstract class ModelSynchronizer<T> {
 
         changeCounter += delta.changes.length;
         console.info("Changes processed:", changeCounter);
-      } while (more);
+      } while (true);
     }
   }
 }
