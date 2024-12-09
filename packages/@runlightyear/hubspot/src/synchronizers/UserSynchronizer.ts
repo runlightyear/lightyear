@@ -80,4 +80,22 @@ export class UserSynchronizer extends ModelSynchronizer<any> {
 
     return this.mapToObject(response.data);
   }
+
+  async create(object: any): Promise<string> {
+    throw new Error(
+      "HubSpot does not support creating new users/owners from the API"
+    );
+  }
+
+  async update(object: any) {
+    throw new Error(
+      "HubSpot does not support updating users/owners from the API"
+    );
+  }
+
+  async delete(id: string) {
+    throw new Error(
+      "HubSpot does not support deleting users/owners from the API"
+    );
+  }
 }
