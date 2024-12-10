@@ -1,5 +1,12 @@
 # @runlightyear/gcal
 
+## 0.11.13
+
+### Patch Changes
+
+- Updated dependencies [403c0fc04]
+  - @runlightyear/lightyear@1.18.0
+
 ## 0.11.12
 
 ### Patch Changes

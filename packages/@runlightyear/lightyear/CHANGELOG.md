@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 1.18.0
+
+### Minor Changes
+
+- 403c0fc04: Retry retrieve delta call when response is 423 Locked
+
 ## 1.17.0
 
 ### Minor Changes
