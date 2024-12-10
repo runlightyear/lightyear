@@ -172,8 +172,7 @@ export abstract class ModelSynchronizer<T> {
 
     const { type: syncType, modelStatuses } = syncResponse;
 
-    let lastUpdatedAt =
-      modelStatuses[this.model]?.lastExternalUpdatedAt ?? null;
+    let lastUpdatedAt = modelStatuses[this.model]?.lastLocalUpdatedAt ?? null;
 
     let objects;
     let cursor = undefined;

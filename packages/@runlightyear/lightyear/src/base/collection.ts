@@ -140,28 +140,45 @@ export interface RetrieveDeltaProps {
 }
 
 export async function retrieveDelta(props: RetrieveDeltaProps) {
+  const MAX_RETRIES = 5;
+
   const { collectionName, syncId, modelName, limit } = props;
 
   const envName = getEnvName();
 
-  const response = await baseRequest({
-    method: "POST",
-    uri: `/api/v1/envs/${envName}/collections/${collectionName}/delta`,
-    data: {
-      syncId,
-      modelName,
-      limit,
-    },
-  });
+  let retryNumber = 0;
 
-  if (response.ok) {
-    const json = await response.json();
-    return {
-      changes: json.changes,
-    };
-  } else {
-    throw new Error("Unable to get delta");
+  while (retryNumber < MAX_RETRIES) {
+    try {
+      const response = await baseRequest({
+        method: "POST",
+        uri: `/api/v1/envs/${envName}/collections/${collectionName}/delta`,
+        data: {
+          syncId,
+          modelName,
+          limit,
+        },
+      });
+
+      const json = await response.json();
+      return {
+        changes: json.changes,
+      };
+    } catch (error) {
+      if (error instanceof BaseRequestError) {
+        if (error.response.status === 423) {
+          retryNumber += 1;
+          console.info(
+            `Delta locked while previous changes are processed, retrying (${retryNumber})`
+          );
+          continue;
+        }
+      }
+      throw error;
+    }
   }
+
+  throw new Error(`Delta timed out after ${MAX_RETRIES} retries`);
 }
 
 export interface StartSyncProps {
