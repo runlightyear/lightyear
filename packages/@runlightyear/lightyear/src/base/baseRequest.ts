@@ -61,12 +61,6 @@ export default async function baseRequest({
   const response = await fetch(url, props);
 
   if (!response.ok) {
-    if (!suppressLogs)
-      console.error(
-        `Base request error: ${response.status} ${response.statusText}`
-      );
-    if (!suppressLogs)
-      console.error(JSON.stringify(await response.json(), null, 2));
     throw new BaseRequestError(response);
   }
 
