@@ -19,6 +19,7 @@ export interface HttpProxyRequestProps {
   data?: object;
   body?: string;
   redactKeys?: string[];
+  maxRetries?: number;
 }
 
 /**
@@ -69,11 +70,12 @@ export interface HttpRequest {
 }
 
 export const httpRequest: HttpRequest = async (props) => {
-  const { redactKeys, ...rest } = props;
+  const { redactKeys, maxRetries, ...rest } = props;
 
   const response = await baseRequest({
     uri: "/api/v1/httpRequest",
     data: rest,
+    maxRetries,
   });
 
   const parsedUrl = new URL(props.url);
