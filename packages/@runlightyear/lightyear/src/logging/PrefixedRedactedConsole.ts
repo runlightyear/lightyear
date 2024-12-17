@@ -132,7 +132,9 @@ export class PrefixedRedactedConsole {
   }) {
     const { params, color, prefix, stream, display } = props;
     const message = `[${prefix}]: ${this._redactParams(params)}`;
-    this.history.push(message);
+    if (!this.streamLogsTo) {
+      this.history.push(message);
+    }
     this._enqueue({
       message: this._redactParams(params),
       prefix,
