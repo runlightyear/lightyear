@@ -1,7 +1,8 @@
-import { getActionData } from "../base/action";
 import { run } from "../run";
 import { handlerResult } from "./handlerResult";
 import { getRunFuncProps } from "../base/run";
+import { BaseRequestError } from "../base/BaseRequestError";
+import { HttpProxyResponseError } from "../base/http";
 
 export interface HandleRunProps {
   actionName: string | undefined;
@@ -53,7 +54,22 @@ export async function handleRun({
       return handlerResult(202, "Run skipped");
     }
 
-    console.error("Failed to run action", String(error));
-    return handlerResult(500, "Run failed");
+    console.error("Run failed here", String(error));
+
+    if (error instanceof HttpProxyResponseError) {
+      console.error(error.response);
+    }
+
+    if (error instanceof BaseRequestError) {
+      const body = await error.response.text();
+      try {
+        const jsonData = JSON.parse(body);
+        console.error(jsonData);
+      } catch (e2) {
+        console.error(body);
+      }
+    }
+
+    return handlerResult(500, "Run failed there");
   }
 }
