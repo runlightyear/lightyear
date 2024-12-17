@@ -1,5 +1,14 @@
 # @runlightyear/lightyear
 
+## 1.19.0
+
+### Minor Changes
+
+- f723e889d: Use new finish sync api
+- 18e743421: Do not maintain log history when streaming logs back to server
+- 3e7c405bd: Catch http request errors and print the body before the end of a run
+- 86e21087b: Initial retry logic for http and base requests
+
 ## 1.18.0
 
 ### Minor Changes
