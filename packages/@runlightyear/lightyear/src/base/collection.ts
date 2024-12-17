@@ -570,3 +570,18 @@ export async function detectHardDeletes(props: DetectHardDeletesProps) {
     },
   });
 }
+
+export interface FinishSyncProps {
+  collectionName: string;
+  syncId: string;
+}
+
+export async function finishSync(props: FinishSyncProps) {
+  const envName = getEnvName();
+  const { collectionName, syncId } = props;
+
+  return baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/collections/${collectionName}/syncs/${syncId}/finish`,
+  });
+}
