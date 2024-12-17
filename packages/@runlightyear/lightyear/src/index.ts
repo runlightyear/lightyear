@@ -46,6 +46,7 @@ export {
   upsertObjectBatch,
   deleteObject,
   detectHardDeletes,
+  finishSync,
 } from "./base/collection";
 export type {
   DefineCollectionProps,

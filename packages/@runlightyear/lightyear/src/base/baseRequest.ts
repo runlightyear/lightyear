@@ -15,6 +15,7 @@ export interface BaseRequestProps {
     [key: string]: any;
   };
   suppressLogs?: boolean;
+  maxRetries?: number;
 }
 
 /**
@@ -24,6 +25,8 @@ export interface BaseRequestProps {
  * @param uri
  * @param params
  * @param data
+ * @param suppressLogs
+ * @param maxRetries
  */
 export default async function baseRequest({
   method = "POST",
@@ -31,6 +34,7 @@ export default async function baseRequest({
   params,
   data,
   suppressLogs = false,
+  maxRetries = 3,
 }: BaseRequestProps): Promise<Response> {
   if (!suppressLogs) console.debug("in baseRequest");
 
@@ -58,13 +62,31 @@ export default async function baseRequest({
   if (!suppressLogs) console.debug(`baseRequest url: ${url}`);
   if (!suppressLogs) console.debug("baseRequest props", props);
 
-  const response = await fetch(url, props);
+  let attempt = 0;
+  let response: Response | undefined;
 
-  if (!response.ok) {
-    throw new BaseRequestError(response);
+  while (attempt < maxRetries) {
+    response = await fetch(url, props);
+
+    if (!response.ok) {
+      if (response.status >= 500) {
+        attempt += 1;
+
+        if (!suppressLogs)
+          console.debug(`Retrying after ${response.status} error (${attempt})`);
+
+        continue;
+      }
+
+      throw new BaseRequestError(response);
+    }
+
+    if (!suppressLogs) console.debug("about to return from baseRequest");
+
+    return response;
   }
 
-  if (!suppressLogs) console.debug("about to return from baseRequest");
+  invariant(response, "Missing response");
 
-  return response;
+  throw new BaseRequestError(response);
 }

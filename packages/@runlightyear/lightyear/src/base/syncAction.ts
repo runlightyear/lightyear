@@ -2,7 +2,7 @@ import { CollectionSynchronizer } from "../synchronizers/CollectionSynchronizer"
 import { AppName, defineAction } from "./action";
 import { AuthData } from "./auth";
 import { AuthConnector } from "../connectors/AuthConnector";
-import { startSync, updateSync } from "./collection";
+import { finishSync, startSync, updateSync } from "./collection";
 import { dayjsUtc } from "../util/dayjsUtc";
 
 export interface ConnectorProps {
@@ -158,12 +158,12 @@ export function defineSyncAction(props: DefineSyncActionProps) {
 
       try {
         await synchronizer.sync(sync.id, props.direction);
-        await updateSync({
-          collection: props.collection,
+        const response = await finishSync({
+          collectionName: props.collection,
           syncId: sync.id,
-          status: "SUCCEEDED",
         });
-        console.info("Updated sync status to SUCCEEDED");
+        const jsonData = await response.json();
+        console.info(jsonData.message);
       } catch (error) {
         await updateSync({
           collection: props.collection,
