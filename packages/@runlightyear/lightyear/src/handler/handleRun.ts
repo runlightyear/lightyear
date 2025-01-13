@@ -54,7 +54,7 @@ export async function handleRun({
       return handlerResult(202, "Run skipped");
     }
 
-    console.error("Run failed here", String(error));
+    console.error("Run failed", String(error));
 
     if (error instanceof HttpProxyResponseError) {
       console.error(error.response);
