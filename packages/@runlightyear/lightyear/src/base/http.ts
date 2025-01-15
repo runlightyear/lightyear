@@ -1,5 +1,6 @@
 import baseRequest from "./baseRequest";
 import { prefixedRedactedConsole } from "../logging";
+import { sleep } from "../util/sleep";
 
 /**
  * @public
@@ -69,39 +70,67 @@ export interface HttpRequest {
   (props: HttpProxyRequestProps): Promise<HttpProxyResponse>;
 }
 
+function getRandomJitter(maxJitter: number): number {
+  return Math.floor(Math.random() * maxJitter);
+}
+async function exponentialBackoffWithJitter(retryCount: number): Promise<void> {
+  const baseWaitTime = Math.pow(2, retryCount) * 1000; // Exponential backoff
+  const jitter = getRandomJitter(5000); // Add up to 5 seconds of jitter
+  const waitTime = baseWaitTime + jitter;
+  console.log(`Retrying in ${(waitTime / 1000).toFixed(2)} seconds...`);
+  await sleep(waitTime);
+}
+
 export const httpRequest: HttpRequest = async (props) => {
   const { redactKeys, maxRetries, ...rest } = props;
 
-  const response = await baseRequest({
-    uri: "/api/v1/httpRequest",
-    data: rest,
-    maxRetries,
-  });
+  const maxBackoffs = 5;
+  let backoffCount = 0;
 
-  const parsedUrl = new URL(props.url);
-  const displayUrl = `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`;
+  do {
+    const response = await baseRequest({
+      uri: "/api/v1/httpRequest",
+      data: rest,
+      maxRetries,
+    });
 
-  console.info(props.method, displayUrl, response.status, response.statusText);
+    const parsedUrl = new URL(props.url);
+    const displayUrl = `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`;
 
-  console.debug(`response.status`, response.status);
-  console.debug(`response.statusText`, response.statusText);
-  const proxyResponse = (await response.json()) as HttpProxyResponse;
+    console.info(
+      props.method,
+      displayUrl,
+      response.status,
+      response.statusText
+    );
 
-  if (proxyResponse.status < 200 || proxyResponse.status >= 300) {
-    console.error("Error in proxy http request", proxyResponse);
-    throw new HttpProxyResponseError(proxyResponse);
-  } else {
-    console.debug("redacting keys", redactKeys);
-    for (const key of redactKeys || []) {
-      if (proxyResponse.data[key]) {
-        prefixedRedactedConsole.addSecrets([proxyResponse.data[key]]);
-      } else {
-        console.debug(`key ${key} not found in response data`);
+    console.debug(`response.status`, response.status);
+    console.debug(`response.statusText`, response.statusText);
+    const proxyResponse = (await response.json()) as HttpProxyResponse;
+
+    if (proxyResponse.status === 429) {
+      backoffCount += 1;
+      if (backoffCount > maxBackoffs) {
+        throw new HttpProxyResponseError(proxyResponse);
       }
+      await exponentialBackoffWithJitter(backoffCount);
+      continue;
+    } else if (proxyResponse.status < 200 || proxyResponse.status >= 300) {
+      console.error("Error in proxy http request", proxyResponse);
+      throw new HttpProxyResponseError(proxyResponse);
+    } else {
+      console.debug("redacting keys", redactKeys);
+      for (const key of redactKeys || []) {
+        if (proxyResponse.data[key]) {
+          prefixedRedactedConsole.addSecrets([proxyResponse.data[key]]);
+        } else {
+          console.debug(`key ${key} not found in response data`);
+        }
+      }
+
+      console.debug("proxyResponse", proxyResponse);
     }
 
-    console.debug("proxyResponse", proxyResponse);
-  }
-
-  return proxyResponse;
+    return proxyResponse;
+  } while (true);
 };
