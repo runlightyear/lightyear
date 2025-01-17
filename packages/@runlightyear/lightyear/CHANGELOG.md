@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 1.20.0
+
+### Minor Changes
+
+- b7aad45dc: Handle rate limits with exponential backoff + jitter logic
+
 ## 1.19.0
 
 ### Minor Changes
