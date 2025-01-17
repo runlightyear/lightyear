@@ -59,14 +59,28 @@ export class UserSynchronizer extends ModelSynchronizer<any> {
       return { objects: [] };
     }
 
-    const response = await this.hubspot.get({
+    const responseActiveUsers = await this.hubspot.get({
       url: `/crm/v3/owners`,
     });
 
-    return {
-      objects: response.data.results.map((result: any) =>
+    const responseDeactivatedUsers = await this.hubspot.get({
+      url: `/crm/v3/owners`,
+      params: {
+        archived: true,
+      },
+    });
+
+    const objects = [
+      ...responseActiveUsers.data.results.map((result: any) =>
         this.mapToObject(result)
       ),
+      ...responseDeactivatedUsers.data.results.map((result: any) =>
+        this.mapToObject(result)
+      ),
+    ];
+
+    return {
+      objects,
     };
   }
 

@@ -1,5 +1,16 @@
 # @runlightyear/hubspot
 
+## 0.13.0
+
+### Minor Changes
+
+- e6e48fdf6: Synchronize deactivated users as well since they can still be owners of objects
+
+### Patch Changes
+
+- Updated dependencies [b7aad45dc]
+  - @runlightyear/lightyear@1.20.0
+
 ## 0.12.1
 
 ### Patch Changes
