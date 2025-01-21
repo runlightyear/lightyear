@@ -22,8 +22,14 @@ export class ContactSynchronizer extends HubSpotModelSynchronizer {
         postalCode: source.properties.zip,
         country: source.properties.country,
       }),
-      accountId: "properties.associatedcompanyid",
-      ownerId: "properties.hubspot_owner_id",
+      accountId: (source: any) =>
+        source.properties.associatedcompanyid === ""
+          ? null
+          : source.properties.associatedcompanyid ?? null,
+      ownerId: (source: any) =>
+        source.properties.hubspot_owner_id === ""
+          ? null
+          : source.properties.hubspot_owner_id ?? null,
     };
   }
 

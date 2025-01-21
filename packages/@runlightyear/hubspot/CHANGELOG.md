@@ -1,5 +1,11 @@
 # @runlightyear/hubspot
 
+## 0.14.0
+
+### Minor Changes
+
+- 097eeb9cc: Handle blank relational ids
+
 ## 0.13.0
 
 ### Minor Changes

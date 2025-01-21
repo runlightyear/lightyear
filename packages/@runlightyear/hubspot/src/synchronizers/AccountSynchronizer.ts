@@ -36,7 +36,11 @@ export class AccountSynchronizer extends HubSpotModelSynchronizer {
       }),
       industry: "properties.industry",
       numberOfEmployees: "properties.numberofemployees",
-      ownerId: "properties.hubspot_owner_id",
+      ownerId: (source: any) => {
+        return source.properties.hubspot_owner_id === ""
+          ? null
+          : source.properties.hubspot_owner_id ?? null;
+      },
     };
   }
 
