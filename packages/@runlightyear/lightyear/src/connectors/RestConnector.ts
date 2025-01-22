@@ -9,6 +9,7 @@ import { HttpProxyRequestProps } from "../base/http";
 import camelize from "../util/camelize";
 import { WebhookDeliveryData } from "../base/runData";
 import { setAuthError } from "../base/auth";
+import { sleep } from "../util/sleep";
 
 /**
  * @public
@@ -110,28 +111,43 @@ export abstract class RestConnector extends AuthConnector {
     };
 
     let response;
+    const maxAuthFails = 1;
+    let authRetries = 0;
 
-    try {
-      response = await httpRequest(proxyProps);
-    } catch (error) {
-      if (error instanceof HttpProxyResponseError) {
-        if (error.response.status === 401) {
-          const { appName, customAppName, authName } = this.getAuthData();
+    do {
+      try {
+        await this.refreshAuthDataIfNecessary();
+        response = await httpRequest(proxyProps);
+        break;
+      } catch (error) {
+        if (error instanceof HttpProxyResponseError) {
+          if (error.response.status === 401) {
+            const { appName, customAppName, authName } = this.getAuthData();
 
-          console.debug(this.getAuthData());
+            console.debug(this.getAuthData());
 
-          await setAuthError({
-            appName,
-            customAppName,
-            authName,
-            error: "Unauthorized",
-            errorResolution: "REAUTHORIZE",
-          });
+            authRetries += 1;
+            if (authRetries <= maxAuthFails) {
+              await sleep(1000);
+              console.info(
+                `Auth failure, retrying (${authRetries}/${maxAuthFails})`
+              );
+              continue;
+            }
+
+            await setAuthError({
+              appName,
+              customAppName,
+              authName,
+              error: "Unauthorized",
+              errorResolution: "REAUTHORIZE",
+            });
+          }
         }
-      }
 
-      throw error;
-    }
+        throw error;
+      }
+    } while (true);
 
     const processedData = this.camelize
       ? camelize(response.data)

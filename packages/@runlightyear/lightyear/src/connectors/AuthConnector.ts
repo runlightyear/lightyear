@@ -1,5 +1,6 @@
 import { AuthType, BaseConnector, BaseConnectorProps } from "./BaseConnector";
-import { AuthData } from "../base/auth";
+import { AuthData, getAuthData } from "../base/auth";
+import { dayjsUtc } from "../util/dayjsUtc";
 
 /**
  * @public
@@ -50,5 +51,27 @@ export abstract class AuthConnector extends BaseConnector {
 
   getAuthData() {
     return this._auth;
+  }
+
+  async refreshAuthData() {
+    this._auth = await getAuthData({
+      appName: this._auth.appName ?? undefined,
+      customAppName: this._auth.customAppName ?? undefined,
+      authName: this._auth.authName,
+    });
+    console.info(
+      "Refreshed auth data for",
+      this._auth.appName || this._auth.customAppName,
+      this._auth.authName
+    );
+  }
+
+  async refreshAuthDataIfNecessary() {
+    if (
+      this._auth.expiresAt &&
+      dayjsUtc(this._auth.expiresAt).diff(dayjsUtc(), "minutes") < 5
+    ) {
+      await this.refreshAuthData();
+    }
   }
 }
