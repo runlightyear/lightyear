@@ -134,6 +134,7 @@ export function defineSyncAction(props: DefineSyncActionProps) {
         customApp: props.customApp ?? null,
         managedUserExternalId: runProps.managedUser?.externalId ?? null,
       });
+      console.debug("Received", startSyncResponse);
       const { sync, prevFullSync } = startSyncResponse;
       console.info(`Started sync ${sync.id}`);
       console.debug(startSyncResponse);

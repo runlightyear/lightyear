@@ -1,5 +1,15 @@
 # @runlightyear/lightyear
 
+## 1.21.0
+
+### Minor Changes
+
+- b4f7809e0: Refresh the auth data when necessary
+
+### Patch Changes
+
+- f989f6598: Log the requestId for every internal request
+
 ## 1.20.0
 
 ### Minor Changes

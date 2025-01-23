@@ -1,6 +1,6 @@
 {
   "name": "@runlightyear/slack",
-  "version": "0.18.16",
+  "version": "0.18.17",
   "publishConfig": {
     "access": "public"
   },

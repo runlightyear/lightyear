@@ -68,6 +68,8 @@ export default async function baseRequest({
   while (attempt < maxRetries) {
     response = await fetch(url, props);
 
+    console.debug(`requestId: ${response.headers.get("x-request-id")}`);
+
     if (!response.ok) {
       if (response.status >= 500) {
         attempt += 1;
