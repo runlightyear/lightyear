@@ -124,7 +124,7 @@ export abstract class RestConnector extends AuthConnector {
           if (error.response.status === 401) {
             const { appName, customAppName, authName } = this.getAuthData();
 
-            console.debug(this.getAuthData());
+            console.debug("old auth data", this.getAuthData());
 
             authRetries += 1;
             if (authRetries <= maxAuthFails) {
@@ -132,6 +132,8 @@ export abstract class RestConnector extends AuthConnector {
               console.info(
                 `Auth failure, retrying (${authRetries}/${maxAuthFails})`
               );
+              await this.refreshAuthData();
+              console.debug("new auth data", this.getAuthData());
               continue;
             }
 
