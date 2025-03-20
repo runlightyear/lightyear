@@ -11,6 +11,7 @@ import { CustomAppWebhookIndex } from "./base/customApp";
 
 export declare global {
   declare module globalThis {
+    var startTimeMs: number;
     var deployList: DeployItem[];
     var actionIndex: ActionIndex;
     var subscribeIndex: SubscribeIndex;

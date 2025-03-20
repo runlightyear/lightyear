@@ -226,3 +226,12 @@ export { handler } from "./handler";
  * This can be thrown inside a RunFunc to end execution and mark the run as Skipped.
  */
 export const SKIPPED = "SKIPPED";
+
+/**
+ * @public
+ *
+ * This can be thrown inside a RunFunc to end execution tell the action to rerun.
+ *
+ * The action will be rerun with the same props as the original run.
+ */
+export const RERUN = "RERUN";

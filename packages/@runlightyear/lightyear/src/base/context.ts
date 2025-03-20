@@ -2,6 +2,7 @@ export interface Context {
   operation?: string;
   actionName?: string;
   webhookName?: string;
+  runId?: string;
 }
 
 export let context: Context = {};

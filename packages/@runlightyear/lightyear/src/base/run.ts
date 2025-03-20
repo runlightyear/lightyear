@@ -60,3 +60,22 @@ export async function getRunFuncProps(runId: string): Promise<RunFuncProps> {
     managedUser,
   };
 }
+
+export interface FinishRunProps {
+  runId: string;
+  status: "SUCCEEDED" | "FAILED" | "SKIPPED";
+  rerun?: boolean;
+}
+
+export async function finishRun(props: FinishRunProps) {
+  const envName = getEnvName();
+  invariant(envName, "Missing ENV_NAME");
+
+  const { runId, status, rerun = false } = props;
+
+  await baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/runs/${runId}/finish`,
+    data: { status, rerun },
+  });
+}

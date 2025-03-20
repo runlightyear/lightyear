@@ -141,11 +141,18 @@ export class PrefixedRedactedConsole {
       timestamp: dayjsUtc().toISOString(),
     });
     if (display) {
-      stream.write(
-        `${
-          this.globalPrefix ? this.globalPrefix + " " : ""
-        }${color}${message}\x1b[0m\n`
-      );
+      // if we are in the dev env, write with colors
+      if (getEnvName() === "dev") {
+        stream.write(
+          `${
+            this.globalPrefix ? this.globalPrefix + " " : ""
+          }${color}${message}\x1b[0m\n`
+        );
+      } else {
+        stream.write(
+          `${this.globalPrefix ? this.globalPrefix + " " : ""}${message}\n`
+        );
+      }
     }
   }
 

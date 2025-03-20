@@ -3,6 +3,7 @@ import { getEnvName } from "../util/getEnvName";
 import baseRequest from "./baseRequest";
 import { HttpProxyResponseError, SKIPPED } from "../index";
 import { BaseRequestError } from "./BaseRequestError";
+import { getContext } from "./context";
 
 export type MatchPropertyStr = string;
 export type MatchNestedProperty = Array<MatchPropertyStr>;
@@ -182,25 +183,37 @@ export async function retrieveDelta(props: RetrieveDeltaProps) {
 }
 
 export interface StartSyncProps {
-  collection: string;
-  app: string | null;
-  customApp: string | null;
-  managedUserExternalId?: string | null;
+  collectionName: string;
+  managedUserId: string;
+  appName: string | null;
+  customAppName: string | null;
+  fullSyncFrequency?: number;
 }
 
 export async function startSync(props: StartSyncProps) {
-  const { collection, app, customApp, managedUserExternalId } = props;
+  const {
+    collectionName,
+    appName,
+    customAppName,
+    managedUserId,
+    fullSyncFrequency,
+  } = props;
 
   const envName = getEnvName();
+
+  const { runId } = getContext();
 
   try {
     const response = await baseRequest({
       method: "POST",
-      uri: `/api/v1/envs/${envName}/collections/${collection}/syncs`,
+      uri: `/api/v1/envs/${envName}/syncs`,
       data: {
-        appName: app,
-        customAppName: customApp,
-        managedUserId: managedUserExternalId ?? null,
+        collectionName,
+        appName,
+        customAppName,
+        managedUserId,
+        fullSyncFrequency,
+        runId,
       },
     });
 
@@ -216,18 +229,17 @@ export async function startSync(props: StartSyncProps) {
 }
 
 export interface GetSyncProps {
-  collection: string;
   syncId: string;
 }
 
 export async function getSync(props: GetSyncProps) {
-  const { collection, syncId } = props;
+  const { syncId } = props;
 
   const envName = getEnvName();
 
   const response = await baseRequest({
     method: "GET",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/syncs/${syncId}`,
+    uri: `/api/v1/envs/${envName}/syncs/${syncId}`,
   });
 
   if (response.ok) {
@@ -238,20 +250,19 @@ export async function getSync(props: GetSyncProps) {
 }
 
 export interface UpdateSyncProps {
-  collection: string;
   syncId: string;
   type?: "FULL" | "INCREMENTAL";
   status?: "PAUSED" | "SUCCEEDED" | "FAILED";
 }
 
 export async function updateSync(props: UpdateSyncProps) {
-  const { collection, syncId, type, status } = props;
+  const { syncId, type, status } = props;
 
   const envName = getEnvName();
 
   const response = await baseRequest({
     method: "PATCH",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/syncs/${syncId}`,
+    uri: `/api/v1/envs/${envName}/syncs/${syncId}`,
     data: {
       type,
       status,
@@ -571,17 +582,20 @@ export async function detectHardDeletes(props: DetectHardDeletesProps) {
   });
 }
 
-export interface FinishSyncProps {
-  collectionName: string;
-  syncId: string;
-}
-
-export async function finishSync(props: FinishSyncProps) {
+export async function pauseSync(syncId: string) {
   const envName = getEnvName();
-  const { collectionName, syncId } = props;
 
   return baseRequest({
     method: "POST",
-    uri: `/api/v1/envs/${envName}/collections/${collectionName}/syncs/${syncId}/finish`,
+    uri: `/api/v1/envs/${envName}/syncs/${syncId}/pause`,
+  });
+}
+
+export async function finishSync(syncId: string) {
+  const envName = getEnvName();
+
+  return baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/syncs/${syncId}/finish`,
   });
 }

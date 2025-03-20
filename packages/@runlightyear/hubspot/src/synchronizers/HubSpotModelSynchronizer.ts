@@ -55,12 +55,13 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
 
   async list(props: {
     syncType: "FULL" | "INCREMENTAL";
+    lastExternalId?: string;
     lastUpdatedAt?: string;
     cursor?: string;
   }) {
-    const { syncType, lastUpdatedAt, cursor } = props;
+    const { syncType, lastExternalId, lastUpdatedAt, cursor } = props;
 
-    console.debug("list", syncType, lastUpdatedAt, cursor);
+    console.debug("list", syncType, lastExternalId, lastUpdatedAt, cursor);
 
     if (syncType === "FULL") {
       const response = await this.hubspot.get({
@@ -69,7 +70,7 @@ export abstract class HubSpotModelSynchronizer extends ModelSynchronizer<any> {
           limit: 100,
           properties: this.getExternalKeys(),
           associations: this.getAssociationKeys(),
-          after: cursor ?? undefined,
+          after: (cursor || lastExternalId) ?? undefined,
         },
       });
 

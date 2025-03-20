@@ -1,5 +1,5 @@
 import { ModelSynchronizer, ModelSynchronizerProps } from "./ModelSynchronizer";
-import { getModels } from "../base/collection";
+import { getModels, getSync } from "../base/collection";
 import { AuthConnector } from "../connectors/AuthConnector";
 
 export interface CollectionSynchronizerProps {
@@ -71,7 +71,13 @@ export abstract class CollectionSynchronizer {
     syncId: string,
     direction: "push" | "pull" | "bidirectional" = "bidirectional"
   ) {
-    const modelsToSync = await this.getModelOrder();
+    let modelsToSync = await this.getModelOrder();
+
+    const sync = await getSync({ syncId });
+
+    console.info("sync in CollectionSynchronizer", sync);
+
+    console.info("modelsToSync in CollectionSynchronizer", modelsToSync);
 
     for (const modelName of modelsToSync) {
       const model = await this.getModel(modelName);

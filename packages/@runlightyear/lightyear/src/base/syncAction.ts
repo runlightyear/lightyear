@@ -4,6 +4,7 @@ import { AuthData } from "./auth";
 import { AuthConnector } from "../connectors/AuthConnector";
 import { finishSync, startSync, updateSync } from "./collection";
 import { dayjsUtc } from "../util/dayjsUtc";
+import { RERUN, SKIPPED } from "..";
 
 export interface ConnectorProps {
   auth: AuthData;
@@ -127,53 +128,40 @@ export function defineSyncAction(props: DefineSyncActionProps) {
         throw new Error("No synchronizer provided");
       }
 
-      console.debug("Attempting to start sync");
-      const startSyncResponse = await startSync({
-        collection: props.collection,
-        app: props.app ?? null,
-        customApp: props.customApp ?? null,
-        managedUserExternalId: runProps.managedUser?.externalId ?? null,
-      });
-      console.debug("Received", startSyncResponse);
-      const { sync, prevFullSync } = startSyncResponse;
-      console.info(`Started sync ${sync.id}`);
-      console.debug(startSyncResponse);
-
-      let syncType: "FULL" | "INCREMENTAL" = "INCREMENTAL";
-      if (!prevFullSync) {
-        syncType = "FULL";
-      } else if (
-        dayjsUtc(prevFullSync.createdAt)
-          .add(props.frequency?.full ?? 10, "minutes")
-          .isBefore(dayjsUtc(sync.createdAt))
-      ) {
-        syncType = "FULL";
+      if (!runProps.managedUser) {
+        throw new Error("No managed user provided");
       }
 
-      await updateSync({
-        collection: props.collection,
-        syncId: sync.id,
-        type: syncType,
+      console.debug("Attempting to start sync");
+      const startSyncResponse = await startSync({
+        collectionName: props.collection,
+        appName: props.app ?? null,
+        customAppName: props.customApp ?? null,
+        managedUserId: runProps.managedUser.externalId,
+        fullSyncFrequency: props.frequency?.full,
       });
-      console.info(`Updated sync type to ${syncType}`);
+      console.debug("Received", startSyncResponse);
+      const sync = startSyncResponse;
+      console.info(`Started sync ${sync.id} ${sync.type}`);
+      console.debug(startSyncResponse);
 
       try {
         await synchronizer.sync(sync.id, props.direction);
-        const response = await finishSync({
-          collectionName: props.collection,
-          syncId: sync.id,
-        });
+        const response = await finishSync(sync.id);
         const jsonData = await response.json();
         console.info(jsonData.message);
       } catch (error) {
-        await updateSync({
-          collection: props.collection,
-          syncId: sync.id,
-          status: "FAILED",
-        });
-        console.info("Updated sync status to FAILED");
+        if (error === RERUN) {
+          console.info("Rerunning sync");
+          throw error;
+        }
+
+        await finishSync(sync.id);
         throw error;
       }
+
+      await finishSync(sync.id);
+      console.info("Sync finished");
     },
   });
 }

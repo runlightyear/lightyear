@@ -51,10 +51,16 @@ export async function handler(
 ): Promise<APIGatewayProxyResult> {
   const { logDisplayLevel } = event;
 
+  globalThis.startTimeMs = Date.now();
+
+  // reset from last invocation
   setContext({});
   prepareConsole(logDisplayLevel || "DEBUG");
   prefixedRedactedConsole.initialize();
   console.debug("Initialized console");
+
+  console.debug("event", event);
+  console.debug("context", context);
 
   const envName = getEnvName();
   if (!envName) {
@@ -111,7 +117,7 @@ export async function handler(
     return handlerResult(400, `Invalid operation: ${operation}`);
   }
 
-  setContext({ operation, actionName, webhookName });
+  setContext({ operation, actionName, webhookName, runId });
 
   if (operation === "deploy") {
     return handleDeploy({ envName });

@@ -1,6 +1,8 @@
 import baseRequest from "./baseRequest";
 import { prefixedRedactedConsole } from "../logging";
 import { sleep } from "../util/sleep";
+import { getEnvName } from "../util/getEnvName";
+import { getContext } from "./context";
 
 /**
  * @public
@@ -82,6 +84,8 @@ async function exponentialBackoffWithJitter(retryCount: number): Promise<void> {
 }
 
 export const httpRequest: HttpRequest = async (props) => {
+  const envName = getEnvName();
+  const { runId } = getContext();
   const { redactKeys, maxRetries, ...rest } = props;
 
   const maxBackoffs = 5;
@@ -89,8 +93,8 @@ export const httpRequest: HttpRequest = async (props) => {
 
   do {
     const response = await baseRequest({
-      uri: "/api/v1/httpRequest",
-      data: rest,
+      uri: `/api/v1/envs/${envName}/http-request`,
+      data: { ...rest, runId },
       maxRetries,
     });
 

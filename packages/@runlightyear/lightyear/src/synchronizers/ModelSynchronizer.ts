@@ -4,12 +4,14 @@ import {
   getDelta,
   getLastUpdatedObject,
   getSync,
+  pauseSync,
   retrieveDelta,
   upsertObject,
   upsertObjectBatch,
 } from "../base/collection";
 import { AuthConnector } from "../connectors/AuthConnector";
 import { get } from "lodash";
+import { isTimeLimitExceeded } from "../base/time";
 
 export type Prettify<T> = {
   [K in keyof T]: T[K];
@@ -88,6 +90,7 @@ export abstract class ModelSynchronizer<T> {
 
   abstract list(props: {
     syncType: "FULL" | "INCREMENTAL";
+    lastExternalId?: string;
     lastUpdatedAt?: string;
     cursor?: string;
   }): Promise<{ objects: Array<FullObjectProps<T>>; cursor?: string }>;
@@ -168,10 +171,11 @@ export abstract class ModelSynchronizer<T> {
     }
     const managedUserId = authData.managedUser.externalId;
 
-    const syncResponse = await getSync({ collection: this.collection, syncId });
+    const syncResponse = await getSync({ syncId });
 
     const { type: syncType, modelStatuses } = syncResponse;
 
+    let lastExternalId = modelStatuses[this.model]?.lastLocalObjectId ?? null;
     let lastUpdatedAt = modelStatuses[this.model]?.lastLocalUpdatedAt ?? null;
 
     let objects;
@@ -182,10 +186,24 @@ export abstract class ModelSynchronizer<T> {
     if (direction === "pull" || direction === "bidirectional") {
       console.info(`Pulling model: ${this.model}`);
       do {
+        if (isTimeLimitExceeded()) {
+          await pauseSync(syncId);
+          throw "RERUN";
+        }
+
+        console.info("lastExternalId", lastExternalId);
+        console.info("lastUpdatedAt", lastUpdatedAt);
+        console.info("cursor", cursor);
+
         const listResponse: {
           objects: Array<FullObjectProps<T>>;
           cursor?: string;
-        } = await this.list({ syncType, lastUpdatedAt, cursor });
+        } = await this.list({
+          syncType,
+          lastExternalId,
+          lastUpdatedAt,
+          cursor,
+        });
         objects = listResponse.objects;
         cursor = listResponse.cursor;
 
@@ -214,6 +232,9 @@ export abstract class ModelSynchronizer<T> {
           console.info("Upserted batch");
           listCounter += objects.length;
           console.info("Objects processed:", listCounter);
+
+          lastExternalId = objects[objects.length - 1].id;
+          lastUpdatedAt = objects[objects.length - 1].updatedAt;
         }
       } while (cursor);
     }
@@ -223,6 +244,11 @@ export abstract class ModelSynchronizer<T> {
       let more;
       let changeCounter = 0;
       do {
+        if (isTimeLimitExceeded()) {
+          await pauseSync(syncId);
+          throw "RERUN";
+        }
+
         const delta = await retrieveDelta({
           collectionName: this.collection,
           syncId,
