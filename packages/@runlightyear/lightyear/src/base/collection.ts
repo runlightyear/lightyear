@@ -172,6 +172,16 @@ export async function retrieveDelta(props: RetrieveDeltaProps) {
           console.info(
             `Delta locked while previous changes are processed, retrying (${retryNumber})`
           );
+
+          // Add exponential backoff with jitter
+          const baseWaitTime = Math.pow(2, retryNumber) * 1000; // Exponential backoff
+          const jitter = Math.floor(Math.random() * 5000); // Add up to 5 seconds of jitter
+          const waitTime = baseWaitTime + jitter;
+          console.info(
+            `Waiting ${(waitTime / 1000).toFixed(2)} seconds before retry...`
+          );
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+
           continue;
         }
       }
