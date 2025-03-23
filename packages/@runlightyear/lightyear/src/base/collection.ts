@@ -348,6 +348,7 @@ export interface UpsertObjectBatchProps {
     localUpdatedAt: string | null;
     data: unknown;
   }>;
+  cursor?: string;
   overwrite?: boolean;
   async?: boolean;
 }
@@ -363,6 +364,7 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
     objects,
     overwrite,
     async,
+    cursor,
   } = props;
 
   const envName = getEnvName();
@@ -378,6 +380,7 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
       objects,
       overwrite,
       async,
+      cursor,
     },
   });
 
@@ -585,10 +588,18 @@ export async function detectHardDeletes(props: DetectHardDeletesProps) {
 export async function pauseSync(syncId: string) {
   const envName = getEnvName();
 
-  return baseRequest({
+  const response = await baseRequest({
     method: "POST",
     uri: `/api/v1/envs/${envName}/syncs/${syncId}/pause`,
   });
+
+  if (response.ok) {
+    console.info("Sync paused");
+  } else {
+    throw new Error("Unable to pause sync");
+  }
+
+  return response;
 }
 
 export async function finishSync(syncId: string) {

@@ -173,13 +173,14 @@ export abstract class ModelSynchronizer<T> {
 
     const syncResponse = await getSync({ syncId });
 
-    const { type: syncType, modelStatuses } = syncResponse;
+    const { type: syncType, modelStatuses, lastBatch } = syncResponse;
+    let cursor =
+      this.model === lastBatch?.modelName ? lastBatch?.cursor : undefined;
 
     let lastExternalId = modelStatuses[this.model]?.lastLocalObjectId ?? null;
     let lastUpdatedAt = modelStatuses[this.model]?.lastLocalUpdatedAt ?? null;
 
     let objects;
-    let cursor = undefined;
 
     let listCounter = 0;
 
@@ -227,6 +228,7 @@ export abstract class ModelSynchronizer<T> {
               localUpdatedAt: obj.updatedAt,
               data: obj.data,
             })),
+            cursor,
             async: true,
           });
           console.info("Upserted batch");

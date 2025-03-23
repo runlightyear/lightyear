@@ -77,6 +77,13 @@ export abstract class CollectionSynchronizer {
 
     console.info("sync in CollectionSynchronizer", sync);
 
+    const currentModelName = sync.lastBatch?.modelName ?? undefined;
+
+    if (currentModelName) {
+      // slice modelsToSync to only include the currentModelName and subsequent models
+      modelsToSync = modelsToSync.slice(modelsToSync.indexOf(currentModelName));
+    }
+
     console.info("modelsToSync in CollectionSynchronizer", modelsToSync);
 
     for (const modelName of modelsToSync) {
