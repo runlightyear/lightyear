@@ -95,7 +95,7 @@ export class UserSynchronizer extends ModelSynchronizer<any> {
     return this.mapToObject(response.data);
   }
 
-  async create(object: any): Promise<string> {
+  async create(object: any): Promise<void> {
     throw new Error(
       "HubSpot does not support creating new users/owners from the API"
     );

@@ -4,7 +4,6 @@ import { OAuthConnector } from "./OAuthConnector";
 import { VariableDef } from "../base/variable";
 import { SecretDef } from "../base/secret";
 import { AppWebhookConnector } from "./AppWebhookConnector";
-import { CollectionSynchronizer } from "../synchronizers/CollectionSynchronizer";
 
 export type AuthType = "BASIC" | "APIKEY" | "OAUTH2";
 
@@ -24,11 +23,6 @@ export abstract class BaseConnector {
   static AppWebhook: typeof AppWebhookConnector | null = null;
   static variables: Array<VariableDef> = [];
   static secrets: Array<SecretDef> = [];
-  static Synchronizer: typeof CollectionSynchronizer | null = null;
 
   constructor(props: BaseConnectorProps) {}
-
-  getSynchronizerClass() {
-    return BaseConnector.Synchronizer;
-  }
 }

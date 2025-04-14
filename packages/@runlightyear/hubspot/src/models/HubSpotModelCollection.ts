@@ -5,8 +5,8 @@ import {
   ModelSynchronizer,
   ModelSynchronizerProps,
 } from "@runlightyear/lightyear";
-import { ContactSynchronizer } from "./ContactSynchronizer";
-import { AccountSynchronizer } from "./AccountSynchronizer";
+import { ContactSynchronizer } from "./HubSpotContact";
+import { AccountSynchronizer } from "./HubSpotAccount";
 import { OpportunitySynchronizer } from "./OpportunitySynchronizer";
 import { NoteSynchronizer } from "./NoteSynchronizer";
 import { MeetingSynchronizer } from "./MeetingSynchronizer";

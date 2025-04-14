@@ -1,32 +1,38 @@
-import { HubSpotModelSynchronizer } from "./HubSpotModelSynchronizer";
+import { HubSpotModel } from "./HubSpotModel";
 
-export class OpportunityLineItemSynchronizer extends HubSpotModelSynchronizer {
+export class OpportunitySynchronizer extends HubSpotModel {
   getNoun() {
-    return "line_item";
+    return "deal";
   }
 
   getAssociationKeys(): any {
-    return [...super.getAssociationKeys(), "deals"];
+    return [...super.getAssociationKeys(), "companies"];
   }
 
   getToObjectData(): any {
     return {
       ...super.getToObjectData(),
-      name: "properties.name",
-      quantity: "properties.quantity",
-      price: "properties.price",
-      productId: "properties.hs_product_id",
-      opportunityId: (source: any) => {
+      name: "properties.dealname",
+      amount: "properties.amount",
+      closeDate: "properties.closedate",
+      stage: "properties.dealstage",
+      accountId: (source: any) => {
         if (
           "associations" in source &&
-          "deals" in source.associations &&
-          "results" in source.associations.deals &&
-          source.associations.deals.results.length > 0
+          "companies" in source.associations &&
+          "results" in source.associations.companies &&
+          source.associations.companies.results.length > 0
         ) {
-          return source.associations.deals.results[0].id;
+          const primaryAssociation = source.associations.companies.results.find(
+            (result: any) => result.type === "deal_to_company"
+          );
+
+          if (primaryAssociation) {
+            return primaryAssociation.id;
+          }
         }
 
-        return undefined;
+        return null;
       },
     };
   }
@@ -34,11 +40,10 @@ export class OpportunityLineItemSynchronizer extends HubSpotModelSynchronizer {
   getFromObjectData(): any {
     return {
       ...super.getFromObjectData(),
-      name: "name",
-      quantity: "quantity",
-      price: "price",
-      hs_product_id: "productId",
-      deal_id: "opportunityId",
+      dealname: "name",
+      amount: "amount",
+      closedate: "closeDate",
+      dealstage: "stage",
     };
   }
 

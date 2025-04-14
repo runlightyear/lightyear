@@ -1,6 +1,6 @@
-import { HubSpotModelSynchronizer } from "./HubSpotModelSynchronizer";
+import { HubSpotModel } from "./HubSpotModel";
 
-export class ProductSynchronizer extends HubSpotModelSynchronizer {
+export class ProductSynchronizer extends HubSpotModel {
   getNoun() {
     return "product";
   }

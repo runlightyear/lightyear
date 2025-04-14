@@ -1,10 +1,10 @@
-import { CollectionSynchronizer } from "../synchronizers/CollectionSynchronizer";
 import { AppName, defineAction } from "./action";
 import { AuthData } from "./auth";
 import { AuthConnector } from "../connectors/AuthConnector";
 import { finishSync, startSync, updateSync } from "./collection";
 import { dayjsUtc } from "../util/dayjsUtc";
 import { RERUN, SKIPPED } from "..";
+import { setContext } from "./context";
 
 export interface ConnectorProps {
   auth: AuthData;
@@ -20,9 +20,6 @@ export interface DefineSyncActionProps {
   title: string;
   connector: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector);
   collection: string;
-  synchronizer?:
-    | typeof CollectionSynchronizer
-    | ((props: SynchronizerProps) => CollectionSynchronizer);
   app?: AppName;
   customApp?: string;
   frequency?: {
@@ -42,22 +39,6 @@ function isConnectorClass(
 function isConnectorFunction(
   x: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector)
 ): x is (props: ConnectorProps) => AuthConnector {
-  return x instanceof Function;
-}
-
-function isSynchronizerClass(
-  x:
-    | typeof CollectionSynchronizer
-    | ((props: SynchronizerProps) => CollectionSynchronizer)
-): x is typeof CollectionSynchronizer {
-  return typeof x === typeof CollectionSynchronizer;
-}
-
-function isSynchronizerFunction(
-  x:
-    | typeof CollectionSynchronizer
-    | ((props: SynchronizerProps) => CollectionSynchronizer)
-) {
   return x instanceof Function;
 }
 
@@ -102,31 +83,31 @@ export function defineSyncAction(props: DefineSyncActionProps) {
         collection: props.collection,
       };
 
-      let synchronizer: CollectionSynchronizer | null | undefined = undefined;
+      // let synchronizer: CollectionSynchronizer | null | undefined = undefined;
 
-      if (!props.synchronizer) {
-        const connectorType = typeof connector;
+      // if (!props.synchronizer) {
+      //   const connectorType = typeof connector;
 
-        // @ts-ignore
-        const synchronizerClass = connector.constructor["Synchronizer"];
+      //   // @ts-ignore
+      //   const synchronizerClass = connector.constructor["Synchronizer"];
 
-        if (!synchronizerClass) {
-          throw new Error("No synchronizer provided on connector");
-        }
-        // @ts-ignore - We are assuming the user passed in a concrete class.
-        synchronizer = new synchronizerClass(synchronizerProps);
-      } else if (isSynchronizerClass(props.synchronizer)) {
-        // @ts-ignore - We are assuming the user passed in a concrete class.
-        synchronizer = new props.synchronizer(synchronizerProps);
-      } else if (isSynchronizerFunction(props.synchronizer)) {
-        synchronizer = props.synchronizer(synchronizerProps);
-      } else {
-        throw new Error("Unknown synchronizer type");
-      }
+      //   if (!synchronizerClass) {
+      //     throw new Error("No synchronizer provided on connector");
+      //   }
+      //   // @ts-ignore - We are assuming the user passed in a concrete class.
+      //   synchronizer = new synchronizerClass(synchronizerProps);
+      // } else if (isSynchronizerClass(props.synchronizer)) {
+      //   // @ts-ignore - We are assuming the user passed in a concrete class.
+      //   synchronizer = new props.synchronizer(synchronizerProps);
+      // } else if (isSynchronizerFunction(props.synchronizer)) {
+      //   synchronizer = props.synchronizer(synchronizerProps);
+      // } else {
+      //   throw new Error("Unknown synchronizer type");
+      // }
 
-      if (!synchronizer) {
-        throw new Error("No synchronizer provided");
-      }
+      // if (!synchronizer) {
+      //   throw new Error("No synchronizer provided");
+      // }
 
       if (!runProps.managedUser) {
         throw new Error("No managed user provided");
@@ -145,8 +126,12 @@ export function defineSyncAction(props: DefineSyncActionProps) {
       console.info(`Started sync ${sync.id} ${sync.type}`);
       console.debug(startSyncResponse);
 
+      setContext({
+        syncId: sync.id,
+      });
+
       try {
-        await synchronizer.sync(sync.id, props.direction);
+        // await synchronizer.sync(sync.id, props.direction);
         const response = await finishSync(sync.id);
         const jsonData = await response.json();
         console.info(jsonData.message);

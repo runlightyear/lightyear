@@ -23,6 +23,12 @@ export interface HttpProxyRequestProps {
   body?: string;
   redactKeys?: string[];
   maxRetries?: number;
+  async?: boolean;
+  confirm?: {
+    changeIds?: string[];
+    idPath?: string;
+    updatedAtPath?: string;
+  };
 }
 
 /**
@@ -70,6 +76,10 @@ export function isHttpProxyResponseError(
 
 export interface HttpRequest {
   (props: HttpProxyRequestProps): Promise<HttpProxyResponse>;
+}
+
+export interface HttpRequestBatch {
+  (requests: Array<HttpProxyRequestProps>): Promise<HttpProxyResponse>;
 }
 
 function getRandomJitter(maxJitter: number): number {
@@ -137,4 +147,20 @@ export const httpRequest: HttpRequest = async (props) => {
 
     return proxyResponse;
   } while (true);
+};
+
+export const httpRequestBatch: HttpRequestBatch = async (requests) => {
+  const envName = getEnvName();
+  const { runId, syncId } = getContext();
+
+  const response = await baseRequest({
+    uri: `/api/v1/envs/${envName}/http-request/batch`,
+    data: { runId, syncId, requests },
+  });
+
+  const proxyResponse = (await response.json()) as HttpProxyResponse;
+
+  console.debug("proxyResponse", proxyResponse);
+
+  return proxyResponse;
 };

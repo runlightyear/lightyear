@@ -1,5 +1,4 @@
-import { CollectionSynchronizer } from "../synchronizers/CollectionSynchronizer";
-import { AppName, defineAction } from "./action";
+import { AppName } from "./action";
 import { AuthData } from "./auth";
 import { AuthConnector } from "../connectors/AuthConnector";
 import { defineIntegration } from "./integration";
@@ -19,9 +18,6 @@ export interface DefineSyncIntegrationProps {
   description?: string;
   connector: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector);
   collection: string;
-  synchronizer?:
-    | typeof CollectionSynchronizer
-    | ((props: SynchronizerProps) => CollectionSynchronizer);
   app?: AppName;
   customApp?: string;
   frequency?: {
@@ -44,22 +40,6 @@ function isConnectorFunction(
   return x instanceof Function;
 }
 
-function isSynchronizerClass(
-  x:
-    | typeof CollectionSynchronizer
-    | ((props: SynchronizerProps) => CollectionSynchronizer)
-): x is typeof CollectionSynchronizer {
-  return typeof x === typeof CollectionSynchronizer;
-}
-
-function isSynchronizerFunction(
-  x:
-    | typeof CollectionSynchronizer
-    | ((props: SynchronizerProps) => CollectionSynchronizer)
-) {
-  return x instanceof Function;
-}
-
 export function defineSyncIntegration(props: DefineSyncIntegrationProps) {
   return defineIntegration({
     name: props.name,
@@ -75,7 +55,6 @@ export function defineSyncIntegration(props: DefineSyncIntegrationProps) {
         customApp: props.customApp,
         connector: props.connector,
         collection: props.collection,
-        synchronizer: props.synchronizer,
         frequency: props.frequency,
         direction: props.direction,
       }),

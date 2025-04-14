@@ -4,6 +4,7 @@ import {
   HttpProxyResponse,
   HttpProxyResponseError,
   httpRequest,
+  httpRequestBatch,
 } from "../base/http";
 import { HttpProxyRequestProps } from "../base/http";
 import camelize from "../util/camelize";
@@ -90,7 +91,7 @@ export abstract class RestConnector extends AuthConnector {
    */
   async request(props: HttpProxyRequestProps): Promise<HttpProxyResponse> {
     console.debug("in RestConnector.request");
-    const { method, url, params, headers, data } = props;
+    const { method, url, params, headers, data, async, confirm } = props;
 
     const proxyProps = {
       method,
@@ -108,6 +109,8 @@ export abstract class RestConnector extends AuthConnector {
           ...this.getDefaultData(),
           ...data,
         }),
+      async,
+      confirm,
     };
 
     let response;
@@ -156,6 +159,36 @@ export abstract class RestConnector extends AuthConnector {
       : response.data;
 
     return { ...response, data: processedData };
+  }
+
+  async requestBatch(props: Array<HttpProxyRequestProps>) {
+    const requests = props.map((prop) => {
+      const { method, url, params, headers, data, async, confirm } = prop;
+
+      return {
+        method,
+        url: this.buildUrl(url, {
+          ...this.getDefaultParams(),
+          ...params,
+        }),
+        headers: {
+          ...this.getDefaultHeaders(),
+          ...headers,
+        },
+        body:
+          data &&
+          JSON.stringify({
+            ...this.getDefaultData(),
+            ...data,
+          }),
+        async,
+        confirm,
+      };
+    });
+
+    const response = await httpRequestBatch(requests);
+
+    return response;
   }
 
   async get(props: HttpProxyRequestProps) {

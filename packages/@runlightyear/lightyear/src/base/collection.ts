@@ -263,10 +263,12 @@ export interface UpdateSyncProps {
   syncId: string;
   type?: "FULL" | "INCREMENTAL";
   status?: "PAUSED" | "SUCCEEDED" | "FAILED";
+  currentModelName?: string;
+  currentDirection?: "PUSH" | "PULL" | null;
 }
 
 export async function updateSync(props: UpdateSyncProps) {
-  const { syncId, type, status } = props;
+  const { syncId, type, status, currentModelName, currentDirection } = props;
 
   const envName = getEnvName();
 
@@ -276,6 +278,8 @@ export async function updateSync(props: UpdateSyncProps) {
     data: {
       type,
       status,
+      currentModelName,
+      currentDirection,
     },
   });
 
@@ -346,17 +350,19 @@ export async function upsertObject(props: UpsertObjectProps) {
 }
 
 export interface UpsertObjectBatchProps {
-  collection: string;
+  collectionName: string;
   syncId: string;
-  model: string;
+  modelName: string;
   app: string | undefined;
   customApp: string | undefined;
   managedUserId?: string | null;
   objects: Array<{
     objectId?: string;
-    localObjectId: string;
-    localUpdatedAt: string | null;
-    data: unknown;
+    externalId: string;
+    externalUpdatedAt: string | null;
+    data: {
+      [key: string]: unknown;
+    };
   }>;
   cursor?: string;
   overwrite?: boolean;
@@ -365,9 +371,9 @@ export interface UpsertObjectBatchProps {
 
 export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
   const {
-    collection,
+    collectionName,
     syncId,
-    model,
+    modelName,
     app,
     customApp,
     managedUserId,
@@ -381,7 +387,7 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
 
   const response = await baseRequest({
     method: "POST",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/upsert/batch`,
+    uri: `/api/v1/envs/${envName}/collections/${collectionName}/models/${modelName}/objects/upsert/batch`,
     data: {
       syncId,
       appName: app,
@@ -396,8 +402,8 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
 
   console.info(
     "Upsert",
-    collection,
-    model,
+    collectionName,
+    modelName,
     objects.length,
     response.status,
     response.statusText
@@ -407,45 +413,31 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
 }
 
 export interface ConfirmChangeProps {
-  collectionName: string;
-  modelName: string;
   syncId: string;
   changeId: string;
-  localObjectId: string;
-  localUpdatedAt: string | null;
+  externalId: string;
+  externalUpdatedAt: string | null;
 }
 
-export async function confirmObject(props: ConfirmChangeProps) {
-  const {
-    collectionName,
-    modelName,
-    syncId,
-    changeId,
-    localObjectId,
-    localUpdatedAt,
-  } = props;
+export async function confirmChange(props: ConfirmChangeProps) {
+  const { syncId, changeId, externalId, externalUpdatedAt } = props;
 
   const envName = getEnvName();
 
   const response = await baseRequest({
     method: "POST",
-    uri: `/api/v1/envs/${envName}/collections/${collectionName}/models/${modelName}/objects/confirm`,
+    uri: `/api/v1/envs/${envName}/syncs/${syncId}/changes/${changeId}/confirm`,
     data: {
-      syncId,
-      changeId,
-      localObjectId,
-      localUpdatedAt,
+      externalId,
+      externalUpdatedAt,
     },
   });
 
   console.info(
     "Confirm",
-    collectionName,
-    modelName,
-    syncId,
     changeId,
-    localObjectId,
-    localUpdatedAt,
+    externalId,
+    externalUpdatedAt,
     response.status,
     response.statusText
   );
@@ -454,6 +446,31 @@ export async function confirmObject(props: ConfirmChangeProps) {
 }
 
 export interface ConfirmChangeBatchProps {
+  syncId: string;
+  changes: Array<{
+    changeId: string;
+    externalId: string;
+    externalUpdatedAt: string | null;
+  }>;
+  async?: boolean;
+}
+
+export async function confirmChangeBatch(props: ConfirmChangeBatchProps) {
+  const { syncId, changes, async } = props;
+
+  const envName = getEnvName();
+
+  const response = await baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/syncs/${syncId}/changes/batch/confirm`,
+    data: {
+      changes,
+      async,
+    },
+  });
+}
+
+export interface ConfirmObjectBatchProps {
   collection: string;
   syncId: string;
   model: string;
@@ -470,7 +487,7 @@ export interface ConfirmChangeBatchProps {
   async?: boolean;
 }
 
-export async function confirmObjectBatch(props: ConfirmChangeBatchProps) {
+export async function confirmObjectBatch(props: ConfirmObjectBatchProps) {
   const {
     collection,
     syncId,
