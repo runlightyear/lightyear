@@ -1,61 +1,63 @@
+import { HubSpotModel, HubSpotModelProps } from "./HubSpotModel";
 import {
-  ModelSynchronizer,
-  ModelSynchronizerProps,
-  RestConnector,
+  zod as z,
+  CrmUserType,
+  ListProps,
+  ObjectList,
+  CreateBatchProps,
+  UpdateBatchProps,
+  DeleteBatchProps,
 } from "@runlightyear/lightyear";
+export interface HubSpotUserProps extends HubSpotModelProps {}
 
-export interface HubSpotModelSynchronizerProps
-  extends Omit<ModelSynchronizerProps, "collection"> {
-  collection?: string;
-}
+type HubSpotOwnerListResponse = z.infer<
+  typeof HubSpotUser.OwnerListResponseSchema
+>;
+type HubSpotOwnerType = z.infer<typeof HubSpotUser.OwnerSchema>;
 
-export class UserSynchronizer extends ModelSynchronizer<any> {
-  hubspot: RestConnector;
+export class HubSpotUser extends HubSpotModel<
+  CrmUserType,
+  HubSpotOwnerListResponse,
+  HubSpotOwnerType
+> {
+  static OwnerSchema = HubSpotModel.ExternalSchema.extend({
+    email: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+  });
 
-  constructor(props: HubSpotModelSynchronizerProps) {
-    const { collection = "crm", ...rest } = props;
-    super({ collection, ...rest });
+  static OwnerListResponseSchema = HubSpotModel.ListResponseSchema.extend({
+    results: z.array(HubSpotUser.OwnerSchema),
+  });
 
-    if (props.connector instanceof RestConnector) {
-      this.hubspot = props.connector;
-    } else {
-      throw new Error("HubSpotModelSynchronizer requires a HubSpot connector");
-    }
+  getProperties(): string[] {
+    return ["email", "firstname", "lastname"];
   }
 
-  getToObjectMeta() {
+  getNoun(): string {
+    return "owner";
+  }
+
+  validateListResponse(response: unknown): HubSpotOwnerListResponse {
+    return HubSpotUser.OwnerListResponseSchema.parse(response);
+  }
+
+  mapExternalToObject(external: HubSpotOwnerType): CrmUserType {
     return {
-      id: "id",
-      updatedAt: "updatedAt",
-      isDeleted: false,
+      ...super.mapExternalToObject(external),
+      data: {
+        email: external.email,
+        firstName: external.firstName,
+        lastName: external.lastName,
+      },
     };
   }
 
-  getToObjectData(): any {
-    return {
-      email: "email",
-      firstName: "firstName",
-      lastName: "lastName",
-    };
-  }
-
-  getFromObjectMeta() {
-    return {};
-  }
-
-  getFromObjectData(): any {
-    return {
-      firstName: "firstName",
-      lastName: "lastName",
-    };
-  }
-
-  async list(props: {
-    syncType: "FULL" | "INCREMENTAL";
-    lastUpdatedAt?: string;
-    cursor?: string;
-  }) {
-    if (props.lastUpdatedAt) {
+  async list(props: ListProps): Promise<ObjectList<CrmUserType>> {
+    if (props.syncType === "INCREMENTAL") {
+      console.info(
+        "Incremental sync for owners not yet supported, skipping..."
+      );
       return { objects: [] };
     }
 
@@ -70,12 +72,20 @@ export class UserSynchronizer extends ModelSynchronizer<any> {
       },
     });
 
+    const validatedResponseActiveUsers = this.validateListResponse(
+      responseActiveUsers.data
+    );
+
+    const validatedResponseDeactivatedUsers = this.validateListResponse(
+      responseDeactivatedUsers.data
+    );
+
     const objects = [
-      ...responseActiveUsers.data.results.map((result: any) =>
-        this.mapToObject(result)
+      ...validatedResponseActiveUsers.results.map((result) =>
+        this.mapExternalToObject(result)
       ),
-      ...responseDeactivatedUsers.data.results.map((result: any) =>
-        this.mapToObject(result)
+      ...validatedResponseDeactivatedUsers.results.map((result) =>
+        this.mapExternalToObject(result)
       ),
     ];
 
@@ -84,30 +94,19 @@ export class UserSynchronizer extends ModelSynchronizer<any> {
     };
   }
 
-  async get(id: string) {
-    const response = await this.hubspot.get({
-      url: `/crm/v3/owners/${id}`,
-      params: {
-        properties: this.getExternalKeys().join(","),
-      },
-    });
-
-    return this.mapToObject(response.data);
-  }
-
-  async create(object: any): Promise<void> {
+  async createBatch(props: CreateBatchProps<CrmUserType>): Promise<void> {
     throw new Error(
       "HubSpot does not support creating new users/owners from the API"
     );
   }
 
-  async update(object: any) {
+  async updateBatch(props: UpdateBatchProps<CrmUserType>): Promise<void> {
     throw new Error(
       "HubSpot does not support updating users/owners from the API"
     );
   }
 
-  async delete(id: string) {
+  async deleteBatch(props: DeleteBatchProps): Promise<void> {
     throw new Error(
       "HubSpot does not support deleting users/owners from the API"
     );

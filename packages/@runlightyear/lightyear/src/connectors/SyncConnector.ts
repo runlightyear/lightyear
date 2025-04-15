@@ -1,4 +1,4 @@
-import { getSync, updateSync } from "../base/collection";
+import { getSync, updateSync, getModels } from "../base/collection";
 import { ModelConnector } from "./ModelConnector";
 import { RestConnector, RestConnectorProps } from "./RestConnector";
 
@@ -22,9 +22,10 @@ export abstract class SyncConnector extends RestConnector {
     syncId: string,
     direction: "push" | "pull" | "bidirectional" = "bidirectional"
   ) {
-    // let modelsToSync = await this.getModelOrder();
-    let modelsToSync = ["account", "contact"];
-    // TODO: get model order from collection
+    const modelsOnCollection = await getModels({
+      collectionName: this.collectionName,
+    });
+    let modelsToSync = modelsOnCollection.map((model) => model.name);
 
     const sync = await getSync({ syncId });
 
@@ -45,7 +46,7 @@ export abstract class SyncConnector extends RestConnector {
     console.info("modelsToSync in CollectionSynchronizer", modelsToSync);
 
     for (const modelName of modelsToSync) {
-      const model = await this.getModels()[modelName];
+      const model = this.getModels()[modelName];
 
       if (model) {
         await updateSync({

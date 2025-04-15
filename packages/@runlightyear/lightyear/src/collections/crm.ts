@@ -247,6 +247,9 @@ export const CrmOpportunityLineItemJsonSchema = {
 } as const;
 
 export type CrmUserDataType = FromSchema<typeof CrmUserJsonSchema>;
+export type CrmUserType = BaseObject & {
+  data: CrmUserDataType;
+};
 export type CrmAccountDataType = FromSchema<typeof CrmAccountJsonSchema>;
 export type CrmAccountType = BaseObject & {
   data: CrmAccountDataType;

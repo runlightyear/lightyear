@@ -79,17 +79,19 @@ export function defineCollection(props: DefineCollectionProps) {
 }
 
 export interface GetModelProps {
-  collection: string;
+  collectionName: string;
 }
 
-export async function getModels(props: GetModelProps) {
-  const { collection } = props;
+export async function getModels(
+  props: GetModelProps
+): Promise<Array<{ name: string; title: string }>> {
+  const { collectionName } = props;
 
   const envName = getEnvName();
 
   const response = await baseRequest({
     method: "GET",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/models`,
+    uri: `/api/v1/envs/${envName}/collections/${collectionName}/models`,
   });
 
   if (response.ok) {

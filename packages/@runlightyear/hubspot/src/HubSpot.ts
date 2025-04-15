@@ -8,6 +8,7 @@ import { HubSpotOAuth } from "./HubSpotOAuth";
 import { HubSpotAppWebhook } from "./HubSpotAppWebhook";
 import { HubSpotAccount } from "./models/HubSpotAccount";
 import { HubSpotContact } from "./models/HubSpotContact";
+import { HubSpotUser } from "./models/HubSpotUser";
 /**
  * @alpha
  */
@@ -34,6 +35,10 @@ export class HubSpot extends SyncConnector {
     };
 
     return {
+      user: new HubSpotUser({
+        ...commonProps,
+        modelName: "user",
+      }),
       account: new HubSpotAccount({
         ...commonProps,
         modelName: "account",

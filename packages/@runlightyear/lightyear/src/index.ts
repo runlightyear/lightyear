@@ -62,6 +62,7 @@ export type {
 export type {
   DefineCrmCollectionProps,
   CrmUserDataType,
+  CrmUserType,
   CrmAccountDataType,
   CrmAccountType,
   CrmContactDataType,
