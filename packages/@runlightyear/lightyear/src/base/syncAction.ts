@@ -3,7 +3,7 @@ import { AuthData } from "./auth";
 import { AuthConnector } from "../connectors/AuthConnector";
 import { finishSync, startSync, updateSync } from "./collection";
 import { dayjsUtc } from "../util/dayjsUtc";
-import { RERUN, SKIPPED } from "..";
+import { RERUN, SKIPPED, SyncConnector } from "..";
 import { setContext } from "./context";
 
 export interface ConnectorProps {
@@ -11,14 +11,14 @@ export interface ConnectorProps {
 }
 
 export interface SynchronizerProps {
-  connector: AuthConnector;
+  connector: SyncConnector;
   collection: string;
 }
 
 export interface DefineSyncActionProps {
   name: string;
   title: string;
-  connector: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector);
+  connector: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector);
   collection: string;
   app?: AppName;
   customApp?: string;
@@ -31,14 +31,14 @@ export interface DefineSyncActionProps {
 }
 
 function isConnectorClass(
-  x: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector)
-): x is typeof AuthConnector {
+  x: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector)
+): x is typeof SyncConnector {
   return typeof x === typeof AuthConnector;
 }
 
 function isConnectorFunction(
-  x: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector)
-): x is (props: ConnectorProps) => AuthConnector {
+  x: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector)
+): x is (props: ConnectorProps) => SyncConnector {
   return x instanceof Function;
 }
 
@@ -63,7 +63,7 @@ export function defineSyncAction(props: DefineSyncActionProps) {
 
       const connectorProps: ConnectorProps = { auth };
 
-      let connector: AuthConnector | undefined = undefined;
+      let connector: SyncConnector | undefined = undefined;
 
       if (isConnectorFunction(props.connector)) {
         connector = props.connector(connectorProps);
@@ -77,37 +77,6 @@ export function defineSyncAction(props: DefineSyncActionProps) {
       if (!connector) {
         throw new Error("No connector provided");
       }
-
-      const synchronizerProps: SynchronizerProps = {
-        connector,
-        collection: props.collection,
-      };
-
-      // let synchronizer: CollectionSynchronizer | null | undefined = undefined;
-
-      // if (!props.synchronizer) {
-      //   const connectorType = typeof connector;
-
-      //   // @ts-ignore
-      //   const synchronizerClass = connector.constructor["Synchronizer"];
-
-      //   if (!synchronizerClass) {
-      //     throw new Error("No synchronizer provided on connector");
-      //   }
-      //   // @ts-ignore - We are assuming the user passed in a concrete class.
-      //   synchronizer = new synchronizerClass(synchronizerProps);
-      // } else if (isSynchronizerClass(props.synchronizer)) {
-      //   // @ts-ignore - We are assuming the user passed in a concrete class.
-      //   synchronizer = new props.synchronizer(synchronizerProps);
-      // } else if (isSynchronizerFunction(props.synchronizer)) {
-      //   synchronizer = props.synchronizer(synchronizerProps);
-      // } else {
-      //   throw new Error("Unknown synchronizer type");
-      // }
-
-      // if (!synchronizer) {
-      //   throw new Error("No synchronizer provided");
-      // }
 
       if (!runProps.managedUser) {
         throw new Error("No managed user provided");
@@ -131,7 +100,7 @@ export function defineSyncAction(props: DefineSyncActionProps) {
       });
 
       try {
-        // await synchronizer.sync(sync.id, props.direction);
+        await connector.sync(sync.id, props.direction);
         const response = await finishSync(sync.id);
         const jsonData = await response.json();
         console.info(jsonData.message);

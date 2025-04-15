@@ -11,16 +11,17 @@ import { HubSpot } from "./HubSpot";
  */
 export class HubSpotAppWebhook extends AppWebhookConnector {
   async getIdentifier(): Promise<string> {
-    const hubspot = new HubSpot({
-      auth: this.getAuthData(),
-    });
-    const accountInfoResponse = await hubspot.get({
-      url: "/account-info/v3/details",
-    });
-    console.debug(accountInfoResponse);
-    const portalId = accountInfoResponse.data.portalId;
-    console.log("portalId", portalId);
-    return String(portalId);
+    // const hubspot = new HubSpot({
+    //   auth: this.getAuthData(),
+    // });
+    // const accountInfoResponse = await hubspot.get({
+    //   url: "/account-info/v3/details",
+    // });
+    // console.debug(accountInfoResponse);
+    // const portalId = accountInfoResponse.data.portalId;
+    // console.log("portalId", portalId);
+    // return String(portalId);
+    throw new Error("Not implemented");
   }
 
   async subscribe(subscriptionType: WebhookSubscriptionType) {

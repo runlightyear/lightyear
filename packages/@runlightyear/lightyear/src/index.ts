@@ -59,7 +59,22 @@ export type {
 } from "./base/collection";
 
 /* Collection: CRM */
-export type { DefineCrmCollectionProps } from "./collections/crm";
+export type {
+  DefineCrmCollectionProps,
+  CrmUserDataType,
+  CrmAccountDataType,
+  CrmAccountType,
+  CrmContactDataType,
+  CrmContactType,
+  CrmOpportunityDataType,
+  CrmLeadDataType,
+  CrmCallDataType,
+  CrmTaskDataType,
+  CrmMeetingDataType,
+  CrmNoteDataType,
+  CrmProductDataType,
+  CrmOpportunityLineItemDataType,
+} from "./collections/crm";
 export { defineCrmCollection } from "./collections/crm";
 
 /* Custom App */
@@ -177,17 +192,13 @@ export type { AuthConnectorProps } from "./connectors/AuthConnector";
 export { ModelConnector } from "./connectors/ModelConnector";
 export type {
   ModelConnectorProps,
-  ListObjectProps,
-  GetObjectProps,
-  CreateObjectProps,
-  UpdateObjectProps,
-  DeleteObjectProps,
-  FullObjectProps,
-  ListObjectResponse,
-  GetObjectResponse,
-  CreateObjectBatchProps,
-  UpdateObjectBatchProps,
-  DeleteObjectBatchProps,
+  ListProps,
+  ReadProps,
+  CreateBatchProps,
+  UpdateBatchProps,
+  DeleteBatchProps,
+  ObjectList,
+  ObjectMeta,
   Prettify,
   ObjectId,
   ExternalId,

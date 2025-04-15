@@ -1,67 +1,51 @@
 import { HubSpotModel, HubSpotModelProps } from "./HubSpotModel";
-import { zod as z } from "@runlightyear/lightyear";
+import { CrmContactType, zod as z } from "@runlightyear/lightyear";
 
 export interface HubSpotContactProps extends HubSpotModelProps {}
 
-export interface CrmContact {
-  id: string;
-  updatedAt: string;
-  isDeleted: boolean;
-  data: {
-    firstName: string;
-    lastName: string;
-    title: string;
-    email: string;
-    phone: string;
-    mobile: string;
-    address: string;
-    address2: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
-    accountId: string;
-    ownerId: string;
-  };
-}
-
-const HubSpotContactSchema = z.object({
-  id: z.string(),
-  updatedAt: z.string(),
-  properties: z.object({
-    firstname: z.string(),
-    lastname: z.string(),
-    jobtitle: z.string(),
-    email: z.string(),
-    phone: z.string(),
-    mobilephone: z.string(),
-    address: z.string(),
-    address2: z.string(),
-    city: z.string(),
-    state: z.string(),
-    zip: z.string(),
-    country: z.string(),
-    associatedcompanyid: z.string(),
-    hubspot_owner_id: z.string(),
-  }),
-});
-
-type HubSpotContact = z.infer<typeof HubSpotContactSchema>;
-
-const HubSpotContactListResponseSchema = z.object({
-  results: z.array(HubSpotContactSchema),
-});
-
 type HubSpotContactListResponse = z.infer<
-  typeof HubSpotContactListResponseSchema
+  typeof HubSpotContact.HubSpotContactListResponseSchema
 >;
 
-export class HubSpotContact extends HubSpotModel {
+type HubSpotContactType = z.infer<typeof HubSpotContact.HubSpotContactSchema>;
+
+export class HubSpotContact extends HubSpotModel<
+  CrmContactType,
+  HubSpotContactListResponse,
+  HubSpotContactType
+> {
+  constructor(props: HubSpotContactProps) {
+    super(props);
+  }
+
+  static HubSpotContactSchema = HubSpotModel.ExternalSchema.extend({
+    properties: z.object({
+      firstname: z.string().nullable(),
+      lastname: z.string().nullable(),
+      jobtitle: z.string().nullable(),
+      email: z.string().nullable(),
+      phone: z.string().nullable(),
+      mobilephone: z.string().nullable(),
+      address: z.string().nullable(),
+      city: z.string().nullable(),
+      state: z.string().nullable(),
+      zip: z.string().nullable(),
+      country: z.string().nullable(),
+      associatedcompanyid: z.string().nullable(),
+      hubspot_owner_id: z.string().nullable(),
+    }),
+  });
+
+  static HubSpotContactListResponseSchema =
+    HubSpotModel.ListResponseSchema.extend({
+      results: z.array(HubSpotContact.HubSpotContactSchema),
+    });
+
   getNoun() {
     return "contact";
   }
 
-  getListProperties(): string[] {
+  getProperties(): string[] {
     return [
       "firstname",
       "lastname",
@@ -70,7 +54,6 @@ export class HubSpotContact extends HubSpotModel {
       "phone",
       "mobilephone",
       "address",
-      "address2",
       "city",
       "state",
       "zip",
@@ -80,37 +63,36 @@ export class HubSpotContact extends HubSpotModel {
     ];
   }
 
-  validateListResponse(response: unknown) {
-    return HubSpotContactListResponseSchema.parse(response);
+  validateListResponse(response: unknown): HubSpotContactListResponse {
+    return HubSpotContact.HubSpotContactListResponseSchema.parse(response);
   }
 
-  validateGetResponse(response: unknown) {
-    return HubSpotContactSchema.parse(response);
-  }
-
-  getObjectsFromListResponse(
-    response: HubSpotContactListResponse
-  ): Array<CrmContact> {
-    return response.results.map((result) => ({
-      id: result.id,
-      updatedAt: result.updatedAt,
-      isDeleted: false,
+  mapExternalToObject(external: HubSpotContactType): CrmContactType {
+    return {
+      ...super.mapExternalToObject(external),
       data: {
-        firstName: result.properties.firstname,
-        lastName: result.properties.lastname,
-        title: result.properties.jobtitle,
-        email: result.properties.email,
-        phone: result.properties.phone,
-        mobile: result.properties.mobilephone,
-        address: result.properties.address,
-        address2: result.properties.address2,
-        city: result.properties.city,
-        state: result.properties.state,
-        zip: result.properties.zip,
-        country: result.properties.country,
-        accountId: result.properties.associatedcompanyid,
-        ownerId: result.properties.hubspot_owner_id,
+        firstName: external.properties.firstname,
+        lastName: external.properties.lastname,
+        title: external.properties.jobtitle,
+        email: external.properties.email,
+        phone: external.properties.phone,
+        mobile: external.properties.mobilephone,
+        address: {
+          street: external.properties.address,
+          city: external.properties.city,
+          state: external.properties.state,
+          postalCode: external.properties.zip,
+          country: external.properties.country,
+        },
+        accountId:
+          external.properties.associatedcompanyid === ""
+            ? null
+            : external.properties.associatedcompanyid,
+        ownerId:
+          external.properties.hubspot_owner_id === ""
+            ? null
+            : external.properties.hubspot_owner_id,
       },
-    }));
+    };
   }
 }

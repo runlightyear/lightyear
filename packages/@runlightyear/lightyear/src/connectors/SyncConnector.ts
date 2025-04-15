@@ -4,7 +4,7 @@ import { RestConnector, RestConnectorProps } from "./RestConnector";
 
 export interface SyncConnectorProps extends RestConnectorProps {
   collectionName: string;
-  models?: { [key: string]: ModelConnector };
+  // models?: { [key: string]: ModelConnector };
 }
 
 export abstract class SyncConnector extends RestConnector {
@@ -17,28 +17,6 @@ export abstract class SyncConnector extends RestConnector {
   }
 
   abstract getModels(): { [key: string]: ModelConnector };
-
-  async getModel(modelName: string) {
-    const models = this.getModels();
-
-    // if (models[modelName]) {
-    //   return new models[modelName]({
-    //     connector: this,
-    //     collectionName: this.collectionName,
-    //     modelName,
-    //   });
-    // }
-
-    return null;
-  }
-
-  getToObjectMeta() {
-    return {
-      id: "id",
-      updatedAt: "updatedAt",
-      isDeleted: false,
-    };
-  }
 
   async sync(
     syncId: string,
@@ -67,21 +45,21 @@ export abstract class SyncConnector extends RestConnector {
     console.info("modelsToSync in CollectionSynchronizer", modelsToSync);
 
     for (const modelName of modelsToSync) {
-      const model = await this.getModel(modelName);
+      const model = await this.getModels()[modelName];
 
-      // if (model) {
-      //   await updateSync({
-      //     syncId,
-      //     currentModelName: modelName,
-      //   });
+      if (model) {
+        await updateSync({
+          syncId,
+          currentModelName: modelName,
+        });
 
-      //   await model.sync(syncId, direction);
+        await model.sync(syncId, direction);
 
-      //   await updateSync({
-      //     syncId,
-      //     currentDirection: null,
-      //   });
-      // }
+        await updateSync({
+          syncId,
+          currentDirection: null,
+        });
+      }
     }
   }
 }

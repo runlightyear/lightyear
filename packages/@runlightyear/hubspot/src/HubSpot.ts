@@ -27,9 +27,21 @@ export class HubSpot extends SyncConnector {
   }
 
   getModels(): { [key: string]: ModelConnector } {
+    const commonProps = {
+      hubspot: this,
+      connector: this,
+      collectionName: this.collectionName,
+    };
+
     return {
-      account: HubSpotAccount,
-      contact: HubSpotContact,
+      account: new HubSpotAccount({
+        ...commonProps,
+        modelName: "account",
+      }),
+      contact: new HubSpotContact({
+        ...commonProps,
+        modelName: "contact",
+      }),
     };
   }
 }

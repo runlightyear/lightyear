@@ -1,6 +1,6 @@
 import { AppName } from "./action";
 import { AuthData } from "./auth";
-import { AuthConnector } from "../connectors/AuthConnector";
+import { SyncConnector } from "../connectors/SyncConnector";
 import { defineIntegration } from "./integration";
 import { defineSyncAction } from "./syncAction";
 
@@ -9,14 +9,14 @@ export interface ConnectorProps {
 }
 
 export interface SynchronizerProps {
-  connector: AuthConnector;
+  connector: SyncConnector;
 }
 
 export interface DefineSyncIntegrationProps {
   name: string;
   title: string;
   description?: string;
-  connector: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector);
+  connector: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector);
   collection: string;
   app?: AppName;
   customApp?: string;
@@ -29,14 +29,14 @@ export interface DefineSyncIntegrationProps {
 }
 
 function isConnectorClass(
-  x: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector)
-): x is typeof AuthConnector {
-  return typeof x === typeof AuthConnector;
+  x: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector)
+): x is typeof SyncConnector {
+  return typeof x === typeof SyncConnector;
 }
 
 function isConnectorFunction(
-  x: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector)
-): x is (props: ConnectorProps) => AuthConnector {
+  x: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector)
+): x is (props: ConnectorProps) => SyncConnector {
   return x instanceof Function;
 }
 

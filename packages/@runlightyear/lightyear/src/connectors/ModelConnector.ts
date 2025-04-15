@@ -6,7 +6,6 @@ import {
   upsertObjectBatch,
 } from "../base/collection";
 import { AuthConnector } from "../connectors/AuthConnector";
-import { get } from "lodash";
 import { isTimeLimitExceeded } from "../base/time";
 
 export type Prettify<T> = {
@@ -16,9 +15,14 @@ export type Prettify<T> = {
 export type ObjectId = string;
 export type ExternalId = string;
 
+export interface ObjectMeta {
+  id: string;
+  updatedAt: string;
+  isDeleted: boolean;
+}
+
 export interface BaseObject {
   id: string;
-  externalId: ExternalId;
   updatedAt: string;
   isDeleted: boolean;
   data: {
@@ -27,61 +31,45 @@ export interface BaseObject {
 }
 
 export interface BaseExternal {
-  externalId: ExternalId;
+  id: string;
   data: {
     [key: string]: unknown;
   };
 }
 
-export interface ListObjectProps {
+export interface ListProps {
   syncType: "FULL" | "INCREMENTAL";
   lastExternalId?: string;
   lastUpdatedAt?: string;
   cursor?: string;
 }
 
-export type ListObjectResponse<Object extends BaseObject> = Promise<{
+export type ObjectList<Object extends BaseObject> = Promise<{
   objects: Array<Object>;
   cursor?: string;
 }>;
 
-export interface GetObjectProps {
+export interface ReadProps {
   id: string;
 }
 
-export type GetObjectResponse<Object extends BaseObject> = Promise<Object>;
-
-export interface CreateObjectProps<Object extends BaseObject> {
-  changeId: string;
-  object: Object;
+export interface CreateBatchProps<Object extends BaseObject> {
+  changes: Array<{ changeId: string; object: Object }>;
 }
 
-export interface CreateObjectBatchProps<Object extends BaseObject> {
-  changes: Array<CreateObjectProps<Object>>;
+export interface UpdateBatchProps<Object extends BaseObject> {
+  changes: Array<{ changeId: string; externalId: ExternalId; object: Object }>;
 }
 
-export interface UpdateObjectProps<Object extends BaseObject>
-  extends CreateObjectProps<Object> {
-  externalId: ExternalId;
+export interface DeleteBatchProps {
+  changes: Array<{ changeId: string; externalId: ExternalId }>;
 }
 
-export interface UpdateObjectBatchProps<Object extends BaseObject> {
-  changes: Array<UpdateObjectProps<Object>>;
-}
-
-export interface DeleteObjectProps {
-  externalId: ExternalId;
-}
-
-export interface DeleteObjectBatchProps {
-  changes: Array<DeleteObjectProps>;
-}
-
-export interface FullObjectProps<Object extends BaseObject>
-  extends UpdateObjectProps<Object> {
-  updatedAt: string;
-  isDeleted?: boolean;
-}
+// export interface FullObjectProps<Object extends BaseObject>
+//   extends UpdateProps<Object> {
+//   updatedAt: string;
+//   isDeleted?: boolean;
+// }
 
 export interface ModelConnectorProps {
   connector: AuthConnector;
@@ -90,10 +78,9 @@ export interface ModelConnectorProps {
 }
 
 export abstract class ModelConnector<
-  Object extends BaseObject = BaseObject,
-  External extends BaseExternal = BaseExternal,
-  ListResponse = unknown,
-  GetResponse = unknown
+  ModelObject extends BaseObject = BaseObject,
+  ModelListResponse = unknown,
+  ModelExternal = unknown
 > {
   connector: AuthConnector;
   collectionName: string;
@@ -110,19 +97,13 @@ export abstract class ModelConnector<
     return this.getNoun() + "s";
   }
 
-  abstract validateListResponse(response: unknown): ListResponse;
-  abstract getObjectsFromListResponse(response: ListResponse): Array<Object>;
-  abstract validateGetResponse(response: unknown): GetResponse;
-  abstract getObjectFromGetResponse(response: GetResponse): Object;
+  abstract list(props: ListProps): Promise<ObjectList<ModelObject>>;
+  abstract createBatch(props: CreateBatchProps<ModelObject>): Promise<void>;
+  abstract updateBatch(props: UpdateBatchProps<ModelObject>): Promise<void>;
+  abstract deleteBatch(props: DeleteBatchProps): Promise<void>;
 
-  abstract list(props: ListObjectProps): Promise<ListObjectResponse<Object>>;
-  abstract get(props: GetObjectProps): Promise<GetObjectResponse<Object>>;
-  abstract create(props: CreateObjectProps<Object>): Promise<void>;
-  abstract createBatch(props: CreateObjectBatchProps<Object>): Promise<void>;
-  abstract update(props: UpdateObjectProps<Object>): Promise<void>;
-  abstract updateBatch(props: UpdateObjectBatchProps<Object>): Promise<void>;
-  abstract delete(props: DeleteObjectProps): Promise<void>;
-  abstract deleteBatch(props: DeleteObjectBatchProps): Promise<void>;
+  abstract validateListResponse(response: unknown): ModelListResponse;
+  abstract mapExternalToObject(external: ModelExternal): ModelObject;
 
   async sync(
     syncId: string,
@@ -195,7 +176,7 @@ export abstract class ModelConnector<
             customApp: authData.customAppName ?? undefined,
             objects: objects.map((obj) => ({
               managedUserId,
-              externalId: obj.externalId,
+              externalId: obj.id,
               externalUpdatedAt: obj.updatedAt,
               data: obj.data,
             })),
@@ -206,7 +187,7 @@ export abstract class ModelConnector<
           listCounter += objects.length;
           console.info("Objects processed:", listCounter);
 
-          lastExternalId = objects[objects.length - 1].externalId;
+          lastExternalId = objects[objects.length - 1].id;
           lastUpdatedAt = objects[objects.length - 1].updatedAt;
         }
       } while (cursor);

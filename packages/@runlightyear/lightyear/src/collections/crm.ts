@@ -1,14 +1,28 @@
 import { defineCollection, DefineCollectionProps } from "../base/collection";
 import { FromSchema, JSONSchema } from "json-schema-to-ts";
 import { ExtendedJSONSchema } from "./types";
+import { BaseObject } from "../connectors/ModelConnector";
 export interface DefineCrmCollectionProps
   extends Partial<DefineCollectionProps> {}
 
-const CrmEmailJsonSchema: JSONSchema = { type: ["string", "null"] };
+const dogSchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    age: { type: "integer" },
+    hobbies: { type: "array", items: { type: "string" } },
+    favoriteFood: { enum: ["pizza", "taco", "fries"] },
+  },
+  required: ["name", "age"],
+} as const;
 
-const CrmPhoneJsonSchema: JSONSchema = { type: ["string", "null"] };
+type Dog = FromSchema<typeof dogSchema>;
 
-const CrmAddressJsonSchema: JSONSchema = {
+const CrmEmailJsonSchema = { type: ["string", "null"] } as const;
+
+const CrmPhoneJsonSchema = { type: ["string", "null"] } as const;
+
+const CrmAddressJsonSchema = {
   anyOf: [
     {
       type: "object",
@@ -21,12 +35,13 @@ const CrmAddressJsonSchema: JSONSchema = {
         postalCode: { type: ["string", "null"] },
         country: { type: ["string", "null"] },
       },
+      additionalProperties: false,
     },
     { type: "null" },
   ],
-};
+} as const;
 
-const CrmUserJsonSchema: ExtendedJSONSchema = {
+export const CrmUserJsonSchema = {
   type: "object",
   properties: {
     username: { type: ["string", "null"] },
@@ -34,9 +49,10 @@ const CrmUserJsonSchema: ExtendedJSONSchema = {
     firstName: { type: ["string", "null"] },
     lastName: { type: ["string", "null"] },
   },
-};
+  additionalProperties: false,
+} as const;
 
-const CrmAccountJsonSchema: ExtendedJSONSchema = {
+export const CrmAccountJsonSchema = {
   type: "object",
   properties: {
     name: { type: ["string", "null"] },
@@ -57,9 +73,10 @@ const CrmAccountJsonSchema: ExtendedJSONSchema = {
       ],
     },
   },
-};
+  additionalProperties: false,
+} as const;
 
-const CrmContactJsonSchema: ExtendedJSONSchema = {
+export const CrmContactJsonSchema = {
   type: "object",
   properties: {
     firstName: { type: ["string", "null"] },
@@ -90,9 +107,10 @@ const CrmContactJsonSchema: ExtendedJSONSchema = {
       ],
     },
   },
-};
+  additionalProperties: false,
+} as const;
 
-const CrmOpportunityJsonSchema: ExtendedJSONSchema = {
+export const CrmOpportunityJsonSchema = {
   type: "object",
   properties: {
     name: { type: ["string", "null"] },
@@ -118,9 +136,10 @@ const CrmOpportunityJsonSchema: ExtendedJSONSchema = {
       ],
     },
   },
-};
+  additionalProperties: false,
+} as const;
 
-const CrmLeadJsonSchema: ExtendedJSONSchema = {
+export const CrmLeadJsonSchema = {
   type: "object",
   properties: {
     firstName: { type: ["string", "null"] },
@@ -141,9 +160,10 @@ const CrmLeadJsonSchema: ExtendedJSONSchema = {
       ],
     },
   },
-};
+  additionalProperties: false,
+} as const;
 
-const CrmCallJsonSchema: ExtendedJSONSchema = {
+export const CrmCallJsonSchema = {
   type: "object",
   properties: {
     subject: { type: ["string", "null"] },
@@ -151,9 +171,10 @@ const CrmCallJsonSchema: ExtendedJSONSchema = {
     timestamp: { type: ["string", "null"] },
     duration: { type: ["string", "null"] },
   },
-};
+  additionalProperties: false,
+} as const;
 
-const CrmTaskJsonSchema: ExtendedJSONSchema = {
+export const CrmTaskJsonSchema = {
   type: "object",
   properties: {
     subject: { type: ["string", "null"] },
@@ -162,9 +183,10 @@ const CrmTaskJsonSchema: ExtendedJSONSchema = {
     status: { type: ["string", "null"] },
     completedDate: { type: ["string", "null"] },
   },
-};
+  additionalProperties: false,
+} as const;
 
-const CrmMeetingJsonSchema: ExtendedJSONSchema = {
+export const CrmMeetingJsonSchema = {
   type: "object",
   properties: {
     subject: { type: ["string", "null"] },
@@ -172,18 +194,20 @@ const CrmMeetingJsonSchema: ExtendedJSONSchema = {
     startTime: { type: ["string", "null"] },
     endTime: { type: ["string", "null"] },
   },
-};
+  additionalProperties: false,
+} as const;
 
-const CrmNoteJsonSchema: ExtendedJSONSchema = {
+export const CrmNoteJsonSchema = {
   type: "object",
   properties: {
     title: { type: ["string", "null"] },
     content: { type: ["string", "null"] },
     timestamp: { type: ["string", "null"] },
   },
-};
+  additionalProperties: false,
+} as const;
 
-const CrmProductJsonSchema: ExtendedJSONSchema = {
+export const CrmProductJsonSchema = {
   type: "object",
   properties: {
     name: { type: ["string", "null"] },
@@ -191,9 +215,10 @@ const CrmProductJsonSchema: ExtendedJSONSchema = {
     price: { type: ["string", "null"] },
     code: { type: ["string", "null"] },
   },
-};
+  additionalProperties: false,
+} as const;
 
-const CrmOpportunityLineItemJsonSchema: ExtendedJSONSchema = {
+export const CrmOpportunityLineItemJsonSchema = {
   type: "object",
   properties: {
     name: { type: ["string", "null"] },
@@ -218,19 +243,28 @@ const CrmOpportunityLineItemJsonSchema: ExtendedJSONSchema = {
       ],
     },
   },
-};
+  additionalProperties: false,
+} as const;
 
-export type CrmUser = FromSchema<typeof CrmUserJsonSchema>;
-export type CrmAccount = FromSchema<typeof CrmAccountJsonSchema>;
-export type CrmContact = FromSchema<typeof CrmContactJsonSchema>;
-export type CrmOpportunity = FromSchema<typeof CrmOpportunityJsonSchema>;
-export type CrmLead = FromSchema<typeof CrmLeadJsonSchema>;
-export type CrmCall = FromSchema<typeof CrmCallJsonSchema>;
-export type CrmTask = FromSchema<typeof CrmTaskJsonSchema>;
-export type CrmMeeting = FromSchema<typeof CrmMeetingJsonSchema>;
-export type CrmNote = FromSchema<typeof CrmNoteJsonSchema>;
-export type CrmProduct = FromSchema<typeof CrmProductJsonSchema>;
-export type CrmOpportunityLineItem = FromSchema<
+export type CrmUserDataType = FromSchema<typeof CrmUserJsonSchema>;
+export type CrmAccountDataType = FromSchema<typeof CrmAccountJsonSchema>;
+export type CrmAccountType = BaseObject & {
+  data: CrmAccountDataType;
+};
+export type CrmContactDataType = FromSchema<typeof CrmContactJsonSchema>;
+export type CrmContactType = BaseObject & {
+  data: CrmContactDataType;
+};
+export type CrmOpportunityDataType = FromSchema<
+  typeof CrmOpportunityJsonSchema
+>;
+export type CrmLeadDataType = FromSchema<typeof CrmLeadJsonSchema>;
+export type CrmCallDataType = FromSchema<typeof CrmCallJsonSchema>;
+export type CrmTaskDataType = FromSchema<typeof CrmTaskJsonSchema>;
+export type CrmMeetingDataType = FromSchema<typeof CrmMeetingJsonSchema>;
+export type CrmNoteDataType = FromSchema<typeof CrmNoteJsonSchema>;
+export type CrmProductDataType = FromSchema<typeof CrmProductJsonSchema>;
+export type CrmOpportunityLineItemDataType = FromSchema<
   typeof CrmOpportunityLineItemJsonSchema
 >;
 

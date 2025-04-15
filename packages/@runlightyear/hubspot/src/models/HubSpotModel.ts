@@ -1,40 +1,48 @@
 import {
+  zod as z,
   ModelConnector,
   ModelConnectorProps,
-  ListObjectProps,
-  GetObjectProps,
-  GetObjectResponse,
+  ListProps,
+  CreateBatchProps,
+  UpdateBatchProps,
+  DeleteBatchProps,
   BaseObject,
-  BaseExternal,
-  ListObjectResponse,
-  CreateObjectProps,
-  UpdateObjectProps,
-  UpdateObjectBatchProps,
-  DeleteObjectProps,
-  DeleteObjectBatchProps,
+  ObjectList,
 } from "@runlightyear/lightyear";
 import { HubSpot } from "../HubSpot";
 
 export interface HubSpotModelProps extends ModelConnectorProps {
-  connector: HubSpot;
+  hubspot: HubSpot;
 }
 
 export abstract class HubSpotModel<
-  Object extends BaseObject,
-  External extends BaseExternal,
-  ListResponse,
-  GetResponse
-> extends ModelConnector<Object, External, ListResponse, GetResponse> {
+  ModelObject extends BaseObject,
+  ModelListResponse extends z.infer<typeof HubSpotModel.ListResponseSchema>,
+  ModelExternal extends z.infer<typeof HubSpotModel.ExternalSchema>
+> extends ModelConnector<ModelObject, ModelListResponse, ModelExternal> {
   hubspot: HubSpot;
 
-  constructor(props: HubSpotModelProps) {
-    super({
-      connector: props.connector,
-      collectionName: props.collectionName,
-      modelName: props.modelName,
-    });
+  static ExternalSchema = z.object({
+    id: z.string(),
+    updatedAt: z.string(),
+    properties: z.unknown(),
+  });
 
-    this.hubspot = props.connector;
+  static ListResponseSchema = z.object({
+    results: z.array(HubSpotModel.ExternalSchema),
+    paging: z
+      .object({
+        next: z.object({
+          after: z.string(),
+        }),
+      })
+      .optional(),
+  });
+
+  constructor(props: HubSpotModelProps) {
+    const { hubspot, ...rest } = props;
+    super(rest);
+    this.hubspot = props.hubspot;
   }
 
   abstract getProperties(): string[];
@@ -43,7 +51,16 @@ export abstract class HubSpotModel<
     return undefined;
   }
 
-  async list(props: ListObjectProps): Promise<ListObjectResponse<Object>> {
+  mapExternalToObject(external: ModelExternal): ModelObject {
+    return {
+      id: external.id,
+      updatedAt: external.updatedAt,
+      isDeleted: false,
+      data: {},
+    } as ModelObject;
+  }
+
+  async list(props: ListProps): Promise<ObjectList<ModelObject>> {
     const { syncType, lastExternalId, lastUpdatedAt, cursor } = props;
 
     console.debug("list", syncType, lastExternalId, lastUpdatedAt, cursor);
@@ -64,7 +81,9 @@ export abstract class HubSpotModel<
       const validatedResponse = this.validateListResponse(response.data);
 
       return {
-        objects: this.getObjectsFromListResponse(validatedResponse),
+        objects: validatedResponse.results.map((result) =>
+          this.mapExternalToObject(result as ModelExternal)
+        ),
         cursor: response.data.paging?.next?.after ?? undefined,
       };
     } else if (syncType === "INCREMENTAL") {
@@ -101,7 +120,9 @@ export abstract class HubSpotModel<
       const validatedResponse = this.validateListResponse(response.data);
 
       return {
-        objects: this.getObjectsFromListResponse(validatedResponse),
+        objects: validatedResponse.results.map((result) =>
+          this.mapExternalToObject(result as ModelExternal)
+        ),
         cursor: response.data.paging?.next?.after ?? undefined,
       };
     } else {
@@ -109,41 +130,7 @@ export abstract class HubSpotModel<
     }
   }
 
-  async get(props: GetObjectProps): Promise<GetObjectResponse<Object>> {
-    const { id } = props;
-
-    const response = await this.hubspot.get({
-      url: `/crm/v3/objects/${this.getPluralNoun()}/${id}`,
-      params: {
-        properties: this.getProperties(),
-        associations: this.getAssociationKeys(),
-      },
-    });
-
-    const validatedResponse = this.validateGetResponse(response.data);
-
-    return this.getObjectFromGetResponse(validatedResponse);
-  }
-
-  async create(props: CreateObjectProps<Object>) {
-    // const { changeId, object } = props;
-
-    // const response = await this.hubspot.post({
-    //   url: `/crm/v3/objects/${this.getPluralNoun()}`,
-    //   data: {
-    //     properties: this.getProperties(),
-    //   },
-    //   async: true,
-    //   confirm: {
-    //     changeIds: [object.changeId],
-    //     idPath: "$.id",
-    //     updatedAtPath: "$.updatedAt",
-    //   },
-    // });
-    throw new Error("Not implemented yet");
-  }
-
-  async createBatch(props: Array<{ changeId: string; data: any }>) {
+  async createBatch(props: CreateBatchProps<ModelObject>) {
     // await this.hubspot.requestBatch(
     //   changes.map((change) => ({
     //     method: "POST",
@@ -161,34 +148,11 @@ export abstract class HubSpotModel<
     throw new Error("Not implemented yet");
   }
 
-  async update(props: UpdateObjectProps<Object>) {
-    // await this.hubspot.patch({
-    //   url: `/crm/v3/objects/${this.getPluralNoun()}/${object.id}`,
-    //   data: {
-    //     properties: this.mapFromObject(object),
-    //   },
-    // });
+  async updateBatch(props: UpdateBatchProps<ModelObject>) {
     throw new Error("Not implemented yet");
   }
 
-  async updateBatch(props: UpdateObjectBatchProps<Object>) {
-    // await this.hubspot.patch({
-    //   url: `/crm/v3/objects/${this.getPluralNoun()}/${object.id}`,
-    //   data: {
-    //     properties: this.mapFromObject(object),
-    //   },
-    // });
-    throw new Error("Not implemented yet");
-  }
-
-  async delete(props: DeleteObjectProps) {
-    // await this.hubspot.delete({
-    //   url: `/crm/v3/objects/${this.getPluralNoun()}/${id}`,
-    // });
-    throw new Error("Not implemented yet");
-  }
-
-  async deleteBatch(props: DeleteObjectBatchProps) {
+  async deleteBatch(props: DeleteBatchProps) {
     throw new Error("Not implemented yet");
   }
 }
