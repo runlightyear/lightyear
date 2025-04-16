@@ -200,6 +200,7 @@ export type {
   DeleteBatchProps,
   ObjectList,
   ObjectMeta,
+  Object,
   Prettify,
   ObjectId,
   ExternalId,

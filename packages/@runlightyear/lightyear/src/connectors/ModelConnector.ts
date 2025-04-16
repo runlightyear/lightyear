@@ -37,6 +37,13 @@ export interface BaseExternal {
   };
 }
 
+export interface Object<ObjectData extends { [key: string]: unknown }> {
+  id: string;
+  updatedAt: string;
+  isDeleted: boolean;
+  data: ObjectData;
+}
+
 export interface ListProps {
   syncType: "FULL" | "INCREMENTAL";
   lastExternalId?: string;
@@ -44,7 +51,7 @@ export interface ListProps {
   cursor?: string;
 }
 
-export type ObjectList<Object extends BaseObject> = Promise<{
+export type ObjectList<Object> = Promise<{
   objects: Array<Object>;
   cursor?: string;
 }>;
@@ -53,12 +60,16 @@ export interface ReadProps {
   id: string;
 }
 
-export interface CreateBatchProps<Object extends BaseObject> {
-  changes: Array<{ changeId: string; object: Object }>;
+export interface CreateBatchProps<ObjectData> {
+  changes: Array<{ changeId: string; data: ObjectData }>;
 }
 
-export interface UpdateBatchProps<Object extends BaseObject> {
-  changes: Array<{ changeId: string; externalId: ExternalId; object: Object }>;
+export interface UpdateBatchProps<ObjectData> {
+  changes: Array<{
+    changeId: string;
+    externalId: ExternalId;
+    data: ObjectData;
+  }>;
 }
 
 export interface DeleteBatchProps {
@@ -78,9 +89,10 @@ export interface ModelConnectorProps {
 }
 
 export abstract class ModelConnector<
-  ModelObject extends BaseObject = BaseObject,
-  ModelListResponse = unknown,
-  ModelExternal = unknown
+  ModelObjectData extends { [key: string]: unknown },
+  ModelExternalData extends { [key: string]: unknown },
+  ModelExternal = unknown,
+  ModelListResponse = unknown
 > {
   connector: AuthConnector;
   collectionName: string;
@@ -97,13 +109,18 @@ export abstract class ModelConnector<
     return this.getNoun() + "s";
   }
 
-  abstract list(props: ListProps): Promise<ObjectList<ModelObject>>;
-  abstract createBatch(props: CreateBatchProps<ModelObject>): Promise<void>;
-  abstract updateBatch(props: UpdateBatchProps<ModelObject>): Promise<void>;
+  abstract list(props: ListProps): Promise<ObjectList<Object<ModelObjectData>>>;
+  abstract createBatch(props: CreateBatchProps<ModelObjectData>): Promise<void>;
+  abstract updateBatch(props: UpdateBatchProps<ModelObjectData>): Promise<void>;
   abstract deleteBatch(props: DeleteBatchProps): Promise<void>;
 
   abstract validateListResponse(response: unknown): ModelListResponse;
-  abstract mapExternalToObject(external: ModelExternal): ModelObject;
+  abstract mapExternalToObject(
+    external: ModelExternal
+  ): Object<ModelObjectData>;
+  abstract mapObjectDataToExternalData(
+    data: ModelObjectData
+  ): ModelExternalData;
 
   async sync(
     syncId: string,
@@ -209,7 +226,7 @@ export abstract class ModelConnector<
           throw "RERUN";
         }
 
-        const delta = await retrieveDelta({
+        const delta = await retrieveDelta<ModelObjectData>({
           collectionName: this.collectionName,
           syncId,
           modelName: this.modelName,
@@ -223,11 +240,11 @@ export abstract class ModelConnector<
         }
 
         if (delta.changes[0].operation === "CREATE") {
-          await this.createBatch(delta.changes);
-        } else if (delta.changes[0].operation === "UPDATE") {
-          await this.updateBatch(delta.changes);
-        } else if (delta.changes[0].operation === "DELETE") {
-          await this.deleteBatch(delta.changes);
+          await this.createBatch({ changes: delta.changes });
+          // } else if (delta.changes[0].operation === "UPDATE") {
+          //   await this.updateBatch({ changes: delta.changes });
+          // } else if (delta.changes[0].operation === "DELETE") {
+          //   await this.deleteBatch(delta.changes);
         }
 
         changeCounter += delta.changes.length;

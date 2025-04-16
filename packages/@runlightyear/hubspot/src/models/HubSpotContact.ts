@@ -1,24 +1,31 @@
 import { HubSpotModel, HubSpotModelProps } from "./HubSpotModel";
-import { CrmContactType, zod as z } from "@runlightyear/lightyear";
+import {
+  CrmContactDataType,
+  CrmContactType,
+  zod as z,
+} from "@runlightyear/lightyear";
 
 export interface HubSpotContactProps extends HubSpotModelProps {}
 
+type HubSpotContactDataType = z.infer<
+  typeof HubSpotContact.HubSpotContactDataSchema
+>;
+type HubSpotContactType = z.infer<typeof HubSpotContact.HubSpotContactSchema>;
 type HubSpotContactListResponse = z.infer<
   typeof HubSpotContact.HubSpotContactListResponseSchema
 >;
 
-type HubSpotContactType = z.infer<typeof HubSpotContact.HubSpotContactSchema>;
-
 export class HubSpotContact extends HubSpotModel<
-  CrmContactType,
-  HubSpotContactListResponse,
-  HubSpotContactType
+  CrmContactDataType,
+  HubSpotContactDataType,
+  HubSpotContactType,
+  HubSpotContactListResponse
 > {
   constructor(props: HubSpotContactProps) {
     super(props);
   }
 
-  static HubSpotContactSchema = HubSpotModel.ExternalSchema.extend({
+  static HubSpotContactDataSchema = z.object({
     properties: z.object({
       firstname: z.string().nullable(),
       lastname: z.string().nullable(),
@@ -35,6 +42,10 @@ export class HubSpotContact extends HubSpotModel<
       hubspot_owner_id: z.string().nullable(),
     }),
   });
+
+  static HubSpotContactSchema = HubSpotModel.ExternalSchema.merge(
+    HubSpotContact.HubSpotContactDataSchema
+  );
 
   static HubSpotContactListResponseSchema =
     HubSpotModel.ListResponseSchema.extend({
@@ -92,6 +103,28 @@ export class HubSpotContact extends HubSpotModel<
           external.properties.hubspot_owner_id === ""
             ? null
             : external.properties.hubspot_owner_id,
+      },
+    };
+  }
+
+  mapObjectDataToExternalData(
+    data: CrmContactDataType
+  ): HubSpotContactDataType {
+    return {
+      properties: {
+        firstname: data.firstName ?? null,
+        lastname: data.lastName ?? null,
+        jobtitle: data.title ?? null,
+        email: data.email ?? null,
+        phone: data.phone ?? null,
+        mobilephone: data.mobile ?? null,
+        address: data.address?.street ?? null,
+        city: data.address?.city ?? null,
+        state: data.address?.state ?? null,
+        zip: data.address?.postalCode ?? null,
+        country: data.address?.country ?? null,
+        associatedcompanyid: data.accountId ?? null,
+        hubspot_owner_id: data.ownerId ?? null,
       },
     };
   }

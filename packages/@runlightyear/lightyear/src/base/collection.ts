@@ -142,7 +142,15 @@ export interface RetrieveDeltaProps {
   limit?: number;
 }
 
-export async function retrieveDelta(props: RetrieveDeltaProps) {
+export async function retrieveDelta<ModelObjectData>(
+  props: RetrieveDeltaProps
+): Promise<{
+  changes: Array<{
+    changeId: string;
+    operation: "CREATE" | "UPDATE" | "DELETE";
+    data: ModelObjectData;
+  }>;
+}> {
   const MAX_RETRIES = 5;
 
   const { collectionName, syncId, modelName, limit } = props;

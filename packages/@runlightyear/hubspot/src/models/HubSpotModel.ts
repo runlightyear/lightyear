@@ -6,8 +6,8 @@ import {
   CreateBatchProps,
   UpdateBatchProps,
   DeleteBatchProps,
-  BaseObject,
   ObjectList,
+  Object,
 } from "@runlightyear/lightyear";
 import { HubSpot } from "../HubSpot";
 
@@ -15,11 +15,20 @@ export interface HubSpotModelProps extends ModelConnectorProps {
   hubspot: HubSpot;
 }
 
+type External = z.infer<typeof HubSpotModel.ExternalSchema>;
+type ListResponse = z.infer<typeof HubSpotModel.ListResponseSchema>;
+
 export abstract class HubSpotModel<
-  ModelObject extends BaseObject,
-  ModelListResponse extends z.infer<typeof HubSpotModel.ListResponseSchema>,
-  ModelExternal extends z.infer<typeof HubSpotModel.ExternalSchema>
-> extends ModelConnector<ModelObject, ModelListResponse, ModelExternal> {
+  ModelObjectData extends { [key: string]: unknown },
+  ModelExternalData extends { [key: string]: unknown },
+  ModelExternal extends External,
+  ModelListResponse extends ListResponse
+> extends ModelConnector<
+  ModelObjectData,
+  ModelExternalData,
+  ModelExternal,
+  ModelListResponse
+> {
   hubspot: HubSpot;
 
   static ExternalSchema = z.object({
@@ -51,16 +60,20 @@ export abstract class HubSpotModel<
     return undefined;
   }
 
-  mapExternalToObject(external: ModelExternal): ModelObject {
+  mapExternalToObject(external: ModelExternal): Object<ModelObjectData> {
     return {
       id: external.id,
       updatedAt: external.updatedAt,
       isDeleted: false,
       data: {},
-    } as ModelObject;
+    } as Object<ModelObjectData>;
   }
 
-  async list(props: ListProps): Promise<ObjectList<ModelObject>> {
+  abstract mapObjectDataToExternalData(
+    data: ModelObjectData
+  ): ModelExternalData;
+
+  async list(props: ListProps): Promise<ObjectList<Object<ModelObjectData>>> {
     const { syncType, lastExternalId, lastUpdatedAt, cursor } = props;
 
     console.debug("list", syncType, lastExternalId, lastUpdatedAt, cursor);
@@ -130,25 +143,22 @@ export abstract class HubSpotModel<
     }
   }
 
-  async createBatch(props: CreateBatchProps<ModelObject>) {
-    // await this.hubspot.requestBatch(
-    //   changes.map((change) => ({
-    //     method: "POST",
-    //     url: `/crm/v3/objects/${this.getPluralNoun()}`,
-    //     data: {
-    //       properties: this.mapFromObject(change),
-    //     },
-    //     confirm: {
-    //       changeIds: [change.changeId],
-    //       idPath: "$.id",
-    //       updatedAtPath: "$.updatedAt",
-    //     },
-    //   }))
-    // );
-    throw new Error("Not implemented yet");
+  async createBatch(props: CreateBatchProps<ModelObjectData>) {
+    await this.hubspot.requestBatch(
+      props.changes.map((change) => ({
+        method: "POST",
+        url: `/crm/v3/objects/${this.getPluralNoun()}`,
+        data: this.mapObjectDataToExternalData(change.data),
+        confirm: {
+          changeIds: [change.changeId],
+          idPath: "$.id",
+          updatedAtPath: "$.updatedAt",
+        },
+      }))
+    );
   }
 
-  async updateBatch(props: UpdateBatchProps<ModelObject>) {
+  async updateBatch(props: UpdateBatchProps<ModelObjectData>) {
     throw new Error("Not implemented yet");
   }
 

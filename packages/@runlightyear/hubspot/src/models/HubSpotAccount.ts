@@ -1,19 +1,27 @@
 import { HubSpotModel, HubSpotModelProps } from "./HubSpotModel";
-import { zod as z, CrmAccountType } from "@runlightyear/lightyear";
+import {
+  zod as z,
+  CrmAccountType,
+  CrmAccountDataType,
+} from "@runlightyear/lightyear";
 
 export interface HubSpotAccountProps extends HubSpotModelProps {}
 
+type HubSpotCompanyDataType = z.infer<
+  typeof HubSpotAccount.HubSpotCompanyDataSchema
+>;
+type HubSpotCompanyType = z.infer<typeof HubSpotAccount.CompanySchema>;
 type HubSpotCompanyListResponse = z.infer<
   typeof HubSpotAccount.CompanyListResponseSchema
 >;
-type HubSpotCompanyType = z.infer<typeof HubSpotAccount.CompanySchema>;
 
 export class HubSpotAccount extends HubSpotModel<
-  CrmAccountType,
-  HubSpotCompanyListResponse,
-  HubSpotCompanyType
+  CrmAccountDataType,
+  HubSpotCompanyDataType,
+  HubSpotCompanyType,
+  HubSpotCompanyListResponse
 > {
-  static CompanySchema = HubSpotModel.ExternalSchema.extend({
+  static HubSpotCompanyDataSchema = z.object({
     properties: z.object({
       name: z.string().nullable(),
       website: z.string().nullable(),
@@ -29,6 +37,10 @@ export class HubSpotAccount extends HubSpotModel<
       hubspot_owner_id: z.string().nullable(),
     }),
   });
+
+  static CompanySchema = HubSpotModel.ExternalSchema.merge(
+    HubSpotAccount.HubSpotCompanyDataSchema
+  );
 
   static CompanyListResponseSchema = HubSpotModel.ListResponseSchema.extend({
     results: z.array(HubSpotAccount.CompanySchema),
@@ -88,23 +100,23 @@ export class HubSpotAccount extends HubSpotModel<
     };
   }
 
-  mapObjectToExternal(object: CrmAccountType) {
+  mapObjectDataToExternalData(
+    data: CrmAccountDataType
+  ): HubSpotCompanyDataType {
     return {
-      id: object.id,
-      updatedAt: object.updatedAt,
       properties: {
-        name: object.data.name,
-        website: object.data.website,
-        phone: object.data.phone,
-        address: object.data.address?.street,
-        address2: object.data.address?.street2,
-        city: object.data.address?.city,
-        state: object.data.address?.state,
-        zip: object.data.address?.postalCode,
-        country: object.data.address?.country,
-        industry: object.data.industry,
-        numberofemployees: object.data.numberOfEmployees,
-        hubspot_owner_id: object.data.ownerId,
+        name: data.name ?? null,
+        website: data.website ?? null,
+        phone: data.phone ?? null,
+        address: data.address?.street ?? null,
+        address2: data.address?.street2 ?? null,
+        city: data.address?.city ?? null,
+        state: data.address?.state ?? null,
+        zip: data.address?.postalCode ?? null,
+        country: data.address?.country ?? null,
+        industry: data.industry ?? null,
+        numberofemployees: data.numberOfEmployees ?? null,
+        hubspot_owner_id: data.ownerId ?? null,
       },
     };
   }

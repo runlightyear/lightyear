@@ -7,24 +7,31 @@ import {
   CreateBatchProps,
   UpdateBatchProps,
   DeleteBatchProps,
+  CrmUserDataType,
 } from "@runlightyear/lightyear";
 export interface HubSpotUserProps extends HubSpotModelProps {}
 
+type HubSpotOwnerDataType = z.infer<typeof HubSpotUser.OwnerDataSchema>;
+type HubSpotOwnerType = z.infer<typeof HubSpotUser.OwnerSchema>;
 type HubSpotOwnerListResponse = z.infer<
   typeof HubSpotUser.OwnerListResponseSchema
 >;
-type HubSpotOwnerType = z.infer<typeof HubSpotUser.OwnerSchema>;
 
 export class HubSpotUser extends HubSpotModel<
-  CrmUserType,
-  HubSpotOwnerListResponse,
-  HubSpotOwnerType
+  CrmUserDataType,
+  HubSpotOwnerDataType,
+  HubSpotOwnerType,
+  HubSpotOwnerListResponse
 > {
-  static OwnerSchema = HubSpotModel.ExternalSchema.extend({
+  static OwnerDataSchema = z.object({
     email: z.string(),
     firstName: z.string(),
     lastName: z.string(),
   });
+
+  static OwnerSchema = HubSpotModel.ExternalSchema.merge(
+    HubSpotUser.OwnerDataSchema
+  );
 
   static OwnerListResponseSchema = HubSpotModel.ListResponseSchema.extend({
     results: z.array(HubSpotUser.OwnerSchema),
@@ -51,6 +58,10 @@ export class HubSpotUser extends HubSpotModel<
         lastName: external.lastName,
       },
     };
+  }
+
+  mapObjectDataToExternalData(data: CrmUserDataType): HubSpotOwnerDataType {
+    throw new Error("Write operations not supported for owners");
   }
 
   async list(props: ListProps): Promise<ObjectList<CrmUserType>> {
@@ -94,13 +105,13 @@ export class HubSpotUser extends HubSpotModel<
     };
   }
 
-  async createBatch(props: CreateBatchProps<CrmUserType>): Promise<void> {
+  async createBatch(props: CreateBatchProps<CrmUserDataType>): Promise<void> {
     throw new Error(
       "HubSpot does not support creating new users/owners from the API"
     );
   }
 
-  async updateBatch(props: UpdateBatchProps<CrmUserType>): Promise<void> {
+  async updateBatch(props: UpdateBatchProps<CrmUserDataType>): Promise<void> {
     throw new Error(
       "HubSpot does not support updating users/owners from the API"
     );
