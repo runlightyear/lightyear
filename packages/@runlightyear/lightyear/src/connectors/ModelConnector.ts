@@ -89,8 +89,8 @@ export interface ModelConnectorProps {
 }
 
 export abstract class ModelConnector<
-  ModelObjectData extends { [key: string]: unknown },
-  ModelExternalData extends { [key: string]: unknown },
+  ModelObjectData extends { [key: string]: unknown } = any,
+  ModelExternalData extends { [key: string]: unknown } = any,
   ModelExternal = unknown,
   ModelListResponse = unknown
 > {
