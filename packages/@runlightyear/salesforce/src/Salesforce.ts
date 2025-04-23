@@ -1,7 +1,5 @@
 import {
   AuthType,
-  CollectionSynchronizer,
-  ModelSynchronizer,
   RestConnector,
   RestConnectorProps,
 } from "@runlightyear/lightyear";
@@ -13,9 +11,6 @@ import { query, QueryProps } from "./query/query";
 import { describeObject, DescribeObjectProps } from "./describe/describeObject";
 import { SalesforceOAuth } from "./SalesforceOAuth";
 import { queryAll, QueryAllProps } from "./query/queryAll";
-import { SalesforceSynchronizer } from "./synchronizers/SalesforceSynchronizer";
-import { AccountSynchronizer } from "./synchronizers/AccountSynchronizer";
-import { ContactSynchronizer } from "./synchronizers/ContactSynchronizer";
 
 /**
  * @alpha
@@ -142,7 +137,6 @@ export interface SalesforceProps extends RestConnectorProps {
 export class Salesforce extends RestConnector {
   static authType: AuthType = "OAUTH2";
   static OAuth = SalesforceOAuth;
-  static Synchronizer = SalesforceSynchronizer;
 
   domain: string;
 
@@ -298,13 +292,5 @@ export class Salesforce extends RestConnector {
    */
   async describeObject(props: DescribeObjectProps) {
     return describeObject(this)(props);
-  }
-
-  // asdf
-
-  getSynchronizer() {
-    return new SalesforceSynchronizer({
-      connector: this,
-    });
   }
 }
