@@ -184,6 +184,7 @@ export abstract class ModelConnector<
 
         if (objects.length === 0) {
           console.info("Nothing to upsert");
+          break;
         } else {
           await upsertObjectBatch({
             collectionName: this.collectionName,
