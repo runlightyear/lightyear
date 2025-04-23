@@ -1,27 +1,25 @@
-import { CollectionSynchronizer } from "../synchronizers/CollectionSynchronizer";
 import { AppName, defineAction } from "./action";
 import { AuthData } from "./auth";
 import { AuthConnector } from "../connectors/AuthConnector";
 import { finishSync, startSync, updateSync } from "./collection";
 import { dayjsUtc } from "../util/dayjsUtc";
+import { RERUN, SKIPPED, SyncConnector } from "..";
+import { setContext } from "./context";
 
 export interface ConnectorProps {
   auth: AuthData;
 }
 
 export interface SynchronizerProps {
-  connector: AuthConnector;
+  connector: SyncConnector;
   collection: string;
 }
 
 export interface DefineSyncActionProps {
   name: string;
   title: string;
-  connector: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector);
+  connector: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector);
   collection: string;
-  synchronizer?:
-    | typeof CollectionSynchronizer
-    | ((props: SynchronizerProps) => CollectionSynchronizer);
   app?: AppName;
   customApp?: string;
   frequency?: {
@@ -33,30 +31,14 @@ export interface DefineSyncActionProps {
 }
 
 function isConnectorClass(
-  x: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector)
-): x is typeof AuthConnector {
+  x: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector)
+): x is typeof SyncConnector {
   return typeof x === typeof AuthConnector;
 }
 
 function isConnectorFunction(
-  x: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector)
-): x is (props: ConnectorProps) => AuthConnector {
-  return x instanceof Function;
-}
-
-function isSynchronizerClass(
-  x:
-    | typeof CollectionSynchronizer
-    | ((props: SynchronizerProps) => CollectionSynchronizer)
-): x is typeof CollectionSynchronizer {
-  return typeof x === typeof CollectionSynchronizer;
-}
-
-function isSynchronizerFunction(
-  x:
-    | typeof CollectionSynchronizer
-    | ((props: SynchronizerProps) => CollectionSynchronizer)
-) {
+  x: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector)
+): x is (props: ConnectorProps) => SyncConnector {
   return x instanceof Function;
 }
 
@@ -81,7 +63,7 @@ export function defineSyncAction(props: DefineSyncActionProps) {
 
       const connectorProps: ConnectorProps = { auth };
 
-      let connector: AuthConnector | undefined = undefined;
+      let connector: SyncConnector | undefined = undefined;
 
       if (isConnectorFunction(props.connector)) {
         connector = props.connector(connectorProps);
@@ -96,84 +78,44 @@ export function defineSyncAction(props: DefineSyncActionProps) {
         throw new Error("No connector provided");
       }
 
-      const synchronizerProps: SynchronizerProps = {
-        connector,
-        collection: props.collection,
-      };
-
-      let synchronizer: CollectionSynchronizer | null | undefined = undefined;
-
-      if (!props.synchronizer) {
-        const connectorType = typeof connector;
-
-        // @ts-ignore
-        const synchronizerClass = connector.constructor["Synchronizer"];
-
-        if (!synchronizerClass) {
-          throw new Error("No synchronizer provided on connector");
-        }
-        // @ts-ignore - We are assuming the user passed in a concrete class.
-        synchronizer = new synchronizerClass(synchronizerProps);
-      } else if (isSynchronizerClass(props.synchronizer)) {
-        // @ts-ignore - We are assuming the user passed in a concrete class.
-        synchronizer = new props.synchronizer(synchronizerProps);
-      } else if (isSynchronizerFunction(props.synchronizer)) {
-        synchronizer = props.synchronizer(synchronizerProps);
-      } else {
-        throw new Error("Unknown synchronizer type");
-      }
-
-      if (!synchronizer) {
-        throw new Error("No synchronizer provided");
+      if (!runProps.managedUser) {
+        throw new Error("No managed user provided");
       }
 
       console.debug("Attempting to start sync");
       const startSyncResponse = await startSync({
-        collection: props.collection,
-        app: props.app ?? null,
-        customApp: props.customApp ?? null,
-        managedUserExternalId: runProps.managedUser?.externalId ?? null,
+        collectionName: props.collection,
+        appName: props.app ?? null,
+        customAppName: props.customApp ?? null,
+        managedUserId: runProps.managedUser.externalId,
+        fullSyncFrequency: props.frequency?.full,
       });
       console.debug("Received", startSyncResponse);
-      const { sync, prevFullSync } = startSyncResponse;
-      console.info(`Started sync ${sync.id}`);
+      const sync = startSyncResponse;
+      console.info(`Started sync ${sync.id} ${sync.type}`);
       console.debug(startSyncResponse);
 
-      let syncType: "FULL" | "INCREMENTAL" = "INCREMENTAL";
-      if (!prevFullSync) {
-        syncType = "FULL";
-      } else if (
-        dayjsUtc(prevFullSync.createdAt)
-          .add(props.frequency?.full ?? 10, "minutes")
-          .isBefore(dayjsUtc(sync.createdAt))
-      ) {
-        syncType = "FULL";
-      }
-
-      await updateSync({
-        collection: props.collection,
+      setContext({
         syncId: sync.id,
-        type: syncType,
       });
-      console.info(`Updated sync type to ${syncType}`);
 
       try {
-        await synchronizer.sync(sync.id, props.direction);
-        const response = await finishSync({
-          collectionName: props.collection,
-          syncId: sync.id,
-        });
+        await connector.sync(sync.id, props.direction);
+        const response = await finishSync(sync.id);
         const jsonData = await response.json();
         console.info(jsonData.message);
       } catch (error) {
-        await updateSync({
-          collection: props.collection,
-          syncId: sync.id,
-          status: "FAILED",
-        });
-        console.info("Updated sync status to FAILED");
+        if (error === RERUN) {
+          console.info("Rerunning sync");
+          throw error;
+        }
+
+        await finishSync(sync.id);
         throw error;
       }
+
+      await finishSync(sync.id);
+      console.info("Sync finished");
     },
   });
 }

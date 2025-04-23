@@ -1,6 +1,8 @@
 import baseRequest from "./baseRequest";
 import { prefixedRedactedConsole } from "../logging";
 import { sleep } from "../util/sleep";
+import { getEnvName } from "../util/getEnvName";
+import { getContext } from "./context";
 
 /**
  * @public
@@ -21,6 +23,12 @@ export interface HttpProxyRequestProps {
   body?: string;
   redactKeys?: string[];
   maxRetries?: number;
+  async?: boolean;
+  confirm?: {
+    changeIds?: string[];
+    idPath?: string;
+    updatedAtPath?: string;
+  };
 }
 
 /**
@@ -70,6 +78,10 @@ export interface HttpRequest {
   (props: HttpProxyRequestProps): Promise<HttpProxyResponse>;
 }
 
+export interface HttpRequestBatch {
+  (requests: Array<HttpProxyRequestProps>): Promise<HttpProxyResponse>;
+}
+
 function getRandomJitter(maxJitter: number): number {
   return Math.floor(Math.random() * maxJitter);
 }
@@ -82,6 +94,8 @@ async function exponentialBackoffWithJitter(retryCount: number): Promise<void> {
 }
 
 export const httpRequest: HttpRequest = async (props) => {
+  const envName = getEnvName();
+  const { runId } = getContext();
   const { redactKeys, maxRetries, ...rest } = props;
 
   const maxBackoffs = 5;
@@ -89,8 +103,8 @@ export const httpRequest: HttpRequest = async (props) => {
 
   do {
     const response = await baseRequest({
-      uri: "/api/v1/httpRequest",
-      data: rest,
+      uri: `/api/v1/envs/${envName}/http-request`,
+      data: { ...rest, runId },
       maxRetries,
     });
 
@@ -133,4 +147,20 @@ export const httpRequest: HttpRequest = async (props) => {
 
     return proxyResponse;
   } while (true);
+};
+
+export const httpRequestBatch: HttpRequestBatch = async (requests) => {
+  const envName = getEnvName();
+  const { runId, syncId } = getContext();
+
+  const response = await baseRequest({
+    uri: `/api/v1/envs/${envName}/http-request/batch`,
+    data: { runId, syncId, requests },
+  });
+
+  const proxyResponse = (await response.json()) as HttpProxyResponse;
+
+  console.debug("proxyResponse", proxyResponse);
+
+  return proxyResponse;
 };

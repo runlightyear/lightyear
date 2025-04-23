@@ -3,6 +3,7 @@ import { getEnvName } from "../util/getEnvName";
 import baseRequest from "./baseRequest";
 import { HttpProxyResponseError, SKIPPED } from "../index";
 import { BaseRequestError } from "./BaseRequestError";
+import { getContext } from "./context";
 
 export type MatchPropertyStr = string;
 export type MatchNestedProperty = Array<MatchPropertyStr>;
@@ -78,17 +79,19 @@ export function defineCollection(props: DefineCollectionProps) {
 }
 
 export interface GetModelProps {
-  collection: string;
+  collectionName: string;
 }
 
-export async function getModels(props: GetModelProps) {
-  const { collection } = props;
+export async function getModels(
+  props: GetModelProps
+): Promise<Array<{ name: string; title: string }>> {
+  const { collectionName } = props;
 
   const envName = getEnvName();
 
   const response = await baseRequest({
     method: "GET",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/models`,
+    uri: `/api/v1/envs/${envName}/collections/${collectionName}/models`,
   });
 
   if (response.ok) {
@@ -139,7 +142,15 @@ export interface RetrieveDeltaProps {
   limit?: number;
 }
 
-export async function retrieveDelta(props: RetrieveDeltaProps) {
+export async function retrieveDelta<ModelObjectData>(
+  props: RetrieveDeltaProps
+): Promise<{
+  changes: Array<{
+    changeId: string;
+    operation: "CREATE" | "UPDATE" | "DELETE";
+    data: ModelObjectData;
+  }>;
+}> {
   const MAX_RETRIES = 5;
 
   const { collectionName, syncId, modelName, limit } = props;
@@ -171,6 +182,16 @@ export async function retrieveDelta(props: RetrieveDeltaProps) {
           console.info(
             `Delta locked while previous changes are processed, retrying (${retryNumber})`
           );
+
+          // Add exponential backoff with jitter
+          const baseWaitTime = Math.pow(2, retryNumber) * 1000; // Exponential backoff
+          const jitter = Math.floor(Math.random() * 5000); // Add up to 5 seconds of jitter
+          const waitTime = baseWaitTime + jitter;
+          console.info(
+            `Waiting ${(waitTime / 1000).toFixed(2)} seconds before retry...`
+          );
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
+
           continue;
         }
       }
@@ -182,25 +203,37 @@ export async function retrieveDelta(props: RetrieveDeltaProps) {
 }
 
 export interface StartSyncProps {
-  collection: string;
-  app: string | null;
-  customApp: string | null;
-  managedUserExternalId?: string | null;
+  collectionName: string;
+  managedUserId: string;
+  appName: string | null;
+  customAppName: string | null;
+  fullSyncFrequency?: number;
 }
 
 export async function startSync(props: StartSyncProps) {
-  const { collection, app, customApp, managedUserExternalId } = props;
+  const {
+    collectionName,
+    appName,
+    customAppName,
+    managedUserId,
+    fullSyncFrequency,
+  } = props;
 
   const envName = getEnvName();
+
+  const { runId } = getContext();
 
   try {
     const response = await baseRequest({
       method: "POST",
-      uri: `/api/v1/envs/${envName}/collections/${collection}/syncs`,
+      uri: `/api/v1/envs/${envName}/syncs`,
       data: {
-        appName: app,
-        customAppName: customApp,
-        managedUserId: managedUserExternalId ?? null,
+        collectionName,
+        appName,
+        customAppName,
+        managedUserId,
+        fullSyncFrequency,
+        runId,
       },
     });
 
@@ -216,18 +249,17 @@ export async function startSync(props: StartSyncProps) {
 }
 
 export interface GetSyncProps {
-  collection: string;
   syncId: string;
 }
 
 export async function getSync(props: GetSyncProps) {
-  const { collection, syncId } = props;
+  const { syncId } = props;
 
   const envName = getEnvName();
 
   const response = await baseRequest({
     method: "GET",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/syncs/${syncId}`,
+    uri: `/api/v1/envs/${envName}/syncs/${syncId}`,
   });
 
   if (response.ok) {
@@ -238,23 +270,26 @@ export async function getSync(props: GetSyncProps) {
 }
 
 export interface UpdateSyncProps {
-  collection: string;
   syncId: string;
   type?: "FULL" | "INCREMENTAL";
   status?: "PAUSED" | "SUCCEEDED" | "FAILED";
+  currentModelName?: string;
+  currentDirection?: "PUSH" | "PULL" | null;
 }
 
 export async function updateSync(props: UpdateSyncProps) {
-  const { collection, syncId, type, status } = props;
+  const { syncId, type, status, currentModelName, currentDirection } = props;
 
   const envName = getEnvName();
 
   const response = await baseRequest({
     method: "PATCH",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/syncs/${syncId}`,
+    uri: `/api/v1/envs/${envName}/syncs/${syncId}`,
     data: {
       type,
       status,
+      currentModelName,
+      currentDirection,
     },
   });
 
@@ -325,40 +360,44 @@ export async function upsertObject(props: UpsertObjectProps) {
 }
 
 export interface UpsertObjectBatchProps {
-  collection: string;
+  collectionName: string;
   syncId: string;
-  model: string;
+  modelName: string;
   app: string | undefined;
   customApp: string | undefined;
   managedUserId?: string | null;
   objects: Array<{
     objectId?: string;
-    localObjectId: string;
-    localUpdatedAt: string | null;
-    data: unknown;
+    externalId: string;
+    externalUpdatedAt: string | null;
+    data: {
+      [key: string]: unknown;
+    };
   }>;
+  cursor?: string;
   overwrite?: boolean;
   async?: boolean;
 }
 
 export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
   const {
-    collection,
+    collectionName,
     syncId,
-    model,
+    modelName,
     app,
     customApp,
     managedUserId,
     objects,
     overwrite,
     async,
+    cursor,
   } = props;
 
   const envName = getEnvName();
 
   const response = await baseRequest({
     method: "POST",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/upsert/batch`,
+    uri: `/api/v1/envs/${envName}/collections/${collectionName}/models/${modelName}/objects/upsert/batch`,
     data: {
       syncId,
       appName: app,
@@ -367,13 +406,14 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
       objects,
       overwrite,
       async,
+      cursor,
     },
   });
 
   console.info(
     "Upsert",
-    collection,
-    model,
+    collectionName,
+    modelName,
     objects.length,
     response.status,
     response.statusText
@@ -383,45 +423,31 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
 }
 
 export interface ConfirmChangeProps {
-  collectionName: string;
-  modelName: string;
   syncId: string;
   changeId: string;
-  localObjectId: string;
-  localUpdatedAt: string | null;
+  externalId: string;
+  externalUpdatedAt: string | null;
 }
 
-export async function confirmObject(props: ConfirmChangeProps) {
-  const {
-    collectionName,
-    modelName,
-    syncId,
-    changeId,
-    localObjectId,
-    localUpdatedAt,
-  } = props;
+export async function confirmChange(props: ConfirmChangeProps) {
+  const { syncId, changeId, externalId, externalUpdatedAt } = props;
 
   const envName = getEnvName();
 
   const response = await baseRequest({
     method: "POST",
-    uri: `/api/v1/envs/${envName}/collections/${collectionName}/models/${modelName}/objects/confirm`,
+    uri: `/api/v1/envs/${envName}/syncs/${syncId}/changes/${changeId}/confirm`,
     data: {
-      syncId,
-      changeId,
-      localObjectId,
-      localUpdatedAt,
+      externalId,
+      externalUpdatedAt,
     },
   });
 
   console.info(
     "Confirm",
-    collectionName,
-    modelName,
-    syncId,
     changeId,
-    localObjectId,
-    localUpdatedAt,
+    externalId,
+    externalUpdatedAt,
     response.status,
     response.statusText
   );
@@ -430,6 +456,31 @@ export async function confirmObject(props: ConfirmChangeProps) {
 }
 
 export interface ConfirmChangeBatchProps {
+  syncId: string;
+  changes: Array<{
+    changeId: string;
+    externalId: string;
+    externalUpdatedAt: string | null;
+  }>;
+  async?: boolean;
+}
+
+export async function confirmChangeBatch(props: ConfirmChangeBatchProps) {
+  const { syncId, changes, async } = props;
+
+  const envName = getEnvName();
+
+  const response = await baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/syncs/${syncId}/changes/batch/confirm`,
+    data: {
+      changes,
+      async,
+    },
+  });
+}
+
+export interface ConfirmObjectBatchProps {
   collection: string;
   syncId: string;
   model: string;
@@ -446,7 +497,7 @@ export interface ConfirmChangeBatchProps {
   async?: boolean;
 }
 
-export async function confirmObjectBatch(props: ConfirmChangeBatchProps) {
+export async function confirmObjectBatch(props: ConfirmObjectBatchProps) {
   const {
     collection,
     syncId,
@@ -571,17 +622,28 @@ export async function detectHardDeletes(props: DetectHardDeletesProps) {
   });
 }
 
-export interface FinishSyncProps {
-  collectionName: string;
-  syncId: string;
+export async function pauseSync(syncId: string) {
+  const envName = getEnvName();
+
+  const response = await baseRequest({
+    method: "POST",
+    uri: `/api/v1/envs/${envName}/syncs/${syncId}/pause`,
+  });
+
+  if (response.ok) {
+    console.info("Sync paused");
+  } else {
+    throw new Error("Unable to pause sync");
+  }
+
+  return response;
 }
 
-export async function finishSync(props: FinishSyncProps) {
+export async function finishSync(syncId: string) {
   const envName = getEnvName();
-  const { collectionName, syncId } = props;
 
   return baseRequest({
     method: "POST",
-    uri: `/api/v1/envs/${envName}/collections/${collectionName}/syncs/${syncId}/finish`,
+    uri: `/api/v1/envs/${envName}/syncs/${syncId}/finish`,
   });
 }

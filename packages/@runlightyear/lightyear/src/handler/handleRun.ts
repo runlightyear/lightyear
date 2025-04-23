@@ -1,8 +1,9 @@
 import { run } from "../run";
 import { handlerResult } from "./handlerResult";
-import { getRunFuncProps } from "../base/run";
+import { finishRun, getRunFuncProps } from "../base/run";
 import { BaseRequestError } from "../base/BaseRequestError";
 import { HttpProxyResponseError } from "../base/http";
+import { getEnvName } from "../util/getEnvName";
 
 export interface HandleRunProps {
   actionName: string | undefined;
@@ -27,6 +28,10 @@ export async function handleRun({
     return handlerResult(400, "Missing runId");
   }
 
+  console.debug("context", context);
+
+  console.debug("getEnvName()", getEnvName());
+
   const runFuncProps = await getRunFuncProps(runId);
 
   // const actionData = await getActionData(actionName);
@@ -47,11 +52,17 @@ export async function handleRun({
       webhook,
       context,
     });
+    await finishRun({ runId, status: "SUCCEEDED" });
     return handlerResult(200, "Run successful");
   } catch (error) {
     if (error === "SKIPPED") {
       console.info("Run skipped");
+      await finishRun({ runId, status: "SKIPPED" });
       return handlerResult(202, "Run skipped");
+    } else if (error === "RERUN") {
+      console.info("Rerun");
+      await finishRun({ runId, status: "SUCCEEDED", rerun: true });
+      return handlerResult(202, "Rerun");
     }
 
     console.error("Run failed", String(error));
@@ -70,6 +81,7 @@ export async function handleRun({
       }
     }
 
+    await finishRun({ runId, status: "FAILED" });
     return handlerResult(500, "Run failed there");
   }
 }

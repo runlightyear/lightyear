@@ -44,6 +44,8 @@ export {
   getDelta,
   upsertObject,
   upsertObjectBatch,
+  confirmChange,
+  confirmChangeBatch,
   deleteObject,
   detectHardDeletes,
   finishSync,
@@ -52,12 +54,28 @@ export type {
   DefineCollectionProps,
   GetDeltaProps,
   UpsertObjectProps,
-  DeleteObjectProps,
+  ConfirmChangeProps,
   DetectHardDeletesProps,
 } from "./base/collection";
 
 /* Collection: CRM */
-export type { DefineCrmCollectionProps } from "./collections/crm";
+export type {
+  DefineCrmCollectionProps,
+  CrmUserDataType,
+  CrmUserType,
+  CrmAccountDataType,
+  CrmAccountType,
+  CrmContactDataType,
+  CrmContactType,
+  CrmOpportunityDataType,
+  CrmLeadDataType,
+  CrmCallDataType,
+  CrmTaskDataType,
+  CrmMeetingDataType,
+  CrmNoteDataType,
+  CrmProductDataType,
+  CrmOpportunityLineItemDataType,
+} from "./collections/crm";
 export { defineCrmCollection } from "./collections/crm";
 
 /* Custom App */
@@ -171,6 +189,25 @@ export type { AppWebhookConnectorProps } from "./connectors/AppWebhookConnector"
 export { AuthConnector } from "./connectors/AuthConnector";
 export type { AuthConnectorProps } from "./connectors/AuthConnector";
 
+/* Model Connector */
+export { ModelConnector } from "./connectors/ModelConnector";
+export type {
+  ModelConnectorProps,
+  ListProps,
+  ReadProps,
+  CreateBatchProps,
+  UpdateBatchProps,
+  DeleteBatchProps,
+  ObjectList,
+  ObjectMeta,
+  Object,
+  Prettify,
+  ObjectId,
+  ExternalId,
+  BaseObject,
+  BaseExternal,
+} from "./connectors/ModelConnector";
+
 /* OAuth Connector */
 export { OAuthConnector } from "./connectors/OAuthConnector";
 export type {
@@ -193,11 +230,9 @@ export type {
 export { SmtpConnector } from "./connectors/SmtpConnector";
 export type { SmtpConnectorProps } from "./connectors/SmtpConnector";
 
-/** Synchronizers **/
-export { CollectionSynchronizer } from "./synchronizers/CollectionSynchronizer";
-export type { CollectionSynchronizerProps } from "./synchronizers/CollectionSynchronizer";
-export { ModelSynchronizer } from "./synchronizers/ModelSynchronizer";
-export type { ModelSynchronizerProps } from "./synchronizers/ModelSynchronizer";
+/* Sync Connector */
+export { SyncConnector } from "./connectors/SyncConnector";
+export type { SyncConnectorProps } from "./connectors/SyncConnector";
 
 /** Logging **/
 export { PrefixedRedactedConsole } from "./logging/PrefixedRedactedConsole";
@@ -214,6 +249,8 @@ export { dayjsUtc } from "./util/dayjsUtc";
 export { isFunction } from "./util/isFunction";
 export { sleep } from "./util/sleep";
 export { default as zod } from "zod";
+export { v4 as uuidv4 } from "uuid";
+export type { FromSchema } from "json-schema-to-ts";
 
 /** Handler **/
 export { handler } from "./handler";
@@ -226,3 +263,12 @@ export { handler } from "./handler";
  * This can be thrown inside a RunFunc to end execution and mark the run as Skipped.
  */
 export const SKIPPED = "SKIPPED";
+
+/**
+ * @public
+ *
+ * This can be thrown inside a RunFunc to end execution tell the action to rerun.
+ *
+ * The action will be rerun with the same props as the original run.
+ */
+export const RERUN = "RERUN";

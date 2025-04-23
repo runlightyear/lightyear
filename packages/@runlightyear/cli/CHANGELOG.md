@@ -1,5 +1,12 @@
 # @runlightyear/cli
 
+## 1.6.6
+
+### Patch Changes
+
+- Updated dependencies [b3413a3ec]
+  - @runlightyear/lightyear@2.0.0
+
 ## 1.6.5
 
 ### Patch Changes

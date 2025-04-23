@@ -1,7 +1,6 @@
-import { CollectionSynchronizer } from "../synchronizers/CollectionSynchronizer";
-import { AppName, defineAction } from "./action";
+import { AppName } from "./action";
 import { AuthData } from "./auth";
-import { AuthConnector } from "../connectors/AuthConnector";
+import { SyncConnector } from "../connectors/SyncConnector";
 import { defineIntegration } from "./integration";
 import { defineSyncAction } from "./syncAction";
 
@@ -10,18 +9,15 @@ export interface ConnectorProps {
 }
 
 export interface SynchronizerProps {
-  connector: AuthConnector;
+  connector: SyncConnector;
 }
 
 export interface DefineSyncIntegrationProps {
   name: string;
   title: string;
   description?: string;
-  connector: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector);
+  connector: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector);
   collection: string;
-  synchronizer?:
-    | typeof CollectionSynchronizer
-    | ((props: SynchronizerProps) => CollectionSynchronizer);
   app?: AppName;
   customApp?: string;
   frequency?: {
@@ -33,30 +29,14 @@ export interface DefineSyncIntegrationProps {
 }
 
 function isConnectorClass(
-  x: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector)
-): x is typeof AuthConnector {
-  return typeof x === typeof AuthConnector;
+  x: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector)
+): x is typeof SyncConnector {
+  return typeof x === typeof SyncConnector;
 }
 
 function isConnectorFunction(
-  x: typeof AuthConnector | ((props: ConnectorProps) => AuthConnector)
-): x is (props: ConnectorProps) => AuthConnector {
-  return x instanceof Function;
-}
-
-function isSynchronizerClass(
-  x:
-    | typeof CollectionSynchronizer
-    | ((props: SynchronizerProps) => CollectionSynchronizer)
-): x is typeof CollectionSynchronizer {
-  return typeof x === typeof CollectionSynchronizer;
-}
-
-function isSynchronizerFunction(
-  x:
-    | typeof CollectionSynchronizer
-    | ((props: SynchronizerProps) => CollectionSynchronizer)
-) {
+  x: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector)
+): x is (props: ConnectorProps) => SyncConnector {
   return x instanceof Function;
 }
 
@@ -75,7 +55,6 @@ export function defineSyncIntegration(props: DefineSyncIntegrationProps) {
         customApp: props.customApp,
         connector: props.connector,
         collection: props.collection,
-        synchronizer: props.synchronizer,
         frequency: props.frequency,
         direction: props.direction,
       }),
