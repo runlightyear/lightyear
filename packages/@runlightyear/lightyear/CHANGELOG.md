@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 2.0.0
+
+### Major Changes
+
+- b3413a3ec: New connector SDK for sync
+
 ## 1.21.0
 
 ### Minor Changes

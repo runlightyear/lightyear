@@ -1,5 +1,16 @@
 # @runlightyear/hubspot
 
+## 1.0.0
+
+### Major Changes
+
+- b3413a3ec: Conform to new connector SDK for sync
+
+### Patch Changes
+
+- Updated dependencies [b3413a3ec]
+  - @runlightyear/lightyear@2.0.0
+
 ## 0.14.0
 
 ### Minor Changes
