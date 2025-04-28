@@ -141,15 +141,13 @@ export abstract class ModelConnector<
     let cursor =
       this.modelName === lastBatch?.modelName ? lastBatch?.cursor : undefined;
 
-    let lastExternalId =
-      modelStatuses[this.modelName]?.lastLocalObjectId ?? null;
+    let lastExternalId = modelStatuses[this.modelName]?.lastExternalId ?? null;
     let lastUpdatedAt =
-      modelStatuses[this.modelName]?.lastLocalUpdatedAt ?? null;
+      modelStatuses[this.modelName]?.lastExternalUpdatedAt ?? null;
 
     const currentDirection = syncResponse.currentDirection;
 
     let objects;
-
     let listCounter = 0;
 
     if (
