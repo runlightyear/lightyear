@@ -101,40 +101,6 @@ export async function getModels(
   }
 }
 
-export interface GetDeltaProps {
-  collection: string;
-  model: string;
-  app: string | null;
-  customApp: string | null;
-  managedUserExternalId?: string | null;
-}
-
-export async function getDelta(props: GetDeltaProps) {
-  const { collection, model, app, customApp, managedUserExternalId } = props;
-
-  const envName = getEnvName();
-
-  const response = await baseRequest({
-    method: "GET",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/delta`,
-    params: {
-      // appName: app ?? undefined,
-      customAppName: customApp ?? undefined,
-      managedUserId: managedUserExternalId ?? undefined,
-    },
-  });
-
-  if (response.ok) {
-    const json = await response.json();
-    return {
-      changes: json.changes,
-      more: json.more,
-    };
-  } else {
-    throw new Error("Unable to get delta");
-  }
-}
-
 export interface RetrieveDeltaProps {
   collectionName: string;
   syncId: string;
@@ -144,13 +110,30 @@ export interface RetrieveDeltaProps {
 
 export async function retrieveDelta<ModelObjectData>(
   props: RetrieveDeltaProps
-): Promise<{
-  changes: Array<{
-    changeId: string;
-    operation: "CREATE" | "UPDATE" | "DELETE";
-    data: ModelObjectData;
-  }>;
-}> {
+): Promise<
+  | {
+      operation: "CREATE";
+      changes: Array<{
+        changeId: string;
+        data: ModelObjectData;
+      }>;
+    }
+  | {
+      operation: "UPDATE";
+      changes: Array<{
+        changeId: string;
+        externalId: string;
+        data: ModelObjectData;
+      }>;
+    }
+  | {
+      operation: "DELETE";
+      changes: Array<{
+        changeId: string;
+        externalId: string;
+      }>;
+    }
+> {
   const MAX_RETRIES = 5;
 
   const { collectionName, syncId, modelName, limit } = props;
@@ -173,6 +156,7 @@ export async function retrieveDelta<ModelObjectData>(
 
       const json = await response.json();
       return {
+        operation: json.operation,
         changes: json.changes,
       };
     } catch (error) {
@@ -185,11 +169,10 @@ export async function retrieveDelta<ModelObjectData>(
 
           // Add exponential backoff with jitter
           const baseWaitTime = Math.pow(2, retryNumber) * 1000; // Exponential backoff
-          const jitter = Math.floor(Math.random() * 5000); // Add up to 5 seconds of jitter
-          const waitTime = baseWaitTime + jitter;
-          console.info(
-            `Waiting ${(waitTime / 1000).toFixed(2)} seconds before retry...`
-          );
+          // const jitter = Math.floor(Math.random() * 5000); // Add up to 5 seconds of jitter
+          // const waitTime = baseWaitTime + jitter;
+          const waitTime = baseWaitTime;
+          console.info(`Waiting ${waitTime / 1000} seconds before retry...`);
           await new Promise((resolve) => setTimeout(resolve, waitTime));
 
           continue;

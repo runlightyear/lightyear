@@ -41,7 +41,6 @@ export type { GetCacheProps, SaveCacheProps, CacheData } from "./base/cache";
 export {
   defineCollection,
   getModels,
-  getDelta,
   upsertObject,
   upsertObjectBatch,
   confirmChange,
@@ -52,7 +51,6 @@ export {
 } from "./base/collection";
 export type {
   DefineCollectionProps,
-  GetDeltaProps,
   UpsertObjectProps,
   ConfirmChangeProps,
   DetectHardDeletesProps,
