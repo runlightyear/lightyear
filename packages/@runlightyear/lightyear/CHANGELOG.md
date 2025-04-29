@@ -1,5 +1,12 @@
 # @runlightyear/lightyear
 
+## 2.2.1
+
+### Patch Changes
+
+- 151a1d266: Quiet the sync logs
+- 4e9636802: Update dependencies to get rid of some package errors
+
 ## 2.2.0
 
 ### Minor Changes
