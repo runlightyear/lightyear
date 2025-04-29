@@ -29,11 +29,11 @@ export abstract class SyncConnector extends RestConnector {
 
     const sync = await getSync({ syncId });
 
-    console.info("sync in CollectionSynchronizer", sync);
+    console.debug("sync in CollectionSynchronizer", sync);
 
     const currentModelName = sync.currentModel?.name ?? undefined;
 
-    console.info(
+    console.debug(
       "currentModelName in CollectionSynchronizer",
       currentModelName
     );
@@ -43,7 +43,7 @@ export abstract class SyncConnector extends RestConnector {
       modelsToSync = modelsToSync.slice(modelsToSync.indexOf(currentModelName));
     }
 
-    console.info("modelsToSync in CollectionSynchronizer", modelsToSync);
+    console.debug("modelsToSync in CollectionSynchronizer", modelsToSync);
 
     for (const modelName of modelsToSync) {
       const model = this.getModels()[modelName];

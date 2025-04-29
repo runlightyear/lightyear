@@ -167,9 +167,9 @@ export abstract class ModelConnector<
           throw "RERUN";
         }
 
-        console.info("lastExternalId", lastExternalId);
-        console.info("lastUpdatedAt", lastExternalUpdatedAt);
-        console.info("cursor", cursor);
+        console.debug("lastExternalId", lastExternalId);
+        console.debug("lastUpdatedAt", lastExternalUpdatedAt);
+        console.debug("cursor", cursor);
 
         const listResponse = await this.list({
           syncType,
