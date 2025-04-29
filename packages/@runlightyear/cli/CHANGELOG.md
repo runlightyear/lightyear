@@ -1,5 +1,14 @@
 # @runlightyear/cli
 
+## 1.6.9
+
+### Patch Changes
+
+- 4e9636802: Update dependencies to get rid of some package errors
+- Updated dependencies [151a1d266]
+- Updated dependencies [4e9636802]
+  - @runlightyear/lightyear@2.2.1
+
 ## 1.6.8
 
 ### Patch Changes
