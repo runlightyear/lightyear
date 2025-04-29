@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 2.2.0
+
+### Minor Changes
+
+- b0b12552d: Use the new delta api
+
 ## 2.1.0
 
 ### Minor Changes

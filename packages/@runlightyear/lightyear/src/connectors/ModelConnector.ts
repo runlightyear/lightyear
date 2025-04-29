@@ -47,7 +47,7 @@ export interface Object<ObjectData extends { [key: string]: unknown }> {
 export interface ListProps {
   syncType: "FULL" | "INCREMENTAL";
   lastExternalId?: string;
-  lastUpdatedAt?: string;
+  lastExternalUpdatedAt?: string;
   cursor?: string;
 }
 
@@ -142,7 +142,7 @@ export abstract class ModelConnector<
       this.modelName === lastBatch?.modelName ? lastBatch?.cursor : undefined;
 
     let lastExternalId = modelStatuses[this.modelName]?.lastExternalId ?? null;
-    let lastUpdatedAt =
+    let lastExternalUpdatedAt =
       modelStatuses[this.modelName]?.lastExternalUpdatedAt ?? null;
 
     const currentDirection = syncResponse.currentDirection;
@@ -168,13 +168,13 @@ export abstract class ModelConnector<
         }
 
         console.info("lastExternalId", lastExternalId);
-        console.info("lastUpdatedAt", lastUpdatedAt);
+        console.info("lastUpdatedAt", lastExternalUpdatedAt);
         console.info("cursor", cursor);
 
         const listResponse = await this.list({
           syncType,
           lastExternalId,
-          lastUpdatedAt,
+          lastExternalUpdatedAt,
           cursor,
         });
         objects = listResponse.objects;
@@ -204,7 +204,7 @@ export abstract class ModelConnector<
           console.info("Objects processed:", listCounter);
 
           lastExternalId = objects[objects.length - 1].id;
-          lastUpdatedAt = objects[objects.length - 1].updatedAt;
+          lastExternalUpdatedAt = objects[objects.length - 1].updatedAt;
         }
       } while (cursor);
     }
@@ -238,12 +238,12 @@ export abstract class ModelConnector<
           break;
         }
 
-        if (delta.changes[0].operation === "CREATE") {
+        if (delta.operation === "CREATE") {
           await this.createBatch({ changes: delta.changes });
-          // } else if (delta.changes[0].operation === "UPDATE") {
-          //   await this.updateBatch({ changes: delta.changes });
-          // } else if (delta.changes[0].operation === "DELETE") {
-          //   await this.deleteBatch(delta.changes);
+        } else if (delta.operation === "UPDATE") {
+          await this.updateBatch({ changes: delta.changes });
+        } else if (delta.operation === "DELETE") {
+          await this.deleteBatch({ changes: delta.changes });
         }
 
         changeCounter += delta.changes.length;

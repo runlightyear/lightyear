@@ -1,6 +1,6 @@
 {
   "name": "@runlightyear/gcal",
-  "version": "0.11.18",
+  "version": "0.11.19",
   "publishConfig": {
     "access": "public"
   },

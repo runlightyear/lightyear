@@ -1,5 +1,12 @@
 # @runlightyear/gcal
 
+## 0.11.19
+
+### Patch Changes
+
+- Updated dependencies [b0b12552d]
+  - @runlightyear/lightyear@2.2.0
+
 ## 0.11.18
 
 ### Patch Changes
