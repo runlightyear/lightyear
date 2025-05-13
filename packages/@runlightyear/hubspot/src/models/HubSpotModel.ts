@@ -74,9 +74,15 @@ export abstract class HubSpotModel<
   ): ModelExternalData;
 
   async list(props: ListProps): Promise<ObjectList<Object<ModelObjectData>>> {
-    const { syncType, lastExternalId, lastUpdatedAt, cursor } = props;
+    const { syncType, lastExternalId, lastExternalUpdatedAt, cursor } = props;
 
-    console.debug("list", syncType, lastExternalId, lastUpdatedAt, cursor);
+    console.debug(
+      "list",
+      syncType,
+      lastExternalId,
+      lastExternalUpdatedAt,
+      cursor
+    );
 
     if (syncType === "FULL") {
       const response = await this.hubspot.get({
@@ -109,7 +115,7 @@ export abstract class HubSpotModel<
           sorts: [
             { propertyName: "hs_lastmodifieddate", direction: "ASCENDING" },
           ],
-          ...(lastUpdatedAt
+          ...(lastExternalUpdatedAt
             ? {
                 filterGroups: [
                   {
@@ -117,7 +123,7 @@ export abstract class HubSpotModel<
                       {
                         propertyName: "hs_lastmodifieddate",
                         operator: "GT",
-                        value: lastUpdatedAt,
+                        value: lastExternalUpdatedAt,
                       },
                     ],
                   },

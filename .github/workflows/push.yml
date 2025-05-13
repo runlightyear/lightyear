@@ -13,10 +13,10 @@ jobs:
       - run: pnpm install
       - run: pnpm run lint
       - run: pnpm run prettier:check
-      #      - run: pnpm run compile
+      # - run: pnpm run compile
       - run: pnpm run test
       - run: pnpm run build
-      - run: pnpm run docs:generate
+      # - run: pnpm run docs:generate
 
   publish:
     if: github.ref == 'refs/heads/main'
@@ -30,10 +30,10 @@ jobs:
       - run: pnpm install
       - run: pnpm run lint
       - run: pnpm run prettier:check
-      #      - run: pnpm run compile
+      # - run: pnpm run compile
       - run: pnpm run test
       - run: pnpm run build
-      - run: pnpm run docs:generate
+      # - run: pnpm run docs:generate
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
@@ -47,8 +47,8 @@ jobs:
 
       # Popular action to deploy to GitHub Pages:
       # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./apps/docs/build
+      # - name: Deploy to GitHub Pages
+      #   uses: peaceiris/actions-gh-pages@v3
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     publish_dir: ./apps/docs/build

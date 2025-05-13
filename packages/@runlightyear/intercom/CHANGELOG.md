@@ -1,5 +1,16 @@
 # @runlightyear/intercom
 
+## 0.4.0
+
+### Minor Changes
+
+- 53d045710: Upgraded dependencies to get rid of deprecated subdependencies
+
+### Patch Changes
+
+- Updated dependencies [53d045710]
+  - @runlightyear/lightyear@2.3.0
+
 ## 0.3.0
 
 ### Minor Changes

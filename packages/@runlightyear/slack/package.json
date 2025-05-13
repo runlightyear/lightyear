@@ -1,6 +1,6 @@
 {
   "name": "@runlightyear/slack",
-  "version": "0.18.21",
+  "version": "0.19.0",
   "publishConfig": {
     "access": "public"
   },
@@ -21,9 +21,9 @@
     "@types/node": "^20.11.24",
     "@types/node-fetch": "^2.6.2",
     "@types/nodemon": "^1.19.2",
-    "@typescript-eslint/parser": "^7.1.0",
+    "@typescript-eslint/parser": "^8.32.1",
     "api-extractor-config": "workspace:*",
-    "eslint": "^8.57.0",
+    "eslint": "^9.26.0",
     "eslint-config-custom": "workspace:*",
     "nodemon": "^2.0.19",
     "tsconfig": "workspace:*",

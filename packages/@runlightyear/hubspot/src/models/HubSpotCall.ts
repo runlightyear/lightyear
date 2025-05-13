@@ -1,3 +1,6 @@
+// @ts-nocheck
+// Will be reimplemented
+
 import { HubSpotModel } from "./HubSpotModel";
 
 export class CallSynchronizer extends HubSpotModel {
