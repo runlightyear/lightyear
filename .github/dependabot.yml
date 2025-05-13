@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: "pnpm"
+    directory: "/packages/util/api-documenter"
+    schedule:
+      interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["security"]

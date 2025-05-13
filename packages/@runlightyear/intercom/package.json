@@ -24,7 +24,7 @@
     "eslint-config-custom": "workspace:*",
     "tsconfig": "workspace:*",
     "tsdoc-config": "workspace:*",
-    "tsup": "^8.0.2",
+    "tsup": "^8.4.0",
     "typescript": "^5.8.3"
   },
   "main": "dist/index.js",
