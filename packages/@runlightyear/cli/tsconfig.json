@@ -7,6 +7,7 @@
     "target": "ES2020",
     "outDir": "./dist",
     "importHelpers": false,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["vitest"]
   }
 }

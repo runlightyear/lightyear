@@ -1,3 +1,4 @@
+import { describe, expect, test } from "vitest";
 import isFunction from "./isFunction";
 
 describe("isFunction", () => {
