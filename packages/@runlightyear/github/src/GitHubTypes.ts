@@ -1,4 +1,3 @@
-/* eslint-disable */
 /* this integration will be reworked soon */
 
 export namespace GitHubTypes {
