@@ -13,7 +13,6 @@ const config: Linter.Config = {
   },
   rules: {
     "turbo/no-undeclared-env-vars": "off",
-    "react/jsx-key": "off",
   },
 };
 
