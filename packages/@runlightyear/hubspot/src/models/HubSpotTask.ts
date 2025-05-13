@@ -1,3 +1,5 @@
+// @ts-nocheck
+// Will be reimplemented
 import { HubSpotModel } from "./HubSpotModel";
 
 export class TaskSynchronizer extends HubSpotModel {
