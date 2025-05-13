@@ -11,8 +11,7 @@
       "outputs": []
     },
     "test:watch": {
-      "dependsOn": ["^test:watch"],
-      "outputs": []
+      "cache": false
     },
     "docs:extract": {
       "cache": false,

@@ -14,8 +14,8 @@
     "lint": "eslint src/**.js",
     "prettier:check": "prettier --check src",
     "compile": "tsc --noEmit",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "build": "tsup src/index.ts --dts"
   },
   "dependencies": {
@@ -56,12 +56,9 @@
     "@types/terminal-kit": "^2.5.0",
     "@typescript-eslint/parser": "^8.32.1",
     "api-extractor-config": "workspace:*",
-    "babel-jest": "^29.7.0",
     "eslint": "^9.26.0",
     "eslint-config-custom": "*",
-    "jest": "^29.7.0",
     "prettier": "^2.7.1",
-    "ts-jest": "^29.3.2",
     "ts-node": "^10.9.1",
     "tsconfig": "workspace:*",
     "tsup": "^8.0.2",
