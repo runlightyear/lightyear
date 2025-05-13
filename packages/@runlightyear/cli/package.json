@@ -57,7 +57,7 @@
     "@typescript-eslint/parser": "^8.32.1",
     "api-extractor-config": "workspace:*",
     "babel-jest": "^29.7.0",
-    "eslint": "^8.57.0",
+    "eslint": "^9.26.0",
     "eslint-config-custom": "*",
     "jest": "^29.7.0",
     "prettier": "^2.7.1",
