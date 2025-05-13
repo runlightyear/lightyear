@@ -126,7 +126,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -256,7 +256,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsconfig
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -305,7 +305,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -351,7 +351,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -397,7 +397,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -446,7 +446,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -492,7 +492,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -535,7 +535,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.8)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -608,7 +608,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsconfig
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -657,7 +657,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -703,7 +703,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -755,7 +755,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -801,7 +801,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -850,7 +850,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -896,7 +896,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -945,7 +945,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -994,7 +994,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -1043,7 +1043,7 @@ importers:
         specifier: workspace:*
         version: link:../../util/tsdoc-config
       tsup:
-        specifier: ^8.0.2
+        specifier: ^8.4.0
         version: 8.4.0(@microsoft/api-extractor@7.52.3)(jiti@2.4.2)(typescript@5.8.3)
       typescript:
         specifier: ^5.8.3
@@ -11237,17 +11237,6 @@ packages:
       bser: 2.1.1
     dev: true
 
-  /fdir@6.4.3(picomatch@4.0.2):
-    resolution: {integrity: sha512-PMXmW2y1hDDfTSRc9gaXIuCCRpuoz3Kaz8cUelp3smouvfT632ozg2vrT6lJsHKKOF59YLbOGfAWGUcKEfRMQw==}
-    peerDependencies:
-      picomatch: ^3 || ^4
-    peerDependenciesMeta:
-      picomatch:
-        optional: true
-    dependencies:
-      picomatch: 4.0.2
-    dev: true
-
   /fdir@6.4.4(picomatch@4.0.2):
     resolution: {integrity: sha512-1NZP+GK4GfuAv3PqKvxQRDMjdSRZjnkq7KfhlNrCNNlZ0ygQFpebfrnfnq/W7fpUnAv9aGWmY1zKx7FYL3gwhg==}
     peerDependencies:
@@ -17900,14 +17889,6 @@ packages:
     resolution: {integrity: sha512-KQQR9yN7R5+OSwaK0XQoj22pwHoTlgYqmUscPYoknOoWCWfj/5/ABTMRi69FrKU5ffPVh5QcFikpWJI/P1ocHA==}
     dev: true
 
-  /tinyglobby@0.2.12:
-    resolution: {integrity: sha512-qkf4trmKSIiMTs/E63cxH+ojC2unam7rJ0WrauAzpT3ECNTxGRMlaXxVbfxMUC/w0LaYk6jQ4y/nGR9uBO3tww==}
-    engines: {node: '>=12.0.0'}
-    dependencies:
-      fdir: 6.4.3(picomatch@4.0.2)
-      picomatch: 4.0.2
-    dev: true
-
   /tinyglobby@0.2.13:
     resolution: {integrity: sha512-mEwzpUgrLySlveBwEVDMKk5B57bhLPYovRfPAXD5gA/98Opn0rCDj3GtLwFvCvH5RK9uPCExUROW5NjDwvqkxw==}
     engines: {node: '>=12.0.0'}
@@ -17974,7 +17955,7 @@ packages:
   /tr46@1.0.1:
     resolution: {integrity: sha512-dTpowEjclQ7Kgx5SdBkqRzVhERQXov8/l9Ft9dVM9fmg0W0KQSVaXX9T4i6twCPNtYiZM53lpSSUAwJbFPOHxA==}
     dependencies:
-      punycode: 2.1.1
+      punycode: 2.3.1
     dev: true
 
   /tree-kill@1.2.2:
@@ -18084,7 +18065,7 @@ packages:
       source-map: 0.8.0-beta.0
       sucrase: 3.35.0
       tinyexec: 0.3.2
-      tinyglobby: 0.2.12
+      tinyglobby: 0.2.13
       tree-kill: 1.2.2
       typescript: 5.8.3
     transitivePeerDependencies:
@@ -18128,7 +18109,7 @@ packages:
       source-map: 0.8.0-beta.0
       sucrase: 3.35.0
       tinyexec: 0.3.2
-      tinyglobby: 0.2.12
+      tinyglobby: 0.2.13
       tree-kill: 1.2.2
       typescript: 5.8.3
     transitivePeerDependencies:
