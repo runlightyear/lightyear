@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 2.3.0
+
+### Minor Changes
+
+- 53d045710: Upgraded dependencies to get rid of deprecated subdependencies
+
 ## 2.2.1
 
 ### Patch Changes
