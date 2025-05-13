@@ -32,10 +32,10 @@
     "resolve": "~1.17.0"
   },
   "devDependencies": {
-    "@rushstack/eslint-config": "~3.0.1",
-    "@rushstack/heft": "~0.47.11",
-    "@rushstack/heft-node-rig": "~1.10.13",
-    "@types/heft-jest": "1.0.1",
+    "@rushstack/eslint-config": "~4.3.0",
+    "@rushstack/heft": "~0.73.6",
+    "@rushstack/heft-node-rig": "~2.8.13",
+    "@types/heft-jest": "1.0.6",
     "@types/js-yaml": "3.12.1",
     "@types/node": "12.20.24",
     "@types/resolve": "1.17.1"
