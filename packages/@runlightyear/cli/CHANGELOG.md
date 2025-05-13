@@ -1,5 +1,13 @@
 # @runlightyear/cli
 
+## 1.7.1
+
+### Patch Changes
+
+- 5dbdca2cb: Switch to use vitest instead of jest
+- Updated dependencies [5dbdca2cb]
+  - @runlightyear/lightyear@2.3.1
+
 ## 1.7.0
 
 ### Minor Changes
