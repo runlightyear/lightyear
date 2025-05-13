@@ -19,7 +19,7 @@
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.24",
     "@types/nodemon": "^1.19.2",
-    "@typescript-eslint/parser": "^7.1.0",
+    "@typescript-eslint/parser": "^8.32.1",
     "api-extractor-config": "workspace:*",
     "eslint": "^8.57.0",
     "eslint-config-custom": "*",
