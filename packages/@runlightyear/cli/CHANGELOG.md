@@ -1,5 +1,11 @@
 # @runlightyear/cli
 
+## 1.7.2
+
+### Patch Changes
+
+- 69eeb7a: Upgrade esbuild to a secure version
+
 ## 1.7.1
 
 ### Patch Changes
