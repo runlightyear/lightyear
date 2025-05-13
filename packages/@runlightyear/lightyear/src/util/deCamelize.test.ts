@@ -1,3 +1,4 @@
+import { describe, expect, test } from "vitest";
 import deCamelize from "./deCamelize";
 
 describe("deCamelize", () => {

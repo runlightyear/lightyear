@@ -1,3 +1,4 @@
+import { describe, expect, test } from "vitest";
 import redactSecrets from "./redactSecrets";
 
 describe("redactSecrets", () => {

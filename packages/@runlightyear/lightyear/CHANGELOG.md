@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 2.3.1
+
+### Patch Changes
+
+- 5dbdca2cb: Switch to use vitest instead of jest
+
 ## 2.3.0
 
 ### Minor Changes
