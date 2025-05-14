@@ -19,6 +19,7 @@ export default function runInContext(code: any) {
     global,
     console,
     process,
+    fetch,
     Buffer,
     setTimeout,
     clearTimeout,

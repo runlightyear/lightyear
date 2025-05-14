@@ -1,5 +1,3 @@
-import { Response } from "node-fetch";
-
 export class BaseRequestError extends Error {
   response: Response;
 

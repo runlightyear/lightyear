@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import fse from "fs-extra";
 import { program } from "commander";
 import { TEMP_TGZ_FILE } from "./constants";

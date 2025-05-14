@@ -1,5 +1,4 @@
 import invariant from "tiny-invariant";
-import fetch, { Response } from "node-fetch";
 import { BaseRequestError } from "./BaseRequestError";
 import { getBaseUrl } from "../util/getBaseUrl";
 import { getApiKey } from "../util/getApiKey";

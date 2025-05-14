@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import getCompiledCode from "./getCompiledCode";
 import readPackage from "./readPackage";
 import runInContext from "./runInContext";

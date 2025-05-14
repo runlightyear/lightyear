@@ -4,7 +4,6 @@ import { AuthConnector, AuthConnectorProps } from "./AuthConnector";
 import { getEnvName } from "../util/getEnvName";
 import { getContext } from "../base/context";
 import baseRequest from "../base/baseRequest";
-import { Response } from "node-fetch";
 
 export interface AppWebhookConnectorProps extends AuthConnectorProps {
   variables?: Variables;
