@@ -1,5 +1,13 @@
 # @runlightyear/cli
 
+## 1.7.3
+
+### Patch Changes
+
+- ba944e1: Remove packages that required deprecated built-in punycode
+- Updated dependencies [ba944e1]
+  - @runlightyear/lightyear@2.3.2
+
 ## 1.7.2
 
 ### Patch Changes

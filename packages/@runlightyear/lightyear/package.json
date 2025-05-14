@@ -1,6 +1,6 @@
 {
   "name": "@runlightyear/lightyear",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "publishConfig": {
     "access": "public"
   },
