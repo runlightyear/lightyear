@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 import { program } from "commander";
 import { terminal } from "terminal-kit";

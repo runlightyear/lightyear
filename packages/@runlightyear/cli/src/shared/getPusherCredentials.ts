@@ -1,5 +1,4 @@
 import { program } from "commander";
-import fetch from "node-fetch";
 import { getApiKey, getBaseUrl } from "@runlightyear/lightyear";
 
 export interface PusherCredentials {

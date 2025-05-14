@@ -1,6 +1,5 @@
 import { program } from "commander";
 import { ServerResponse } from "http";
-import fetch from "node-fetch";
 import { terminal } from "terminal-kit";
 
 export default async function fetchApiKey(

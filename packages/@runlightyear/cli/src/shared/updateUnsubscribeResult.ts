@@ -1,4 +1,3 @@
-import fetch from "node-fetch";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export interface UpdateUnsubscribeResultProps {

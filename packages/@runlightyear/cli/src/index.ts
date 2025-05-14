@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --trace-deprecation
 import { program } from "commander";
 import * as dotenv from "dotenv";
 import packageJson from "../package.json";
