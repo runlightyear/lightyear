@@ -1,3 +1,6 @@
+/**
+ * @internal
+ */
 export interface WebhookDelivery {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   url: string;
@@ -7,6 +10,9 @@ export interface WebhookDelivery {
   body?: string;
 }
 
+/**
+ * @internal
+ */
 export interface AppWebhookDeliveryResponse {
   response: {
     statusCode: number;
@@ -22,6 +28,9 @@ export interface AppWebhookDeliveryResponse {
   } | null;
 }
 
+/**
+ * @internal
+ */
 export interface WebhookDeliveryResponse {
   response: {
     status: number;

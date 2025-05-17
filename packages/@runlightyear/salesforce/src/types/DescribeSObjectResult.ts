@@ -5,6 +5,9 @@ import { NamedLayoutInfo } from "./NamedLayoutInfo";
 import { ScopeInfo } from "./ScopeInfo";
 import { RecordTypeInfo } from "./RecordTypeInfo";
 
+/**
+ * @internal
+ */
 export interface DescribeSObjectResult {
   /**
    * An array of action overrides. Action overrides replace the URLs specified in the urlDetail, urlEdit and urlNew fields. This field is available in API version 32.0 and later.

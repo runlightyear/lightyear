@@ -6,7 +6,7 @@ import {
 import { dayjsUtc } from "@runlightyear/lightyear";
 
 /**
- * @beta
+ * @internal
  */
 export interface SalesforceOAuthProps extends OAuthConnectorProps {
   scopes?: Array<string>;
@@ -18,7 +18,7 @@ export interface SalesforceOAuthProps extends OAuthConnectorProps {
 }
 
 /**
- * @alpha
+ * @internal
  */
 export class SalesforceOAuth extends OAuthConnector {
   scopes: Array<string>;

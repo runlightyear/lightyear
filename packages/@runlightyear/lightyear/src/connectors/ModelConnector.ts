@@ -21,20 +21,24 @@ export interface ObjectMeta {
   isDeleted: boolean;
 }
 
+export interface BaseObjectData {
+  [key: string]: unknown;
+}
+
 export interface BaseObject {
   id: string;
   updatedAt: string;
   isDeleted: boolean;
-  data: {
-    [key: string]: unknown;
-  };
+  data: BaseObjectData;
+}
+
+export interface BaseExternalData {
+  [key: string]: unknown;
 }
 
 export interface BaseExternal {
   id: string;
-  data: {
-    [key: string]: unknown;
-  };
+  data: BaseExternalData;
 }
 
 export interface Object<ObjectData extends { [key: string]: unknown }> {
@@ -60,20 +64,32 @@ export interface ReadProps {
   id: string;
 }
 
+export interface CreateBatchPropsChange<ObjectData> {
+  changeId: string;
+  data: ObjectData;
+}
+
 export interface CreateBatchProps<ObjectData> {
-  changes: Array<{ changeId: string; data: ObjectData }>;
+  changes: Array<CreateBatchPropsChange<ObjectData>>;
+}
+
+export interface UpdateBatchPropsChange<ObjectData> {
+  changeId: string;
+  externalId: ExternalId;
+  data: ObjectData;
 }
 
 export interface UpdateBatchProps<ObjectData> {
-  changes: Array<{
-    changeId: string;
-    externalId: ExternalId;
-    data: ObjectData;
-  }>;
+  changes: Array<UpdateBatchPropsChange<ObjectData>>;
+}
+
+export interface DeleteBatchPropsChange {
+  changeId: string;
+  externalId: ExternalId;
 }
 
 export interface DeleteBatchProps {
-  changes: Array<{ changeId: string; externalId: ExternalId }>;
+  changes: Array<DeleteBatchPropsChange>;
 }
 
 // export interface FullObjectProps<Object extends BaseObject>

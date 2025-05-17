@@ -3,28 +3,45 @@ import invariant from "tiny-invariant";
 import { AuthData } from "./auth";
 import { getEnvName } from "../util/getEnvName";
 import { prefixedRedactedConsole } from "../logging";
+import { HttpProxyRequestHeaders } from "./http";
+
+export interface RunFuncAuths {
+  [name: string]: AuthData;
+}
+
+export interface RunFuncVariables {
+  [name: string]: string | null;
+}
+
+export interface RunFuncSecrets {
+  [name: string]: string | null;
+}
+
+export interface RunFuncWebhook {
+  url: string;
+  method: string;
+  headers: HttpProxyRequestHeaders;
+}
+
+export interface RunFuncIntegration {
+  id: string;
+  name: string;
+  title: string;
+}
+
+export interface RunFuncManagedUser {
+  id: string;
+  externalId: string;
+  displayName: string | null;
+}
 
 export interface RunFuncProps {
-  auths: {
-    [name: string]: AuthData;
-  };
-  variables: {
-    [name: string]: string | null;
-  };
-  secrets: {
-    [name: string]: string | null;
-  };
+  auths: RunFuncAuths;
+  variables: RunFuncVariables;
+  secrets: RunFuncSecrets;
   webhook: string | null;
-  integration: {
-    id: string;
-    name: string;
-    title: string;
-  } | null;
-  managedUser: {
-    id: string;
-    externalId: string;
-    displayName: string | null;
-  } | null;
+  integration: RunFuncIntegration | null;
+  managedUser: RunFuncManagedUser | null;
 }
 
 export async function getRunFuncProps(runId: string): Promise<RunFuncProps> {

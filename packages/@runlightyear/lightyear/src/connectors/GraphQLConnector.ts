@@ -3,11 +3,13 @@ import { HttpProxyResponse } from "../base/http";
 
 export interface GraphQLConnectorProps extends RestConnectorProps {}
 
+export interface GraphQLConnectorQueryVariables {
+  [name: string]: unknown;
+}
+
 export interface GraphQLConnectorQueryProps {
   query: string;
-  variables?: {
-    [name: string]: unknown;
-  };
+  variables?: GraphQLConnectorQueryVariables;
 }
 
 /**

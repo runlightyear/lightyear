@@ -7,6 +7,10 @@ export interface SyncConnectorProps extends RestConnectorProps {
   // models?: { [key: string]: ModelConnector };
 }
 
+export interface SyncConnectorGetModelsResponse {
+  [key: string]: ModelConnector;
+}
+
 export abstract class SyncConnector extends RestConnector {
   collectionName: string;
 
@@ -16,7 +20,7 @@ export abstract class SyncConnector extends RestConnector {
     this.collectionName = props.collectionName;
   }
 
-  abstract getModels(): { [key: string]: ModelConnector };
+  abstract getModels(): SyncConnectorGetModelsResponse;
 
   async sync(
     syncId: string,
