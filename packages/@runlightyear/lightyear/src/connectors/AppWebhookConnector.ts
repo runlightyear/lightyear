@@ -38,6 +38,9 @@ export abstract class AppWebhookConnector extends AuthConnector {
 
   abstract subscribe(props: any): Promise<void>;
 
+  /**
+   * @internal
+   */
   async _subscribe(props: { filter: string }) {
     const { filter } = props;
 

@@ -72,21 +72,6 @@ export abstract class RestConnector extends AuthConnector {
   }
 
   /**
-   * Use defaultHeaders instead
-   *
-   * @deprecated
-   */
-  authorizationHeaders(): { [key: string]: string } {
-    console.debug("in RestConnector.authorizationHeaders");
-    const { accessToken } = this.getAuthData();
-
-    return {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    };
-  }
-
-  /**
    * Make a proxied http request
    */
   async request(props: HttpProxyRequestProps): Promise<HttpProxyResponse> {

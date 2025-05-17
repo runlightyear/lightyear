@@ -30,6 +30,20 @@ export interface OAuthConfigData {
   authRequestUrl: string | null;
 }
 
+export interface OAuthConnectorRequestAccessTokenHeaders {
+  [name: string]: string;
+}
+
+export interface OAuthConnectorProcessRequestAccessTokenProps {
+  status: number;
+  statusText: string;
+  headers: OAuthConnectorRequestAccessTokenHeaders;
+  text: string;
+}
+
+export interface OAuthConnectorProcessRefreshAccessTokenProps
+  extends OAuthConnectorProcessRequestAccessTokenProps {}
+
 /**
  * @public
  *
@@ -148,9 +162,7 @@ export abstract class OAuthConnector {
     return this.getRedirectUri();
   }
 
-  getRequestAccessTokenHeaders(): {
-    [name: string]: string;
-  } {
+  getRequestAccessTokenHeaders(): OAuthConnectorRequestAccessTokenHeaders {
     return {
       Accept: "application/json",
       "Content-Type": "application/x-www-form-urlencoded",
@@ -195,17 +207,11 @@ export abstract class OAuthConnector {
     return ["access_token", "refresh_token"];
   }
 
-  processRequestAccessTokenResponse({
-    status,
-    statusText,
-    headers,
-    text,
-  }: {
-    status: number;
-    statusText: string;
-    headers: Record<string, string>;
-    text: string;
-  }): AuthData {
+  processRequestAccessTokenResponse(
+    props: OAuthConnectorProcessRequestAccessTokenProps
+  ): AuthData {
+    const { status, statusText, headers, text } = props;
+
     if (status >= 300) {
       console.error(text);
       throw new Error(`Request access token failed: ${status} ${statusText}`);
@@ -267,17 +273,11 @@ export abstract class OAuthConnector {
     return this.getRequestAccessTokenRedactKeys();
   }
 
-  processRefreshAccessTokenResponse({
-    status,
-    statusText,
-    headers,
-    text,
-  }: {
-    status: number;
-    statusText: string;
-    headers: Record<string, string>;
-    text: string;
-  }): AuthData {
+  processRefreshAccessTokenResponse(
+    props: OAuthConnectorProcessRefreshAccessTokenProps
+  ): AuthData {
+    const { status, statusText, headers, text } = props;
+
     const authData = this.processRequestAccessTokenResponse({
       status,
       statusText,

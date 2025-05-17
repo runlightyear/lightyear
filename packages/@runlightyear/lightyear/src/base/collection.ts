@@ -22,21 +22,25 @@ export type MatchCompoundObject =
 
 export type MatchSpec = MatchPropertySpec | MatchCompoundObject;
 
+export interface ModelProps {
+  name: string;
+  title: string;
+  schema?: unknown;
+  matchOn?: MatchSpec;
+}
+
+export interface DefineCollectionEnabledProps {
+  [modelName: string]: boolean;
+}
+
 /**
  * @alpha
  */
 export interface DefineCollectionProps {
   name: string;
   title: string;
-  models?: Array<{
-    name: string;
-    title: string;
-    schema?: unknown;
-    matchOn?: MatchSpec;
-  }>;
-  enabled?: {
-    [modelName: string]: boolean;
-  };
+  models?: Array<ModelProps>;
+  enabled?: DefineCollectionEnabledProps;
 }
 
 /**
@@ -45,12 +49,7 @@ export interface DefineCollectionProps {
 export interface DeployCollectionProps {
   name: string;
   title: string;
-  models?: Array<{
-    name: string;
-    title: string;
-    schema?: unknown;
-    matchOn?: MatchSpec;
-  }>;
+  models?: Array<ModelProps>;
 }
 
 /**
@@ -82,9 +81,14 @@ export interface GetModelProps {
   collectionName: string;
 }
 
+export interface GetModelResponse {
+  name: string;
+  title: string;
+}
+
 export async function getModels(
   props: GetModelProps
-): Promise<Array<{ name: string; title: string }>> {
+): Promise<Array<GetModelResponse>> {
   const { collectionName } = props;
 
   const envName = getEnvName();
