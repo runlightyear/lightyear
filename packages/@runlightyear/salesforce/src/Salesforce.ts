@@ -13,7 +13,7 @@ import { SalesforceOAuth } from "./SalesforceOAuth";
 import { queryAll, QueryAllProps } from "./query/queryAll";
 
 /**
- * @alpha
+ * @internal
  */
 export interface SalesforceProps extends RestConnectorProps {
   domain?: string;
@@ -22,7 +22,7 @@ export interface SalesforceProps extends RestConnectorProps {
 /**
  * Salesforce connector
  *
- * @alpha
+ * @internal
  *
  * @example Install
  * ```

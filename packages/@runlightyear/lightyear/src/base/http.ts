@@ -9,6 +9,16 @@ import { getContext } from "./context";
  */
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
+export interface HttpProxyRequestHeaders {
+  [key: string]: string;
+}
+
+export interface HttpProxyRequestConfirm {
+  changeIds?: string[];
+  idPath?: string;
+  updatedAtPath?: string;
+}
+
 /**
  * @public
  */
@@ -16,19 +26,13 @@ export interface HttpProxyRequestProps {
   method?: HttpMethod;
   url: string;
   params?: Record<string, any>;
-  headers?: {
-    [key: string]: string;
-  };
+  headers?: HttpProxyRequestHeaders;
   data?: object;
   body?: string;
   redactKeys?: string[];
   maxRetries?: number;
   async?: boolean;
-  confirm?: {
-    changeIds?: string[];
-    idPath?: string;
-    updatedAtPath?: string;
-  };
+  confirm?: HttpProxyRequestConfirm;
 }
 
 /**

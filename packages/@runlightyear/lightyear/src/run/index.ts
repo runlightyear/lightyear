@@ -21,6 +21,18 @@ export interface Secrets {
   [name: string]: string | null;
 }
 
+export interface RunFuncIntegration {
+  id: string;
+  name: string;
+  title: string;
+}
+
+export interface RunFuncManagedUser {
+  id: string;
+  externalId: string;
+  displayName: string | null;
+}
+
 /**
  * @public
  */
@@ -31,16 +43,8 @@ export interface RunFuncProps {
   variables: Variables;
   secrets: Secrets;
   webhook: string | null;
-  integration: {
-    id: string;
-    name: string;
-    title: string;
-  } | null;
-  managedUser: {
-    id: string;
-    externalId: string;
-    displayName: string | null;
-  } | null;
+  integration: RunFuncIntegration | null;
+  managedUser: RunFuncManagedUser | null;
 }
 
 /**

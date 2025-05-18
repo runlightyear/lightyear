@@ -15,6 +15,12 @@ export interface SynchronizerProps {
   collection: string;
 }
 
+export interface FrequencyProps {
+  incremental?: number;
+  full?: number;
+  hardDelete?: number;
+}
+
 export interface DefineSyncActionProps {
   name: string;
   title: string;
@@ -22,11 +28,7 @@ export interface DefineSyncActionProps {
   collection: string;
   app?: AppName;
   customApp?: string;
-  frequency?: {
-    incremental?: number;
-    full?: number;
-    hardDelete?: number;
-  };
+  frequency?: FrequencyProps;
   direction?: "pull" | "push" | "bidirectional";
 }
 
