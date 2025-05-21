@@ -13,8 +13,6 @@ export interface GraphQLConnectorQueryProps {
 }
 
 /**
- * GraphQL Connector
- *
  * The base for making calls to GraphQL APIs
  */
 export abstract class GraphQLConnector extends RestConnector {

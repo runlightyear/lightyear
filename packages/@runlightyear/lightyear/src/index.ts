@@ -137,13 +137,6 @@ export type { SecretDef, SecretData } from "./base/secret";
 /* Subscriptions */
 export { setSubscriptionExpiresAt } from "./base/subscription";
 
-/* Smtp Proxy */
-export type {
-  SmtpProxyRequestProps,
-  SmtpProxyResponse,
-  EmailAddress,
-} from "./base/smtp";
-
 /* Sync Actions */
 export { defineSyncAction } from "./base/syncAction";
 export type {
@@ -223,10 +216,6 @@ export type {
   GraphQLConnectorProps,
   GraphQLConnectorQueryProps,
 } from "./connectors/GraphQLConnector";
-
-/* Smtp Connector */
-export { SmtpConnector } from "./connectors/SmtpConnector";
-export type { SmtpConnectorProps } from "./connectors/SmtpConnector";
 
 /* Sync Connector */
 export { SyncConnector } from "./connectors/SyncConnector";

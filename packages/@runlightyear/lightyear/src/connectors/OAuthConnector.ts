@@ -47,8 +47,6 @@ export interface OAuthConnectorProcessRefreshAccessTokenProps
 /**
  * @public
  *
- * OAuth2 Connector
- *
  * Creates the input to the 3 essential OAuth tasks:
  *
  * 1. Generates a url to request an access token

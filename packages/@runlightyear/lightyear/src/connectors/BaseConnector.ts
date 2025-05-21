@@ -15,7 +15,7 @@ export interface BaseConnectorProps {}
 /**
  * @public
  *
- * The Base for all connectors.
+ * The base for all connectors.
  */
 export abstract class BaseConnector {
   static authType: AuthType;

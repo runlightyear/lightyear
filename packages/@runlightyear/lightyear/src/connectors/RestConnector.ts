@@ -25,9 +25,7 @@ export interface RestConnectorProps extends AuthConnectorProps {
 /**
  * @public
  *
- * Rest Connector
- *
- * The base for making calls to REST APIs
+ * The base for connectors that make calls to REST APIs
  *
  * @param props
  */

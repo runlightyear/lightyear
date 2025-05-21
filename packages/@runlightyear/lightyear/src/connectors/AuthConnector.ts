@@ -15,7 +15,7 @@ export interface AuthConnectorProps extends BaseConnectorProps {
 /**
  * @public
  *
- * Docs for AuthConnector
+ * Base for connectors that need to maintain and use authorization data
  */
 export abstract class AuthConnector extends BaseConnector {
   _auth: AuthData;
