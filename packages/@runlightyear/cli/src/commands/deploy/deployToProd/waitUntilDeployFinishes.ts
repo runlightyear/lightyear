@@ -3,7 +3,7 @@ import getPusherCredentials from "../../../shared/getPusherCredentials";
 import fetchDeploy from "./fetchDeploy";
 import { terminal } from "terminal-kit";
 import { logDisplayLevel } from "../../../shared/setLogDisplayLevel";
-import throttle from "lodash/throttle";
+import { throttle } from "lodash";
 
 export type Log = {
   id: string;
