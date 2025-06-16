@@ -46,12 +46,21 @@ export abstract class RestConnector extends AuthConnector {
   }
 
   getDefaultHeaders(): Record<string, any> {
-    const { accessToken } = this.getAuthData();
+    const { accessToken, username, password } = this.getAuthData();
+
+    let authorizationHeader = undefined;
+    if (accessToken) {
+      authorizationHeader = `Bearer ${accessToken}`;
+    } else if (username && password) {
+      authorizationHeader = `Basic ${Buffer.from(
+        `${username}:${password}`
+      ).toString("base64")}`;
+    }
 
     return {
       "Content-Type": "application/json",
       Accept: "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      Authorization: authorizationHeader,
     };
   }
 
