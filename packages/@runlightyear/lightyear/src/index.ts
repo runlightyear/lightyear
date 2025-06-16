@@ -186,6 +186,9 @@ export type {
   ModelConnectorProps,
   ListProps,
   ReadProps,
+  CreateProps,
+  UpdateProps,
+  DeleteProps,
   CreateBatchProps,
   UpdateBatchProps,
   DeleteBatchProps,
@@ -197,6 +200,7 @@ export type {
   ExternalId,
   BaseObject,
   BaseExternal,
+  ValidateFn,
 } from "./connectors/ModelConnector";
 
 /* OAuth Connector */
