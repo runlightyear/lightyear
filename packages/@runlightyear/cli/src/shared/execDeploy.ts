@@ -2,7 +2,8 @@ import readPackage from "./readPackage";
 import getCompiledCode from "./getCompiledCode";
 import runInContext from "./runInContext";
 import updateDeploy from "./updateDeploy";
-import { terminal } from "terminal-kit";
+import terminalKit from "terminal-kit";
+const { terminal } = terminalKit;
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { prepareConsole } from "../logging";
 

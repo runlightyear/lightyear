@@ -20,13 +20,11 @@ test.description("Run tests with live counter").action(async () => {
     }, []);
 
     useEffect(() => {
-      write(`counter: ${counter}`);
+      write(`counter: ${counter}\n`);
     }, [counter, write]);
 
     return <Text color="green">{counter} tests passed</Text>;
   };
 
   render(<Counter />);
-
-  console.log("test");
 });

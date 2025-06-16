@@ -1,6 +1,7 @@
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 import { program } from "commander";
-import { terminal } from "terminal-kit";
+import terminalKit from "terminal-kit";
+const { terminal } = terminalKit;
 
 export interface CreateDeployProps {
   envName?: "dev" | "prod";

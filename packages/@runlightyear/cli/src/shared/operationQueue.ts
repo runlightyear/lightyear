@@ -18,7 +18,8 @@ import {
   execRefreshSubscription,
   ExecRefreshSubscriptionProps,
 } from "./execRefreshSubscription";
-import { terminal } from "terminal-kit";
+import terminalKit from "terminal-kit";
+const { terminal } = terminalKit;
 import { handleReceiveCustomAppWebhook } from "../commands/dev/handleReceiveCustomAppWebhook";
 import {
   execReceiveCustomWebhook,

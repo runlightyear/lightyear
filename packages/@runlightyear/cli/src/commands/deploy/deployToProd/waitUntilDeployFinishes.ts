@@ -1,7 +1,8 @@
 import getPusher from "../../../shared/getPusher";
 import getPusherCredentials from "../../../shared/getPusherCredentials";
 import fetchDeploy from "./fetchDeploy";
-import { terminal } from "terminal-kit";
+import terminalKit from "terminal-kit";
+const { terminal } = terminalKit;
 import { logDisplayLevel } from "../../../shared/setLogDisplayLevel";
 import { throttle } from "lodash";
 

@@ -1,6 +1,7 @@
 import { program } from "commander";
 import { ServerResponse } from "http";
-import { terminal } from "terminal-kit";
+import terminalKit from "terminal-kit";
+const { terminal } = terminalKit;
 
 export default async function fetchApiKey(
   baseUrl: string,

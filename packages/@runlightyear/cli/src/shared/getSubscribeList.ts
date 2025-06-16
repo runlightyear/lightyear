@@ -1,4 +1,5 @@
-import { terminal } from "terminal-kit";
+import terminalKit from "terminal-kit";
+const { terminal } = terminalKit;
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export default async function getSubscribeList() {

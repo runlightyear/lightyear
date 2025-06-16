@@ -1,5 +1,6 @@
 import open from "open";
-import { terminal } from "terminal-kit";
+import terminalKit from "terminal-kit";
+const { terminal } = terminalKit;
 
 export default async function openBrowser(
   authUrl: string,

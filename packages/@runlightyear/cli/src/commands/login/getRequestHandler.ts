@@ -3,7 +3,8 @@ import fetchApiKey from "./fetchApiKey";
 import writeEnvFile from "./writeEnvFile";
 import parseCode from "./parseCode";
 import { program } from "commander";
-import { terminal } from "terminal-kit";
+import terminalKit from "terminal-kit";
+const { terminal } = terminalKit;
 
 export default function getRequestHandler(baseUrl: string) {
   const callback: RequestListener = async (req, res) => {

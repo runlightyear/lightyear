@@ -4,7 +4,8 @@ import startServer from "./startServer";
 import getRequestHandler from "./getRequestHandler";
 import openBrowser from "./openBrowser";
 import getAccountType from "./getAccountType";
-import { terminal } from "terminal-kit";
+import terminalKit from "terminal-kit";
+const { terminal } = terminalKit;
 
 export const login = new Command("login");
 export const signup = new Command("signup");

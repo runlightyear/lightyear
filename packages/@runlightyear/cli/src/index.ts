@@ -4,9 +4,10 @@ import * as dotenv from "dotenv";
 import packageJson from "../package.json";
 import { setLogDisplayLevel } from "./shared/setLogDisplayLevel";
 import { create } from "./commands/create";
-import { login, signup } from "./commands/login";
-import { dev } from "./commands/dev";
-import { deploy } from "./commands/deploy";
+// TODO: Migrate these commands to ink
+// import { login, signup } from "./commands/login";
+// import { dev } from "./commands/dev";
+// import { deploy } from "./commands/deploy";
 import { prepareConsole } from "./logging";
 import { largeLogo } from "./largeLogo";
 import { build } from "./commands/build-command";
@@ -21,11 +22,12 @@ program
   .description("Lightyear CLI")
   .version(packageJson.version)
   .addCommand(create)
-  .addCommand(signup)
-  .addCommand(login)
+  // TODO: Re-enable after migrating to ink
+  // .addCommand(signup)
+  // .addCommand(login)
   .addCommand(build)
-  .addCommand(dev)
-  .addCommand(deploy)
+  // .addCommand(dev)
+  // .addCommand(deploy)
   .addCommand(test)
   .option("-d, --debug", "output extra debugging")
   .addHelpText("beforeAll", largeLogo);
