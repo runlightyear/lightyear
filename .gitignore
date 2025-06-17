@@ -56,3 +56,6 @@ temp
 common
 
 dist
+
+# Lightyear preferences
+.lightyear

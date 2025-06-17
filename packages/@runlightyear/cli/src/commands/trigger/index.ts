@@ -11,17 +11,17 @@ import runInContext from "../../shared/runInContext";
 import runAction from "../../shared/runAction";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
-export const run = new Command("r");
+export const trigger = new Command("t");
 
-interface RunPreferences {
+interface TriggerPreferences {
   lastAction?: string;
   lastManagedUser?: string;
-  runForAllManagedUsers?: boolean;
+  triggerForAllManagedUsers?: boolean;
 }
 
-const PREFS_FILE = path.join(os.homedir(), ".lightyear", "run-preferences.json");
+const PREFS_FILE = path.join(process.cwd(), ".lightyear", "trigger-preferences.json");
 
-function loadPreferences(): RunPreferences {
+function loadPreferences(): TriggerPreferences {
   try {
     if (fs.existsSync(PREFS_FILE)) {
       return JSON.parse(fs.readFileSync(PREFS_FILE, "utf-8"));
@@ -32,7 +32,7 @@ function loadPreferences(): RunPreferences {
   return {};
 }
 
-function savePreferences(prefs: RunPreferences) {
+function savePreferences(prefs: TriggerPreferences) {
   try {
     const dir = path.dirname(PREFS_FILE);
     if (!fs.existsSync(dir)) {
@@ -72,8 +72,8 @@ async function getManagedUsers(): Promise<Array<{ id: string; name: string }>> {
   }
 }
 
-run
-  .description("Run an action interactively")
+trigger
+  .description("Trigger an action interactively")
   .action(async () => {
     const pkg = readPackage();
     const compiledCode = getCompiledCode(pkg.main);
@@ -110,14 +110,14 @@ run
     // Select action
     const actionChoices = actions.map((action: string) => ({
       name: action,
-      message: action === prefs.lastAction ? `${action} (last used)` : action,
+      message: action === prefs.lastAction ? `${action} (last triggered)` : action,
       hint: action === prefs.lastAction ? "↵ to select" : undefined,
     }));
     
     const { selectedAction } = await prompt<{ selectedAction: string }>({
       type: "select",
       name: "selectedAction",
-      message: "Select an action to run:",
+      message: "Select an action to trigger:",
       choices: actionChoices,
       initial: prefs.lastAction ? actions.indexOf(prefs.lastAction) : 0,
     });
@@ -125,29 +125,29 @@ run
     // Check for managed users
     const managedUsers = await getManagedUsers();
     let managedUserId: string | undefined;
-    let runForAllManagedUsers = false;
+    let triggerForAllManagedUsers = false;
     
     if (managedUsers.length > 0) {
-      // Ask if running for all or specific managed user
+      // Ask if triggering for all or specific managed user
       const { managedUserChoice } = await prompt<{ managedUserChoice: string }>({
         type: "select",
         name: "managedUserChoice",
-        message: "Run for:",
+        message: "Trigger for:",
         choices: [
           { name: "all", message: "All managed users" },
           { name: "specific", message: "Specific managed user" },
         ],
-        initial: prefs.runForAllManagedUsers ? 0 : 1,
+        initial: prefs.triggerForAllManagedUsers ? 0 : 1,
       });
       
       if (managedUserChoice === "all") {
-        runForAllManagedUsers = true;
+        triggerForAllManagedUsers = true;
       } else {
         // Select specific managed user
         const userChoices = managedUsers.map((user) => ({
           name: user.id,
           message: user.id === prefs.lastManagedUser 
-            ? `${user.name} (${user.id}) (last used)` 
+            ? `${user.name} (${user.id}) (last triggered)` 
             : `${user.name} (${user.id})`,
         }));
         
@@ -169,17 +169,17 @@ run
     savePreferences({
       lastAction: selectedAction,
       lastManagedUser: managedUserId,
-      runForAllManagedUsers,
+      triggerForAllManagedUsers,
     });
     
-    // Run the action
-    terminal.cyan(`\nRunning action: ${selectedAction}\n`);
+    // Trigger the action
+    terminal.cyan(`\nTriggering action: ${selectedAction}\n`);
     
-    if (runForAllManagedUsers && managedUsers.length > 0) {
-      terminal(`Running for all ${managedUsers.length} managed users...\n\n`);
+    if (triggerForAllManagedUsers && managedUsers.length > 0) {
+      terminal(`Triggering for all ${managedUsers.length} managed users...\n\n`);
       
       for (const user of managedUsers) {
-        terminal.gray(`Running for ${user.name} (${user.id})...\n`);
+        terminal.gray(`Triggering for ${user.name} (${user.id})...\n`);
         
         const runId = crypto.randomUUID();
         await runAction({
@@ -193,7 +193,7 @@ run
         terminal.green(`✓ Completed for ${user.name}\n\n`);
       }
       
-      terminal.green(`\n✓ Action completed for all managed users\n`);
+      terminal.green(`\n✓ Action triggered for all managed users\n`);
     } else {
       const runId = crypto.randomUUID();
       const data = managedUserId ? { managedUserId } : undefined;
@@ -204,6 +204,6 @@ run
         data,
       });
       
-      terminal.green(`\n✓ Action completed successfully\n`);
+      terminal.green(`\n✓ Action triggered successfully\n`);
     }
   });

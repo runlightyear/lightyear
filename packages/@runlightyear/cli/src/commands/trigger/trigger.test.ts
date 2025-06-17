@@ -1,13 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import fs from "fs";
 import path from "path";
-import os from "os";
 
 // Mock the fs module
 vi.mock("fs");
 
-describe("Run Command Preferences", () => {
-  const PREFS_FILE = path.join(os.homedir(), ".lightyear", "run-preferences.json");
+describe("Trigger Command Preferences", () => {
+  const PREFS_FILE = path.join(process.cwd(), ".lightyear", "trigger-preferences.json");
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -17,7 +16,7 @@ describe("Run Command Preferences", () => {
     const mockPrefs = {
       lastAction: "myAction",
       lastManagedUser: "user123",
-      runForAllManagedUsers: false,
+      triggerForAllManagedUsers: false,
     };
 
     vi.mocked(fs.existsSync).mockReturnValue(true);
