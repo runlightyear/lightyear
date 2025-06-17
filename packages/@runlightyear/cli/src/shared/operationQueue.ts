@@ -79,18 +79,37 @@ export const operationQueue: Array<OperationQueueItem> = [];
 
 let processingOperations = false;
 let firstOperationsProcessed = true;
+let queuePaused = false;
+
+export function pauseOperationQueue() {
+  queuePaused = true;
+  console.debug("Operation queue paused");
+}
+
+export function resumeOperationQueue() {
+  queuePaused = false;
+  console.debug("Operation queue resumed");
+  if (!processingOperations && operationQueue.length > 0) {
+    processOperations();
+  }
+}
 
 export function pushOperation(operationQueueItem: OperationQueueItem) {
   operationQueue.push(operationQueueItem);
-  if (!processingOperations) {
+  if (!processingOperations && !queuePaused) {
     processOperations();
   }
 }
 
 async function processOperations() {
+  if (queuePaused) {
+    console.debug("Operation queue is paused, skipping processing");
+    return;
+  }
+  
   processingOperations = true;
   console.debug("Starting to process operations");
-  while (operationQueue.length > 0) {
+  while (operationQueue.length > 0 && !queuePaused) {
     const item = operationQueue.shift();
     invariant(item);
 
