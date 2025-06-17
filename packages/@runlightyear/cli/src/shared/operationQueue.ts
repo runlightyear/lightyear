@@ -106,7 +106,7 @@ async function processOperations() {
     console.debug("Operation queue is paused, skipping processing");
     return;
   }
-  
+
   processingOperations = true;
   console.debug("Starting to process operations");
   while (operationQueue.length > 0 && !queuePaused) {

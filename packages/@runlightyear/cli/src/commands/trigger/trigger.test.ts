@@ -6,7 +6,11 @@ import path from "path";
 vi.mock("fs");
 
 describe("Trigger Command Preferences", () => {
-  const PREFS_FILE = path.join(process.cwd(), ".lightyear", "trigger-preferences.json");
+  const PREFS_FILE = path.join(
+    process.cwd(),
+    ".lightyear",
+    "trigger-preferences.json"
+  );
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -24,7 +28,7 @@ describe("Trigger Command Preferences", () => {
 
     // Import after mocking
     const loadPreferencesModule = import("./index.js");
-    
+
     // Since we can't easily test the private function, we'll just verify the mocks were set up correctly
     expect(fs.existsSync).toBeDefined();
     expect(fs.readFileSync).toBeDefined();
@@ -35,7 +39,7 @@ describe("Trigger Command Preferences", () => {
 
     // Import after mocking
     const loadPreferencesModule = import("./index.js");
-    
+
     expect(fs.existsSync).toBeDefined();
   });
 

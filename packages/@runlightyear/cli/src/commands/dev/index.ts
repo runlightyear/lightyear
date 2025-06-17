@@ -12,7 +12,10 @@ import { prepareConsole } from "../../logging";
 import handleResubscribe from "./handleResubscribe";
 import { largeLogo } from "../../largeLogo";
 import { pushOperation } from "../../shared/operationQueue";
-import { pauseOperationQueue, resumeOperationQueue } from "../../shared/operationQueue";
+import {
+  pauseOperationQueue,
+  resumeOperationQueue,
+} from "../../shared/operationQueue";
 import handleGetAuthRequestUrl from "./handleGetAuthRequestUrl";
 import handleRequestAccessToken from "./handleRequestAccessToken";
 import handleRefreshAccessToken from "./handleRefreshAccessToken";
