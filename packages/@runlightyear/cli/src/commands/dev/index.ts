@@ -107,7 +107,7 @@ dev
       } else if (data.code === "h") {
         terminal("\n");
         terminal("  press d to deploy\n");
-        terminal("  press l to toggle DEBUG logs on/off\n");
+        terminal(`  press l to turn DEBUG logs ${logDisplayLevel === "DEBUG" ? "off" : "on"}\n`);
         terminal("  press q to quit\n");
         terminal("\n");
       } else {
