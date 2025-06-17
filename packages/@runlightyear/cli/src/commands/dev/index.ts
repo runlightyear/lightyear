@@ -4,7 +4,10 @@ import getPusherCredentials from "../../shared/getPusherCredentials";
 import handleRunLocal from "./handleRunLocal";
 import nodemon from "nodemon";
 import { terminal } from "terminal-kit";
-import { setLogDisplayLevel } from "../../shared/setLogDisplayLevel";
+import {
+  setLogDisplayLevel,
+  logDisplayLevel,
+} from "../../shared/setLogDisplayLevel";
 import { prepareConsole } from "../../logging";
 import handleResubscribe from "./handleResubscribe";
 import { largeLogo } from "../../largeLogo";
@@ -96,18 +99,22 @@ dev
       } else if (data.code === "d") {
         pushOperation({ operation: "deploy", params: undefined });
       } else if (data.code === "l") {
-        console.info("DEBUG logging on");
-        setLogDisplayLevel("DEBUG");
-        prepareConsole();
-      } else if (data.code === "m") {
-        console.info("DEBUG logging off");
-        setLogDisplayLevel("INFO");
+        if (logDisplayLevel === "DEBUG") {
+          console.info("DEBUG logging off");
+          setLogDisplayLevel("INFO");
+        } else {
+          console.info("DEBUG logging on");
+          setLogDisplayLevel("DEBUG");
+        }
         prepareConsole();
       } else if (data.code === "h") {
         terminal("\n");
         terminal("  press d to deploy\n");
-        terminal("  press l to turn DEBUG logs on\n");
-        terminal("  press m to turn DEBUG logs off\n");
+        terminal(
+          `  press l to turn DEBUG logs ${
+            logDisplayLevel === "DEBUG" ? "off" : "on"
+          }\n`
+        );
         terminal("  press q to quit\n");
         terminal("\n");
       } else {
