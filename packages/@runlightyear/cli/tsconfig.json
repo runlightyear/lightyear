@@ -8,6 +8,9 @@
     "outDir": "./dist",
     "importHelpers": false,
     "resolveJsonModule": true,
-    "types": ["vitest"]
+    "types": ["vitest"],
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
   }
 }

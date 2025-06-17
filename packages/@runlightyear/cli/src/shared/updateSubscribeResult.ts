@@ -1,4 +1,4 @@
-import { terminal } from "terminal-kit";
+import chalk from "chalk";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export interface UploadSubscribeResultProps {
@@ -76,7 +76,7 @@ export default async function updateSubscribeResult(
   );
 
   if (!subscriptionResponse.ok) {
-    console.error("Failed to update subscription");
+    console.error(chalk.red("Failed to update subscription"));
     console.error(JSON.stringify(await subscriptionResponse.json(), null, 2));
   }
 }

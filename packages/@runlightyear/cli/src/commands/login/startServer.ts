@@ -1,8 +1,10 @@
-import { createServer, RequestListener } from "http";
+import { createServer, RequestListener, Server } from "http";
 import { program } from "commander";
 import { AddressInfo } from "net";
 
-export default async function startServer(callback: RequestListener) {
+export default async function startServer(
+  callback: RequestListener
+): Promise<{ port: number; server: Server }> {
   const server = createServer(callback);
 
   server.listen(0);
@@ -13,5 +15,5 @@ export default async function startServer(callback: RequestListener) {
     program.error("Error starting local server");
   }
 
-  return address.port;
+  return { port: address.port, server };
 }

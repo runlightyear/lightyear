@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { program } from "commander";
 import * as dotenv from "dotenv";
 import packageJson from "../package.json";
@@ -10,7 +9,7 @@ import { deploy } from "./commands/deploy";
 import { prepareConsole } from "./logging";
 import { largeLogo } from "./largeLogo";
 import { build } from "./commands/build-command";
-// import { test } from "./commands/test";
+import { test } from "./commands/test";
 
 dotenv.config();
 
@@ -26,6 +25,7 @@ program
   .addCommand(build)
   .addCommand(dev)
   .addCommand(deploy)
+  .addCommand(test)
   .option("-d, --debug", "output extra debugging")
   .addHelpText("beforeAll", largeLogo);
 

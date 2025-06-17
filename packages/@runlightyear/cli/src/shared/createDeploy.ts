@@ -1,6 +1,6 @@
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 import { program } from "commander";
-import { terminal } from "terminal-kit";
+import chalk from "chalk";
 
 export interface CreateDeployProps {
   envName?: "dev" | "prod";
@@ -46,8 +46,10 @@ export default async function createDeploy(
     const json = await response.json();
     if (response.status === 403) {
       console.error(json.message);
-      terminal.red("Deploy failed 💥\n");
-      process.exit(1);
+      console.log(chalk.red("Deploy failed 💥"));
+      program.error("Deploy failed due to authorization error", {
+        exitCode: 1,
+      });
     }
     console.error(
       "Failed to create deploy",

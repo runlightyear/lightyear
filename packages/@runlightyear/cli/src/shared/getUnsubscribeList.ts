@@ -1,4 +1,4 @@
-import { terminal } from "terminal-kit";
+import chalk from "chalk";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export default async function getUnsubscribeList() {
@@ -21,7 +21,7 @@ export default async function getUnsubscribeList() {
     return await response.json();
   } else {
     console.error(
-      "Failed to get unsubscribe list: ",
+      chalk.red("Failed to get unsubscribe list: "),
       response.status,
       response.statusText
     );

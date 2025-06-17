@@ -3,11 +3,13 @@ import fetchApiKey from "./fetchApiKey";
 import writeEnvFile from "./writeEnvFile";
 import parseCode from "./parseCode";
 import { program } from "commander";
-import { terminal } from "terminal-kit";
 
-export default function getRequestHandler(baseUrl: string) {
+export default function getRequestHandler(
+  baseUrl: string,
+  onComplete: () => void
+) {
   const callback: RequestListener = async (req, res) => {
-    terminal("Received response from browser\n");
+    console.log("Received response from browser");
 
     res.statusCode = 302;
 
@@ -21,7 +23,8 @@ export default function getRequestHandler(baseUrl: string) {
     const { LIGHTYEAR_API_KEY } = await fetchApiKey(baseUrl, code, res);
     await writeEnvFile({ LIGHTYEAR_API_KEY, baseUrl }, res);
 
-    process.exit(0);
+    // Signal completion to the calling code
+    onComplete();
   };
 
   return callback;

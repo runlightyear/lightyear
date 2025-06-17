@@ -5,7 +5,7 @@ import execDeploy from "./execDeploy";
 import execSubscribeProps from "./execSubscribeProps";
 import execUnsubscribeAfterDeploy from "./execUnsubscribeAfterDeploy";
 import execSubscribeAfterDeploy from "./execSubscribeAfterDeploy";
-import { terminal } from "terminal-kit";
+import chalk from "chalk";
 import updateDeploy from "./updateDeploy";
 import getPreviouslyDeployedCode from "./getPreviouslyDeployedCode";
 import runInContext from "./runInContext";
@@ -40,7 +40,7 @@ export default async function execDeployAndSubscribe() {
   if (status === "SUCCEEDED") {
     // terminal.green("🚀 Deploy succeeded!\n");
   } else if (status === "FAILED") {
-    terminal.red("💥 Deploy failed\n");
+    console.error(chalk.red("💥 Deploy failed\n"));
   }
 
   await updateDeploy({

@@ -1,9 +1,11 @@
 import getPusher from "../../../shared/getPusher";
 import getPusherCredentials from "../../../shared/getPusherCredentials";
 import fetchDeploy from "./fetchDeploy";
-import { terminal } from "terminal-kit";
+import chalk from "chalk";
 import { logDisplayLevel } from "../../../shared/setLogDisplayLevel";
-import throttle from "lodash/throttle";
+import { program } from "commander";
+import lodash from "lodash";
+const { throttle } = lodash;
 
 export type Log = {
   id: string;
@@ -39,29 +41,27 @@ export default async function waitUntilDeployFinishes(deployId: string) {
 
     const newLogs = logs.slice(lineOutputCounter);
 
-    const logOutput =
-      newLogs
-        .filter((log) =>
-          logDisplayLevel === "DEBUG" ? true : log.level !== "DEBUG"
-        )
-        .map(
-          (log) =>
-            "\x1b[35m" +
-            "Server: " +
-            "\x1b[0m" +
-            `[${log.level}]: ${log.message}`
-        )
-        .join("\n") + "\n";
-    terminal(logOutput);
+    const logOutput = newLogs
+      .filter((log) =>
+        logDisplayLevel === "DEBUG" ? true : log.level !== "DEBUG"
+      )
+      .map(
+        (log) =>
+          "\x1b[35m" + "Server: " + "\x1b[0m" + `[${log.level}]: ${log.message}`
+      )
+      .join("\n");
+    if (logOutput) {
+      console.log(logOutput);
+    }
 
     lineOutputCounter = newLogs.length;
 
     if (status === "SUCCEEDED") {
-      terminal.green("Deploy succeeded! 🚀\n");
-      process.exit(0);
+      console.log(chalk.green("Deploy succeeded! 🚀"));
+      return;
     } else if (status === "FAILED") {
-      terminal.red("Deploy failed 💥\n");
-      process.exit(1);
+      console.log(chalk.red("Deploy failed 💥"));
+      program.error("Deploy failed", { exitCode: 1 });
     }
   };
 

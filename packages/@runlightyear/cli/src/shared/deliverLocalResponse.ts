@@ -1,4 +1,3 @@
-import { terminal } from "terminal-kit";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export interface DeliverAuthRequestUrlProps {
