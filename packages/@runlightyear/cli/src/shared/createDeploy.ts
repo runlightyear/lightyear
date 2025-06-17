@@ -47,7 +47,9 @@ export default async function createDeploy(
     if (response.status === 403) {
       console.error(json.message);
       console.log(chalk.red("Deploy failed 💥"));
-      process.exit(1);
+      program.error("Deploy failed due to authorization error", {
+        exitCode: 1,
+      });
     }
     console.error(
       "Failed to create deploy",

@@ -28,8 +28,21 @@ for (const name in obj) {
 
       const accountType = name === "login" ? "existing" : "new";
 
-      const localPort = await startServer(getRequestHandler(baseUrl));
+      // Create a promise that resolves when login is complete
+      const loginComplete = new Promise<void>(async (resolve) => {
+        const { port: localPort, server } = await startServer(
+          getRequestHandler(baseUrl, () => {
+            // Gracefully shut down server and resolve
+            server.close(() => {
+              resolve();
+            });
+          })
+        );
 
-      await openBrowser(authUrl, baseUrl, accountType, localPort);
+        await openBrowser(authUrl, baseUrl, accountType, localPort);
+      });
+
+      // Wait for login to complete, then return naturally
+      await loginComplete;
     });
 }

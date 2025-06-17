@@ -4,7 +4,10 @@ import writeEnvFile from "./writeEnvFile";
 import parseCode from "./parseCode";
 import { program } from "commander";
 
-export default function getRequestHandler(baseUrl: string) {
+export default function getRequestHandler(
+  baseUrl: string,
+  onComplete: () => void
+) {
   const callback: RequestListener = async (req, res) => {
     console.log("Received response from browser");
 
@@ -20,7 +23,8 @@ export default function getRequestHandler(baseUrl: string) {
     const { LIGHTYEAR_API_KEY } = await fetchApiKey(baseUrl, code, res);
     await writeEnvFile({ LIGHTYEAR_API_KEY, baseUrl }, res);
 
-    process.exit(0);
+    // Signal completion to the calling code
+    onComplete();
   };
 
   return callback;

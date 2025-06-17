@@ -3,6 +3,7 @@ import getPusherCredentials from "../../../shared/getPusherCredentials";
 import fetchDeploy from "./fetchDeploy";
 import chalk from "chalk";
 import { logDisplayLevel } from "../../../shared/setLogDisplayLevel";
+import { program } from "commander";
 import lodash from "lodash";
 const { throttle } = lodash;
 
@@ -57,10 +58,10 @@ export default async function waitUntilDeployFinishes(deployId: string) {
 
     if (status === "SUCCEEDED") {
       console.log(chalk.green("Deploy succeeded! 🚀"));
-      process.exit(0);
+      return;
     } else if (status === "FAILED") {
       console.log(chalk.red("Deploy failed 💥"));
-      process.exit(1);
+      program.error("Deploy failed", { exitCode: 1 });
     }
   };
 

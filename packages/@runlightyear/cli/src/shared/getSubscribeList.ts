@@ -1,6 +1,5 @@
-import terminalKit from "terminal-kit";
-const { terminal } = terminalKit;
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
+import chalk from "chalk";
 
 export default async function getSubscribeList() {
   const baseUrl = getBaseUrl();
@@ -21,7 +20,7 @@ export default async function getSubscribeList() {
   if (response.ok) {
     return await response.json();
   } else {
-    console.error("Error retrieving subscribe list\n");
+    console.error(chalk.red("Error retrieving subscribe list"));
     return null;
   }
 }

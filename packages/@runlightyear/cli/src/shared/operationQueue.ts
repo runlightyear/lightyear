@@ -18,8 +18,6 @@ import {
   execRefreshSubscription,
   ExecRefreshSubscriptionProps,
 } from "./execRefreshSubscription";
-import terminalKit from "terminal-kit";
-const { terminal } = terminalKit;
 import { handleReceiveCustomAppWebhook } from "../commands/dev/handleReceiveCustomAppWebhook";
 import {
   execReceiveCustomWebhook,
@@ -126,10 +124,12 @@ async function processOperations() {
   processingOperations = false;
 
   if (firstOperationsProcessed) {
-    terminal("\n\nDashboard is available at: https://app.runlightyear.com\n");
+    console.log(
+      "\n\nDashboard is available at: https://app.runlightyear.com\n"
+    );
     firstOperationsProcessed = false;
   }
 
-  terminal("\n\nWaiting for file changes...\n");
-  terminal("press h for help, press q to quit\n\n");
+  console.log("\n\nWaiting for file changes...");
+  console.log("press h for help, press q to quit\n");
 }

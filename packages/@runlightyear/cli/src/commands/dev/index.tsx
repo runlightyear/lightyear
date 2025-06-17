@@ -3,7 +3,6 @@ import getPusher from "../../shared/getPusher";
 import getPusherCredentials from "../../shared/getPusherCredentials";
 import handleRunLocal from "./handleRunLocal";
 import nodemon from "nodemon";
-// Removed terminal-kit import - migrated to ink
 import { setLogDisplayLevel } from "../../shared/setLogDisplayLevel";
 import { prepareConsole } from "../../logging";
 import handleResubscribe from "./handleResubscribe";
@@ -68,7 +67,8 @@ const CommandPrompt = () => {
       case "q":
       case "quit":
       case "exit":
-        process.exit();
+        addLog("Exiting...");
+        setTimeout(() => process.exit(0), 100);
         break;
       case "":
         // Empty command, do nothing
