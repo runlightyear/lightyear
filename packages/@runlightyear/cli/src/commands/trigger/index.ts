@@ -209,32 +209,22 @@ trigger
     terminal.cyan(`\nTriggering action: ${selectedAction}\n`);
     
     if (triggerForAllManagedUsers && managedUsers.length > 0) {
-      terminal(`Triggering for all ${managedUsers.length} managed users...\n\n`);
+      terminal(`Triggering for all ${managedUsers.length} managed users...\n`);
       
-      let successCount = 0;
-      let failureCount = 0;
+      const { success, error } = await triggerAction(selectedAction, 'ALL');
       
-      for (const user of managedUsers) {
-        terminal.gray(`Triggering for ${user.name} (${user.id})...\n`);
-        
-        const { success, error } = await triggerAction(selectedAction, user.id);
-        
-        if (success) {
-          terminal.green(`✓ Triggered successfully for ${user.name}\n\n`);
-          successCount++;
-        } else {
-          terminal.red(`✗ Failed to trigger for ${user.name}: ${error}\n\n`);
-          failureCount++;
-        }
+      if (success) {
+        terminal.green(`\n✓ Action triggered successfully for all managed users\n`);
+      } else {
+        terminal.red(`\n✗ Failed to trigger action for all managed users: ${error}\n`);
       }
-      
-      terminal.cyan(`\nSummary:\n`);
-      terminal.green(`✓ Successful: ${successCount}\n`);
-      if (failureCount > 0) {
-        terminal.red(`✗ Failed: ${failureCount}\n`);
-      }
-      terminal(`\nAction trigger completed for all managed users\n`);
     } else {
+      if (managedUserId) {
+        const user = managedUsers.find(u => u.id === managedUserId);
+        const userName = user ? user.name : managedUserId;
+        terminal(`Triggering for ${userName} (${managedUserId})...\n`);
+      }
+      
       const { success, error } = await triggerAction(selectedAction, managedUserId);
       
       if (success) {
