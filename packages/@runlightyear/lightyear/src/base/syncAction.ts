@@ -48,9 +48,16 @@ export function defineSyncAction(props: DefineSyncActionProps) {
   return defineAction({
     name: props.name,
     title: props.title,
-    trigger: {
-      pollingFrequency: props.frequency?.incremental ?? 1,
-    },
+    ...(props.frequency && (props.frequency.incremental || props.frequency.full)
+      ? {
+          trigger: {
+            pollingFrequency: Math.min(
+              props.frequency?.incremental ?? Infinity,
+              props.frequency?.full ?? Infinity
+            ),
+          },
+        }
+      : {}),
     // apps: props.app ? [props.app] : [],
     // customApps: props.customApp ? [props.customApp] : [],
     run: async (runProps) => {
@@ -112,7 +119,12 @@ export function defineSyncAction(props: DefineSyncActionProps) {
           throw error;
         }
 
-        await finishSync(sync.id);
+        console.info("Finishing sync with error", error);
+
+        await finishSync(
+          sync.id,
+          error instanceof Error ? error.message : String(error)
+        );
         throw error;
       }
 

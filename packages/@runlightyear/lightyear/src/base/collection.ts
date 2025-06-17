@@ -409,32 +409,42 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
   return response;
 }
 
-export interface ConfirmChangeProps {
-  syncId: string;
-  changeId: string;
-  externalId: string;
-  externalUpdatedAt: string | null;
-}
+export type ConfirmChangeProps =
+  | {
+      syncId: string;
+      changeId: string;
+      externalId: string;
+      externalUpdatedAt: string | null;
+    }
+  | {
+      syncId: string;
+      changeId: string;
+      error: string;
+    };
 
 export async function confirmChange(props: ConfirmChangeProps) {
-  const { syncId, changeId, externalId, externalUpdatedAt } = props;
-
+  const { syncId, changeId } = props;
   const envName = getEnvName();
+
+  const data =
+    "error" in props
+      ? { error: props.error }
+      : {
+          externalId: props.externalId,
+          externalUpdatedAt: props.externalUpdatedAt,
+        };
 
   const response = await baseRequest({
     method: "POST",
     uri: `/api/v1/envs/${envName}/syncs/${syncId}/changes/${changeId}/confirm`,
-    data: {
-      externalId,
-      externalUpdatedAt,
-    },
+    data,
   });
 
   console.info(
     "Confirm",
     changeId,
-    externalId,
-    externalUpdatedAt,
+    "error" in props ? props.error : props.externalId,
+    "error" in props ? undefined : props.externalUpdatedAt,
     response.status,
     response.statusText
   );
@@ -465,64 +475,6 @@ export async function confirmChangeBatch(props: ConfirmChangeBatchProps) {
       async,
     },
   });
-}
-
-export interface ConfirmObjectBatchProps {
-  collection: string;
-  syncId: string;
-  model: string;
-  app: string | undefined;
-  customApp: string | undefined;
-  managedUserId?: string | null;
-  objects: Array<{
-    objectId?: string;
-    localObjectId: string;
-    localUpdatedAt: string | null;
-    data: unknown;
-  }>;
-  overwrite?: boolean;
-  async?: boolean;
-}
-
-export async function confirmObjectBatch(props: ConfirmObjectBatchProps) {
-  const {
-    collection,
-    syncId,
-    model,
-    app,
-    customApp,
-    managedUserId,
-    objects,
-    overwrite,
-    async,
-  } = props;
-
-  const envName = getEnvName();
-
-  const response = await baseRequest({
-    method: "POST",
-    uri: `/api/v1/envs/${envName}/collections/${collection}/models/${model}/objects/confirm/batch`,
-    data: {
-      syncId,
-      appName: app,
-      customAppName: customApp,
-      managedUserId,
-      objects,
-      overwrite,
-      async,
-    },
-  });
-
-  console.info(
-    "Confirm",
-    collection,
-    model,
-    objects.length,
-    response.status,
-    response.statusText
-  );
-
-  return response;
 }
 
 export interface DeleteObjectProps {
@@ -626,11 +578,14 @@ export async function pauseSync(syncId: string) {
   return response;
 }
 
-export async function finishSync(syncId: string) {
+export async function finishSync(syncId: string, error?: string) {
   const envName = getEnvName();
 
   return baseRequest({
     method: "POST",
     uri: `/api/v1/envs/${envName}/syncs/${syncId}/finish`,
+    data: {
+      error,
+    },
   });
 }
