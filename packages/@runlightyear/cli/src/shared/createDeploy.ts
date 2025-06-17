@@ -1,7 +1,6 @@
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 import { program } from "commander";
-import terminalKit from "terminal-kit";
-const { terminal } = terminalKit;
+import chalk from "chalk";
 
 export interface CreateDeployProps {
   envName?: "dev" | "prod";
@@ -47,7 +46,7 @@ export default async function createDeploy(
     const json = await response.json();
     if (response.status === 403) {
       console.error(json.message);
-      terminal.red("Deploy failed 💥\n");
+      console.log(chalk.red("Deploy failed 💥"));
       process.exit(1);
     }
     console.error(

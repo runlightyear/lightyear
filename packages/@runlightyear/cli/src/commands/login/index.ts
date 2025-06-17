@@ -4,8 +4,7 @@ import startServer from "./startServer";
 import getRequestHandler from "./getRequestHandler";
 import openBrowser from "./openBrowser";
 import getAccountType from "./getAccountType";
-import terminalKit from "terminal-kit";
-const { terminal } = terminalKit;
+import chalk from "chalk";
 
 export const login = new Command("login");
 export const signup = new Command("signup");
@@ -22,7 +21,7 @@ for (const name in obj) {
       let authUrl = "https://app.runlightyear.com";
       let baseUrl = "https://app.runlightyear.com";
       if (options.dev) {
-        terminal.red("In dev mode, using http://localhost:3000\n");
+        console.log(chalk.red("In dev mode, using http://localhost:3000"));
         authUrl = "http://localhost:3000";
         baseUrl = "http://localhost:3000";
       }

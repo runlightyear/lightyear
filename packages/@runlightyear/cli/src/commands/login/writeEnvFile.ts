@@ -1,8 +1,7 @@
 import { program } from "commander";
 import fs from "fs";
 import { ServerResponse } from "http";
-import terminalKit from "terminal-kit";
-const { terminal } = terminalKit;
+import chalk from "chalk";
 
 export default async function writeEnvFile(
   {
@@ -21,7 +20,9 @@ export default async function writeEnvFile(
     );
     res.setHeader("location", `${baseUrl}/cli-login/succeeded`);
     res.end();
-    terminal("Login successful, wrote credentials to .env file\n");
+    console.log(
+      chalk.green("Login successful, wrote credentials to .env file")
+    );
   } catch (error) {
     res.setHeader("location", `${baseUrl}/cli-login/failed`);
     res.end();

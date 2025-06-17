@@ -1,6 +1,4 @@
 import open from "open";
-import terminalKit from "terminal-kit";
-const { terminal } = terminalKit;
 
 export default async function openBrowser(
   authUrl: string,
@@ -9,9 +7,9 @@ export default async function openBrowser(
   localPort: number
 ) {
   if (accountType === "new") {
-    terminal("Opening your browser to allow you to sign up\n");
+    console.log("Opening your browser to allow you to sign up");
   } else {
-    terminal("Opening your browser to allow you to sign in\n");
+    console.log("Opening your browser to allow you to sign in");
   }
 
   const pagePrefix = accountType === "new" ? "/sign-up#/?redirect_url=" : "";
