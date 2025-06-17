@@ -17,6 +17,7 @@ import handleRequestAccessToken from "./handleRequestAccessToken";
 import handleRefreshAccessToken from "./handleRefreshAccessToken";
 import { handleRefreshSubscription } from "./handleRefreshSubscription";
 import { handleReceiveCustomAppWebhook } from "./handleReceiveCustomAppWebhook";
+import { run as runCommand } from "../run";
 
 export const dev = new Command("dev");
 
@@ -98,6 +99,11 @@ dev
         }, 100);
       } else if (data.code === "d") {
         pushOperation({ operation: "deploy", params: undefined });
+      } else if (data.code === "r") {
+        // Execute the run command interactively
+        terminal.grabInput(false);
+        await runCommand.parseAsync(["node", "lightyear", "r"]);
+        terminal.grabInput(true);
       } else if (data.code === "l") {
         if (logDisplayLevel === "DEBUG") {
           console.info("DEBUG logging off");
@@ -110,6 +116,7 @@ dev
       } else if (data.code === "h") {
         terminal("\n");
         terminal("  press d to deploy\n");
+        terminal("  press r to run an action\n");
         terminal(
           `  press l to turn DEBUG logs ${
             logDisplayLevel === "DEBUG" ? "off" : "on"
