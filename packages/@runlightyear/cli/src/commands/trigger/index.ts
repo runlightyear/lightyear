@@ -71,18 +71,14 @@ async function getManagedUsers(): Promise<Array<{ id: string; name: string }>> {
   }
 }
 
-async function triggerAction(actionName: string, managedUserId?: string): Promise<{ runId: string; success: boolean }> {
+async function triggerAction(actionName: string, managedUserId?: string): Promise<{ success: boolean; error?: string }> {
   const baseUrl = getBaseUrl();
   const envName = getEnvName();
   const apiKey = getApiKey();
   
   try {
-    // Create a new run
-    const runId = crypto.randomUUID();
-    
-    // First, create the run
-    const createResponse = await fetch(
-      `${baseUrl}/api/v1/envs/${envName}/runs`,
+    const response = await fetch(
+      `${baseUrl}/api/v1/envs/${envName}/actions/${actionName}/trigger`,
       {
         method: "POST",
         headers: {
@@ -90,48 +86,22 @@ async function triggerAction(actionName: string, managedUserId?: string): Promis
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id: runId,
-          actionName,
           managedUserId,
-          status: "PENDING",
         }),
       }
     );
     
-    if (!createResponse.ok) {
-      console.error(`Failed to create run: ${createResponse.status} ${createResponse.statusText}`);
-      const errorText = await createResponse.text();
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Failed to trigger action: ${response.status} ${response.statusText}`);
       console.debug("Error response:", errorText);
-      return { runId, success: false };
+      return { success: false, error: `${response.status} ${response.statusText}` };
     }
     
-    // Then trigger the run
-    const triggerResponse = await fetch(
-      `${baseUrl}/api/v1/envs/${envName}/runs/${runId}/trigger`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `apiKey ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          actionName,
-          data: managedUserId ? { managedUserId } : {},
-        }),
-      }
-    );
-    
-    if (!triggerResponse.ok) {
-      console.error(`Failed to trigger run: ${triggerResponse.status} ${triggerResponse.statusText}`);
-      const errorText = await triggerResponse.text();
-      console.debug("Error response:", errorText);
-      return { runId, success: false };
-    }
-    
-    return { runId, success: true };
+    return { success: true };
   } catch (error) {
     console.error("Error triggering action:", error);
-    return { runId: "", success: false };
+    return { success: false, error: String(error) };
   }
 }
 
@@ -247,13 +217,13 @@ trigger
       for (const user of managedUsers) {
         terminal.gray(`Triggering for ${user.name} (${user.id})...\n`);
         
-        const { runId, success } = await triggerAction(selectedAction, user.id);
+        const { success, error } = await triggerAction(selectedAction, user.id);
         
         if (success) {
-          terminal.green(`✓ Triggered successfully for ${user.name} (Run ID: ${runId})\n\n`);
+          terminal.green(`✓ Triggered successfully for ${user.name}\n\n`);
           successCount++;
         } else {
-          terminal.red(`✗ Failed to trigger for ${user.name}\n\n`);
+          terminal.red(`✗ Failed to trigger for ${user.name}: ${error}\n\n`);
           failureCount++;
         }
       }
@@ -265,12 +235,12 @@ trigger
       }
       terminal(`\nAction trigger completed for all managed users\n`);
     } else {
-      const { runId, success } = await triggerAction(selectedAction, managedUserId);
+      const { success, error } = await triggerAction(selectedAction, managedUserId);
       
       if (success) {
-        terminal.green(`\n✓ Action triggered successfully (Run ID: ${runId})\n`);
+        terminal.green(`\n✓ Action triggered successfully\n`);
       } else {
-        terminal.red(`\n✗ Failed to trigger action\n`);
+        terminal.red(`\n✗ Failed to trigger action: ${error}\n`);
       }
     }
   });
