@@ -4,7 +4,10 @@ import getPusherCredentials from "../../shared/getPusherCredentials";
 import handleRunLocal from "./handleRunLocal";
 import nodemon from "nodemon";
 import { terminal } from "terminal-kit";
-import { setLogDisplayLevel, logDisplayLevel } from "../../shared/setLogDisplayLevel";
+import {
+  setLogDisplayLevel,
+  logDisplayLevel,
+} from "../../shared/setLogDisplayLevel";
 import { prepareConsole } from "../../logging";
 import handleResubscribe from "./handleResubscribe";
 import { largeLogo } from "../../largeLogo";
@@ -19,7 +22,7 @@ export const dev = new Command("dev");
 
 dev
   .description(
-    "Automatically deploy changes, run actions, and respond to webhooks in your dev environment"
+    "Automatically deploy changes, run actions, and respond to webhooks in your dev environment",
   )
   .addOption(new Option("--dev").hideHelp())
   .action(async () => {
@@ -37,10 +40,10 @@ dev
     const pusher = await getPusher(credentials);
 
     console.debug(
-      `Attempting to subscribe to presence channel ${credentials.devEnvId}\n`
+      `Attempting to subscribe to presence channel ${credentials.devEnvId}\n`,
     );
     const presenceSubscription = pusher.subscribe(
-      `presence-${credentials.devEnvId}`
+      `presence-${credentials.devEnvId}`,
     );
     presenceSubscription.bind("pusher:subscription_succeeded", () => {
       console.debug("Subscribed to presence channel\n");
@@ -48,7 +51,7 @@ dev
 
     console.debug(
       "Attempting to subscribe to regular channel",
-      credentials.devEnvId
+      credentials.devEnvId,
     );
     const subscription = pusher.subscribe(credentials.devEnvId);
     subscription.bind("pusher:subscription_succeeded", () => {
@@ -59,23 +62,23 @@ dev
     subscription.bind("localResubscribeTriggered", handleResubscribe);
     subscription.bind(
       "localGetAuthRequestUrlTriggered",
-      handleGetAuthRequestUrl
+      handleGetAuthRequestUrl,
     );
     subscription.bind(
       "localRequestAccessTokenTriggered",
-      handleRequestAccessToken
+      handleRequestAccessToken,
     );
     subscription.bind(
       "localRefreshAccessTokenTriggered",
-      handleRefreshAccessToken
+      handleRefreshAccessToken,
     );
     subscription.bind(
       "localRefreshSubscriptionTriggered",
-      handleRefreshSubscription
+      handleRefreshSubscription,
     );
     subscription.bind(
       "localReceiveCustomAppWebhookTriggered",
-      handleReceiveCustomAppWebhook
+      handleReceiveCustomAppWebhook,
     );
 
     nodemon({
@@ -107,7 +110,9 @@ dev
       } else if (data.code === "h") {
         terminal("\n");
         terminal("  press d to deploy\n");
-        terminal(`  press l to turn DEBUG logs ${logDisplayLevel === "DEBUG" ? "off" : "on"}\n`);
+        terminal(
+          `  press l to turn DEBUG logs ${logDisplayLevel === "DEBUG" ? "off" : "on"}\n`,
+        );
         terminal("  press q to quit\n");
         terminal("\n");
       } else {
