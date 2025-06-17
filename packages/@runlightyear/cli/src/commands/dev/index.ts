@@ -12,11 +12,16 @@ import { prepareConsole } from "../../logging";
 import handleResubscribe from "./handleResubscribe";
 import { largeLogo } from "../../largeLogo";
 import { pushOperation } from "../../shared/operationQueue";
+import {
+  pauseOperationQueue,
+  resumeOperationQueue,
+} from "../../shared/operationQueue";
 import handleGetAuthRequestUrl from "./handleGetAuthRequestUrl";
 import handleRequestAccessToken from "./handleRequestAccessToken";
 import handleRefreshAccessToken from "./handleRefreshAccessToken";
 import { handleRefreshSubscription } from "./handleRefreshSubscription";
 import { handleReceiveCustomAppWebhook } from "./handleReceiveCustomAppWebhook";
+import { trigger as triggerCommand } from "../trigger";
 
 export const dev = new Command("dev");
 
@@ -98,6 +103,16 @@ dev
         }, 100);
       } else if (data.code === "d") {
         pushOperation({ operation: "deploy", params: undefined });
+      } else if (data.code === "t") {
+        // Execute the trigger command interactively
+        terminal.grabInput(false);
+        pauseOperationQueue(); // Pause the queue while trigger is active
+        try {
+          await triggerCommand.parseAsync(["node", "lightyear", "t"]);
+        } finally {
+          resumeOperationQueue(); // Always resume the queue
+          terminal.grabInput(true);
+        }
       } else if (data.code === "l") {
         if (logDisplayLevel === "DEBUG") {
           console.info("DEBUG logging off");
@@ -110,6 +125,7 @@ dev
       } else if (data.code === "h") {
         terminal("\n");
         terminal("  press d to deploy\n");
+        terminal("  press t to trigger an action\n");
         terminal(
           `  press l to turn DEBUG logs ${
             logDisplayLevel === "DEBUG" ? "off" : "on"
