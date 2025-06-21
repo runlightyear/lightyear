@@ -121,8 +121,6 @@ export const httpRequest: HttpRequest = async (props) => {
       `::http-request id=${requestId}::${props.method || "GET"} ${displayUrl} ${response.status} ${response.statusText}`
     );
 
-    console.debug(`response.status`, response.status);
-    console.debug(`response.statusText`, response.statusText);
     const proxyResponse = (await response.json()) as HttpProxyResponse;
 
     if (proxyResponse.status === 429) {
@@ -144,8 +142,6 @@ export const httpRequest: HttpRequest = async (props) => {
           console.debug(`key ${key} not found in response data`);
         }
       }
-
-      console.debug("proxyResponse", proxyResponse);
     }
 
     return proxyResponse;
@@ -162,8 +158,6 @@ export const httpRequestBatch: HttpRequestBatch = async (requests) => {
   });
 
   const proxyResponse = (await response.json()) as HttpProxyResponse;
-
-  console.debug("proxyResponse", proxyResponse);
 
   return proxyResponse;
 };

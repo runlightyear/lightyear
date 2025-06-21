@@ -70,12 +70,6 @@ export abstract class AppWebhookConnector extends AuthConnector {
         ...additionalData,
       },
     });
-
-    console.debug("response", {
-      status: response.status,
-      statusText: response.statusText,
-      data: await response.json(),
-    });
   }
 
   async unsubscribe() {

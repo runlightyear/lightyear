@@ -74,7 +74,7 @@ export default async function baseRequest({
         attempt += 1;
 
         if (!suppressLogs)
-          console.debug(`Retrying after ${response.status} error (${attempt})`);
+          console.debug(`Retrying after server error (${attempt})`);
 
         continue;
       }

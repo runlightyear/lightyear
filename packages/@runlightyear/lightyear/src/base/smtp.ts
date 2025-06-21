@@ -54,11 +54,7 @@ export async function smtpRequest(
     data: props,
   });
 
-  console.debug(`response.status`, response.status);
-  console.debug(`response.statusText`, response.statusText);
   const proxyResponse = (await response.json()) as SmtpProxyResponse;
-
-  console.debug("proxyResponse", proxyResponse);
 
   return proxyResponse;
 }
