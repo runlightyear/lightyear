@@ -4,6 +4,7 @@ import baseRequest from "./baseRequest";
 import { HttpProxyResponseError, SKIPPED } from "../index";
 import { BaseRequestError } from "./BaseRequestError";
 import { getContext } from "./context";
+import { v4 as uuidv4 } from "uuid";
 
 export type MatchPropertyStr = string;
 export type MatchNestedProperty = Array<MatchPropertyStr>;
@@ -317,6 +318,7 @@ export async function upsertObject(props: UpsertObjectProps) {
   } = props;
 
   const envName = getEnvName();
+  const requestId = uuidv4();
 
   const response = await baseRequest({
     method: "POST",
@@ -335,12 +337,7 @@ export async function upsertObject(props: UpsertObjectProps) {
   });
 
   console.info(
-    "Upsert",
-    collection,
-    model,
-    localObjectId,
-    response.status,
-    response.statusText
+    `::http-request id=${requestId}::POST /collections/${collection}/models/${model}/objects/upsert ${response.status} ${response.statusText}`
   );
 
   return response;
@@ -381,6 +378,7 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
   } = props;
 
   const envName = getEnvName();
+  const requestId = uuidv4();
 
   const response = await baseRequest({
     method: "POST",
@@ -398,12 +396,7 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
   });
 
   console.info(
-    "Upsert",
-    collectionName,
-    modelName,
-    objects.length,
-    response.status,
-    response.statusText
+    `::http-request id=${requestId}::POST /collections/${collectionName}/models/${modelName}/objects/upsert/batch ${response.status} ${response.statusText}`
   );
 
   return response;
@@ -420,6 +413,7 @@ export async function confirmChange(props: ConfirmChangeProps) {
   const { syncId, changeId, externalId, externalUpdatedAt } = props;
 
   const envName = getEnvName();
+  const requestId = uuidv4();
 
   const response = await baseRequest({
     method: "POST",
@@ -431,12 +425,7 @@ export async function confirmChange(props: ConfirmChangeProps) {
   });
 
   console.info(
-    "Confirm",
-    changeId,
-    externalId,
-    externalUpdatedAt,
-    response.status,
-    response.statusText
+    `::http-request id=${requestId}::POST /syncs/${syncId}/changes/${changeId}/confirm ${response.status} ${response.statusText}`
   );
 
   return response;
@@ -498,6 +487,7 @@ export async function confirmObjectBatch(props: ConfirmObjectBatchProps) {
   } = props;
 
   const envName = getEnvName();
+  const requestId = uuidv4();
 
   const response = await baseRequest({
     method: "POST",
@@ -514,12 +504,7 @@ export async function confirmObjectBatch(props: ConfirmObjectBatchProps) {
   });
 
   console.info(
-    "Confirm",
-    collection,
-    model,
-    objects.length,
-    response.status,
-    response.statusText
+    `::http-request id=${requestId}::POST /collections/${collection}/models/${model}/objects/confirm/batch ${response.status} ${response.statusText}`
   );
 
   return response;
@@ -538,6 +523,7 @@ export async function deleteObject(props: DeleteObjectProps) {
     props;
 
   const envName = getEnvName();
+  const requestId = uuidv4();
 
   const response = await baseRequest({
     method: "POST",
@@ -550,12 +536,7 @@ export async function deleteObject(props: DeleteObjectProps) {
   });
 
   console.info(
-    "Delete object",
-    collection,
-    model,
-    externalId,
-    response.status,
-    response.statusText
+    `::http-request id=${requestId}::POST /collections/${collection}/models/${model}/objects/delete ${response.status} ${response.statusText}`
   );
 
   return response;

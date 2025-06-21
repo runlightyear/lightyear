@@ -3,6 +3,7 @@ import { prefixedRedactedConsole } from "../logging";
 import { sleep } from "../util/sleep";
 import { getEnvName } from "../util/getEnvName";
 import { getContext } from "./context";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * @public
@@ -104,6 +105,7 @@ export const httpRequest: HttpRequest = async (props) => {
 
   const maxBackoffs = 5;
   let backoffCount = 0;
+  const requestId = uuidv4();
 
   do {
     const response = await baseRequest({
@@ -116,10 +118,7 @@ export const httpRequest: HttpRequest = async (props) => {
     const displayUrl = `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`;
 
     console.info(
-      props.method,
-      displayUrl,
-      response.status,
-      response.statusText
+      `::http-request id=${requestId}::${props.method || "GET"} ${displayUrl} ${response.status} ${response.statusText}`
     );
 
     console.debug(`response.status`, response.status);
