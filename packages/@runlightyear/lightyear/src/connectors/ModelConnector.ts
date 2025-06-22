@@ -351,11 +351,25 @@ export abstract class ModelConnector<
             await this.updateBatch({ changes: delta.changes });
           } else if (this.update) {
             for (const change of delta.changes) {
-              await this.update({
-                changeId: change.changeId,
-                externalId: change.externalId,
-                data: change.data,
-              });
+              try {
+                const { externalUpdatedAt } = await this.update({
+                  changeId: change.changeId,
+                  externalId: change.externalId,
+                  data: change.data,
+                });
+                await confirmChange({
+                  syncId,
+                  changeId: change.changeId,
+                  externalId: change.externalId,
+                  externalUpdatedAt,
+                });
+              } catch (error) {
+                await confirmChange({
+                  syncId,
+                  changeId: change.changeId,
+                  error: error instanceof Error ? error.message : String(error),
+                });
+              }
             }
           } else {
             throw new Error("Update batch function not implemented");
@@ -365,10 +379,24 @@ export abstract class ModelConnector<
             await this.deleteBatch({ changes: delta.changes });
           } else if (this.delete) {
             for (const change of delta.changes) {
-              await this.delete({
-                changeId: change.changeId,
-                externalId: change.externalId,
-              });
+              try {
+                await this.delete({
+                  changeId: change.changeId,
+                  externalId: change.externalId,
+                });
+                await confirmChange({
+                  syncId,
+                  changeId: change.changeId,
+                  externalId: change.externalId,
+                  externalUpdatedAt: undefined,
+                });
+              } catch (error) {
+                await confirmChange({
+                  syncId,
+                  changeId: change.changeId,
+                  error: error instanceof Error ? error.message : String(error),
+                });
+              }
             }
           } else {
             throw new Error("Delete batch function not implemented");

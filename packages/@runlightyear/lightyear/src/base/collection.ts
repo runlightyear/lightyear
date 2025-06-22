@@ -414,7 +414,7 @@ export type ConfirmChangeProps =
       syncId: string;
       changeId: string;
       externalId: string;
-      externalUpdatedAt: string | null;
+      externalUpdatedAt: string | null | undefined;
     }
   | {
       syncId: string;
