@@ -112,18 +112,6 @@ export const httpRequest: HttpRequest = async (props) => {
       maxRetries,
     });
 
-    const parsedUrl = new URL(props.url);
-    const displayUrl = `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`;
-
-    console.info(
-      props.method,
-      displayUrl,
-      response.status,
-      response.statusText
-    );
-
-    console.debug(`response.status`, response.status);
-    console.debug(`response.statusText`, response.statusText);
     const proxyResponse = (await response.json()) as HttpProxyResponse;
 
     if (proxyResponse.status === 429) {
@@ -134,7 +122,6 @@ export const httpRequest: HttpRequest = async (props) => {
       await exponentialBackoffWithJitter(backoffCount);
       continue;
     } else if (proxyResponse.status < 200 || proxyResponse.status >= 300) {
-      console.error("Error in proxy http request", proxyResponse);
       throw new HttpProxyResponseError(proxyResponse);
     } else {
       console.debug("redacting keys", redactKeys);
@@ -145,8 +132,6 @@ export const httpRequest: HttpRequest = async (props) => {
           console.debug(`key ${key} not found in response data`);
         }
       }
-
-      console.debug("proxyResponse", proxyResponse);
     }
 
     return proxyResponse;
@@ -163,8 +148,6 @@ export const httpRequestBatch: HttpRequestBatch = async (requests) => {
   });
 
   const proxyResponse = (await response.json()) as HttpProxyResponse;
-
-  console.debug("proxyResponse", proxyResponse);
 
   return proxyResponse;
 };
