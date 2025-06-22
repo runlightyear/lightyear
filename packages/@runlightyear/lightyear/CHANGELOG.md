@@ -1,5 +1,11 @@
 # @runlightyear/lightyear
 
+## 2.4.0
+
+### Minor Changes
+
+- 59e3915: Stop logging http requests here as backend handle it now
+
 ## 2.3.2
 
 ### Patch Changes
