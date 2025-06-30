@@ -59,6 +59,7 @@ export interface ListProps {
 export type ObjectList<Object> = Promise<{
   objects: Array<Object>;
   cursor?: string;
+  httpRequestId?: string;
 }>;
 
 export interface ReadProps {
@@ -113,9 +114,11 @@ export type ListFn<ObjectData> = (
   props: ListProps
 ) => Promise<ObjectList<ObjectData>>;
 
-export type CreateFn<ObjectData> = (
-  props: CreateProps<ObjectData>
-) => Promise<{ externalId: string; externalUpdatedAt: string | null }>;
+export type CreateFn<ObjectData> = (props: CreateProps<ObjectData>) => Promise<{
+  externalId: string;
+  externalUpdatedAt: string | null;
+  httpRequestId?: string;
+}>;
 
 export type CreateBatchFn<ObjectData> = (
   props: CreateBatchProps<ObjectData>
@@ -123,13 +126,15 @@ export type CreateBatchFn<ObjectData> = (
 
 export type UpdateFn<ObjectData> = (
   props: UpdateProps<ObjectData>
-) => Promise<{ externalUpdatedAt: string | null }>;
+) => Promise<{ externalUpdatedAt: string | null; httpRequestId?: string }>;
 
 export type UpdateBatchFn<ObjectData> = (
   props: UpdateBatchProps<ObjectData>
 ) => Promise<void>;
 
-export type DeleteFn = (props: DeleteProps) => Promise<void>;
+export type DeleteFn = (props: DeleteProps) => Promise<void | {
+  httpRequestId?: string;
+}>;
 
 export type DeleteBatchFn = (props: DeleteBatchProps) => Promise<void>;
 
@@ -253,6 +258,8 @@ export abstract class ModelConnector<
           cursor,
         });
 
+        const listHttpRequestId = listResponse.httpRequestId;
+
         if (this.validateListResponse) {
           await this.validateListResponse(listResponse);
         }
@@ -275,6 +282,7 @@ export abstract class ModelConnector<
               externalId: obj.id as string,
               externalUpdatedAt: obj.updatedAt as string,
               data: obj.data as any,
+              httpRequestId: listHttpRequestId,
             })),
             cursor,
             async: true,
@@ -297,7 +305,6 @@ export abstract class ModelConnector<
         currentDirection: "PUSH",
       });
 
-      let more;
       let changeCounter = 0;
       do {
         if (isTimeLimitExceeded()) {
@@ -324,16 +331,23 @@ export abstract class ModelConnector<
           } else if (this.create) {
             for (const change of delta.changes) {
               try {
-                const { externalId, externalUpdatedAt } = await this.create({
-                  changeId: change.changeId,
-                  data: change.data,
-                });
+                const { externalId, externalUpdatedAt, httpRequestId } =
+                  await this.create({
+                    changeId: change.changeId,
+                    data: change.data,
+                  });
+
+                console.warn(
+                  "about to confirm change with httpRequestId",
+                  httpRequestId
+                );
 
                 await confirmChange({
                   syncId,
                   changeId: change.changeId,
                   externalId,
                   externalUpdatedAt,
+                  httpRequestId,
                 });
               } catch (error) {
                 await confirmChange({
@@ -352,16 +366,23 @@ export abstract class ModelConnector<
           } else if (this.update) {
             for (const change of delta.changes) {
               try {
-                const { externalUpdatedAt } = await this.update({
+                const { externalUpdatedAt, httpRequestId } = await this.update({
                   changeId: change.changeId,
                   externalId: change.externalId,
                   data: change.data,
                 });
+
+                console.warn(
+                  "about to confirm change with httpRequestId",
+                  httpRequestId
+                );
+
                 await confirmChange({
                   syncId,
                   changeId: change.changeId,
                   externalId: change.externalId,
                   externalUpdatedAt,
+                  httpRequestId,
                 });
               } catch (error) {
                 await confirmChange({
@@ -380,15 +401,28 @@ export abstract class ModelConnector<
           } else if (this.delete) {
             for (const change of delta.changes) {
               try {
-                await this.delete({
+                const result = await this.delete({
                   changeId: change.changeId,
                   externalId: change.externalId,
                 });
+                const httpRequestId =
+                  result &&
+                  typeof result === "object" &&
+                  "httpRequestId" in result
+                    ? result.httpRequestId
+                    : undefined;
+
+                console.warn(
+                  "about to confirm change with httpRequestId",
+                  httpRequestId
+                );
+
                 await confirmChange({
                   syncId,
                   changeId: change.changeId,
                   externalId: change.externalId,
                   externalUpdatedAt: undefined,
+                  httpRequestId,
                 });
               } catch (error) {
                 await confirmChange({
@@ -405,7 +439,7 @@ export abstract class ModelConnector<
 
         changeCounter += delta.changes.length;
         console.info("Changes processed:", changeCounter);
-      } while (more);
+      } while (true);
     }
   }
 }

@@ -415,11 +415,13 @@ export type ConfirmChangeProps =
       changeId: string;
       externalId: string;
       externalUpdatedAt: string | null | undefined;
+      httpRequestId?: string;
     }
   | {
       syncId: string;
       changeId: string;
       error: string;
+      httpRequestId?: string;
     };
 
 export async function confirmChange(props: ConfirmChangeProps) {
@@ -428,10 +430,11 @@ export async function confirmChange(props: ConfirmChangeProps) {
 
   const data =
     "error" in props
-      ? { error: props.error }
+      ? { error: props.error, httpRequestId: props.httpRequestId }
       : {
           externalId: props.externalId,
           externalUpdatedAt: props.externalUpdatedAt,
+          httpRequestId: props.httpRequestId,
         };
 
   const response = await baseRequest({

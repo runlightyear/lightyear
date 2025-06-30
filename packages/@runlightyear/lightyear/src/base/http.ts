@@ -55,6 +55,10 @@ export type HttpProxyResponse = {
    * The http body of the proxied response
    */
   data: any;
+  /**
+   * The http request id of the proxied response
+   */
+  httpRequestId?: string;
 };
 
 /**
@@ -112,7 +116,12 @@ export const httpRequest: HttpRequest = async (props) => {
       maxRetries,
     });
 
-    const proxyResponse = (await response.json()) as HttpProxyResponse;
+    const httpRequestId = response.headers.get("X-Http-Request-Id");
+
+    const proxyResponse = {
+      ...((await response.json()) as HttpProxyResponse),
+      httpRequestId: httpRequestId || undefined,
+    };
 
     if (proxyResponse.status === 429) {
       backoffCount += 1;
