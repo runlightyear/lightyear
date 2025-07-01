@@ -28,13 +28,22 @@ export class PrefixedRedactedConsole {
     position: number;
   }> = [];
   counter: number = 0;
+  flushTimer: NodeJS.Timeout | null = null;
 
   setGlobalPrefix(prefix: string) {
     this.globalPrefix = prefix;
   }
 
-  setStreamLogsTo(props: { runId?: string }) {
+  setStreamLogsTo(props: { runId?: string } | null) {
     this.streamLogsTo = props;
+    if (this.streamLogsTo && !this.flushTimer) {
+      this.flushTimer = setInterval(() => {
+        this.flushQueue();
+      }, 1000);
+    } else if (!this.streamLogsTo && this.flushTimer) {
+      clearInterval(this.flushTimer);
+      this.flushTimer = null;
+    }
   }
 
   initialize() {
@@ -42,6 +51,10 @@ export class PrefixedRedactedConsole {
     this.history = [];
     this.logQueue = [];
     this.counter = 0;
+    if (this.flushTimer) {
+      clearInterval(this.flushTimer);
+      this.flushTimer = null;
+    }
   }
 
   addSecrets(secrets: Array<string | null>) {
@@ -141,7 +154,6 @@ export class PrefixedRedactedConsole {
       timestamp: dayjsUtc().toISOString(),
     });
     if (display) {
-      // if we are in the dev env, write with colors
       if (getEnvName() === "dev") {
         stream.write(
           `${
@@ -167,7 +179,6 @@ export class PrefixedRedactedConsole {
     }
 
     if (this.logQueue.length === LOG_QUEUE_SIZE) {
-      // do not await this so we can stream in the background
       this.flushQueue();
     }
   }
@@ -178,14 +189,12 @@ export class PrefixedRedactedConsole {
       const logsToStream = [...this.logQueue];
       this.logQueue = [];
       try {
-        // process.stdout.write("Flushing logs to server\n");
         await baseRequest({
           method: "POST",
           uri: `/api/v1/envs/${envName}/logs`,
           data: { ...this.streamLogsTo, logs: logsToStream },
           suppressLogs: true,
         });
-        // process.stdout.write("Logs flushed to server\n");
       } catch (error) {
         console.error("Error flushing logs to server", error);
         if (error instanceof BaseRequestError) {
