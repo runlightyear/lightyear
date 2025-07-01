@@ -23,6 +23,8 @@ export default function runInContext(code: any) {
     Buffer,
     setTimeout,
     clearTimeout,
+    setInterval,
+    clearInterval,
   };
 
   vm.createContext(context);
