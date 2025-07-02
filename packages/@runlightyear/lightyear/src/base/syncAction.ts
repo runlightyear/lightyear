@@ -110,7 +110,7 @@ export function defineSyncAction(props: DefineSyncActionProps) {
 
       try {
         await connector.sync(sync.id, props.direction);
-        const response = await finishSync(sync.id);
+        const response = await finishSync({ syncId: sync.id });
         const jsonData = await response.json();
         console.info(jsonData.message);
       } catch (error) {
@@ -121,14 +121,15 @@ export function defineSyncAction(props: DefineSyncActionProps) {
 
         console.info("Finishing sync with error", error);
 
-        await finishSync(
-          sync.id,
-          error instanceof Error ? error.message : String(error)
-        );
+        await finishSync({
+          syncId: sync.id,
+          error: error instanceof Error ? error.message : String(error),
+          force: true,
+        });
         throw error;
       }
 
-      await finishSync(sync.id);
+      await finishSync({ syncId: sync.id });
       console.info("Sync finished");
     },
   });

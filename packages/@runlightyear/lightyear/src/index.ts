@@ -54,6 +54,7 @@ export type {
   UpsertObjectProps,
   ConfirmChangeProps,
   DetectHardDeletesProps,
+  FinishSyncProps,
 } from "./base/collection";
 
 /* Collection: CRM */

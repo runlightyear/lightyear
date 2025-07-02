@@ -581,7 +581,16 @@ export async function pauseSync(syncId: string) {
   return response;
 }
 
-export async function finishSync(syncId: string, error?: string) {
+export interface FinishSyncProps {
+  syncId: string;
+  error?: string;
+  force?: boolean;
+}
+
+export async function finishSync(props: FinishSyncProps) {
+  const { syncId, error, force } = props;
+  console.info("Finishing sync", syncId, error, force);
+
   const envName = getEnvName();
 
   return baseRequest({
@@ -589,6 +598,7 @@ export async function finishSync(syncId: string, error?: string) {
     uri: `/api/v1/envs/${envName}/syncs/${syncId}/finish`,
     data: {
       error,
+      force,
     },
   });
 }
