@@ -47,7 +47,8 @@
   },
   "pnpm": {
     "overrides": {
-      "path-to-regexp@<0.1.12": "0.1.12"
+      "path-to-regexp@<0.1.12": "0.1.12",
+      "http-proxy-middleware@<2.0.7": "2.0.7"
     }
   }
 }
