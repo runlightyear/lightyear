@@ -44,5 +44,10 @@
   "packageManager": "pnpm@8.15.3",
   "dependencies": {
     "@changesets/cli": "^2.29.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "body-parser": "^1.20.3"
+    }
   }
 }
