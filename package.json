@@ -29,8 +29,8 @@
   },
   "devDependencies": {
     "@microsoft/api-documenter": "^7.26.27",
-    "@typescript-eslint/eslint-plugin": "^8.32.1",
-    "@typescript-eslint/parser": "^8.32.1",
+    "@typescript-eslint/eslint-plugin": "^8.35.1",
+    "@typescript-eslint/parser": "^8.35.1",
     "eslint-config-custom": "workspace:*",
     "jiti": "^2.4.2",
     "prettier": "2.8.7",
@@ -49,7 +49,8 @@
     "overrides": {
       "path-to-regexp@<0.1.12": "0.1.12",
       "http-proxy-middleware@<2.0.9": "2.0.9",
-      "body-parser@<1.20.3": "1.20.3"
+      "body-parser@<1.20.3": "1.20.3",
+      "brace-expansion@<1.1.12": "1.1.12"
     }
   }
 }
