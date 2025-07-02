@@ -28,9 +28,19 @@
     "changeset:publish": "changeset publish"
   },
   "devDependencies": {
-    "@microsoft/api-documenter": "^7.26.27",
-    "@typescript-eslint/eslint-plugin": "^8.32.1",
-    "@typescript-eslint/parser": "^8.32.1",
+    "@belgattitude/eslint-config-bases": "^5.14.1",
+    "@jest/types": "^29.6.3",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/inquirer": "^9.0.7",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.35.1",
+    "@typescript-eslint/parser": "^8.35.1",
+    "@microsoft/api-extractor": "^7.47.10",
     "eslint-config-custom": "workspace:*",
     "jiti": "^2.4.2",
     "prettier": "2.8.7",
@@ -55,7 +65,8 @@
       "cookie@<0.7.0": "0.7.0",
       "braces@<3.0.3": "3.0.3",
       "@babel/runtime@<7.26.10": "7.26.10",
-      "micromatch@<4.0.8": "4.0.8"
+      "micromatch@<4.0.8": "4.0.8",
+      "brace-expansion@<1.1.12": "1.1.12"
     }
   }
 }
