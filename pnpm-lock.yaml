@@ -149,8 +149,8 @@ importers:
         specifier: ^2.1.0
         version: 2.1.0
       pusher-js:
-        specifier: ^7.6.0
-        version: 7.6.0
+        specifier: ^8.4.0
+        version: 8.4.0
       tar:
         specifier: ^6.2.1
         version: 6.2.1
@@ -6393,14 +6393,6 @@ packages:
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
     dev: true
 
-  /@types/express-serve-static-core@4.17.28:
-    resolution: {integrity: sha512-P1BJAEAW3E2DJUlkgq4tOL3RyMunoWXqbSCygWo5ZIWTjUgN1YnaXWW4VWl/oc8vs/XoYibEGBKP0uZyF4AHig==}
-    dependencies:
-      '@types/node': 20.17.30
-      '@types/qs': 6.9.9
-      '@types/range-parser': 1.2.6
-    dev: false
-
   /@types/express-serve-static-core@4.19.5:
     resolution: {integrity: sha512-y6W03tvrACO72aijJ5uF02FRq5cgDR9lUxddQ8vyF+GvmjJQqbzDcJngEjURc+ZsG31VI3hODNZJ2URj86pzmg==}
     dependencies:
@@ -6520,10 +6512,6 @@ packages:
 
   /@types/node@12.20.24:
     resolution: {integrity: sha512-yxDeaQIAJlMav7fH5AQqPH1u8YIuhYJXYBzxaQ4PifsU0GDO38MSdmEDeRlIxrKbC6NbEaaEHDanWb+y30U8SQ==}
-    dev: false
-
-  /@types/node@14.18.63:
-    resolution: {integrity: sha512-fAtCfv4jJg+ExtXhvCkCqUKZ+4ok/JQk01qDKhL5BDDoS3AxKXhV5/MAVUZyQnSEd2GT92fkgZl0pz0Q0AzcIQ==}
     dev: false
 
   /@types/node@17.0.45:
@@ -13114,11 +13102,9 @@ packages:
       escape-goat: 4.0.0
     dev: false
 
-  /pusher-js@7.6.0:
-    resolution: {integrity: sha512-5CJ7YN5ZdC24E0ETraCU5VYFv0IY5ziXhrS0gS5+9Qrro1E4M1lcZhtr9H1H+6jNSLj1LKKAgcLeE1EH9GxMlw==}
+  /pusher-js@8.4.0:
+    resolution: {integrity: sha512-wp3HqIIUc1GRyu1XrP6m2dgyE9MoCsXVsWNlohj0rjSkLf+a0jLvEyVubdg58oMk7bhjBWnFClgp8jfAa6Ak4Q==}
     dependencies:
-      '@types/express-serve-static-core': 4.17.28
-      '@types/node': 14.18.63
       tweetnacl: 1.0.3
     dev: false
 
