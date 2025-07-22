@@ -4,6 +4,7 @@ import {
   retrieveDelta,
   updateSync,
   upsertObjectBatch,
+  confirmChange,
 } from "../base/collection";
 import { AuthConnector } from "../connectors/AuthConnector";
 import { isTimeLimitExceeded } from "../base/time";
@@ -58,10 +59,16 @@ export interface ListProps {
 export type ObjectList<Object> = Promise<{
   objects: Array<Object>;
   cursor?: string;
+  httpRequestId?: string;
 }>;
 
 export interface ReadProps {
   id: string;
+}
+
+export interface CreateProps<ObjectData = any> {
+  changeId: string;
+  data: ObjectData;
 }
 
 export interface CreateBatchPropsChange<ObjectData> {
@@ -92,6 +99,49 @@ export interface DeleteBatchProps {
   changes: Array<DeleteBatchPropsChange>;
 }
 
+export interface UpdateProps<ObjectData = any> {
+  changeId: string;
+  externalId: ExternalId;
+  data: ObjectData;
+}
+
+export interface DeleteProps {
+  changeId: string;
+  externalId: ExternalId;
+}
+
+export type ListFn<ObjectData> = (
+  props: ListProps
+) => Promise<ObjectList<ObjectData>>;
+
+export type CreateFn<ObjectData> = (props: CreateProps<ObjectData>) => Promise<{
+  externalId: string;
+  externalUpdatedAt: string | null;
+  httpRequestId?: string;
+}>;
+
+export type CreateBatchFn<ObjectData> = (
+  props: CreateBatchProps<ObjectData>
+) => Promise<void>;
+
+export type UpdateFn<ObjectData> = (
+  props: UpdateProps<ObjectData>
+) => Promise<{ externalUpdatedAt: string | null; httpRequestId?: string }>;
+
+export type UpdateBatchFn<ObjectData> = (
+  props: UpdateBatchProps<ObjectData>
+) => Promise<void>;
+
+export type DeleteFn = (props: DeleteProps) => Promise<void | {
+  httpRequestId?: string;
+}>;
+
+export type DeleteBatchFn = (props: DeleteBatchProps) => Promise<void>;
+
+export type ValidateFn<ModelListResponse> = (
+  response: unknown
+) => Promise<ModelListResponse>;
+
 // export interface FullObjectProps<Object extends BaseObject>
 //   extends UpdateProps<Object> {
 //   updatedAt: string;
@@ -107,8 +157,8 @@ export interface ModelConnectorProps {
 export abstract class ModelConnector<
   ModelObjectData extends { [key: string]: unknown } = any,
   ModelExternalData extends { [key: string]: unknown } = any,
-  ModelExternal = unknown,
-  ModelListResponse = unknown
+  ModelExternal = any,
+  ModelListResponse = any
 > {
   connector: AuthConnector;
   collectionName: string;
@@ -120,23 +170,33 @@ export abstract class ModelConnector<
     this.modelName = props.modelName;
   }
 
-  abstract getNoun(): string;
-  getPluralNoun(): string {
-    return this.getNoun() + "s";
-  }
+  // abstract getNoun(): string;
+  // getPluralNoun(): string {
+  //   return this.getNoun() + "s";
+  // }
 
-  abstract list(props: ListProps): Promise<ObjectList<Object<ModelObjectData>>>;
-  abstract createBatch(props: CreateBatchProps<ModelObjectData>): Promise<void>;
-  abstract updateBatch(props: UpdateBatchProps<ModelObjectData>): Promise<void>;
-  abstract deleteBatch(props: DeleteBatchProps): Promise<void>;
+  // abstract list(props: ListProps): Promise<ObjectList<Object<ModelObjectData>>>;
+  // abstract createBatch(props: CreateBatchProps<ModelObjectData>): Promise<void>;
+  // abstract updateBatch(props: UpdateBatchProps<ModelObjectData>): Promise<void>;
+  // abstract deleteBatch(props: DeleteBatchProps): Promise<void>;
 
-  abstract validateListResponse(response: unknown): ModelListResponse;
-  abstract mapExternalToObject(
-    external: ModelExternal
-  ): Object<ModelObjectData>;
-  abstract mapObjectDataToExternalData(
-    data: ModelObjectData
-  ): ModelExternalData;
+  list: ListFn<ModelObjectData> | null = null;
+  create: CreateFn<ModelObjectData> | null = null;
+  update: UpdateFn<ModelObjectData> | null = null;
+  delete: DeleteFn | null = null;
+  createBatch: CreateBatchFn<ModelObjectData> | null = null;
+  updateBatch: UpdateBatchFn<ModelObjectData> | null = null;
+  deleteBatch: DeleteBatchFn | null = null;
+
+  // abstract validateListResponse(response: unknown): ModelListResponse;
+  validateListResponse: ValidateFn<ModelListResponse> | null = null;
+
+  // abstract mapExternalToObject(
+  //   external: ModelExternal
+  // ): Object<ModelObjectData>;
+  // abstract mapObjectDataToExternalData(
+  //   data: ModelObjectData
+  // ): ModelExternalData;
 
   async sync(
     syncId: string,
@@ -187,12 +247,23 @@ export abstract class ModelConnector<
         console.debug("lastUpdatedAt", lastExternalUpdatedAt);
         console.debug("cursor", cursor);
 
+        if (!this.list) {
+          throw new Error("List function not implemented");
+        }
+
         const listResponse = await this.list({
           syncType,
           lastExternalId,
           lastExternalUpdatedAt,
           cursor,
         });
+
+        const listHttpRequestId = listResponse.httpRequestId;
+
+        if (this.validateListResponse) {
+          await this.validateListResponse(listResponse);
+        }
+
         objects = listResponse.objects;
         cursor = listResponse.cursor;
 
@@ -208,9 +279,10 @@ export abstract class ModelConnector<
             customApp: authData.customAppName ?? undefined,
             objects: objects.map((obj) => ({
               managedUserId,
-              externalId: obj.id,
-              externalUpdatedAt: obj.updatedAt,
-              data: obj.data,
+              externalId: obj.id as string,
+              externalUpdatedAt: obj.updatedAt as string,
+              data: obj.data as any,
+              httpRequestId: listHttpRequestId,
             })),
             cursor,
             async: true,
@@ -233,7 +305,6 @@ export abstract class ModelConnector<
         currentDirection: "PUSH",
       });
 
-      let more;
       let changeCounter = 0;
       do {
         if (isTimeLimitExceeded()) {
@@ -255,11 +326,109 @@ export abstract class ModelConnector<
         }
 
         if (delta.operation === "CREATE") {
-          await this.createBatch({ changes: delta.changes });
+          if (this.createBatch) {
+            await this.createBatch({ changes: delta.changes });
+          } else if (this.create) {
+            for (const change of delta.changes) {
+              try {
+                const { externalId, externalUpdatedAt, httpRequestId } =
+                  await this.create({
+                    changeId: change.changeId,
+                    data: change.data,
+                  });
+
+                console.warn(
+                  "about to confirm change with httpRequestId",
+                  httpRequestId
+                );
+
+                await confirmChange({
+                  changeId: change.changeId,
+                  externalId,
+                  externalUpdatedAt,
+                  httpRequestId,
+                });
+              } catch (error) {
+                await confirmChange({
+                  changeId: change.changeId,
+                  error: error instanceof Error ? error.message : String(error),
+                });
+              }
+            }
+          } else {
+            throw new Error("Create batch function not implemented");
+          }
         } else if (delta.operation === "UPDATE") {
-          await this.updateBatch({ changes: delta.changes });
+          if (this.updateBatch) {
+            await this.updateBatch({ changes: delta.changes });
+          } else if (this.update) {
+            for (const change of delta.changes) {
+              try {
+                const { externalUpdatedAt, httpRequestId } = await this.update({
+                  changeId: change.changeId,
+                  externalId: change.externalId,
+                  data: change.data,
+                });
+
+                console.warn(
+                  "about to confirm change with httpRequestId",
+                  httpRequestId
+                );
+
+                await confirmChange({
+                  changeId: change.changeId,
+                  externalId: change.externalId,
+                  externalUpdatedAt,
+                  httpRequestId,
+                });
+              } catch (error) {
+                await confirmChange({
+                  changeId: change.changeId,
+                  error: error instanceof Error ? error.message : String(error),
+                });
+              }
+            }
+          } else {
+            throw new Error("Update batch function not implemented");
+          }
         } else if (delta.operation === "DELETE") {
-          await this.deleteBatch({ changes: delta.changes });
+          if (this.deleteBatch) {
+            await this.deleteBatch({ changes: delta.changes });
+          } else if (this.delete) {
+            for (const change of delta.changes) {
+              try {
+                const result = await this.delete({
+                  changeId: change.changeId,
+                  externalId: change.externalId,
+                });
+                const httpRequestId =
+                  result &&
+                  typeof result === "object" &&
+                  "httpRequestId" in result
+                    ? result.httpRequestId
+                    : undefined;
+
+                console.warn(
+                  "about to confirm change with httpRequestId",
+                  httpRequestId
+                );
+
+                await confirmChange({
+                  changeId: change.changeId,
+                  externalId: change.externalId,
+                  externalUpdatedAt: undefined,
+                  httpRequestId,
+                });
+              } catch (error) {
+                await confirmChange({
+                  changeId: change.changeId,
+                  error: error instanceof Error ? error.message : String(error),
+                });
+              }
+            }
+          } else {
+            throw new Error("Delete batch function not implemented");
+          }
         }
 
         changeCounter += delta.changes.length;

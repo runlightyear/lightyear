@@ -48,9 +48,16 @@ export function defineSyncAction(props: DefineSyncActionProps) {
   return defineAction({
     name: props.name,
     title: props.title,
-    trigger: {
-      pollingFrequency: props.frequency?.incremental ?? 1,
-    },
+    ...(props.frequency && (props.frequency.incremental || props.frequency.full)
+      ? {
+          trigger: {
+            pollingFrequency: Math.min(
+              props.frequency?.incremental ?? Infinity,
+              props.frequency?.full ?? Infinity
+            ),
+          },
+        }
+      : {}),
     // apps: props.app ? [props.app] : [],
     // customApps: props.customApp ? [props.customApp] : [],
     run: async (runProps) => {
@@ -103,7 +110,7 @@ export function defineSyncAction(props: DefineSyncActionProps) {
 
       try {
         await connector.sync(sync.id, props.direction);
-        const response = await finishSync(sync.id);
+        const response = await finishSync({ syncId: sync.id });
         const jsonData = await response.json();
         console.info(jsonData.message);
       } catch (error) {
@@ -112,11 +119,17 @@ export function defineSyncAction(props: DefineSyncActionProps) {
           throw error;
         }
 
-        await finishSync(sync.id);
+        console.info("Finishing sync with error", error);
+
+        await finishSync({
+          syncId: sync.id,
+          error: error instanceof Error ? error.message : String(error),
+          force: true,
+        });
         throw error;
       }
 
-      await finishSync(sync.id);
+      await finishSync({ syncId: sync.id });
       console.info("Sync finished");
     },
   });
