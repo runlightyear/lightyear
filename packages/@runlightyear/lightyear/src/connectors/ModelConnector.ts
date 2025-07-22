@@ -343,7 +343,6 @@ export abstract class ModelConnector<
                 );
 
                 await confirmChange({
-                  syncId,
                   changeId: change.changeId,
                   externalId,
                   externalUpdatedAt,
@@ -351,7 +350,6 @@ export abstract class ModelConnector<
                 });
               } catch (error) {
                 await confirmChange({
-                  syncId,
                   changeId: change.changeId,
                   error: error instanceof Error ? error.message : String(error),
                 });
@@ -378,7 +376,6 @@ export abstract class ModelConnector<
                 );
 
                 await confirmChange({
-                  syncId,
                   changeId: change.changeId,
                   externalId: change.externalId,
                   externalUpdatedAt,
@@ -386,7 +383,6 @@ export abstract class ModelConnector<
                 });
               } catch (error) {
                 await confirmChange({
-                  syncId,
                   changeId: change.changeId,
                   error: error instanceof Error ? error.message : String(error),
                 });
@@ -418,7 +414,6 @@ export abstract class ModelConnector<
                 );
 
                 await confirmChange({
-                  syncId,
                   changeId: change.changeId,
                   externalId: change.externalId,
                   externalUpdatedAt: undefined,
@@ -426,7 +421,6 @@ export abstract class ModelConnector<
                 });
               } catch (error) {
                 await confirmChange({
-                  syncId,
                   changeId: change.changeId,
                   error: error instanceof Error ? error.message : String(error),
                 });

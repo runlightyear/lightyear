@@ -24,7 +24,7 @@ export class HubSpotOAuth extends OAuthConnector {
         "crm.objects.deals.read",
         "crm.objects.deals.write",
         "crm.objects.users.read",
-        "crm.objects.owners.read",
+        "crm.objects.owners.read",        
       ],
       ...rest
     } = props;

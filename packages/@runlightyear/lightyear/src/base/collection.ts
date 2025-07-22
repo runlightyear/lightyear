@@ -411,22 +411,21 @@ export async function upsertObjectBatch(props: UpsertObjectBatchProps) {
 
 export type ConfirmChangeProps =
   | {
-      syncId: string;
       changeId: string;
       externalId: string;
       externalUpdatedAt: string | null | undefined;
       httpRequestId?: string;
     }
   | {
-      syncId: string;
       changeId: string;
       error: string;
       httpRequestId?: string;
     };
 
 export async function confirmChange(props: ConfirmChangeProps) {
-  const { syncId, changeId } = props;
+  const { changeId } = props;
   const envName = getEnvName();
+  const { syncId } = getContext();
 
   const data =
     "error" in props
@@ -456,7 +455,6 @@ export async function confirmChange(props: ConfirmChangeProps) {
 }
 
 export interface ConfirmChangeBatchProps {
-  syncId: string;
   changes: Array<{
     changeId: string;
     externalId: string;
@@ -466,9 +464,10 @@ export interface ConfirmChangeBatchProps {
 }
 
 export async function confirmChangeBatch(props: ConfirmChangeBatchProps) {
-  const { syncId, changes, async } = props;
+  const { changes, async } = props;
 
   const envName = getEnvName();
+  const { syncId } = getContext();
 
   const response = await baseRequest({
     method: "POST",
