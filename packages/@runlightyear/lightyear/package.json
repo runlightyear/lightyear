@@ -1,6 +1,6 @@
 {
   "name": "@runlightyear/lightyear",
-  "version": "2.3.2",
+  "version": "2.4.0",
   "publishConfig": {
     "access": "public"
   },
@@ -47,5 +47,12 @@
   "description": "The fastest and easiest way for developers to integrate web-based applications.",
   "main": "dist/index.js",
   "module": "dist/index.js",
-  "typings": "dist/index.d.ts"
+  "typings": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  }
 }

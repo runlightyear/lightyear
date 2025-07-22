@@ -124,6 +124,12 @@ const config = {
         darkTheme: darkCodeTheme,
       },
     }),
+
+  // Enable Docusaurus Faster to use Rspack instead of webpack
+  future: {
+    experimental_faster: true,
+    v4: true,
+  },
 };
 
 module.exports = config;
