@@ -1,10 +1,11 @@
 import { AppName, defineAction } from "./action";
 import { AuthData } from "./auth";
-import { AuthConnector } from "../connectors/AuthConnector";
-import { finishSync, startSync, updateSync } from "./collection";
-import { dayjsUtc } from "../util/dayjsUtc";
-import { RERUN, SKIPPED, SyncConnector } from "..";
 import { setContext } from "./context";
+import { finishRun } from "./run";
+import { SyncConnector } from "../connectors/SyncConnector";
+import { startSync, updateSync, finishSync } from "./collection";
+import { dayjsUtc } from "../util/dayjsUtc";
+import { RERUN, SKIPPED } from "..";
 
 export interface ConnectorProps {
   auth: AuthData;
@@ -21,21 +22,43 @@ export interface FrequencyProps {
   hardDelete?: number;
 }
 
-export interface DefineSyncActionProps {
+/**
+ * Base properties for sync action definitions
+ */
+interface BaseSyncActionProps {
   name: string;
   title: string;
   connector: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector);
   collection: string;
-  app?: AppName;
-  customApp?: string;
   frequency?: FrequencyProps;
   direction?: "pull" | "push" | "bidirectional";
 }
 
+/**
+ * Sync action with a system app
+ */
+export interface SyncActionWithApp extends BaseSyncActionProps {
+  app: AppName;
+  customApp?: never;
+}
+
+/**
+ * Sync action with a custom app
+ */
+export interface SyncActionWithCustomApp extends BaseSyncActionProps {
+  app?: never;
+  customApp: string;
+}
+
+/**
+ * Type for defining sync actions - must specify exactly one of app or customApp
+ */
+export type DefineSyncActionProps = SyncActionWithApp | SyncActionWithCustomApp;
+
 function isConnectorClass(
   x: typeof SyncConnector | ((props: ConnectorProps) => SyncConnector)
 ): x is typeof SyncConnector {
-  return typeof x === typeof AuthConnector;
+  return typeof x === "function" && x.prototype instanceof SyncConnector;
 }
 
 function isConnectorFunction(
