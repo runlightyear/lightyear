@@ -33,12 +33,16 @@ interface IntegrationWithCustomApp extends BaseIntegrationProps {
 /**
  * @alpha
  */
-export type DefineIntegrationProps = IntegrationWithApp | IntegrationWithCustomApp;
+export type DefineIntegrationProps =
+  | IntegrationWithApp
+  | IntegrationWithCustomApp;
 
 /**
  * @alpha
  */
-export type DeployIntegrationProps = IntegrationWithApp | IntegrationWithCustomApp;
+export type DeployIntegrationProps =
+  | IntegrationWithApp
+  | IntegrationWithCustomApp;
 
 /**
  * @alpha
