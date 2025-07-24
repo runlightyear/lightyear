@@ -8,7 +8,9 @@ export interface SyncConnectorProps extends RestConnectorProps {
 }
 
 // Type for ModelConnector constructor
-export type ModelConnectorConstructor = new (props: ModelConnectorProps) => ModelConnector;
+export type ModelConnectorConstructor = new (
+  props: ModelConnectorProps
+) => ModelConnector;
 
 export interface SyncConnectorGetModelsResponse {
   [key: string]: ModelConnector | ModelConnectorConstructor;
@@ -27,7 +29,7 @@ export abstract class SyncConnector extends RestConnector {
    * Returns the models to be synchronized.
    * Can return either ModelConnector instances or ModelConnector class constructors.
    * When a class constructor is returned, it will be instantiated using props from getModelProps().
-   * 
+   *
    * @example
    * ```ts
    * getModels() {
@@ -45,7 +47,7 @@ export abstract class SyncConnector extends RestConnector {
   /**
    * Get the props needed to instantiate a ModelConnector.
    * Override this method to provide custom props for specific models.
-   * 
+   *
    * @param modelName - The name of the model to get props for
    * @returns The props needed to instantiate the model
    */
@@ -89,9 +91,12 @@ export abstract class SyncConnector extends RestConnector {
 
       if (modelOrClass) {
         let model: ModelConnector;
-        
+
         // Check if it's a class constructor or an instance
-        if (typeof modelOrClass === 'function' && modelOrClass.prototype instanceof ModelConnector) {
+        if (
+          typeof modelOrClass === "function" &&
+          modelOrClass.prototype instanceof ModelConnector
+        ) {
           // It's a class, instantiate it
           const ModelClass = modelOrClass as any; // Cast to any to allow instantiation
           const props = this.getModelProps(modelName);

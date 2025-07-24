@@ -224,10 +224,10 @@ export type {
 
 /* Sync Connector */
 export { SyncConnector } from "./connectors/SyncConnector";
-export type { 
+export type {
   SyncConnectorProps,
   SyncConnectorGetModelsResponse,
-  ModelConnectorConstructor 
+  ModelConnectorConstructor,
 } from "./connectors/SyncConnector";
 
 /** Logging **/

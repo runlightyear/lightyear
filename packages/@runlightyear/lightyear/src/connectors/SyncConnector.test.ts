@@ -47,7 +47,7 @@ describe("SyncConnector", () => {
             // Class constructors
             user: UserModel,
             contact: ContactModel,
-            
+
             // Already instantiated model
             account: new AccountModel({
               connector: this,
@@ -64,14 +64,14 @@ describe("SyncConnector", () => {
       });
 
       const models = syncConnector.getModels();
-      
+
       // Verify that we can return both classes and instances
       expect(typeof models.user).toBe("function");
       expect(models.user.prototype).toBeInstanceOf(ModelConnector);
-      
+
       expect(typeof models.contact).toBe("function");
       expect(models.contact.prototype).toBeInstanceOf(ModelConnector);
-      
+
       expect(models.account).toBeInstanceOf(ModelConnector);
     });
 
@@ -90,7 +90,7 @@ describe("SyncConnector", () => {
         // Override to provide custom props
         getModelProps(modelName: string): ModelConnectorProps {
           const baseProps = super.getModelProps(modelName);
-          
+
           // Add custom logic if needed
           if (modelName === "user") {
             return {
@@ -98,7 +98,7 @@ describe("SyncConnector", () => {
               // Could add custom props here
             };
           }
-          
+
           return baseProps;
         }
       }
@@ -110,7 +110,7 @@ describe("SyncConnector", () => {
 
       // Get the default props that would be used
       const userProps = syncConnector.getModelProps("user");
-      
+
       expect(userProps).toEqual({
         connector: syncConnector,
         collectionName: "test-collection",
