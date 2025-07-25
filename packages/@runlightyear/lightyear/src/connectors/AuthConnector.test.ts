@@ -2,11 +2,7 @@ import { describe, expect, test, beforeEach, vi } from "vitest";
 import { server, http, HttpResponse } from "../test/setup";
 import { AuthConnector, AuthConnectorProps } from "./AuthConnector";
 import { AuthData } from "../base/auth";
-import {
-  createMockAuthData,
-  createExpiredAuthData,
-  createAuthDataWithoutTokens,
-} from "../test/mocks/authMocks";
+import { createMockAuthData } from "../test/mocks/authMocks";
 
 // Mock console methods to avoid noise in test output
 const mockConsoleInfo = vi.spyOn(console, "info").mockImplementation(() => {});
@@ -28,7 +24,7 @@ describe("AuthConnector Integration Tests", () => {
 
   describe("Constructor", () => {
     test("should initialize with provided auth data", () => {
-      const authData = createMockAuthData();
+      const authData = createMockAuthData({ customAppName: "test-custom-app" });
       const connector = new TestAuthConnector({ auth: authData });
 
       expect(connector.getAuthData()).toEqual(authData);
@@ -49,8 +45,11 @@ describe("AuthConnector Integration Tests", () => {
 
   describe("refreshAuthData", () => {
     test("should successfully refresh auth data", async () => {
-      const initialAuthData = createMockAuthData();
+      const initialAuthData = createMockAuthData({
+        customAppName: "test-custom-app",
+      });
       const refreshedAuthData = createMockAuthData({
+        customAppName: "test-custom-app",
         accessToken: "new-access-token",
         refreshToken: "new-refresh-token",
         refreshedAt: new Date().toISOString(),
@@ -73,14 +72,17 @@ describe("AuthConnector Integration Tests", () => {
       expect(updatedAuthData.refreshToken).toBe("new-refresh-token");
       expect(mockConsoleInfo).toHaveBeenCalledWith(
         "Refreshed auth data for",
-        "TestApp",
+        "test-custom-app",
         "test-auth"
       );
     });
 
     test("should handle auth data refresh for app", async () => {
-      const initialAuthData = createMockAuthData();
+      const initialAuthData = createMockAuthData({
+        appName: "test-app",
+      });
       const refreshedAuthData = createMockAuthData({
+        appName: "test-app",
         accessToken: "new-access-token",
         refreshToken: "new-refresh-token",
         refreshedAt: new Date().toISOString(),
@@ -103,18 +105,16 @@ describe("AuthConnector Integration Tests", () => {
       expect(updatedAuthData.refreshToken).toBe("new-refresh-token");
       expect(mockConsoleInfo).toHaveBeenCalledWith(
         "Refreshed auth data for",
-        "TestApp",
+        "test-app",
         "test-auth"
       );
     });
 
     test("should handle auth data refresh for custom app", async () => {
       const initialAuthData = createMockAuthData({
-        appName: null,
         customAppName: "my-custom-app",
       });
       const refreshedAuthData = createMockAuthData({
-        appName: null,
         customAppName: "my-custom-app",
         accessToken: "custom-app-token",
       });
@@ -141,7 +141,7 @@ describe("AuthConnector Integration Tests", () => {
     });
 
     test("should handle auth data refresh failure", async () => {
-      const authData = createMockAuthData();
+      const authData = createMockAuthData({ customAppName: "test-custom-app" });
 
       server.use(
         http.get(
@@ -158,7 +158,7 @@ describe("AuthConnector Integration Tests", () => {
     });
 
     test("should handle network timeout during refresh", async () => {
-      const authData = createMockAuthData();
+      const authData = createMockAuthData({ customAppName: "test-custom-app" });
 
       server.use(
         http.get(
@@ -179,8 +179,12 @@ describe("AuthConnector Integration Tests", () => {
 
   describe("refreshAuthDataIfNecessary", () => {
     test("should refresh auth data when token expires within 5 minutes", async () => {
-      const expiredAuthData = createExpiredAuthData();
+      const expiredAuthData = createMockAuthData({
+        customAppName: "test-custom-app",
+        expiresAt: new Date(Date.now() - 1000).toISOString(), // Expired 1 second ago
+      });
       const refreshedAuthData = createMockAuthData({
+        customAppName: "test-custom-app",
         accessToken: "refreshed-token",
         expiresAt: new Date(Date.now() + 3600000).toISOString(), // 1 hour from now
       });
@@ -204,9 +208,11 @@ describe("AuthConnector Integration Tests", () => {
 
     test("should refresh auth data when token expires in less than 5 minutes", async () => {
       const soonToExpireAuthData = createMockAuthData({
+        customAppName: "test-custom-app",
         expiresAt: new Date(Date.now() + 4 * 60 * 1000).toISOString(), // 4 minutes from now
       });
       const refreshedAuthData = createMockAuthData({
+        customAppName: "test-custom-app",
         accessToken: "early-refreshed-token",
         expiresAt: new Date(Date.now() + 3600000).toISOString(),
       });
@@ -229,6 +235,7 @@ describe("AuthConnector Integration Tests", () => {
 
     test("should not refresh auth data when token is still valid for more than 5 minutes", async () => {
       const validAuthData = createMockAuthData({
+        customAppName: "test-custom-app",
         expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes from now
       });
 
@@ -244,7 +251,12 @@ describe("AuthConnector Integration Tests", () => {
     });
 
     test("should not refresh auth data when expiresAt is null", async () => {
-      const authDataWithoutExpiry = createAuthDataWithoutTokens();
+      const authDataWithoutExpiry = createMockAuthData({
+        customAppName: "test-custom-app",
+        accessToken: null,
+        refreshToken: null,
+        expiresAt: null,
+      });
 
       const connector = new TestAuthConnector({ auth: authDataWithoutExpiry });
       await connector.refreshAuthDataIfNecessary();
@@ -256,7 +268,7 @@ describe("AuthConnector Integration Tests", () => {
 
   describe("Error Handling", () => {
     test("should handle malformed JSON response", async () => {
-      const authData = createMockAuthData();
+      const authData = createMockAuthData({ customAppName: "test-custom-app" });
 
       server.use(
         http.get(
@@ -277,7 +289,7 @@ describe("AuthConnector Integration Tests", () => {
     });
 
     test("should handle auth data with missing required fields", async () => {
-      const authData = createMockAuthData();
+      const authData = createMockAuthData({ customAppName: "test-custom-app" });
       const incompleteAuthData = {
         // Missing required fields
         authName: "test-auth",
@@ -304,8 +316,9 @@ describe("AuthConnector Integration Tests", () => {
 
   describe("Environment Variables", () => {
     test("should work with different environment configurations", async () => {
-      const authData = createMockAuthData();
+      const authData = createMockAuthData({ customAppName: "test-custom-app" });
       const refreshedAuthData = createMockAuthData({
+        customAppName: "test-custom-app",
         accessToken: "env-specific-token",
       });
 
@@ -336,6 +349,7 @@ describe("AuthConnector Integration Tests", () => {
   describe("Security", () => {
     test("should handle auth data with sensitive information", async () => {
       const sensitiveAuthData = createMockAuthData({
+        customAppName: "test-custom-app",
         accessToken: "very-secret-token",
         refreshToken: "very-secret-refresh-token",
         apiKey: "secret-api-key",
@@ -351,7 +365,9 @@ describe("AuthConnector Integration Tests", () => {
         )
       );
 
-      const connector = new TestAuthConnector({ auth: createMockAuthData() });
+      const connector = new TestAuthConnector({
+        auth: createMockAuthData({ customAppName: "test-custom-app" }),
+      });
       await connector.refreshAuthData();
 
       const updatedAuthData = connector.getAuthData();

@@ -86,14 +86,24 @@ export interface GetAuthDataProps {
 export async function getAuthData(props: GetAuthDataProps): Promise<AuthData> {
   console.debug("in getAuthData");
 
-  const { customAppName, authName } = props;
+  const { appName, customAppName, authName } = props;
+
+  invariant(appName || customAppName, "Must specify appName or customAppName");
+  invariant(
+    !(appName && customAppName),
+    "Only specify appName or customAppName"
+  );
 
   const envName = getEnvName();
   invariant(envName, "Missing ENV_NAME");
 
+  const uri = appName
+    ? `/api/v1/envs/${envName}/apps/${appName}/auths/${authName}/data`
+    : `/api/v1/envs/${envName}/custom-apps/${customAppName}/auths/${authName}/data`;
+
   const response = await baseRequest({
     method: "GET",
-    uri: `/api/v1/envs/${envName}/custom-apps/${customAppName}/auths/${authName}/data`,
+    uri,
   });
 
   const data = (await response.json()) as AuthData;
@@ -130,14 +140,24 @@ export interface UpdateAuthDataProps {
 export async function updateAuthData(props: UpdateAuthDataProps) {
   console.debug("in updateAuthData");
 
-  const { customAppName, authName, authData } = props;
+  const { appName, customAppName, authName, authData } = props;
+
+  invariant(appName || customAppName, "Must specify appName or customAppName");
+  invariant(
+    !(appName && customAppName),
+    "Only specify appName or customAppName"
+  );
 
   const envName = getEnvName();
   invariant(envName, "Missing ENV_NAME");
 
+  const uri = appName
+    ? `/api/v1/envs/${envName}/apps/${appName}/auths/${authName}/data`
+    : `/api/v1/envs/${envName}/custom-apps/${customAppName}/auths/${authName}/data`;
+
   const response = await baseRequest({
     method: "PATCH",
-    uri: `/api/v1/envs/${envName}/custom-apps/${customAppName}/auths/${authName}/data`,
+    uri,
     data: authData,
   });
 }
@@ -209,14 +229,24 @@ export interface UpdateAuthDataStateProps {
 export async function updateAuthDataState(props: UpdateAuthDataStateProps) {
   console.debug("in updateAuthDataState");
 
-  const { customAppName, authName } = props;
+  const { appName, customAppName, authName } = props;
+
+  invariant(appName || customAppName, "Must specify appName or customAppName");
+  invariant(
+    !(appName && customAppName),
+    "Only specify appName or customAppName"
+  );
 
   const envName = getEnvName();
   invariant(envName, "Missing ENV_NAME");
 
+  const uri = appName
+    ? `/api/v1/envs/${envName}/apps/${appName}/auths/${authName}/data`
+    : `/api/v1/envs/${envName}/custom-apps/${customAppName}/auths/${authName}/data`;
+
   await baseRequest({
     method: "POST",
-    uri: `/api/v1/envs/${envName}/custom-apps/${customAppName}/auths/${authName}/data`,
+    uri,
   });
 }
 

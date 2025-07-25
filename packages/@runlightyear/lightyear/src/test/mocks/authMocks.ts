@@ -1,11 +1,13 @@
 import { AuthData } from "../../base/auth";
 
 export const createMockAuthData = (
-  overrides: Partial<AuthData> = {}
+  overrides:
+    | (Partial<AuthData> & { appName: string; customAppName?: never })
+    | (Partial<AuthData> & { customAppName: string; appName?: never })
 ): AuthData => ({
   managedUser: null,
-  appName: "TestApp",
-  customAppName: "test-custom-app",
+  appName: null,
+  customAppName: null,
   authName: "test-auth",
   username: null,
   password: null,
@@ -29,15 +31,3 @@ export const createMockAuthData = (
   },
   ...overrides,
 });
-
-export const createExpiredAuthData = (): AuthData =>
-  createMockAuthData({
-    expiresAt: new Date(Date.now() - 1000).toISOString(), // Expired 1 second ago
-  });
-
-export const createAuthDataWithoutTokens = (): AuthData =>
-  createMockAuthData({
-    accessToken: null,
-    refreshToken: null,
-    expiresAt: null,
-  });
