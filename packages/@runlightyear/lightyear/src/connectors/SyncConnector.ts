@@ -7,13 +7,13 @@ export interface SyncConnectorProps extends RestConnectorProps {
   // models?: { [key: string]: ModelConnector };
 }
 
-// Type for ModelConnector constructor
-export type ModelConnectorConstructor = new (
-  props: ModelConnectorProps
-) => ModelConnector;
+// Type for ModelConnector constructor - allows props that extend ModelConnectorProps
+export type ModelConnectorConstructor<
+  T extends ModelConnectorProps = ModelConnectorProps
+> = new (props: T) => ModelConnector;
 
 export interface SyncConnectorGetModelsResponse {
-  [key: string]: ModelConnector | ModelConnectorConstructor;
+  [key: string]: ModelConnector | ModelConnectorConstructor<any>;
 }
 
 export abstract class SyncConnector extends RestConnector {
@@ -51,7 +51,7 @@ export abstract class SyncConnector extends RestConnector {
    * @param modelName - The name of the model to get props for
    * @returns The props needed to instantiate the model
    */
-  getModelProps(modelName: string): ModelConnectorProps {
+  getModelProps(modelName: string): ModelConnectorProps & Record<string, any> {
     return {
       connector: this,
       collectionName: this.collectionName,
