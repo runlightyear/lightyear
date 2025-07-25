@@ -1,5 +1,5 @@
 import { getSync, updateSync, getModels } from "../base/collection";
-import { ModelConnector } from "./ModelConnector";
+import { ModelConnector, ModelConnectorProps } from "./ModelConnector";
 import { RestConnector, RestConnectorProps } from "./RestConnector";
 
 export interface SyncConnectorProps extends RestConnectorProps {
@@ -7,8 +7,13 @@ export interface SyncConnectorProps extends RestConnectorProps {
   // models?: { [key: string]: ModelConnector };
 }
 
+// Type for ModelConnector constructor - allows props that extend ModelConnectorProps
+export type ModelConnectorConstructor<
+  T extends ModelConnectorProps = ModelConnectorProps
+> = new (props: T) => ModelConnector;
+
 export interface SyncConnectorGetModelsResponse {
-  [key: string]: ModelConnector;
+  [key: string]: ModelConnector | ModelConnectorConstructor<any>;
 }
 
 export abstract class SyncConnector extends RestConnector {
@@ -20,7 +25,39 @@ export abstract class SyncConnector extends RestConnector {
     this.collectionName = props.collectionName;
   }
 
+  /**
+   * Returns the models to be synchronized.
+   * Can return either ModelConnector instances or ModelConnector class constructors.
+   * When a class constructor is returned, it will be instantiated using props from getModelProps().
+   *
+   * @example
+   * ```ts
+   * getModels() {
+   *   return {
+   *     // Return a class - will be instantiated automatically
+   *     user: UserModel,
+   *     // Return an instance - will be used directly
+   *     account: new AccountModel({ ... }),
+   *   };
+   * }
+   * ```
+   */
   abstract getModels(): SyncConnectorGetModelsResponse;
+
+  /**
+   * Get the props needed to instantiate a ModelConnector.
+   * Override this method to provide custom props for specific models.
+   *
+   * @param modelName - The name of the model to get props for
+   * @returns The props needed to instantiate the model
+   */
+  getModelProps(modelName: string): ModelConnectorProps & Record<string, any> {
+    return {
+      connector: this,
+      collectionName: this.collectionName,
+      modelName: modelName,
+    };
+  }
 
   async sync(
     syncId: string,
@@ -50,9 +87,25 @@ export abstract class SyncConnector extends RestConnector {
     console.debug("modelsToSync in CollectionSynchronizer", modelsToSync);
 
     for (const modelName of modelsToSync) {
-      const model = this.getModels()[modelName];
+      const modelOrClass = this.getModels()[modelName];
 
-      if (model) {
+      if (modelOrClass) {
+        let model: ModelConnector;
+
+        // Check if it's a class constructor or an instance
+        if (
+          typeof modelOrClass === "function" &&
+          modelOrClass.prototype instanceof ModelConnector
+        ) {
+          // It's a class, instantiate it
+          const ModelClass = modelOrClass as any; // Cast to any to allow instantiation
+          const props = this.getModelProps(modelName);
+          model = new ModelClass(props);
+        } else {
+          // It's already an instance
+          model = modelOrClass as ModelConnector;
+        }
+
         await updateSync({
           syncId,
           currentModelName: modelName,
