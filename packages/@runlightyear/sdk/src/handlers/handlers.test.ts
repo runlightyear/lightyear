@@ -81,20 +81,26 @@ describe("Handlers", () => {
 
       const event: HandlerEvent = {
         operation: "deploy",
-        payload: { environment: "staging", dryRun: true },
+        payload: {
+          environment: "staging",
+          dryRun: true,
+          baseUrl: "https://api.test.com", // Provide baseUrl for test
+        },
       };
       const context = createMockHandlerContext();
 
       const result = (await handler(event, context)) as HandlerResponse;
 
       expect(result.success).toBe(true);
-      expect(result.data.message).toContain("Deploy action received");
+      expect(result.data.message).toContain(
+        "Deployment completed successfully"
+      );
       expect(result.data.registry).toBeDefined();
       expect(result.data.deployedAt).toBeDefined();
       expect(result.data.environment).toBe("staging");
       expect(result.data.dryRun).toBe(true);
       expect(result.stats?.totalItems).toBe(2);
-      expect(result.stats?.models).toBe(1);
+      expect(result.stats?.deployedItems).toBe(1); // Only customApp is deployable (model is standalone)
       expect(result.stats?.customApps).toBe(1);
     });
 
@@ -147,17 +153,37 @@ describe("Handlers", () => {
       // Should still work with undefined/missing context properties
     });
 
-    it("should handle payload validation", async () => {
+    it("should handle deploy without BASE_URL (simulated)", async () => {
+      // Create some test data so we get past the "no deployable items" check
+      defineOAuth2CustomApp("test-app").build();
+
       const event: HandlerEvent = {
         operation: "deploy",
-        payload: null, // null payload
+        payload: { environment: "test" }, // No baseUrl provided
       };
       const context = createMockHandlerContext();
 
       const result = (await handler(event, context)) as HandlerResponse;
 
+      // The handler uses a simulated response when no BASE_URL is provided (for demo purposes)
       expect(result.success).toBe(true);
-      expect(result.data.environment).toBe("unknown"); // Default handling
+      expect(result.data.deployment.status).toBe("success");
+    });
+
+    it("should handle deploy with no deployable items", async () => {
+      const event: HandlerEvent = {
+        operation: "deploy",
+        payload: {
+          environment: "test",
+          baseUrl: "https://api.test.com",
+        },
+      };
+      const context = createMockHandlerContext();
+
+      const result = (await handler(event, context)) as HandlerResponse;
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("No deployable items found in registry");
     });
   });
 });

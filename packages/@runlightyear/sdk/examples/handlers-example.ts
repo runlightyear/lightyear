@@ -75,23 +75,24 @@ async function runHandlersExample() {
       event: { operation: "registry-export" },
     },
     {
-      name: "Deploy (Preview)",
+      name: "Deploy (Dry Run)",
       event: {
         operation: "deploy",
         payload: {
           environment: "development",
           dryRun: true,
+          baseUrl: "https://api.lightyear.dev",
         },
       },
     },
     {
-      name: "Production Deploy",
+      name: "Production Deploy (Simulated)",
       event: {
         operation: "deploy",
         payload: {
           environment: "production",
-          dryRun: false,
-          region: "us-east-1",
+          dryRun: true, // Keep as dry run for safety in example
+          baseUrl: "https://api.lightyear.dev",
           version: "1.0.0",
         },
       },
@@ -108,9 +109,21 @@ async function runHandlersExample() {
       const duration = Date.now() - startTime;
 
       console.log(`   ✅ Success (${duration}ms)`);
-      console.log(
-        `   Response: ${JSON.stringify(result, null, 2).substring(0, 200)}...`
-      );
+
+      if (event.operation === "deploy") {
+        console.log(`   🚀 Deployment Details:`);
+        console.log(`     Environment: ${result.data?.environment}`);
+        console.log(`     Items Deployed: ${result.stats?.deployedItems}`);
+        console.log(`     Collections: ${result.stats?.collections}`);
+        console.log(`     Custom Apps: ${result.stats?.customApps}`);
+        if (result.data?.deployment?.url) {
+          console.log(`     URL: ${result.data.deployment.url}`);
+        }
+      } else {
+        console.log(
+          `   Response: ${JSON.stringify(result, null, 2).substring(0, 200)}...`
+        );
+      }
 
       if ("stats" in result && result.stats) {
         console.log(`   📊 Stats: ${JSON.stringify(result.stats)}`);
@@ -138,40 +151,45 @@ async function runHandlersExample() {
     const statsResult = await handleRegistryStats();
     console.log(`   ✅ Stats: ${statsResult.data?.totalItems} items`);
 
-    console.log("   🚀 Deploy handler...");
+    console.log("   🚀 Deploy handler (with schema transformation)...");
     const deployResult = await handleDeploy({
       environment: "test",
-      components: ["models", "collections"],
+      dryRun: true,
+      baseUrl: "https://api.lightyear.dev",
     });
     console.log(`   ✅ Deploy: ${deployResult.data?.environment} environment`);
+    console.log(`   📦 Deployed: ${deployResult.stats?.deployedItems} items`);
   } catch (error) {
     console.log(`   ❌ Individual handlers error: ${error}`);
   }
 
   console.log("\n🎯 Handlers Example Complete!");
-  console.log("\n💡 Deployment Options:");
-  console.log("   🔸 Docker: Import handler and call directly");
-  console.log("   🔸 VM: Deploy as a service with HTTP wrapper");
-  console.log("   🔸 Kubernetes: Deploy as microservice");
-  console.log("   🔸 Edge Functions: Deploy to Vercel, Netlify, etc.");
-  console.log("   🔸 AWS Lambda: Deploy with direct invocation");
+  console.log("\n💡 Deployment Schema Information:");
+  console.log("   🔸 Collections → collectionProps with embedded models");
+  console.log(
+    "   🔸 Custom Apps → customAppProps with authType, variables, secrets"
+  );
+  console.log("   🔸 Models → embedded within collections as ModelSchema");
+  console.log("   🔸 POST to: BASE_URL/api/v1/envs/[envName]/deploy");
   console.log("\n🚀 Integration Examples:");
   console.log("   ```typescript");
   console.log('   import { handler } from "@runlightyear/sdk";');
   console.log("   ");
-  console.log("   // Direct usage");
-  console.log("   const result = await handler(");
-  console.log(
-    '     { operation: "deploy", payload: { environment: "prod" } },'
-  );
-  console.log('     { requestId: "req-123", remainingTimeMs: 30000 }');
-  console.log("   );");
+  console.log("   // Deploy with environment configuration");
+  console.log("   const result = await handler({");
+  console.log('     operation: "deploy",');
+  console.log("     payload: {");
+  console.log('       environment: "production",');
+  console.log('       baseUrl: "https://api.lightyear.dev",');
+  console.log("       dryRun: false");
+  console.log("     }");
+  console.log("   }, context);");
   console.log("   ```");
-  console.log("\n📦 Build Commands:");
-  console.log("   1. Run `pnpm build:handlers` to create deployment bundle");
-  console.log("   2. Deploy dist/handlers.js to your target environment");
-  console.log("   3. Configure your application to call the handler function");
-  console.log("   4. Set up monitoring and logging as needed");
+  console.log("\n📦 Environment Variables:");
+  console.log("   - BASE_URL: API base URL (can be overridden in payload)");
+  console.log(
+    "   - ENV_NAME: Environment name (defaults to payload.environment)"
+  );
 }
 
 // Run the example

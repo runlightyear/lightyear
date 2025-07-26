@@ -112,7 +112,7 @@ import { handler } from "@runlightyear/sdk";
 
 // Direct invocation (VM, Docker, serverless functions, etc.)
 const response = await handler(
-  { action: "deploy", payload: { environment: "prod" } },
+  { operation: "deploy", payload: { environment: "prod" } },
   { requestId: "req-123", remainingTimeMs: 30000 }
 );
 
@@ -128,7 +128,7 @@ const deploy = await handleDeploy({ environment: "production" });
 - `health` - Health check endpoint
 - `registry-stats` - Get registry statistics
 - `registry-export` - Export full registry for deployment
-- `deploy` - Deploy SDK elements (placeholder implementation)
+- `deploy` - Transform registry data to deployment schema and POST to API endpoint
 
 ### Handler Event Format
 
