@@ -8,101 +8,56 @@ import {
 /**
  * Example: Creating Actions with Lightyear SDK
  *
- * This example demonstrates how to define actions that can be triggered
- * to perform specific tasks using built-in or custom apps.
+ * This example demonstrates how to define actions with variables
+ * and secrets for configuration.
  */
 
 console.log("⚡ Action Builder Example\n");
 
-// Example 1: Simple action with built-in apps
-const salesforceSync = defineAction("salesforce-contact-sync")
-  .withTitle("Salesforce Contact Sync")
-  .withDescription("Synchronize contacts between Salesforce and other systems")
-  .withApp("salesforce")
-  .withApp("hubspot")
+// Example 1: Simple action
+const basicAction = defineAction("basic-sync")
+  .withTitle("Basic Data Sync")
+  .withDescription("Synchronize data between systems")
   .deploy();
 
-console.log("Action 1 - Built-in Apps:");
-console.log(`  Name: ${salesforceSync.name}`);
-console.log(`  Title: ${salesforceSync.title}`);
-console.log(`  Description: ${salesforceSync.description}`);
-console.log(`  Apps: ${salesforceSync.apps?.join(", ") || "none"}`);
-console.log(
-  `  Custom Apps: ${salesforceSync.customApps?.join(", ") || "none"}\n`
-);
+console.log("Action 1 - Basic Action:");
+console.log(`  Name: ${basicAction.name}`);
+console.log(`  Title: ${basicAction.title}`);
+console.log(`  Description: ${basicAction.description}\n`);
 
-// Example 2: Action with custom apps
-const githubApp = defineOAuth2CustomApp("github-integration")
-  .withTitle("GitHub OAuth Integration")
-  .addSecret("client_id", {
-    title: "OAuth Client ID",
-    description: "GitHub OAuth application client ID",
+// Example 2: Action with variables and secrets
+const configuredAction = defineAction("configured-processor")
+  .withTitle("Configured Data Processor")
+  .withDescription("Process data with configurable settings")
+  .addVariable("batch_size", {
+    title: "Batch Size",
+    description: "Number of items to process at once",
+    defaultValue: "50",
     required: true,
   })
-  .addSecret("client_secret", {
-    title: "OAuth Client Secret",
-    description: "GitHub OAuth application client secret",
-    required: true,
-  })
-  .addVariable("base_url", {
-    title: "GitHub API Base URL",
-    description: "Base URL for GitHub API calls",
-    defaultValue: "https://api.github.com",
+  .addVariable("timeout", {
+    title: "Timeout",
+    description: "Processing timeout in seconds",
+    defaultValue: "30",
     required: false,
   })
-  .deploy();
-
-const slackApp = defineApiKeyCustomApp("slack-bot")
-  .withTitle("Slack Bot Integration")
-  .addSecret("bot_token", {
-    title: "Bot User OAuth Token",
-    description: "Slack bot token for API access",
+  .addSecret("api_key", {
+    title: "API Key",
+    description: "Secret key for external service",
     required: true,
   })
-  .addVariable("default_channel", {
-    title: "Default Channel",
-    description: "Default channel for notifications",
-    defaultValue: "#general",
-    required: false,
-  })
   .deploy();
 
-const githubToSlackSync = defineAction("github-to-slack-notifications")
-  .withTitle("GitHub to Slack Notifications")
-  .withDescription("Send Slack notifications for GitHub repository events")
-  .withCustomApp(githubApp)
-  .withCustomApp(slackApp)
-  .addVariable("event_types", {
-    title: "Event Types to Monitor",
-    description: "Comma-separated list of GitHub events to monitor",
-    defaultValue: "push,pull_request,issues",
-    required: true,
-  })
-  .addVariable("notification_template", {
-    title: "Notification Template",
-    description: "Template for Slack notifications",
-    defaultValue: "{{event}} in {{repository}}: {{message}}",
-    required: false,
-  })
-  .deploy();
+console.log("Action 2 - With Configuration:");
+console.log(`  Name: ${configuredAction.name}`);
+console.log(`  Title: ${configuredAction.title}`);
+console.log(`  Variables: ${configuredAction.variables?.length || 0}`);
+console.log(`  Secrets: ${configuredAction.secrets?.length || 0}\n`);
 
-console.log("Action 2 - Custom Apps:");
-console.log(`  Name: ${githubToSlackSync.name}`);
-console.log(`  Title: ${githubToSlackSync.title}`);
-console.log(
-  `  Custom Apps: ${githubToSlackSync.customApps?.join(", ") || "none"}`
-);
-console.log(`  Variables: ${githubToSlackSync.variables?.length || 0}`);
-console.log(`  Secrets: ${githubToSlackSync.secrets?.length || 0}\n`);
-
-// Example 3: Complex action with multiple apps and configuration
-const dataSync = defineAction("multi-platform-data-sync")
-  .withTitle("Multi-Platform Data Synchronization")
-  .withDescription(
-    "Synchronize data across multiple platforms with configurable options"
-  )
-  .withApps(["salesforce", "hubspot", "pipedrive"])
-  .withCustomApps([githubApp, "zendesk-integration"])
+// Example 3: Complex action with comprehensive configuration
+const dataSync = defineAction("data-synchronization")
+  .withTitle("Data Synchronization")
+  .withDescription("Synchronize data with configurable options")
   .addVariable("sync_frequency", {
     title: "Sync Frequency",
     description: "How often to perform synchronization (in minutes)",
@@ -136,8 +91,6 @@ const dataSync = defineAction("multi-platform-data-sync")
 console.log("Action 3 - Complex Configuration:");
 console.log(`  Name: ${dataSync.name}`);
 console.log(`  Title: ${dataSync.title}`);
-console.log(`  Built-in Apps: ${dataSync.apps?.join(", ") || "none"}`);
-console.log(`  Custom Apps: ${dataSync.customApps?.join(", ") || "none"}`);
 console.log(`  Variables: ${dataSync.variables?.length || 0}`);
 console.log(`  Secrets: ${dataSync.secrets?.length || 0}`);
 
@@ -168,8 +121,8 @@ const simpleAction = defineAction("health-check").deploy();
 console.log("Action 4 - Minimal:");
 console.log(`  Name: ${simpleAction.name}`);
 console.log(`  Title: ${simpleAction.title || "(none)"}`);
-console.log(`  Apps: ${simpleAction.apps?.length || 0}`);
-console.log(`  Custom Apps: ${simpleAction.customApps?.length || 0}\n`);
+console.log(`  Variables: ${simpleAction.variables?.length || 0}`);
+console.log(`  Secrets: ${simpleAction.secrets?.length || 0}\n`);
 
 // Export the registry to see all created items
 const registry = exportRegistry();
@@ -185,16 +138,16 @@ console.log("\n✅ Action examples completed!");
 
 // Example usage patterns
 console.log("\n💡 Usage Patterns:");
-console.log("1. Built-in apps only:");
+console.log("1. Simple action:");
+console.log("   defineAction('sync').withTitle('Data Sync').deploy()");
+console.log("\n2. Action with variables:");
 console.log(
-  "   defineAction('sync').withApp('salesforce').withApp('hubspot').deploy()"
+  "   defineAction('process').addVariable('setting', { defaultValue: 'value' }).deploy()"
 );
-console.log("\n2. Custom apps only:");
-console.log("   defineAction('notify').withCustomApp(myApp).deploy()");
-console.log("\n3. Mixed apps with configuration:");
+console.log("\n3. Complex action with configuration:");
 console.log("   defineAction('complex')");
-console.log("     .withApps(['salesforce', 'hubspot'])");
-console.log("     .withCustomApp(customApp)");
+console.log("     .withTitle('Complex Action')");
+console.log("     .withDescription('A complex action')");
 console.log("     .addVariable('setting', { defaultValue: 'value' })");
 console.log("     .addSecret('token', { required: true })");
 console.log("     .deploy()");

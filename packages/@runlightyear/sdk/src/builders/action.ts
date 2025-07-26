@@ -1,5 +1,21 @@
-import type { Action, CustomApp, AppVariable, AppSecret } from "../types";
+import type {
+  Action,
+  CustomApp,
+  AppVariable,
+  AppSecret,
+  RunFunc,
+} from "../types";
 import { registerAction } from "../registry";
+
+// Global action index to store run functions (similar to lightyear package)
+declare global {
+  var actionIndex: { [name: string]: RunFunc };
+}
+
+// Initialize global action index if it doesn't exist
+if (typeof globalThis !== "undefined") {
+  globalThis.actionIndex = globalThis.actionIndex || {};
+}
 
 /**
  * Action Builder - fluent API for creating actions
@@ -8,10 +24,9 @@ export class ActionBuilder {
   private name: string;
   private title?: string;
   private description?: string;
-  private apps: string[] = [];
-  private customApps: string[] = [];
   private variables: AppVariable[] = [];
   private secrets: AppSecret[] = [];
+  private runFunction?: RunFunc;
 
   constructor(name: string) {
     this.name = name;
@@ -24,53 +39,6 @@ export class ActionBuilder {
 
   withDescription(description: string): this {
     this.description = description;
-    return this;
-  }
-
-  /**
-   * Add a built-in app that this action will use
-   */
-  withApp(appName: string): this {
-    if (!this.apps.includes(appName)) {
-      this.apps.push(appName);
-    }
-    return this;
-  }
-
-  /**
-   * Add multiple built-in apps that this action will use
-   */
-  withApps(appNames: string[]): this {
-    appNames.forEach((appName) => {
-      if (!this.apps.includes(appName)) {
-        this.apps.push(appName);
-      }
-    });
-    return this;
-  }
-
-  /**
-   * Add a custom app that this action will use
-   */
-  withCustomApp(customApp: CustomApp | string): this {
-    const appName = typeof customApp === "string" ? customApp : customApp.name;
-    if (!this.customApps.includes(appName)) {
-      this.customApps.push(appName);
-    }
-    return this;
-  }
-
-  /**
-   * Add multiple custom apps that this action will use
-   */
-  withCustomApps(customApps: (CustomApp | string)[]): this {
-    customApps.forEach((customApp) => {
-      const appName =
-        typeof customApp === "string" ? customApp : customApp.name;
-      if (!this.customApps.includes(appName)) {
-        this.customApps.push(appName);
-      }
-    });
     return this;
   }
 
@@ -120,25 +88,37 @@ export class ActionBuilder {
     return this;
   }
 
+  /**
+   * Set the function to run when this action is executed
+   */
+  withRun(runFunction: RunFunc): this {
+    this.runFunction = runFunction;
+    return this;
+  }
+
   deploy(): Action {
     const action: Action = {
       name: this.name,
       title: this.title,
       description: this.description,
-      apps: this.apps.length > 0 ? this.apps : undefined,
-      customApps: this.customApps.length > 0 ? this.customApps : undefined,
       variables: this.variables.length > 0 ? this.variables : undefined,
       secrets: this.secrets.length > 0 ? this.secrets : undefined,
+      run: this.runFunction,
     };
+
+    // Store the run function in the global action index (if provided)
+    if (this.runFunction && typeof globalThis !== "undefined") {
+      globalThis.actionIndex = globalThis.actionIndex || {};
+      globalThis.actionIndex[this.name] = this.runFunction;
+    }
 
     // Register the action in the global registry
     registerAction(action, {
       builderType: "ActionBuilder",
       createdBy: "defineAction",
-      appCount: this.apps.length,
-      customAppCount: this.customApps.length,
       variableCount: this.variables.length,
       secretCount: this.secrets.length,
+      hasRunFunction: !!this.runFunction,
     });
 
     return action;

@@ -1,4 +1,4 @@
-import type { Integration, CustomApp, Collection } from "../types";
+import type { Integration, CustomApp, Collection, Action } from "../types";
 import { registerIntegration } from "../registry";
 
 /**
@@ -9,6 +9,7 @@ export class IntegrationBuilder {
   private title?: string;
   private app?: Integration["app"];
   private collections: Record<string, Collection> = {};
+  private actions: Record<string, Action> = {};
 
   constructor(name: string) {
     this.name = name;
@@ -52,6 +53,22 @@ export class IntegrationBuilder {
     return this;
   }
 
+  /**
+   * Add an action to this integration
+   */
+  withAction(action: Action): this {
+    this.actions[action.name] = action;
+    return this;
+  }
+
+  /**
+   * Add multiple actions to this integration
+   */
+  withActions(actions: Record<string, Action>): this {
+    this.actions = { ...this.actions, ...actions };
+    return this;
+  }
+
   deploy(): Integration {
     if (!this.app) {
       throw new Error(
@@ -64,6 +81,7 @@ export class IntegrationBuilder {
       title: this.title,
       app: this.app,
       collections: this.collections,
+      actions: this.actions,
     };
 
     // Register the integration in the global registry
@@ -72,6 +90,7 @@ export class IntegrationBuilder {
       createdBy: "defineIntegration",
       appType: this.app.type,
       collectionCount: Object.keys(this.collections).length,
+      actionCount: Object.keys(this.actions).length,
     });
 
     return integration;

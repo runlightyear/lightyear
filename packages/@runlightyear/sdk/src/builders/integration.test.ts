@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { defineIntegration } from "./integration";
-import { defineOAuth2CustomApp, defineCollection, defineModel } from "./";
+import {
+  defineOAuth2CustomApp,
+  defineCollection,
+  defineModel,
+  defineAction,
+} from "./";
 import { clearRegistry, getIntegrations } from "../registry";
 
 describe("IntegrationBuilder", () => {
@@ -21,6 +26,7 @@ describe("IntegrationBuilder", () => {
       expect(integration.app.name).toBe("salesforce");
       expect(integration.app.definition).toBeUndefined();
       expect(integration.collections).toEqual({});
+      expect(integration.actions).toEqual({});
     });
 
     it("should create an integration with custom app", () => {
@@ -117,6 +123,81 @@ describe("IntegrationBuilder", () => {
     });
   });
 
+  describe("Actions", () => {
+    it("should add actions to integration", () => {
+      const syncAction = defineAction("sync-contacts")
+        .withTitle("Sync Contacts")
+        .withDescription("Synchronize contact data")
+        .addVariable("batch_size", { defaultValue: "100" })
+        .deploy();
+
+      const integration = defineIntegration("contact-sync")
+        .withApp("salesforce")
+        .withAction(syncAction)
+        .deploy();
+
+      expect(integration.actions).toHaveProperty("sync-contacts");
+      expect(integration.actions["sync-contacts"]).toEqual(syncAction);
+    });
+
+    it("should add multiple actions at once", () => {
+      const syncAction = defineAction("sync-contacts")
+        .withTitle("Sync Contacts")
+        .deploy();
+
+      const exportAction = defineAction("export-data")
+        .withTitle("Export Data")
+        .deploy();
+
+      const integration = defineIntegration("multi-action-sync")
+        .withApp("salesforce")
+        .withActions({
+          "sync-contacts": syncAction,
+          "export-data": exportAction,
+        })
+        .deploy();
+
+      expect(integration.actions).toHaveProperty("sync-contacts");
+      expect(integration.actions).toHaveProperty("export-data");
+      expect(Object.keys(integration.actions)).toHaveLength(2);
+    });
+
+    it("should support adding actions incrementally", () => {
+      const syncAction = defineAction("sync").deploy();
+      const importAction = defineAction("import").deploy();
+      const exportAction = defineAction("export").deploy();
+
+      const integration = defineIntegration("incremental-actions")
+        .withApp("salesforce")
+        .withAction(syncAction)
+        .withAction(importAction)
+        .withActions({ export: exportAction })
+        .deploy();
+
+      expect(Object.keys(integration.actions)).toHaveLength(3);
+      expect(integration.actions.sync).toEqual(syncAction);
+      expect(integration.actions.import).toEqual(importAction);
+      expect(integration.actions.export).toEqual(exportAction);
+    });
+
+    it("should work with both collections and actions", () => {
+      const contact = defineModel("contact").deploy();
+      const crm = defineCollection("crm").withModel(contact).deploy();
+      const syncAction = defineAction("sync").deploy();
+
+      const integration = defineIntegration("complete-integration")
+        .withApp("salesforce")
+        .withCollection("crm", crm)
+        .withAction(syncAction)
+        .deploy();
+
+      expect(Object.keys(integration.collections)).toHaveLength(1);
+      expect(Object.keys(integration.actions)).toHaveLength(1);
+      expect(integration.collections.crm).toEqual(crm);
+      expect(integration.actions.sync).toEqual(syncAction);
+    });
+  });
+
   describe("Error handling", () => {
     it("should throw error when no app is specified", () => {
       expect(() => {
@@ -159,22 +240,28 @@ describe("IntegrationBuilder", () => {
       expect(integrations[0].metadata?.createdBy).toBe("defineIntegration");
       expect(integrations[0].metadata?.appType).toBe("builtin");
       expect(integrations[0].metadata?.collectionCount).toBe(0);
+      expect(integrations[0].metadata?.actionCount).toBe(0);
     });
 
     it("should track metadata correctly", () => {
       const customApp = defineOAuth2CustomApp("custom").deploy();
       const crm = defineCollection("crm").deploy();
       const sales = defineCollection("sales").deploy();
+      const syncAction = defineAction("sync").deploy();
+      const exportAction = defineAction("export").deploy();
 
       defineIntegration("metadata-test")
         .withCustomApp(customApp)
         .withCollection("crm", crm)
         .withCollection("sales", sales)
+        .withAction(syncAction)
+        .withAction(exportAction)
         .deploy();
 
       const integrations = getIntegrations();
       expect(integrations[0].metadata?.appType).toBe("custom");
       expect(integrations[0].metadata?.collectionCount).toBe(2);
+      expect(integrations[0].metadata?.actionCount).toBe(2);
     });
 
     it("should generate unique IDs for integrations", () => {

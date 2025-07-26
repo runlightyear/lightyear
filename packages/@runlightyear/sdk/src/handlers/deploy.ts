@@ -46,8 +46,6 @@ interface ActionProps {
   name: string;
   title: string;
   description?: string;
-  apps?: string[];
-  customApps?: string[];
   variables?: Array<string | { name: string; description?: string }>;
   secrets?: Array<string | { name: string; description?: string }>;
 }
@@ -220,9 +218,17 @@ function transformRegistryToDeploymentSchema(
           }
         }
 
+        // Add actions if they exist
+        if (
+          integration.actions &&
+          Object.keys(integration.actions).length > 0
+        ) {
+          integrationProps.actions = Object.keys(integration.actions);
+        }
+
         // Note: Collections are not part of the API integration schema
         // They should be deployed separately as collection items
-        // Actions and webhooks will be added when we implement those builders
+        // Webhooks will be added when we implement webhook builders
 
         const integrationItem = {
           type: "integration" as const,
@@ -238,6 +244,9 @@ function transformRegistryToDeploymentSchema(
           }`
         );
         console.log(`   📱 App type: ${integration.app?.type || "unknown"}`);
+        console.log(
+          `   ⚡ Actions: ${integrationProps.actions?.join(", ") || "none"}`
+        );
         deploymentItems.push(integrationItem);
         break;
 
@@ -281,28 +290,12 @@ function transformRegistryToDeploymentSchema(
             name: item.action.name || "unnamed-action",
             title: item.action.title || item.action.name || "Unnamed Action",
             description: item.action.description,
-            apps:
-              item.action.apps && item.action.apps.length > 0
-                ? item.action.apps
-                : undefined,
-            customApps:
-              item.action.customApps && item.action.customApps.length > 0
-                ? item.action.customApps
-                : undefined,
             variables: actionVariables.length > 0 ? actionVariables : undefined,
             secrets: actionSecrets.length > 0 ? actionSecrets : undefined,
           },
         };
 
         console.log(`   ✅ Action processed: ${actionItem.actionProps.name}`);
-        console.log(
-          `   📱 Apps: ${actionItem.actionProps.apps?.join(", ") || "none"}`
-        );
-        console.log(
-          `   🔧 Custom Apps: ${
-            actionItem.actionProps.customApps?.join(", ") || "none"
-          }`
-        );
         deploymentItems.push(actionItem);
         break;
 

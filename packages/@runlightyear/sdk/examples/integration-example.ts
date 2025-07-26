@@ -4,6 +4,7 @@ import {
   defineApiKeyCustomApp,
   defineCollection,
   defineModel,
+  defineAction,
   match,
   exportRegistry,
 } from "../src";
@@ -71,7 +72,40 @@ const sales = defineCollection("sales")
   .withModel(opportunity)
   .deploy();
 
-console.log("✅ Created models and collections\n");
+// Create some actions for our integrations
+const syncContacts = defineAction("sync-contacts")
+  .withTitle("Sync Contacts")
+  .withDescription("Synchronize contacts from external system")
+  .addVariable("batch_size", {
+    title: "Batch Size",
+    description: "Number of contacts to sync at once",
+    defaultValue: "100",
+    required: false,
+  })
+  .deploy();
+
+const exportData = defineAction("export-data")
+  .withTitle("Export Data")
+  .withDescription("Export data to external format")
+  .addVariable("format", {
+    title: "Export Format",
+    description: "Format for exported data",
+    defaultValue: "csv",
+    required: true,
+  })
+  .deploy();
+
+const processOpportunities = defineAction("process-opportunities")
+  .withTitle("Process Opportunities")
+  .withDescription("Process and analyze opportunity data")
+  .addSecret("analytics_key", {
+    title: "Analytics API Key",
+    description: "Key for analytics service",
+    required: true,
+  })
+  .deploy();
+
+console.log("✅ Created models, collections, and actions\n");
 
 // Example 1: Integration with built-in app
 const salesforceIntegration = defineIntegration("salesforce-sync")
@@ -79,6 +113,9 @@ const salesforceIntegration = defineIntegration("salesforce-sync")
   .withApp("salesforce") // Using built-in Salesforce app
   .withCollection("crm", crm)
   .withCollection("sales", sales)
+  .withAction(syncContacts)
+  .withAction(exportData)
+  .withAction(processOpportunities)
   .deploy();
 
 console.log("Integration 1 - Built-in App:");
@@ -87,9 +124,10 @@ console.log(`  Title: ${salesforceIntegration.title}`);
 console.log(`  App Type: ${salesforceIntegration.app.type}`);
 console.log(`  App Name: ${salesforceIntegration.app.name}`);
 console.log(
-  `  Collections: ${Object.keys(salesforceIntegration.collections).join(
-    ", "
-  )}\n`
+  `  Collections: ${Object.keys(salesforceIntegration.collections).join(", ")}`
+);
+console.log(
+  `  Actions: ${Object.keys(salesforceIntegration.actions).join(", ")}\n`
 );
 
 // Example 2: Integration with custom OAuth2 app
@@ -136,6 +174,8 @@ const githubIntegration = defineIntegration("github-sync")
   .withTitle("GitHub Repository Sync")
   .withCustomApp(githubApp)
   .withCollection("repositories", githubCollection)
+  .withAction(syncContacts)
+  .withAction(exportData)
   .deploy();
 
 console.log("Integration 2 - Custom App:");
@@ -149,7 +189,10 @@ console.log(
   }`
 );
 console.log(
-  `  Collections: ${Object.keys(githubIntegration.collections).join(", ")}\n`
+  `  Collections: ${Object.keys(githubIntegration.collections).join(", ")}`
+);
+console.log(
+  `  Actions: ${Object.keys(githubIntegration.actions).join(", ")}\n`
 );
 
 // Example 3: Integration with API Key app and inline collections
@@ -201,6 +244,7 @@ const stripeIntegration = defineIntegration("stripe-payments")
       })
       .deploy(),
   })
+  .withAction(processOpportunities)
   .deploy();
 
 console.log("Integration 3 - API Key App with Inline Collections:");
@@ -208,7 +252,10 @@ console.log(`  Name: ${stripeIntegration.name}`);
 console.log(`  Title: ${stripeIntegration.title}`);
 console.log(`  App Type: ${stripeIntegration.app.type}`);
 console.log(
-  `  Collections: ${Object.keys(stripeIntegration.collections).join(", ")}\n`
+  `  Collections: ${Object.keys(stripeIntegration.collections).join(", ")}`
+);
+console.log(
+  `  Actions: ${Object.keys(stripeIntegration.actions).join(", ")}\n`
 );
 
 // Export the registry to see all created items
@@ -219,5 +266,23 @@ console.log(`  Models: ${registry.stats.byType.model || 0}`);
 console.log(`  Collections: ${registry.stats.byType.collection || 0}`);
 console.log(`  Custom Apps: ${registry.stats.byType.customApp || 0}`);
 console.log(`  Integrations: ${registry.stats.byType.integration || 0}`);
+console.log(`  Actions: ${registry.stats.byType.action || 0}`);
 
 console.log("\n✅ Integration examples completed!");
+
+// Example usage patterns
+console.log("\n💡 Usage Patterns:");
+console.log("1. Integration with built-in app and actions:");
+console.log("   defineIntegration('sync')");
+console.log("     .withApp('salesforce')");
+console.log("     .withCollection('contacts', contactCollection)");
+console.log("     .withAction(syncAction)");
+console.log("     .deploy()");
+console.log("\n2. Integration with custom app and multiple actions:");
+console.log("   defineIntegration('custom-sync')");
+console.log("     .withCustomApp(myCustomApp)");
+console.log("     .withCollections({ contacts, accounts })");
+console.log(
+  "     .withActions({ 'sync-action': syncAction, 'export-action': exportAction })"
+);
+console.log("     .deploy()");

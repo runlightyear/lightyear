@@ -76,15 +76,53 @@ export interface Integration {
     definition?: CustomApp;
   };
   collections: Record<string, Collection>;
+  actions: Record<string, Action>;
 }
+
+// Run function types for action execution
+export interface Auths {
+  [name: string]: any; // AuthData would be defined elsewhere
+}
+
+export interface Variables {
+  [name: string]: string | null;
+}
+
+export interface Secrets {
+  [name: string]: string | null;
+}
+
+export interface RunFuncIntegration {
+  id: string;
+  name: string;
+  title: string;
+}
+
+export interface RunFuncManagedUser {
+  id: string;
+  externalId: string;
+  displayName: string | null;
+}
+
+export interface RunFuncProps {
+  data?: any;
+  context?: any;
+  auths: Auths;
+  variables: Variables;
+  secrets: Secrets;
+  webhook: string | null;
+  integration: RunFuncIntegration | null;
+  managedUser: RunFuncManagedUser | null;
+}
+
+export type RunFunc = (props: RunFuncProps) => Promise<void>;
 
 // Action definition
 export interface Action {
   name: string;
   title?: string;
   description?: string;
-  apps?: string[];
-  customApps?: string[];
   variables?: AppVariable[];
   secrets?: AppSecret[];
+  run?: RunFunc;
 }

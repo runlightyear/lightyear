@@ -8,6 +8,7 @@ import type {
 import { handleHealth } from "./health";
 import { handleRegistryExport, handleRegistryStats } from "./registry";
 import { handleDeploy } from "./deploy";
+import { handleRun } from "./run";
 
 /**
  * Main handler for SDK operations
@@ -41,6 +42,10 @@ export const handler: DirectHandler = async (
 
       case "deploy":
         internalResponse = await handleDeploy(payload);
+        break;
+
+      case "run":
+        internalResponse = await handleRun(payload);
         break;
 
       default:
@@ -86,3 +91,4 @@ export type {
 export { handleHealth } from "./health";
 export { handleRegistryExport, handleRegistryStats } from "./registry";
 export { handleDeploy } from "./deploy";
+export { handleRun } from "./run";

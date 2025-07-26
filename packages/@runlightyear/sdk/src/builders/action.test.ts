@@ -15,8 +15,6 @@ describe("ActionBuilder", () => {
       expect(action.name).toBe("sync-contacts");
       expect(action.title).toBeUndefined();
       expect(action.description).toBeUndefined();
-      expect(action.apps).toBeUndefined();
-      expect(action.customApps).toBeUndefined();
       expect(action.variables).toBeUndefined();
       expect(action.secrets).toBeUndefined();
     });
@@ -34,86 +32,10 @@ describe("ActionBuilder", () => {
       );
     });
 
-    it("should create an action with built-in apps", () => {
-      const action = defineAction("salesforce-sync")
-        .withTitle("Salesforce Sync")
-        .withApp("salesforce")
-        .withApp("hubspot")
-        .deploy();
-
-      expect(action.name).toBe("salesforce-sync");
-      expect(action.apps).toEqual(["salesforce", "hubspot"]);
-      expect(action.customApps).toBeUndefined();
-    });
-
-    it("should create an action with multiple apps at once", () => {
-      const action = defineAction("multi-sync")
-        .withTitle("Multi-Platform Sync")
-        .withApps(["salesforce", "hubspot", "pipedrive"])
-        .deploy();
-
-      expect(action.apps).toEqual(["salesforce", "hubspot", "pipedrive"]);
-    });
-
-    it("should not add duplicate apps", () => {
-      const action = defineAction("dedup-test")
-        .withApp("salesforce")
-        .withApp("salesforce") // duplicate
-        .withApps(["hubspot", "salesforce"]) // salesforce is duplicate
-        .deploy();
-
-      expect(action.apps).toEqual(["salesforce", "hubspot"]);
-    });
+    // Apps functionality has been removed from actions
   });
 
-  describe("Custom apps", () => {
-    it("should create an action with custom app objects", () => {
-      const customApp = defineOAuth2CustomApp("github")
-        .withTitle("GitHub Integration")
-        .deploy();
-
-      const action = defineAction("github-sync")
-        .withTitle("GitHub Sync")
-        .withCustomApp(customApp)
-        .deploy();
-
-      expect(action.customApps).toEqual(["github"]);
-    });
-
-    it("should create an action with custom app names", () => {
-      const action = defineAction("custom-sync")
-        .withTitle("Custom Sync")
-        .withCustomApp("my-custom-app")
-        .deploy();
-
-      expect(action.customApps).toEqual(["my-custom-app"]);
-    });
-
-    it("should create an action with multiple custom apps", () => {
-      const app1 = defineOAuth2CustomApp("app1").deploy();
-      const app2 = defineOAuth2CustomApp("app2").deploy();
-
-      const action = defineAction("multi-custom")
-        .withCustomApp(app1)
-        .withCustomApp("app3")
-        .withCustomApps([app2, "app4"])
-        .deploy();
-
-      expect(action.customApps).toEqual(["app1", "app3", "app2", "app4"]);
-    });
-
-    it("should not add duplicate custom apps", () => {
-      const customApp = defineOAuth2CustomApp("github").deploy();
-
-      const action = defineAction("dedup-custom")
-        .withCustomApp(customApp)
-        .withCustomApp("github") // duplicate by name
-        .withCustomApps(["other-app", "github"]) // github is duplicate
-        .deploy();
-
-      expect(action.customApps).toEqual(["github", "other-app"]);
-    });
-  });
+  // Custom apps functionality has been removed from actions
 
   describe("Variables and secrets", () => {
     it("should add variables to an action", () => {
@@ -204,7 +126,6 @@ describe("ActionBuilder", () => {
 
       const action = defineAction("registry-test")
         .withTitle("Registry Test Action")
-        .withApp("salesforce")
         .addSecret("api_key")
         .deploy();
 
@@ -215,28 +136,18 @@ describe("ActionBuilder", () => {
       expect(actions[0].type).toBe("action");
       expect(actions[0].metadata?.builderType).toBe("ActionBuilder");
       expect(actions[0].metadata?.createdBy).toBe("defineAction");
-      expect(actions[0].metadata?.appCount).toBe(1);
-      expect(actions[0].metadata?.customAppCount).toBe(0);
       expect(actions[0].metadata?.variableCount).toBe(0);
       expect(actions[0].metadata?.secretCount).toBe(1);
     });
 
     it("should track metadata correctly", () => {
-      const customApp = defineOAuth2CustomApp("custom").deploy();
-
       defineAction("metadata-test")
-        .withApp("salesforce")
-        .withApp("hubspot")
-        .withCustomApp(customApp)
-        .withCustomApp("another-custom")
         .addVariable("var1")
         .addVariable("var2")
         .addSecret("secret1")
         .deploy();
 
       const actions = getActions();
-      expect(actions[0].metadata?.appCount).toBe(2);
-      expect(actions[0].metadata?.customAppCount).toBe(2);
       expect(actions[0].metadata?.variableCount).toBe(2);
       expect(actions[0].metadata?.secretCount).toBe(1);
     });
@@ -253,18 +164,9 @@ describe("ActionBuilder", () => {
 
   describe("Method chaining", () => {
     it("should support fluent API method chaining", () => {
-      const customApp = defineOAuth2CustomApp("comprehensive")
-        .withTitle("Comprehensive App")
-        .addSecret("client_id")
-        .deploy();
-
       const action = defineAction("comprehensive-action")
         .withTitle("Comprehensive Action")
         .withDescription("A comprehensive action with all features")
-        .withApp("salesforce")
-        .withApps(["hubspot", "pipedrive"])
-        .withCustomApp(customApp)
-        .withCustomApp("another-app")
         .addVariable("batch_size", {
           title: "Batch Size",
           defaultValue: "50",
@@ -281,8 +183,6 @@ describe("ActionBuilder", () => {
       expect(action.description).toBe(
         "A comprehensive action with all features"
       );
-      expect(action.apps).toEqual(["salesforce", "hubspot", "pipedrive"]);
-      expect(action.customApps).toEqual(["comprehensive", "another-app"]);
       expect(action.variables).toHaveLength(1);
       expect(action.secrets).toHaveLength(1);
     });

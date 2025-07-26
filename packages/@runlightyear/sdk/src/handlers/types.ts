@@ -1,5 +1,5 @@
 export interface HandlerEvent {
-  operation: "deploy" | "health" | "registry-export" | "registry-stats";
+  operation: "deploy" | "health" | "registry-export" | "registry-stats" | "run";
   payload?: any;
 }
 
@@ -37,3 +37,4 @@ export type HealthHandler = (
 export type RegistryExportHandler = () => Promise<InternalResponse>;
 export type RegistryStatsHandler = () => Promise<InternalResponse>;
 export type DeployHandler = (payload?: any) => Promise<InternalResponse>;
+export type RunHandler = (payload?: any) => Promise<InternalResponse>;
