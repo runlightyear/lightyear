@@ -12,3 +12,6 @@ export * from "./builders";
 
 // Export utilities
 export * from "./utils";
+
+// Export registry functionality
+export * from "./registry";

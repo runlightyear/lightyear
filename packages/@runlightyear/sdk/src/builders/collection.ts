@@ -1,5 +1,6 @@
 import type { JSONSchema7 } from "json-schema";
 import type { Collection, Model, MatchPattern } from "../types";
+import { registerCollection, registerModel } from "../registry";
 
 /**
  * Collection Builder - fluent API for creating collections
@@ -36,21 +37,39 @@ export class CollectionBuilder {
       matchPattern?: MatchPattern;
     }
   ): this {
-    this.models.push({
+    const model: Model = {
       name,
       title: options?.title,
       schema: options?.schema,
       matchPattern: options?.matchPattern,
+    };
+
+    // Register the model in the registry
+    registerModel(model, {
+      builderType: "CollectionBuilder",
+      createdBy: "addModel",
+      parentCollection: this.name,
     });
+
+    this.models.push(model);
     return this;
   }
 
   build(): Collection {
-    return {
+    const collection: Collection = {
       name: this.name,
       title: this.title,
       models: this.models,
     };
+
+    // Register the collection in the global registry
+    registerCollection(collection, {
+      builderType: "CollectionBuilder",
+      createdBy: "defineCollection",
+      modelCount: this.models.length,
+    });
+
+    return collection;
   }
 }
 

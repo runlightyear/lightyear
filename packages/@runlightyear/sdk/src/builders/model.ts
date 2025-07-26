@@ -1,5 +1,6 @@
 import type { JSONSchema7 } from "json-schema";
 import type { Model, MatchPattern } from "../types";
+import { registerModel } from "../registry";
 
 /**
  * Model Builder - fluent API for creating models
@@ -30,12 +31,20 @@ export class ModelBuilder {
   }
 
   build(): Model {
-    return {
+    const model: Model = {
       name: this.name,
       title: this.title,
       schema: this.schema,
       matchPattern: this.matchPattern,
     };
+
+    // Register the model in the global registry
+    registerModel(model, {
+      builderType: "ModelBuilder",
+      createdBy: "defineModel",
+    });
+
+    return model;
   }
 }
 

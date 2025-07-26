@@ -92,11 +92,46 @@ match.and(match.property("type"), match.property("status"));
 - `Collection` - A collection containing multiple related models
 - `MatchPattern` - Pattern for matching incoming data to models
 
+### Registry for Deployment
+
+The SDK automatically tracks all created elements in a global registry, making them available for deployment:
+
+```typescript
+import {
+  defineModel,
+  defineCollection,
+  exportRegistry,
+  getModels,
+  getCollections,
+} from "@runlightyear/sdk";
+
+// Create your models and collections
+const customer = defineModel("customer").build();
+const crm = defineCollection("crm").withModel(customer).build();
+
+// Registry automatically tracks everything
+console.log("Models:", getModels().length);
+console.log("Collections:", getCollections().length);
+
+// Export for deployment
+const deploymentData = exportRegistry();
+console.log("Ready for deployment:", deploymentData);
+```
+
+The registry provides:
+
+- **Automatic tracking** - All models and collections are registered when built
+- **Unique IDs** - Each element gets a unique identifier
+- **Metadata** - Tracks how and when elements were created
+- **Export functionality** - Generate deployment-ready data structures
+- **Statistics** - Get counts and summaries of registered elements
+
 ## Features
 
 - ✅ Type-safe builder pattern
 - ✅ JSON Schema support for validation
 - ✅ Flexible match patterns for data mapping
+- ✅ Automatic registry for deployment tracking
 - ✅ Comprehensive TypeScript types
 - ✅ Zero runtime dependencies (except zod)
 
