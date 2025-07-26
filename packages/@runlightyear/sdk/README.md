@@ -82,15 +82,33 @@ match.and(match.property("type"), match.property("status"));
 
 ## API Reference
 
+### Builders
+
 - `defineModel(name)` - Create a new model builder
 - `defineCollection(name)` - Create a new collection builder
+- `defineOAuth2CustomApp(name)` - Create an OAuth2 custom app builder
+- `defineApiKeyCustomApp(name)` - Create an API Key custom app builder
+- `defineBasicCustomApp(name)` - Create a Basic Auth custom app builder
+- `defineCustomApp(name, type)` - Create any custom app type builder
+
+### Helpers
+
 - `match` - Helper object for creating match patterns
+
+### Registry
+
+- `getModels()` - Get all registered models
+- `getCollections()` - Get all registered collections
+- `getCustomApps()` - Get all registered custom apps
+- `exportRegistry()` - Export for deployment
 
 ## Types
 
 - `Model` - A single data model with schema and match pattern
 - `Collection` - A collection containing multiple related models
+- `CustomApp` - A custom app with authentication configuration
 - `MatchPattern` - Pattern for matching incoming data to models
+- `AppAuthType` - Authentication type: 'OAUTH2' | 'APIKEY' | 'BASIC'
 
 ### Registry for Deployment
 

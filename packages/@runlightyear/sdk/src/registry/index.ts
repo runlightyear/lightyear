@@ -1,4 +1,4 @@
-import type { Collection, Model } from "../types";
+import type { Collection, Model, CustomApp } from "../types";
 
 /**
  * Registry entry types for different SDK elements
@@ -21,7 +21,15 @@ export interface CollectionRegistryEntry extends RegistryEntry {
   collection: Collection;
 }
 
-export type RegistryItem = ModelRegistryEntry | CollectionRegistryEntry;
+export interface CustomAppRegistryEntry extends RegistryEntry {
+  type: "customApp";
+  customApp: CustomApp;
+}
+
+export type RegistryItem =
+  | ModelRegistryEntry
+  | CollectionRegistryEntry
+  | CustomAppRegistryEntry;
 
 /**
  * Main registry class that tracks all SDK elements
@@ -70,6 +78,27 @@ class SDKRegistry {
   }
 
   /**
+   * Register a custom app in the registry
+   */
+  registerCustomApp(
+    customApp: CustomApp,
+    metadata?: Record<string, any>
+  ): string {
+    const id = this.generateId("customApp", customApp.name);
+    const entry: CustomAppRegistryEntry = {
+      id,
+      name: customApp.name,
+      type: "customApp",
+      customApp,
+      createdAt: new Date(),
+      metadata,
+    };
+
+    this.addEntry(entry);
+    return id;
+  }
+
+  /**
    * Get all registered items
    */
   getAllItems(): RegistryItem[] {
@@ -95,6 +124,13 @@ class SDKRegistry {
    */
   getCollections(): CollectionRegistryEntry[] {
     return this.getItemsByType<CollectionRegistryEntry>("collection");
+  }
+
+  /**
+   * Get all custom apps
+   */
+  getCustomApps(): CustomAppRegistryEntry[] {
+    return this.getItemsByType<CustomAppRegistryEntry>("customApp");
   }
 
   /**
@@ -198,6 +234,16 @@ export function registerCollection(
 }
 
 /**
+ * Register a custom app
+ */
+export function registerCustomApp(
+  customApp: CustomApp,
+  metadata?: Record<string, any>
+): string {
+  return registry.registerCustomApp(customApp, metadata);
+}
+
+/**
  * Get all registered models
  */
 export function getModels(): ModelRegistryEntry[] {
@@ -209,6 +255,13 @@ export function getModels(): ModelRegistryEntry[] {
  */
 export function getCollections(): CollectionRegistryEntry[] {
   return registry.getCollections();
+}
+
+/**
+ * Get all registered custom apps
+ */
+export function getCustomApps(): CustomAppRegistryEntry[] {
+  return registry.getCustomApps();
 }
 
 /**
