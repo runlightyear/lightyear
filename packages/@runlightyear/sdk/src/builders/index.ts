@@ -20,5 +20,8 @@ export {
 // Integration builder
 export { IntegrationBuilder, defineIntegration } from "./integration";
 
+// Action builder
+export { ActionBuilder, defineAction } from "./action";
+
 // Match pattern helpers
 export { match } from "./match";

@@ -77,3 +77,14 @@ export interface Integration {
   };
   collections: Record<string, Collection>;
 }
+
+// Action definition
+export interface Action {
+  name: string;
+  title?: string;
+  description?: string;
+  apps?: string[];
+  customApps?: string[];
+  variables?: AppVariable[];
+  secrets?: AppSecret[];
+}

@@ -1,4 +1,10 @@
-import type { Collection, Model, CustomApp, Integration } from "../types";
+import type {
+  Collection,
+  Model,
+  CustomApp,
+  Integration,
+  Action,
+} from "../types";
 
 /**
  * Registry entry types for different SDK elements
@@ -31,11 +37,17 @@ export interface IntegrationRegistryEntry extends RegistryEntry {
   integration: Integration;
 }
 
+export interface ActionRegistryEntry extends RegistryEntry {
+  type: "action";
+  action: Action;
+}
+
 export type RegistryItem =
   | ModelRegistryEntry
   | CollectionRegistryEntry
   | CustomAppRegistryEntry
-  | IntegrationRegistryEntry;
+  | IntegrationRegistryEntry
+  | ActionRegistryEntry;
 
 /**
  * Main registry class that tracks all SDK elements
@@ -126,6 +138,24 @@ class SDKRegistry {
   }
 
   /**
+   * Register an action in the registry
+   */
+  registerAction(action: Action, metadata?: Record<string, any>): string {
+    const id = this.generateId("action", action.name);
+    const entry: ActionRegistryEntry = {
+      id,
+      name: action.name,
+      type: "action",
+      action,
+      createdAt: new Date(),
+      metadata,
+    };
+
+    this.addEntry(entry);
+    return id;
+  }
+
+  /**
    * Get all registered items
    */
   getAllItems(): RegistryItem[] {
@@ -165,6 +195,13 @@ class SDKRegistry {
    */
   getIntegrations(): IntegrationRegistryEntry[] {
     return this.getItemsByType<IntegrationRegistryEntry>("integration");
+  }
+
+  /**
+   * Get all actions
+   */
+  getActions(): ActionRegistryEntry[] {
+    return this.getItemsByType<ActionRegistryEntry>("action");
   }
 
   /**
@@ -288,6 +325,16 @@ export function registerIntegration(
 }
 
 /**
+ * Register an action
+ */
+export function registerAction(
+  action: Action,
+  metadata?: Record<string, any>
+): string {
+  return registry.registerAction(action, metadata);
+}
+
+/**
  * Get all registered models
  */
 export function getModels(): ModelRegistryEntry[] {
@@ -313,6 +360,13 @@ export function getCustomApps(): CustomAppRegistryEntry[] {
  */
 export function getIntegrations(): IntegrationRegistryEntry[] {
   return registry.getIntegrations();
+}
+
+/**
+ * Get all registered actions
+ */
+export function getActions(): ActionRegistryEntry[] {
+  return registry.getActions();
 }
 
 /**

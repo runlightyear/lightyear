@@ -42,11 +42,22 @@ interface IntegrationProps {
   webhooks?: string[]; // Array of webhook names
 }
 
+interface ActionProps {
+  name: string;
+  title: string;
+  description?: string;
+  apps?: string[];
+  customApps?: string[];
+  variables?: Array<string | { name: string; description?: string }>;
+  secrets?: Array<string | { name: string; description?: string }>;
+}
+
 interface DeploymentItem {
-  type: "collection" | "customApp" | "integration";
+  type: "collection" | "customApp" | "integration" | "action";
   collectionProps?: CollectionProps;
   customAppProps?: CustomAppProps;
   integrationProps?: IntegrationProps;
+  actionProps?: ActionProps;
 }
 
 function transformRegistryToDeploymentSchema(
@@ -230,6 +241,71 @@ function transformRegistryToDeploymentSchema(
         deploymentItems.push(integrationItem);
         break;
 
+      case "action":
+        console.log("   ⚡ Processing action...");
+
+        if (!item.action || typeof item.action !== "object") {
+          console.warn("   ❌ Skipping action with invalid data:", item);
+          continue;
+        }
+
+        const actionVariables =
+          item.action.variables
+            ?.map((variable: any) => {
+              if (!variable) return null;
+              return variable.title || variable.description
+                ? {
+                    name: variable.name || "unnamed-variable",
+                    description: variable.title || variable.description,
+                  }
+                : variable.name || "unnamed-variable";
+            })
+            .filter(Boolean) || [];
+
+        const actionSecrets =
+          item.action.secrets
+            ?.map((secret: any) => {
+              if (!secret) return null;
+              return secret.title || secret.description
+                ? {
+                    name: secret.name || "unnamed-secret",
+                    description: secret.title || secret.description,
+                  }
+                : secret.name || "unnamed-secret";
+            })
+            .filter(Boolean) || [];
+
+        const actionItem = {
+          type: "action" as const,
+          actionProps: {
+            name: item.action.name || "unnamed-action",
+            title: item.action.title || item.action.name || "Unnamed Action",
+            description: item.action.description,
+            apps:
+              item.action.apps && item.action.apps.length > 0
+                ? item.action.apps
+                : undefined,
+            customApps:
+              item.action.customApps && item.action.customApps.length > 0
+                ? item.action.customApps
+                : undefined,
+            variables: actionVariables.length > 0 ? actionVariables : undefined,
+            secrets: actionSecrets.length > 0 ? actionSecrets : undefined,
+          },
+        };
+
+        console.log(`   ✅ Action processed: ${actionItem.actionProps.name}`);
+        console.log(
+          `   📱 Apps: ${actionItem.actionProps.apps?.join(", ") || "none"}`
+        );
+        console.log(
+          `   🔧 Custom Apps: ${
+            actionItem.actionProps.customApps?.join(", ") || "none"
+          }`
+        );
+        deploymentItems.push(actionItem);
+        break;
+
       case "model":
         console.log(
           "   📄 Skipping standalone model (not deployable in this schema)"
@@ -255,9 +331,13 @@ function transformRegistryToDeploymentSchema(
   const integrations = deploymentItems.filter(
     (item) => item.type === "integration"
   ).length;
+  const actions = deploymentItems.filter(
+    (item) => item.type === "action"
+  ).length;
   console.log(`   - Collections: ${collections}`);
   console.log(`   - Custom Apps: ${customApps}`);
   console.log(`   - Integrations: ${integrations}`);
+  console.log(`   - Actions: ${actions}`);
 
   return deploymentItems;
 }
@@ -538,6 +618,7 @@ export const handleDeploy: DeployHandler = async (
         integrations: deploymentData.filter(
           (item) => item.type === "integration"
         ).length,
+        actions: deploymentData.filter((item) => item.type === "action").length,
       },
       logs: [],
     };
