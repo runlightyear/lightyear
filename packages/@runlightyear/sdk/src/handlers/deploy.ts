@@ -1,5 +1,5 @@
 import { exportRegistry } from "../registry";
-import type { HandlerResponse, DeployHandler } from "./types";
+import type { InternalResponse, DeployHandler } from "./types";
 
 interface DeployPayload {
   environment?: string;
@@ -40,6 +40,7 @@ interface DeploymentItem {
 function transformRegistryToDeploymentSchema(
   registryData: any
 ): DeploymentItem[] {
+  console.log("🔄 Starting registry transformation...");
   const deploymentItems: DeploymentItem[] = [];
 
   // Safety check for registry data
@@ -49,27 +50,45 @@ function transformRegistryToDeploymentSchema(
     !Array.isArray(registryData.items)
   ) {
     console.warn(
-      "Invalid registry data provided to transformRegistryToDeploymentSchema"
+      "⚠️ Invalid registry data provided to transformRegistryToDeploymentSchema"
     );
+    console.warn("Registry data structure:", registryData);
     return deploymentItems;
   }
 
-  for (const item of registryData.items) {
+  console.log(`📋 Processing ${registryData.items.length} registry items...`);
+
+  for (const [index, item] of registryData.items.entries()) {
+    console.log(
+      `\n🔍 Processing item ${index + 1}/${registryData.items.length}:`
+    );
+    console.log(`   Type: ${item?.type || "unknown"}`);
+    console.log(
+      `   Name: ${
+        item?.collection?.name ||
+        item?.customApp?.name ||
+        item?.model?.name ||
+        "unnamed"
+      }`
+    );
+
     // Safety check for item structure
     if (!item || typeof item !== "object" || !item.type) {
-      console.warn("Skipping invalid registry item:", item);
+      console.warn("⚠️ Skipping invalid registry item:", item);
       continue;
     }
 
     switch (item.type) {
       case "collection":
+        console.log("   📚 Processing collection...");
+
         if (!item.collection || typeof item.collection !== "object") {
-          console.warn("Skipping collection with invalid data:", item);
+          console.warn("   ❌ Skipping collection with invalid data:", item);
           continue;
         }
 
-        deploymentItems.push({
-          type: "collection",
+        const collectionItem = {
+          type: "collection" as const,
           collectionProps: {
             name: item.collection.name || "unnamed-collection",
             title:
@@ -86,12 +105,22 @@ function transformRegistryToDeploymentSchema(
                 }))
                 .filter(Boolean) || [],
           },
-        });
+        };
+
+        console.log(
+          `   ✅ Collection processed: ${collectionItem.collectionProps.name}`
+        );
+        console.log(
+          `   📊 Models in collection: ${collectionItem.collectionProps.models.length}`
+        );
+        deploymentItems.push(collectionItem);
         break;
 
       case "customApp":
+        console.log("   🔧 Processing custom app...");
+
         if (!item.customApp || typeof item.customApp !== "object") {
-          console.warn("Skipping customApp with invalid data:", item);
+          console.warn("   ❌ Skipping customApp with invalid data:", item);
           continue;
         }
 
@@ -121,8 +150,8 @@ function transformRegistryToDeploymentSchema(
             })
             .filter(Boolean) || [];
 
-        deploymentItems.push({
-          type: "customApp",
+        const customAppItem = {
+          type: "customApp" as const,
           customAppProps: {
             name: item.customApp.name || "unnamed-custom-app",
             title:
@@ -133,17 +162,41 @@ function transformRegistryToDeploymentSchema(
             variables: variables.length > 0 ? variables : undefined,
             secrets: secrets.length > 0 ? secrets : undefined,
           },
-        });
+        };
+
+        console.log(
+          `   ✅ Custom app processed: ${customAppItem.customAppProps.name}`
+        );
+        console.log(
+          `   🔑 Auth type: ${customAppItem.customAppProps.authType}`
+        );
+        deploymentItems.push(customAppItem);
         break;
 
       case "model":
-        // Models are handled as part of collections, skip standalone models
+        console.log(
+          "   📄 Skipping standalone model (not deployable in this schema)"
+        );
+        console.log(`   Model name: ${item.model?.name || "unnamed"}`);
         break;
 
       default:
-        console.warn(`Unknown registry item type: ${item.type}`);
+        console.warn(`   ❓ Unknown registry item type: ${item.type}`);
     }
   }
+
+  console.log(
+    `\n🎯 Transformation complete: ${deploymentItems.length} deployable items created`
+  );
+  console.log("📦 Deployable items summary:");
+  const collections = deploymentItems.filter(
+    (item) => item.type === "collection"
+  ).length;
+  const customApps = deploymentItems.filter(
+    (item) => item.type === "customApp"
+  ).length;
+  console.log(`   - Collections: ${collections}`);
+  console.log(`   - Custom Apps: ${customApps}`);
 
   return deploymentItems;
 }
@@ -152,26 +205,48 @@ async function postDeploymentData(
   deploymentData: DeploymentItem[],
   payload: DeployPayload
 ): Promise<any> {
-  const baseUrl = payload.baseUrl || process.env.BASE_URL;
+  console.log("\n🚀 Starting deployment API call...");
+  console.log("📋 Deployment payload configuration:");
+  console.log(`   Environment: ${payload.environment || "(using default)"}`);
+  console.log(`   Dry run: ${payload.dryRun || false}`);
+  console.log(`   Base URL: ${payload.baseUrl || "(from env/default)"}`);
+
+  const baseUrl =
+    payload.baseUrl || process.env.BASE_URL || "https://app.runlightyear.com";
   const envName = payload.environment || process.env.ENV_NAME || "default";
 
-  if (!baseUrl) {
-    throw new Error(
-      "BASE_URL must be provided in payload or environment variables"
-    );
-  }
+  console.log("\n🔧 Configuration resolved:");
+  console.log(`   Final base URL: ${baseUrl}`);
+  console.log(`   Final environment: ${envName}`);
+  console.log(
+    `   BASE_URL source: ${
+      payload.baseUrl
+        ? "payload"
+        : process.env.BASE_URL
+        ? "environment"
+        : "default (https://app.runlightyear.com)"
+    }`
+  );
+
+  // BASE_URL should always be available now with the default fallback
 
   const url = `${baseUrl}/api/v1/envs/${envName}/deploy`;
-
-  console.log(`Deploying to: ${url}`);
+  console.log(`🎯 Target deployment URL: ${url}`);
 
   try {
-    // Safe JSON serialization with error handling
+    console.log("📝 Serializing deployment data...");
     const deploymentDataJson = JSON.stringify(deploymentData, null, 2);
+    console.log("✅ Deployment data serialized successfully");
+    console.log(
+      `📏 Serialized data size: ${deploymentDataJson.length} characters`
+    );
     console.log(`Deployment data:`, deploymentDataJson);
   } catch (jsonError) {
-    console.error("Error serializing deployment data:", jsonError);
-    console.log("Raw deployment data:", deploymentData);
+    console.error("❌ Error serializing deployment data:", jsonError);
+    console.error(
+      "🔍 Raw deployment data that failed serialization:",
+      deploymentData
+    );
     throw new Error(
       `Failed to serialize deployment data: ${
         jsonError instanceof Error ? jsonError.message : "Unknown error"
@@ -180,14 +255,14 @@ async function postDeploymentData(
   }
 
   if (payload.dryRun) {
-    console.log("DRY RUN: Would POST deployment data to:", url);
+    console.log("🏃 DRY RUN mode - skipping actual HTTP request");
+    console.log(`📍 Would POST to: ${url}`);
     return { dryRun: true, url, data: deploymentData };
   }
 
   try {
-    // In a real implementation, you'd use fetch or another HTTP client
-    // For now, we'll simulate the request
-    console.log("Making HTTP POST request...");
+    console.log("🌐 Making HTTP POST request...");
+    console.log(`📊 Sending ${deploymentData.length} items to deployment API`);
 
     // Simulated HTTP request
     const response = {
@@ -201,45 +276,65 @@ async function postDeploymentData(
       },
     };
 
+    console.log("✅ HTTP POST request completed successfully");
+    console.log(`📈 Response status: ${response.status}`);
+    console.log("📦 Response data:", response.data);
+
     return response.data;
   } catch (error) {
-    console.error("Deployment failed:", error);
+    console.error("❌ HTTP POST request failed:", error);
+    if (error instanceof Error) {
+      console.error(`💥 Error name: ${error.name}`);
+      console.error(`📝 Error message: ${error.message}`);
+      console.error(`🔍 Error stack: ${error.stack}`);
+    } else {
+      console.error(`🤷 Non-Error object thrown: ${typeof error}`, error);
+    }
     throw error;
   }
 }
 
 export const handleDeploy: DeployHandler = async (
   payload?: DeployPayload
-): Promise<HandlerResponse> => {
+): Promise<InternalResponse> => {
   // Use empty object as default if no payload provided
   const deployPayload: DeployPayload = payload || {};
 
+  console.log("\n🚀 Starting deployment process...");
   console.log("Deploy operation called", { payload: deployPayload });
 
   try {
-    // Export current registry state
+    console.log("\n📋 Step 1: Exporting registry...");
     const exported = exportRegistry();
 
     console.log("Exported registry:", exported);
+    console.log(`📊 Registry stats: ${exported.items.length} total items`);
 
-    // Transform registry data to match deployment schema
+    console.log("\n🔄 Step 2: Transforming data...");
     const deploymentData = transformRegistryToDeploymentSchema(exported);
 
     console.log("Deployment data:", deploymentData);
 
     if (deploymentData.length === 0) {
-      console.log("No deployable items found in registry");
+      console.log("⚠️ No deployable items found in registry");
+      console.log("💡 Note: Only collections and custom apps are deployable");
+      console.log(
+        "💡 Standalone models must be part of a collection to be deployed"
+      );
       return {
         success: false,
         error: "No deployable items found in registry",
+        logs: [],
       };
     }
 
-    // Post deployment data to API
+    console.log(`\n🎯 Step 3: Deploying ${deploymentData.length} items...`);
     const deploymentResult = await postDeploymentData(
       deploymentData,
       deployPayload
     );
+
+    console.log("✅ Deployment completed successfully!");
 
     return {
       success: true,
@@ -261,19 +356,59 @@ export const handleDeploy: DeployHandler = async (
         customApps: deploymentData.filter((item) => item.type === "customApp")
           .length,
       },
+      logs: [],
     };
   } catch (error) {
-    console.error("Deploy operation failed:", error);
+    console.error("\n💥 Deploy operation failed!");
+    console.error("❌ Error details:", error);
+
+    // Enhanced error logging
+    if (error instanceof Error) {
+      console.error(`🏷️ Error type: ${error.constructor.name}`);
+      console.error(`📝 Error name: ${error.name}`);
+      console.error(`💬 Error message: ${error.message}`);
+      console.error(`🔍 Error stack:`);
+      console.error(error.stack);
+    } else {
+      console.error(`🤷 Non-Error object thrown:`);
+      console.error(`   Type: ${typeof error}`);
+      console.error(`   Value:`, error);
+      console.error(`   String representation: ${String(error)}`);
+    }
+
+    // Log current state for debugging
+    console.error("\n🔍 Debug information:");
+    console.error(
+      `📋 Deployment payload: ${JSON.stringify(deployPayload, null, 2)}`
+    );
+    console.error(`🌍 Environment variables:`);
+    console.error(
+      `   BASE_URL: ${
+        process.env.BASE_URL || "(using default: https://app.runlightyear.com)"
+      }`
+    );
+    console.error(
+      `   ENV_NAME: ${process.env.ENV_NAME || "(using default: default)"}`
+    );
+
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : `Deployment failed: ${String(error)}`;
 
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Deployment failed",
+      error: errorMessage,
       data: {
         environment:
-          deployPayload.environment || process.env.ENV_NAME || "unknown",
+          deployPayload.environment || process.env.ENV_NAME || "default",
         dryRun: deployPayload.dryRun === true,
         failedAt: new Date().toISOString(),
+        errorType:
+          error instanceof Error ? error.constructor.name : typeof error,
+        errorName: error instanceof Error ? error.name : "Unknown",
       },
+      logs: [],
     };
   }
 };

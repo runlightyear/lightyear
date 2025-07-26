@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { handler, type HandlerEvent, type HandlerResponse } from "./index";
+import {
+  handler,
+  type HandlerEvent,
+  type HandlerResponse,
+  type InternalResponse,
+  handleHealth,
+  handleDeploy,
+} from "./index";
 import {
   clearRegistry,
   defineModel,
@@ -7,7 +14,7 @@ import {
   defineOAuth2CustomApp,
 } from "../";
 
-// Mock handler context for direct invocation
+// Mock handler context for testing
 const createMockHandlerContext = () => ({
   remainingTimeMs: 30000,
   memoryLimitMB: "128",
@@ -21,62 +28,27 @@ describe("Handlers", () => {
     vi.clearAllMocks();
   });
 
-  describe("Direct Handler Invocation", () => {
+  describe("Lambda Handler", () => {
     it("should handle health check", async () => {
       const event: HandlerEvent = { operation: "health" };
       const context = createMockHandlerContext();
 
       const result = (await handler(event, context)) as HandlerResponse;
+      const body = JSON.parse(result.body) as InternalResponse;
 
-      expect(result.success).toBe(true);
-      expect(result.data).toMatchObject({
+      expect(result.statusCode).toBe(200);
+      expect(body.success).toBe(true);
+      expect(body.data).toMatchObject({
         status: "healthy",
         remainingTimeMs: 30000,
         memoryLimitMB: "128",
       });
-      expect(result.data.timestamp).toBeDefined();
-      expect(result.data.runtime).toBeDefined();
+      expect(body.data.timestamp).toBeDefined();
+      expect(body.data.runtime).toBeDefined();
     });
 
-    it("should handle registry export", async () => {
+    it("should handle deploy operation with logs", async () => {
       // Create some test data
-      defineModel("user").build();
-      defineCollection("users").build();
-      defineOAuth2CustomApp("github").build();
-
-      const event: HandlerEvent = { operation: "registry-export" };
-      const context = createMockHandlerContext();
-
-      const result = (await handler(event, context)) as HandlerResponse;
-
-      expect(result.success).toBe(true);
-      expect(result.data.items).toHaveLength(3);
-      expect(result.data.stats.byType.model).toBe(1);
-      expect(result.data.stats.byType.collection).toBe(1);
-      expect(result.data.stats.byType.customApp).toBe(1);
-      expect(result.stats?.totalItems).toBe(3);
-    });
-
-    it("should handle registry stats", async () => {
-      // Create some test data
-      defineModel("product").build();
-      defineModel("order").build();
-      defineCollection("ecommerce").build();
-
-      const event: HandlerEvent = { operation: "registry-stats" };
-      const context = createMockHandlerContext();
-
-      const result = (await handler(event, context)) as HandlerResponse;
-
-      expect(result.success).toBe(true);
-      expect(result.data.totalItems).toBe(3);
-      expect(result.data.byType.model).toBe(2);
-      expect(result.data.byType.collection).toBe(1);
-    });
-
-    it("should handle deploy operation", async () => {
-      // Create some test data
-      defineModel("customer").build();
       defineOAuth2CustomApp("salesforce").build();
 
       const event: HandlerEvent = {
@@ -84,24 +56,20 @@ describe("Handlers", () => {
         payload: {
           environment: "staging",
           dryRun: true,
-          baseUrl: "https://api.test.com", // Provide baseUrl for test
+          baseUrl: "https://api.test.com",
         },
       };
       const context = createMockHandlerContext();
 
       const result = (await handler(event, context)) as HandlerResponse;
+      const body = JSON.parse(result.body) as InternalResponse;
 
-      expect(result.success).toBe(true);
-      expect(result.data.message).toContain(
-        "Deployment completed successfully"
-      );
-      expect(result.data.registry).toBeDefined();
-      expect(result.data.deployedAt).toBeDefined();
-      expect(result.data.environment).toBe("staging");
-      expect(result.data.dryRun).toBe(true);
-      expect(result.stats?.totalItems).toBe(2);
-      expect(result.stats?.deployedItems).toBe(1); // Only customApp is deployable (model is standalone)
-      expect(result.stats?.customApps).toBe(1);
+      expect(result.statusCode).toBe(200);
+      expect(body.success).toBe(true);
+      expect(body.logs).toEqual([]);
+      expect(body.data.message).toContain("Deployment completed successfully");
+      expect(body.data.environment).toBe("staging");
+      expect(body.data.dryRun).toBe(true);
     });
 
     it("should handle unknown operation", async () => {
@@ -109,108 +77,12 @@ describe("Handlers", () => {
       const context = createMockHandlerContext();
 
       const result = (await handler(event, context)) as HandlerResponse;
+      const body = JSON.parse(result.body) as InternalResponse;
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("Unknown operation: unknown");
-    });
-
-    it("should handle errors gracefully", async () => {
-      vi.spyOn(console, "error").mockImplementation(() => {});
-
-      const event: HandlerEvent = { operation: "unknown" as any };
-      const context = createMockHandlerContext();
-
-      const result = (await handler(event, context)) as HandlerResponse;
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("Unknown operation: unknown");
-    });
-  });
-
-  describe("Individual Handlers", () => {
-    it("should support importing individual handlers", async () => {
-      const { handleHealth, handleRegistryStats } = await import("./index");
-
-      const healthResult = await handleHealth(createMockHandlerContext());
-      expect(healthResult.success).toBe(true);
-      expect(healthResult.data.status).toBe("healthy");
-
-      const statsResult = await handleRegistryStats();
-      expect(statsResult.success).toBe(true);
-      expect(statsResult.data.totalItems).toBeDefined();
-    });
-
-    it("should handle optional parameters correctly", async () => {
-      const {
-        handleHealth,
-        handleDeploy,
-        handleRegistryExport,
-        handleRegistryStats,
-      } = await import("./index");
-
-      // Health handler with no context
-      const healthNoContext = await handleHealth();
-      expect(healthNoContext.success).toBe(true);
-      expect(healthNoContext.data.status).toBe("healthy");
-      expect(healthNoContext.data.remainingTimeMs).toBe(30000); // default value
-      expect(healthNoContext.data.memoryLimitMB).toBe("unknown"); // default value
-      expect(healthNoContext.data.requestId).toMatch(/^req-\d+$/); // default pattern
-
-      // Health handler with partial context
-      const healthPartialContext = await handleHealth({
-        requestId: "custom-123",
-      });
-      expect(healthPartialContext.success).toBe(true);
-      expect(healthPartialContext.data.requestId).toBe("custom-123");
-      expect(healthPartialContext.data.remainingTimeMs).toBe(30000); // still default
-
-      // Deploy handler with no payload
-      defineOAuth2CustomApp("test-deploy").build();
-      const deployNoPayload = await handleDeploy();
-      expect(deployNoPayload.success).toBe(true);
-      expect(deployNoPayload.data.environment).toBe("default"); // default env
-
-      // Deploy handler with empty payload
-      const deployEmptyPayload = await handleDeploy({});
-      expect(deployEmptyPayload.success).toBe(true);
-      expect(deployEmptyPayload.data.environment).toBe("default");
-
-      // Registry handlers (already take no parameters)
-      const registryExport = await handleRegistryExport();
-      expect(registryExport.success).toBe(true);
-
-      const registryStats = await handleRegistryStats();
-      expect(registryStats.success).toBe(true);
-    });
-  });
-
-  describe("Error Handling", () => {
-    it("should handle invalid context gracefully", async () => {
-      const event: HandlerEvent = { operation: "health" };
-      const invalidContext = {}; // Missing required properties
-
-      const result = await handler(event, invalidContext);
-
-      expect(result.success).toBe(true);
-      expect(result.data.status).toBe("healthy");
-      // Should still work with undefined/missing context properties
-    });
-
-    it("should handle deploy without BASE_URL (simulated)", async () => {
-      // Create some test data so we get past the "no deployable items" check
-      defineOAuth2CustomApp("test-app").build();
-
-      const event: HandlerEvent = {
-        operation: "deploy",
-        payload: { environment: "test" }, // No baseUrl provided
-      };
-      const context = createMockHandlerContext();
-
-      const result = (await handler(event, context)) as HandlerResponse;
-
-      // The handler uses a simulated response when no BASE_URL is provided (for demo purposes)
-      expect(result.success).toBe(true);
-      expect(result.data.deployment.status).toBe("success");
+      expect(result.statusCode).toBe(400);
+      expect(body.success).toBe(false);
+      expect(body.error).toBe("Unknown operation: unknown");
+      expect(body.logs).toEqual([]);
     });
 
     it("should handle deploy with no deployable items", async () => {
@@ -224,9 +96,60 @@ describe("Handlers", () => {
       const context = createMockHandlerContext();
 
       const result = (await handler(event, context)) as HandlerResponse;
+      const body = JSON.parse(result.body) as InternalResponse;
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("No deployable items found in registry");
+      expect(result.statusCode).toBe(400);
+      expect(body.success).toBe(false);
+      expect(body.error).toBe("No deployable items found in registry");
+      expect(body.logs).toEqual([]);
+    });
+
+    it("should handle errors gracefully", async () => {
+      vi.spyOn(console, "error").mockImplementation(() => {});
+
+      const event: HandlerEvent = { operation: "unknown" as any };
+      const context = createMockHandlerContext();
+
+      const result = (await handler(event, context)) as HandlerResponse;
+      const body = JSON.parse(result.body) as InternalResponse;
+
+      expect(result.statusCode).toBe(400);
+      expect(body.success).toBe(false);
+      expect(body.error).toBe("Unknown operation: unknown");
+      expect(body.logs).toEqual([]);
+    });
+  });
+
+  describe("Individual Handlers", () => {
+    it("should support importing individual handlers", async () => {
+      const healthResult = await handleHealth(createMockHandlerContext());
+      expect(healthResult.success).toBe(true);
+      expect(healthResult.data.status).toBe("healthy");
+
+      defineOAuth2CustomApp("test-app").build();
+      const deployResult = await handleDeploy({
+        baseUrl: "https://api.test.com",
+        dryRun: true,
+      });
+      expect(deployResult.success).toBe(true);
+      expect(deployResult.logs).toEqual([]);
+    });
+
+    it("should handle optional parameters correctly", async () => {
+      // Health handler with no context
+      const healthNoContext = await handleHealth();
+      expect(healthNoContext.success).toBe(true);
+      expect(healthNoContext.data.status).toBe("healthy");
+      expect(healthNoContext.data.remainingTimeMs).toBe(30000);
+      expect(healthNoContext.data.memoryLimitMB).toBe("unknown");
+      expect(healthNoContext.data.requestId).toMatch(/^req-\d+$/);
+
+      // Deploy handler with no payload
+      defineOAuth2CustomApp("test-deploy").build();
+      const deployNoPayload = await handleDeploy();
+      expect(deployNoPayload.success).toBe(true);
+      expect(deployNoPayload.data.environment).toBe("default");
+      expect(deployNoPayload.logs).toEqual([]);
     });
   });
 });

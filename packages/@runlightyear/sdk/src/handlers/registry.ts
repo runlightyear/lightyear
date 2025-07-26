@@ -1,12 +1,12 @@
 import { exportRegistry, getRegistryStats } from "../registry";
 import type {
-  HandlerResponse,
+  InternalResponse,
   RegistryExportHandler,
   RegistryStatsHandler,
 } from "./types";
 
 export const handleRegistryExport: RegistryExportHandler =
-  async (): Promise<HandlerResponse> => {
+  async (): Promise<InternalResponse> => {
     const exported = exportRegistry();
 
     return {
@@ -20,7 +20,7 @@ export const handleRegistryExport: RegistryExportHandler =
   };
 
 export const handleRegistryStats: RegistryStatsHandler =
-  async (): Promise<HandlerResponse> => {
+  async (): Promise<InternalResponse> => {
     const stats = getRegistryStats();
 
     return {

@@ -1,8 +1,8 @@
-import type { HandlerResponse, HandlerContext, HealthHandler } from "./types";
+import type { InternalResponse, HandlerContext, HealthHandler } from "./types";
 
 export const handleHealth: HealthHandler = async (
   context?: HandlerContext
-): Promise<HandlerResponse> => {
+): Promise<InternalResponse> => {
   return {
     success: true,
     data: {

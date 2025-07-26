@@ -4,10 +4,8 @@ export interface HandlerEvent {
 }
 
 export interface HandlerResponse {
-  success: boolean;
-  data?: any;
-  error?: string;
-  stats?: any;
+  statusCode: number;
+  body: string;
 }
 
 export interface HandlerContext {
@@ -24,9 +22,18 @@ export type DirectHandler = (
 ) => Promise<HandlerResponse>;
 
 // Individual handler function types
+// Internal response format before converting to Lambda format
+export interface InternalResponse {
+  success: boolean;
+  data?: any;
+  error?: string;
+  stats?: any;
+  logs?: string[];
+}
+
 export type HealthHandler = (
   context?: HandlerContext
-) => Promise<HandlerResponse>;
-export type RegistryExportHandler = () => Promise<HandlerResponse>;
-export type RegistryStatsHandler = () => Promise<HandlerResponse>;
-export type DeployHandler = (payload?: any) => Promise<HandlerResponse>;
+) => Promise<InternalResponse>;
+export type RegistryExportHandler = () => Promise<InternalResponse>;
+export type RegistryStatsHandler = () => Promise<InternalResponse>;
+export type DeployHandler = (payload?: any) => Promise<InternalResponse>;

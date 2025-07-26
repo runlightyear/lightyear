@@ -3,6 +3,7 @@ import type {
   HandlerResponse,
   HandlerContext,
   DirectHandler,
+  InternalResponse,
 } from "./types";
 import { handleHealth } from "./health";
 import { handleRegistryExport, handleRegistryStats } from "./registry";
@@ -10,7 +11,7 @@ import { handleDeploy } from "./deploy";
 
 /**
  * Main handler for SDK operations
- * Supports direct invocation for VM, Docker, serverless functions, etc.
+ * Returns Lambda-compatible format (statusCode + JSON body)
  */
 export const handler: DirectHandler = async (
   event: HandlerEvent,
@@ -23,31 +24,51 @@ export const handler: DirectHandler = async (
 
     console.log(`Processing operation: ${operation}`, { payload });
 
+    let internalResponse: InternalResponse;
+
     switch (operation) {
       case "health":
-        return handleHealth(context);
+        internalResponse = await handleHealth(context);
+        break;
 
       case "registry-export":
-        return handleRegistryExport();
+        internalResponse = await handleRegistryExport();
+        break;
 
       case "registry-stats":
-        return handleRegistryStats();
+        internalResponse = await handleRegistryStats();
+        break;
 
       case "deploy":
-        return handleDeploy(payload);
+        internalResponse = await handleDeploy(payload);
+        break;
 
       default:
-        return {
+        internalResponse = {
           success: false,
           error: `Unknown operation: ${operation}`,
+          logs: [],
         };
     }
+
+    // Convert internal response to Lambda format
+    const statusCode = internalResponse.success ? 200 : 400;
+    return {
+      statusCode,
+      body: JSON.stringify(internalResponse),
+    };
   } catch (error) {
     console.error("Handler error:", error);
 
-    return {
+    const errorResponse: InternalResponse = {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
+      logs: [],
+    };
+
+    return {
+      statusCode: 500,
+      body: JSON.stringify(errorResponse),
     };
   }
 };
@@ -58,6 +79,7 @@ export type {
   HandlerResponse,
   HandlerContext,
   DirectHandler,
+  InternalResponse,
 } from "./types";
 
 // Export individual handlers for direct use
