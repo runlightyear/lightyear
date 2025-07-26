@@ -1,6 +1,20 @@
 export interface HandlerEvent {
   operation: "deploy" | "health" | "registry-export" | "registry-stats" | "run";
   payload?: any;
+  // CLI-specific fields
+  deployId?: string;
+  logDisplayLevel?: string;
+  // Run-specific fields
+  actionName?: string;
+  runId?: string;
+  data?: any;
+  context?: any;
+  auths?: any;
+  variables?: any;
+  secrets?: any;
+  webhook?: any;
+  integration?: any;
+  managedUser?: any;
 }
 
 export interface HandlerResponse {

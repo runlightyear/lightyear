@@ -48,7 +48,65 @@ export const handler: DirectHandler = async (
         break;
 
       case "deploy":
-        internalResponse = await handleDeploy(payload);
+        // Check if this is a real deploy that should have log capture
+        // CLI format: { operation: "deploy", deployId, logDisplayLevel }
+        // SDK format: { operation: "deploy", payload: { environment, dryRun, ... } }
+        const deployData = payload || {};
+        const hasDeployId = event.deployId || deployData.deployId;
+        const isRealDeploy =
+          hasDeployId || (deployData.environment && !deployData.dryRun);
+
+        if (isRealDeploy) {
+          // Initialize log capture specifically for deploy operations
+          console.log("🚀 Starting log capture for deploy operation...");
+          const deployLogCapture = initializeLogCapture();
+
+          try {
+            // Set initial context with deployId (from CLI) or temp deployId
+            const initialDeployId =
+              event.deployId ||
+              deployData.deployId ||
+              `temp-deploy-${Date.now()}`;
+            console.log(
+              "🔗 Setting initial deploy context with deployId:",
+              initialDeployId
+            );
+            setLogContext({ deployId: initialDeployId });
+
+            internalResponse = await handleDeploy(payload);
+
+            // Update context with the actual deployId from the response if different
+            if (
+              internalResponse.success &&
+              internalResponse.data?.deployment?.deploymentId &&
+              internalResponse.data.deployment.deploymentId !== initialDeployId
+            ) {
+              console.log(
+                "🔗 Updating context with real deployId from API response:",
+                internalResponse.data.deployment.deploymentId
+              );
+              setLogContext({
+                deployId: internalResponse.data.deployment.deploymentId,
+              });
+            }
+          } finally {
+            // Ensure final log upload before stopping
+            if (deployLogCapture && deployLogCapture.getLogCount() > 0) {
+              console.log("📤 Final log flush before deploy completion...");
+              await deployLogCapture.flush();
+              // Small delay to allow upload to complete
+              await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+
+            // Completely stop log capture after deploy completes
+            console.log("🛑 Stopping log capture for deploy operation...");
+            stopLogCapture();
+          }
+        } else {
+          // No log capture for dry runs or simple operations
+          console.log("ℹ️ Skipping log capture for this deploy operation");
+          internalResponse = await handleDeploy(payload);
+        }
         break;
 
       case "run":
