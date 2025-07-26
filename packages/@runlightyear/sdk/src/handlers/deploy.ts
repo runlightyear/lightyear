@@ -5,6 +5,7 @@ interface DeployPayload {
   environment?: string;
   dryRun?: boolean;
   baseUrl?: string;
+  apiKey?: string;
   [key: string]: any;
 }
 
@@ -213,7 +214,8 @@ async function postDeploymentData(
 
   const baseUrl =
     payload.baseUrl || process.env.BASE_URL || "https://app.runlightyear.com";
-  const envName = payload.environment || process.env.ENV_NAME || "default";
+  // Allow payload override, otherwise use Lightyear's standard getEnvName logic
+  const envName = payload.environment || process.env.ENV_NAME || "dev";
 
   console.log("\n🔧 Configuration resolved:");
   console.log(`   Final base URL: ${baseUrl}`);
@@ -261,26 +263,144 @@ async function postDeploymentData(
   }
 
   try {
-    console.log("🌐 Making HTTP POST request...");
+    console.log("🌐 Making REAL HTTP POST request...");
     console.log(`📊 Sending ${deploymentData.length} items to deployment API`);
+    console.log(`📍 Request URL: ${url}`);
+    console.log(`📋 Request Method: POST`);
 
-    // Simulated HTTP request
-    const response = {
-      status: 200,
-      data: {
-        deploymentId: `deploy_${Date.now()}`,
-        status: "success",
-        itemsDeployed: deploymentData.length,
-        environment: envName,
-        deployedAt: new Date().toISOString(),
-      },
+    // Get API key for authentication
+    const apiKey =
+      payload.apiKey || process.env.LIGHTYEAR_API_KEY || process.env.API_KEY;
+    if (!apiKey) {
+      console.error("❌ No API key provided");
+      console.error("💡 API key can be provided via:");
+      console.error("   - payload.apiKey parameter");
+      console.error("   - LIGHTYEAR_API_KEY environment variable");
+      console.error("   - API_KEY environment variable");
+      throw new Error(
+        "Missing API key. Provide via payload.apiKey or LIGHTYEAR_API_KEY/API_KEY environment variable."
+      );
+    }
+
+    console.log(
+      "🔐 API key source:",
+      payload.apiKey
+        ? "payload"
+        : process.env.LIGHTYEAR_API_KEY
+        ? "LIGHTYEAR_API_KEY env"
+        : "API_KEY env"
+    );
+
+    // Prepare request headers
+    const requestHeaders = {
+      "Content-Type": "application/json",
+      "User-Agent": "@runlightyear/sdk",
+      Accept: "application/json",
+      Authorization: `apiKey ${apiKey}`,
+      "X-SDK-Version": "0.1.0",
+      "X-Environment": envName,
+      "X-Request-ID": `req_${Date.now()}_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`,
     };
+    console.log("📨 Request Headers:");
+    Object.entries(requestHeaders).forEach(([key, value]) => {
+      // Redact the Authorization header for security
+      const displayValue =
+        key === "Authorization" ? "apiKey [REDACTED]" : value;
+      console.log(`   ${key}: ${displayValue}`);
+    });
+
+    // Prepare request body
+    const requestBody = JSON.stringify(deploymentData);
+    const requestBodyPreview = requestBody.substring(0, 200);
+    console.log(
+      `📤 Request Body Preview (first 200 chars): ${requestBodyPreview}${
+        requestBody.length > 200 ? "..." : ""
+      }`
+    );
+    console.log(`📏 Full request body size: ${requestBody.length} bytes`);
+
+    const startTime = Date.now();
+    console.log(`⏰ Starting HTTP request at: ${new Date().toISOString()}`);
+
+    // Make the ACTUAL HTTP request using fetch
+    const response = await fetch(url, {
+      method: "POST",
+      headers: requestHeaders,
+      body: requestBody,
+    });
+
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+
+    console.log(`⏰ HTTP request completed in: ${duration}ms`);
+    console.log(
+      `📈 Response Status: ${response.status} ${response.statusText}`
+    );
+
+    // Log actual response headers
+    console.log("📥 Response Headers:");
+    response.headers.forEach((value, key) => {
+      console.log(`   ${key}: ${value}`);
+    });
+
+    // Get response body
+    const responseText = await response.text();
+    console.log(`📏 Response body size: ${responseText.length} bytes`);
+
+    let responseData;
+    try {
+      responseData = JSON.parse(responseText);
+      console.log("📦 Response Body (parsed JSON):");
+      console.log(JSON.stringify(responseData, null, 2));
+    } catch (parseError) {
+      console.log("📦 Response Body (raw text - not valid JSON):");
+      console.log(responseText);
+      console.log("⚠️ Failed to parse response as JSON:", parseError);
+    }
+
+    // Check if request was successful
+    if (!response.ok) {
+      console.error(
+        `❌ HTTP request failed with status: ${response.status} ${response.statusText}`
+      );
+      throw new Error(
+        `HTTP ${response.status}: ${response.statusText}${
+          responseData?.error ? ` - ${responseData.error}` : ""
+        }`
+      );
+    }
 
     console.log("✅ HTTP POST request completed successfully");
-    console.log(`📈 Response status: ${response.status}`);
-    console.log("📦 Response data:", response.data);
 
-    return response.data;
+    // Log deployment summary if we have structured data
+    if (responseData && typeof responseData === "object") {
+      console.log("🎯 Deployment Summary:");
+      if (responseData.deploymentId)
+        console.log(`   ✅ Deployment ID: ${responseData.deploymentId}`);
+      if (responseData.itemsDeployed)
+        console.log(`   📊 Items Deployed: ${responseData.itemsDeployed}`);
+      if (responseData.environment)
+        console.log(`   🌍 Environment: ${responseData.environment}`);
+      if (responseData.processing?.totalMs)
+        console.log(
+          `   ⏱️ Processing Time: ${responseData.processing.totalMs}ms`
+        );
+      if (responseData.summary?.totalBytes)
+        console.log(
+          `   📏 Payload Size: ${responseData.summary.totalBytes} bytes`
+        );
+    }
+
+    return (
+      responseData || {
+        status: "success",
+        message: "Deployment request sent successfully",
+        httpStatus: response.status,
+        responseSize: responseText.length,
+      }
+    );
   } catch (error) {
     console.error("❌ HTTP POST request failed:", error);
     if (error instanceof Error) {

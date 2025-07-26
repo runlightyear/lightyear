@@ -42,3 +42,11 @@ export function getDisplayTitle(name: string, title?: string): string {
   // Otherwise just capitalize the first letter
   return capitalize(name);
 }
+
+/**
+ * Get environment name following Lightyear conventions
+ * @internal
+ */
+export function getEnvName(): string {
+  return process.env.ENV_NAME || "dev";
+}

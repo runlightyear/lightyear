@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   handler,
   type HandlerEvent,
@@ -14,6 +14,9 @@ import {
   defineOAuth2CustomApp,
 } from "../";
 
+// Mock fetch for testing to avoid real HTTP requests
+global.fetch = vi.fn();
+
 // Mock handler context for testing
 const createMockHandlerContext = () => ({
   remainingTimeMs: 30000,
@@ -26,6 +29,38 @@ describe("Handlers", () => {
   beforeEach(() => {
     clearRegistry();
     vi.clearAllMocks();
+
+    // Set test API key for authentication
+    process.env.LIGHTYEAR_API_KEY = "test-api-key-12345";
+
+    // Mock successful HTTP response for tests
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      headers: new Map([
+        ["content-type", "application/json"],
+        ["x-request-id", "test-request-123"],
+        ["server", "test-server/1.0"],
+      ]),
+      text: () =>
+        Promise.resolve(
+          JSON.stringify({
+            success: true,
+            deploymentId: "deploy-test-123",
+            status: "success",
+            itemsDeployed: 1,
+            environment: "test",
+            deployedAt: new Date().toISOString(),
+          })
+        ),
+    });
+  });
+
+  afterEach(() => {
+    // Clean up environment variables
+    delete process.env.LIGHTYEAR_API_KEY;
+    delete process.env.API_KEY;
   });
 
   describe("Lambda Handler", () => {
