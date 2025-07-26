@@ -21,6 +21,8 @@ export default function runInContext(code: any) {
     process,
     fetch,
     Buffer,
+    setInterval,
+    clearInterval,
     setTimeout,
     clearTimeout,
   };

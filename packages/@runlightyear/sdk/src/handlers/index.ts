@@ -9,6 +9,13 @@ import { handleHealth } from "./health";
 import { handleRegistryExport, handleRegistryStats } from "./registry";
 import { handleDeploy } from "./deploy";
 import { handleRun } from "./run";
+import {
+  initializeLogCapture,
+  setLogContext,
+  clearLogContext,
+  getLogCapture,
+  stopLogCapture,
+} from "../logging";
 
 /**
  * Main handler for SDK operations
@@ -45,8 +52,32 @@ export const handler: DirectHandler = async (
         break;
 
       case "run":
-        // For run operations, pass the entire event since action data might be at top level
-        internalResponse = await handleRun(payload || event);
+        // Initialize log capture specifically for run operations
+        console.log("🚀 Starting log capture for run operation...");
+        const logCapture = initializeLogCapture();
+
+        try {
+          // Set log context for run operations
+          const runData = payload || event;
+          if (runData?.runId) {
+            setLogContext({ runId: runData.runId });
+          }
+
+          // For run operations, pass the entire event since action data might be at top level
+          internalResponse = await handleRun(runData);
+        } finally {
+          // Ensure final log upload before stopping
+          if (logCapture && logCapture.getLogCount() > 0) {
+            console.log("📤 Final log flush before operation completion...");
+            await logCapture.flush();
+            // Small delay to allow upload to complete
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+
+          // Completely stop log capture after run completes
+          console.log("🛑 Stopping log capture for run operation...");
+          stopLogCapture();
+        }
         break;
 
       default:

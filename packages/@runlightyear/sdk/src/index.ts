@@ -12,3 +12,6 @@ export * from "./registry";
 
 // Handler exports (for deployment in Lambda, VM, etc.)
 export * from "./handlers";
+
+// Logging exports (for log capture and upload)
+export * from "./logging";
