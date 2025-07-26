@@ -163,6 +163,36 @@ async function runHandlersExample() {
     console.log(`   ❌ Individual handlers error: ${error}`);
   }
 
+  console.log("\n🎛️ Testing Optional Parameters...");
+
+  try {
+    const { handleHealth, handleDeploy } = await import("../src/handlers");
+
+    console.log("   🏥 Health handler without context...");
+    const healthNoContext = await handleHealth();
+    console.log(
+      `   ✅ Health (no context): ${healthNoContext.data?.status}, requestId: ${healthNoContext.data?.requestId}`
+    );
+
+    console.log("   🏥 Health handler with partial context...");
+    const healthPartial = await handleHealth({ requestId: "example-partial" });
+    console.log(
+      `   ✅ Health (partial): ${healthPartial.data?.status}, requestId: ${healthPartial.data?.requestId}`
+    );
+
+    console.log("   🚀 Deploy handler without payload...");
+    const deployNoPayload = await handleDeploy();
+    console.log(
+      `   ✅ Deploy (no payload): environment=${deployNoPayload.data?.environment}`
+    );
+
+    console.log("   🚀 Deploy handler with minimal payload...");
+    const deployMinimal = await handleDeploy({ dryRun: true });
+    console.log(`   ✅ Deploy (minimal): dryRun=${deployMinimal.data?.dryRun}`);
+  } catch (error) {
+    console.log(`   ❌ Optional parameters test error: ${error}`);
+  }
+
   console.log("\n🎯 Handlers Example Complete!");
   console.log("\n💡 Deployment Schema Information:");
   console.log("   🔸 Collections → collectionProps with embedded models");

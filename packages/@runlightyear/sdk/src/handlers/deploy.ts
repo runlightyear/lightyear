@@ -1,5 +1,5 @@
 import { exportRegistry } from "../registry";
-import type { HandlerResponse } from "./types";
+import type { HandlerResponse, DeployHandler } from "./types";
 
 interface DeployPayload {
   environment?: string;
@@ -42,51 +42,96 @@ function transformRegistryToDeploymentSchema(
 ): DeploymentItem[] {
   const deploymentItems: DeploymentItem[] = [];
 
+  // Safety check for registry data
+  if (
+    !registryData ||
+    !registryData.items ||
+    !Array.isArray(registryData.items)
+  ) {
+    console.warn(
+      "Invalid registry data provided to transformRegistryToDeploymentSchema"
+    );
+    return deploymentItems;
+  }
+
   for (const item of registryData.items) {
+    // Safety check for item structure
+    if (!item || typeof item !== "object" || !item.type) {
+      console.warn("Skipping invalid registry item:", item);
+      continue;
+    }
+
     switch (item.type) {
       case "collection":
+        if (!item.collection || typeof item.collection !== "object") {
+          console.warn("Skipping collection with invalid data:", item);
+          continue;
+        }
+
         deploymentItems.push({
           type: "collection",
           collectionProps: {
-            name: item.collection.name,
-            title: item.collection.title || item.collection.name,
-            models: item.collection.models?.map((model: any) => ({
-              name: model.name,
-              title: model.title || model.name,
-              schema: model.schema,
-              matchOn: model.matchPattern,
-            })),
+            name: item.collection.name || "unnamed-collection",
+            title:
+              item.collection.title ||
+              item.collection.name ||
+              "Unnamed Collection",
+            models:
+              item.collection.models
+                ?.map((model: any) => ({
+                  name: model?.name || "unnamed-model",
+                  title: model?.title || model?.name || "Unnamed Model",
+                  schema: model?.schema || undefined,
+                  matchOn: model?.matchPattern || undefined,
+                }))
+                .filter(Boolean) || [],
           },
         });
         break;
 
       case "customApp":
-        const variables = item.customApp.variables?.map((variable: any) =>
-          variable.title || variable.description
-            ? {
-                name: variable.name,
-                description: variable.title || variable.description,
-              }
-            : variable.name
-        );
+        if (!item.customApp || typeof item.customApp !== "object") {
+          console.warn("Skipping customApp with invalid data:", item);
+          continue;
+        }
 
-        const secrets = item.customApp.secrets?.map((secret: any) =>
-          secret.title || secret.description
-            ? {
-                name: secret.name,
-                description: secret.title || secret.description,
-              }
-            : secret.name
-        );
+        const variables =
+          item.customApp.variables
+            ?.map((variable: any) => {
+              if (!variable) return null;
+              return variable.title || variable.description
+                ? {
+                    name: variable.name || "unnamed-variable",
+                    description: variable.title || variable.description,
+                  }
+                : variable.name || "unnamed-variable";
+            })
+            .filter(Boolean) || [];
+
+        const secrets =
+          item.customApp.secrets
+            ?.map((secret: any) => {
+              if (!secret) return null;
+              return secret.title || secret.description
+                ? {
+                    name: secret.name || "unnamed-secret",
+                    description: secret.title || secret.description,
+                  }
+                : secret.name || "unnamed-secret";
+            })
+            .filter(Boolean) || [];
 
         deploymentItems.push({
           type: "customApp",
           customAppProps: {
-            name: item.customApp.name,
-            title: item.customApp.title || item.customApp.name,
-            authType: item.customApp.type,
-            variables,
-            secrets,
+            name: item.customApp.name || "unnamed-custom-app",
+            title:
+              item.customApp.title ||
+              item.customApp.name ||
+              "Unnamed Custom App",
+            authType: item.customApp.type || "OAUTH2",
+            variables: variables.length > 0 ? variables : undefined,
+            secrets: secrets.length > 0 ? secrets : undefined,
           },
         });
         break;
@@ -119,7 +164,20 @@ async function postDeploymentData(
   const url = `${baseUrl}/api/v1/envs/${envName}/deploy`;
 
   console.log(`Deploying to: ${url}`);
-  console.log(`Deployment data:`, JSON.stringify(deploymentData, null, 2));
+
+  try {
+    // Safe JSON serialization with error handling
+    const deploymentDataJson = JSON.stringify(deploymentData, null, 2);
+    console.log(`Deployment data:`, deploymentDataJson);
+  } catch (jsonError) {
+    console.error("Error serializing deployment data:", jsonError);
+    console.log("Raw deployment data:", deploymentData);
+    throw new Error(
+      `Failed to serialize deployment data: ${
+        jsonError instanceof Error ? jsonError.message : "Unknown error"
+      }`
+    );
+  }
 
   if (payload.dryRun) {
     console.log("DRY RUN: Would POST deployment data to:", url);
@@ -150,19 +208,27 @@ async function postDeploymentData(
   }
 }
 
-export async function handleDeploy(
-  payload: DeployPayload = {}
-): Promise<HandlerResponse> {
-  console.log("Deploy operation called", { payload });
+export const handleDeploy: DeployHandler = async (
+  payload?: DeployPayload
+): Promise<HandlerResponse> => {
+  // Use empty object as default if no payload provided
+  const deployPayload: DeployPayload = payload || {};
+
+  console.log("Deploy operation called", { payload: deployPayload });
 
   try {
     // Export current registry state
     const exported = exportRegistry();
 
+    console.log("Exported registry:", exported);
+
     // Transform registry data to match deployment schema
     const deploymentData = transformRegistryToDeploymentSchema(exported);
 
+    console.log("Deployment data:", deploymentData);
+
     if (deploymentData.length === 0) {
+      console.log("No deployable items found in registry");
       return {
         success: false,
         error: "No deployable items found in registry",
@@ -170,7 +236,10 @@ export async function handleDeploy(
     }
 
     // Post deployment data to API
-    const deploymentResult = await postDeploymentData(deploymentData, payload);
+    const deploymentResult = await postDeploymentData(
+      deploymentData,
+      deployPayload
+    );
 
     return {
       success: true,
@@ -179,8 +248,9 @@ export async function handleDeploy(
         deployment: deploymentResult,
         registry: exported,
         deployedItems: deploymentData.length,
-        environment: payload.environment || process.env.ENV_NAME || "default",
-        dryRun: payload.dryRun === true,
+        environment:
+          deployPayload.environment || process.env.ENV_NAME || "default",
+        dryRun: deployPayload.dryRun === true,
         deployedAt: new Date().toISOString(),
       },
       stats: {
@@ -199,10 +269,11 @@ export async function handleDeploy(
       success: false,
       error: error instanceof Error ? error.message : "Deployment failed",
       data: {
-        environment: payload.environment || process.env.ENV_NAME || "unknown",
-        dryRun: payload.dryRun === true,
+        environment:
+          deployPayload.environment || process.env.ENV_NAME || "unknown",
+        dryRun: deployPayload.dryRun === true,
         failedAt: new Date().toISOString(),
       },
     };
   }
-}
+};

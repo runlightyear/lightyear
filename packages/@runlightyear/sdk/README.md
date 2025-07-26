@@ -107,7 +107,7 @@ pnpm build:handlers
 
 ### Using Handlers
 
-```typescript
+````typescript
 import { handler } from "@runlightyear/sdk";
 
 // Direct invocation (VM, Docker, serverless functions, etc.)
@@ -116,12 +116,69 @@ const response = await handler(
   { requestId: "req-123", remainingTimeMs: 30000 }
 );
 
-// Individual handler usage
-import { handleHealth, handleDeploy } from "@runlightyear/sdk";
+### Using Individual Handlers
 
-const health = await handleHealth({ requestId: "req-123" });
-const deploy = await handleDeploy({ environment: "production" });
-```
+You can import and use individual handlers directly:
+
+```typescript
+import {
+  handleHealth,
+  handleDeploy,
+  handleRegistryStats,
+  handleRegistryExport
+} from '@runlightyear/sdk';
+
+// Health check with full context
+const health = await handleHealth({
+  requestId: 'req-123',
+  remainingTimeMs: 30000,
+  memoryLimitMB: '512'
+});
+
+// Health check with minimal context (optional parameters)
+const healthMinimal = await handleHealth({ requestId: 'req-456' });
+
+// Health check with no context (uses defaults)
+const healthDefault = await handleHealth();
+
+// Deploy with full configuration
+const deploy = await handleDeploy({
+  environment: 'production',
+  baseUrl: 'https://api.lightyear.dev',
+  dryRun: false
+});
+
+// Deploy with minimal configuration (optional parameters)
+const deployMinimal = await handleDeploy({ dryRun: true });
+
+// Deploy with no configuration (uses defaults)
+const deployDefault = await handleDeploy();
+
+// Registry operations (no parameters required)
+const stats = await handleRegistryStats();
+const export = await handleRegistryExport();
+````
+
+### Handler Parameter Defaults
+
+When using handlers with optional parameters, the following defaults are used:
+
+**Health Handler** (`handleHealth(context?)`):
+
+- `remainingTimeMs`: `30000` (30 seconds)
+- `memoryLimitMB`: `"unknown"`
+- `requestId`: `req-${Date.now()}`
+- `nodeEnv`: `process.env.NODE_ENV || "unknown"`
+
+**Deploy Handler** (`handleDeploy(payload?)`):
+
+- `environment`: `process.env.ENV_NAME || "default"`
+- `dryRun`: `false`
+- `baseUrl`: `process.env.BASE_URL` (required if not provided)
+
+**Registry Handlers** (`handleRegistryStats()`, `handleRegistryExport()`):
+
+- No parameters required
 
 ### Supported Actions
 
@@ -293,3 +350,69 @@ See the `examples/` directory for complete working examples:
 ## License
 
 MIT
+
+## Troubleshooting
+
+### JSON Parsing Error: "undefined" is not valid JSON
+
+If you encounter this error when using the deploy handler:
+
+```
+SyntaxError: "undefined" is not valid JSON
+```
+
+**Common Causes:**
+
+1. **Missing BASE_URL**: The deploy handler requires a `baseUrl` in the payload or `BASE_URL` environment variable
+
+   ```typescript
+   // ✅ Correct
+   await handleDeploy({
+     baseUrl: "https://api.lightyear.dev",
+     dryRun: true,
+   });
+
+   // ❌ Will fail without BASE_URL env var
+   await handleDeploy({ dryRun: true });
+   ```
+
+2. **Empty Registry**: Deploying when no SDK elements are defined
+
+   ```typescript
+   // ✅ Correct - create some elements first
+   defineOAuth2CustomApp("myapp").build();
+   await handleDeploy({ baseUrl: "https://api.lightyear.dev" });
+   ```
+
+3. **External JSON Parsing**: The error may come from CLI tools or external code calling `JSON.parse()` on undefined values
+
+**Debug Steps:**
+
+1. Enable detailed logging:
+
+   ```bash
+   NODE_ENV=development pnpm example:handlers
+   ```
+
+2. Check environment variables:
+
+   ```bash
+   echo $BASE_URL
+   echo $ENV_NAME
+   ```
+
+3. Test the handler directly:
+
+   ```typescript
+   import { handleDeploy } from "@runlightyear/sdk";
+
+   try {
+     const result = await handleDeploy({
+       baseUrl: "https://api.lightyear.dev",
+       dryRun: true,
+     });
+     console.log("Deploy result:", result);
+   } catch (error) {
+     console.error("Deploy error:", error);
+   }
+   ```

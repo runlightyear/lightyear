@@ -22,3 +22,11 @@ export type DirectHandler = (
   event: HandlerEvent,
   context: HandlerContext
 ) => Promise<HandlerResponse>;
+
+// Individual handler function types
+export type HealthHandler = (
+  context?: HandlerContext
+) => Promise<HandlerResponse>;
+export type RegistryExportHandler = () => Promise<HandlerResponse>;
+export type RegistryStatsHandler = () => Promise<HandlerResponse>;
+export type DeployHandler = (payload?: any) => Promise<HandlerResponse>;

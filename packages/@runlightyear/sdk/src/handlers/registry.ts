@@ -1,24 +1,33 @@
 import { exportRegistry, getRegistryStats } from "../registry";
-import type { HandlerResponse } from "./types";
+import type {
+  HandlerResponse,
+  RegistryExportHandler,
+  RegistryStatsHandler,
+} from "./types";
 
-export async function handleRegistryExport(): Promise<HandlerResponse> {
-  const exported = exportRegistry();
+export const handleRegistryExport: RegistryExportHandler =
+  async (): Promise<HandlerResponse> => {
+    const exported = exportRegistry();
 
-  return {
-    success: true,
-    data: exported,
-    stats: {
-      totalItems: exported.items.length,
-      exportedAt: exported.exportedAt,
-    },
+    return {
+      success: true,
+      data: exported,
+      stats: {
+        totalItems: exported.items.length,
+        exportedAt: new Date().toISOString(),
+      },
+    };
   };
-}
 
-export async function handleRegistryStats(): Promise<HandlerResponse> {
-  const stats = getRegistryStats();
+export const handleRegistryStats: RegistryStatsHandler =
+  async (): Promise<HandlerResponse> => {
+    const stats = getRegistryStats();
 
-  return {
-    success: true,
-    data: stats,
+    return {
+      success: true,
+      data: {
+        ...stats,
+        createdAt: new Date().toISOString(),
+      },
+    };
   };
-}

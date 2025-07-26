@@ -139,6 +139,49 @@ describe("Handlers", () => {
       expect(statsResult.success).toBe(true);
       expect(statsResult.data.totalItems).toBeDefined();
     });
+
+    it("should handle optional parameters correctly", async () => {
+      const {
+        handleHealth,
+        handleDeploy,
+        handleRegistryExport,
+        handleRegistryStats,
+      } = await import("./index");
+
+      // Health handler with no context
+      const healthNoContext = await handleHealth();
+      expect(healthNoContext.success).toBe(true);
+      expect(healthNoContext.data.status).toBe("healthy");
+      expect(healthNoContext.data.remainingTimeMs).toBe(30000); // default value
+      expect(healthNoContext.data.memoryLimitMB).toBe("unknown"); // default value
+      expect(healthNoContext.data.requestId).toMatch(/^req-\d+$/); // default pattern
+
+      // Health handler with partial context
+      const healthPartialContext = await handleHealth({
+        requestId: "custom-123",
+      });
+      expect(healthPartialContext.success).toBe(true);
+      expect(healthPartialContext.data.requestId).toBe("custom-123");
+      expect(healthPartialContext.data.remainingTimeMs).toBe(30000); // still default
+
+      // Deploy handler with no payload
+      defineOAuth2CustomApp("test-deploy").build();
+      const deployNoPayload = await handleDeploy();
+      expect(deployNoPayload.success).toBe(true);
+      expect(deployNoPayload.data.environment).toBe("default"); // default env
+
+      // Deploy handler with empty payload
+      const deployEmptyPayload = await handleDeploy({});
+      expect(deployEmptyPayload.success).toBe(true);
+      expect(deployEmptyPayload.data.environment).toBe("default");
+
+      // Registry handlers (already take no parameters)
+      const registryExport = await handleRegistryExport();
+      expect(registryExport.success).toBe(true);
+
+      const registryStats = await handleRegistryStats();
+      expect(registryStats.success).toBe(true);
+    });
   });
 
   describe("Error Handling", () => {
