@@ -151,10 +151,7 @@ describe("IntegrationBuilder", () => {
 
       const integration = defineIntegration("multi-action-sync")
         .withApp("salesforce")
-        .withActions({
-          "sync-contacts": syncAction,
-          "export-data": exportAction,
-        })
+        .withActions([syncAction, exportAction])
         .deploy();
 
       expect(integration.actions).toHaveProperty("sync-contacts");
@@ -171,7 +168,7 @@ describe("IntegrationBuilder", () => {
         .withApp("salesforce")
         .withAction(syncAction)
         .withAction(importAction)
-        .withActions({ export: exportAction })
+        .withActions([exportAction])
         .deploy();
 
       expect(Object.keys(integration.actions)).toHaveLength(3);

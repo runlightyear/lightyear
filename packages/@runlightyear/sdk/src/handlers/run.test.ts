@@ -22,7 +22,7 @@ describe("handleRun", () => {
       const result = await handleRun();
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("Missing payload");
+      expect(result.error).toBe("Missing payload or event data");
     });
 
     it("should return error when actionName is missing", async () => {
@@ -148,6 +148,33 @@ describe("handleRun", () => {
         integration: null,
         managedUser: null,
       });
+    });
+
+    it("should handle direct event structure (like CLI format)", async () => {
+      // Register an action
+      defineAction("hello-world")
+        .withRun(async ({ data }) => {
+          // RunFunc should not return a value (Promise<void>)
+          console.log("Action executed with data:", data);
+        })
+        .deploy();
+
+      // Direct event structure (like the user's log output)
+      const directEvent = {
+        operation: "run",
+        actionName: "hello-world",
+        runId: "019848cc-b655-7092-8d42-2d79f6b4153d",
+        data: { test: "value" },
+        logDisplayLevel: "INFO",
+      };
+
+      const result = await handleRun(directEvent);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBeDefined();
+      expect(result.data?.actionName).toBe("hello-world");
+      expect(result.data?.runId).toBe("019848cc-b655-7092-8d42-2d79f6b4153d");
+      // Action executed successfully (no return value expected from RunFunc)
     });
   });
 

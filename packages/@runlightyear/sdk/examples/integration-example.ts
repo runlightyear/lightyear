@@ -282,7 +282,5 @@ console.log("\n2. Integration with custom app and multiple actions:");
 console.log("   defineIntegration('custom-sync')");
 console.log("     .withCustomApp(myCustomApp)");
 console.log("     .withCollections({ contacts, accounts })");
-console.log(
-  "     .withActions({ 'sync-action': syncAction, 'export-action': exportAction })"
-);
+console.log("     .withActions([syncAction, exportAction])");
 console.log("     .deploy()");

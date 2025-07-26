@@ -64,8 +64,10 @@ export class IntegrationBuilder {
   /**
    * Add multiple actions to this integration
    */
-  withActions(actions: Record<string, Action>): this {
-    this.actions = { ...this.actions, ...actions };
+  withActions(actions: Action[]): this {
+    actions.forEach((action) => {
+      this.actions[action.name] = action;
+    });
     return this;
   }
 

@@ -45,7 +45,8 @@ export const handler: DirectHandler = async (
         break;
 
       case "run":
-        internalResponse = await handleRun(payload);
+        // For run operations, pass the entire event since action data might be at top level
+        internalResponse = await handleRun(payload || event);
         break;
 
       default:

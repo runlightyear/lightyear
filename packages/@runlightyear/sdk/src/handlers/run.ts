@@ -29,19 +29,45 @@ declare global {
 }
 
 export const handleRun: RunHandler = async (
-  payload?: RunPayload
+  payloadOrEvent?: RunPayload | any
 ): Promise<InternalResponse> => {
   console.log("\n⚡ Starting action execution...");
-  console.log("Run operation called", { payload });
+  console.log("Run operation called", { payload: payloadOrEvent });
+
+  // Handle both payload structure and direct event structure
+  let runData: RunPayload;
 
   try {
-    if (!payload) {
-      console.error("❌ Missing payload");
+    if (!payloadOrEvent) {
+      console.error("❌ Missing payload or event data");
       return {
         success: false,
-        error: "Missing payload",
+        error: "Missing payload or event data",
         logs: [],
       };
+    }
+
+    // Check if this is a direct event structure (has actionName at top level)
+    // or a wrapped payload structure
+    if (payloadOrEvent.actionName && payloadOrEvent.runId) {
+      // Direct event structure - extract run data directly
+      runData = {
+        actionName: payloadOrEvent.actionName,
+        runId: payloadOrEvent.runId,
+        data: payloadOrEvent.data,
+        context: payloadOrEvent.context,
+        auths: payloadOrEvent.auths,
+        variables: payloadOrEvent.variables,
+        secrets: payloadOrEvent.secrets,
+        webhook: payloadOrEvent.webhook,
+        integration: payloadOrEvent.integration,
+        managedUser: payloadOrEvent.managedUser,
+      };
+      console.log("📦 Using direct event structure for run data");
+    } else {
+      // Assume it's already a proper RunPayload structure
+      runData = payloadOrEvent as RunPayload;
+      console.log("📦 Using payload structure for run data");
     }
 
     const {
@@ -55,7 +81,7 @@ export const handleRun: RunHandler = async (
       webhook,
       integration,
       managedUser,
-    } = payload;
+    } = runData;
 
     if (!actionName) {
       console.error("❌ Missing actionName");
@@ -175,8 +201,8 @@ export const handleRun: RunHandler = async (
       success: false,
       error: errorMessage,
       data: {
-        actionName: payload?.actionName,
-        runId: payload?.runId,
+        actionName: payloadOrEvent?.actionName || "unknown",
+        runId: payloadOrEvent?.runId || "unknown",
         failedAt: new Date().toISOString(),
         errorType:
           error instanceof Error ? error.constructor.name : typeof error,
