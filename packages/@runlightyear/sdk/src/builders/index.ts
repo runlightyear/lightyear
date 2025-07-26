@@ -17,5 +17,8 @@ export {
   defineBasicCustomApp,
 } from "./customApp";
 
+// Integration builder
+export { IntegrationBuilder, defineIntegration } from "./integration";
+
 // Match pattern helpers
 export { match } from "./match";

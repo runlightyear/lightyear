@@ -32,10 +32,21 @@ interface CustomAppProps {
   secrets?: Array<string | { name: string; description?: string }>;
 }
 
+interface IntegrationProps {
+  name: string;
+  title: string;
+  description?: string;
+  app?: string; // For built-in apps
+  customApp?: string; // For custom apps
+  actions?: string[]; // Array of action names
+  webhooks?: string[]; // Array of webhook names
+}
+
 interface DeploymentItem {
-  type: "collection" | "customApp";
+  type: "collection" | "customApp" | "integration";
   collectionProps?: CollectionProps;
   customAppProps?: CustomAppProps;
+  integrationProps?: IntegrationProps;
 }
 
 function transformRegistryToDeploymentSchema(
@@ -174,6 +185,51 @@ function transformRegistryToDeploymentSchema(
         deploymentItems.push(customAppItem);
         break;
 
+      case "integration":
+        console.log("   🔗 Processing integration...");
+
+        if (!item.integration || typeof item.integration !== "object") {
+          console.warn("   ❌ Skipping integration with invalid data:", item);
+          continue;
+        }
+
+        // Transform SDK integration format to API format
+        const integration = item.integration;
+        const integrationProps: IntegrationProps = {
+          name: integration.name || "unnamed-integration",
+          title: integration.title || integration.name || "Unnamed Integration",
+        };
+
+        // Handle app vs customApp based on integration.app.type
+        if (integration.app) {
+          if (integration.app.type === "builtin") {
+            integrationProps.app = integration.app.name;
+          } else if (integration.app.type === "custom") {
+            integrationProps.customApp = integration.app.name;
+          }
+        }
+
+        // Note: Collections are not part of the API integration schema
+        // They should be deployed separately as collection items
+        // Actions and webhooks will be added when we implement those builders
+
+        const integrationItem = {
+          type: "integration" as const,
+          integrationProps,
+        };
+
+        console.log(
+          `   ✅ Integration processed: ${integrationItem.integrationProps.name}`
+        );
+        console.log(
+          `   🔧 App: ${
+            integrationProps.app || integrationProps.customApp || "none"
+          }`
+        );
+        console.log(`   📱 App type: ${integration.app?.type || "unknown"}`);
+        deploymentItems.push(integrationItem);
+        break;
+
       case "model":
         console.log(
           "   📄 Skipping standalone model (not deployable in this schema)"
@@ -196,8 +252,12 @@ function transformRegistryToDeploymentSchema(
   const customApps = deploymentItems.filter(
     (item) => item.type === "customApp"
   ).length;
+  const integrations = deploymentItems.filter(
+    (item) => item.type === "integration"
+  ).length;
   console.log(`   - Collections: ${collections}`);
   console.log(`   - Custom Apps: ${customApps}`);
+  console.log(`   - Integrations: ${integrations}`);
 
   return deploymentItems;
 }
@@ -475,6 +535,9 @@ export const handleDeploy: DeployHandler = async (
           .length,
         customApps: deploymentData.filter((item) => item.type === "customApp")
           .length,
+        integrations: deploymentData.filter(
+          (item) => item.type === "integration"
+        ).length,
       },
       logs: [],
     };

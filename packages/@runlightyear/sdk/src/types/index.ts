@@ -65,3 +65,15 @@ export interface CustomApp {
   variables?: AppVariable[];
   secrets?: AppSecret[];
 }
+
+// Integration definition
+export interface Integration {
+  name: string;
+  title?: string;
+  app: {
+    type: "builtin" | "custom";
+    name: string;
+    definition?: CustomApp;
+  };
+  collections: Record<string, Collection>;
+}

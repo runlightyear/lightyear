@@ -1,4 +1,4 @@
-import type { Collection, Model, CustomApp } from "../types";
+import type { Collection, Model, CustomApp, Integration } from "../types";
 
 /**
  * Registry entry types for different SDK elements
@@ -26,10 +26,16 @@ export interface CustomAppRegistryEntry extends RegistryEntry {
   customApp: CustomApp;
 }
 
+export interface IntegrationRegistryEntry extends RegistryEntry {
+  type: "integration";
+  integration: Integration;
+}
+
 export type RegistryItem =
   | ModelRegistryEntry
   | CollectionRegistryEntry
-  | CustomAppRegistryEntry;
+  | CustomAppRegistryEntry
+  | IntegrationRegistryEntry;
 
 /**
  * Main registry class that tracks all SDK elements
@@ -99,6 +105,27 @@ class SDKRegistry {
   }
 
   /**
+   * Register an integration in the registry
+   */
+  registerIntegration(
+    integration: Integration,
+    metadata?: Record<string, any>
+  ): string {
+    const id = this.generateId("integration", integration.name);
+    const entry: IntegrationRegistryEntry = {
+      id,
+      name: integration.name,
+      type: "integration",
+      integration,
+      createdAt: new Date(),
+      metadata,
+    };
+
+    this.addEntry(entry);
+    return id;
+  }
+
+  /**
    * Get all registered items
    */
   getAllItems(): RegistryItem[] {
@@ -131,6 +158,13 @@ class SDKRegistry {
    */
   getCustomApps(): CustomAppRegistryEntry[] {
     return this.getItemsByType<CustomAppRegistryEntry>("customApp");
+  }
+
+  /**
+   * Get all integrations
+   */
+  getIntegrations(): IntegrationRegistryEntry[] {
+    return this.getItemsByType<IntegrationRegistryEntry>("integration");
   }
 
   /**
@@ -244,6 +278,16 @@ export function registerCustomApp(
 }
 
 /**
+ * Register an integration
+ */
+export function registerIntegration(
+  integration: Integration,
+  metadata?: Record<string, any>
+): string {
+  return registry.registerIntegration(integration, metadata);
+}
+
+/**
  * Get all registered models
  */
 export function getModels(): ModelRegistryEntry[] {
@@ -262,6 +306,13 @@ export function getCollections(): CollectionRegistryEntry[] {
  */
 export function getCustomApps(): CustomAppRegistryEntry[] {
   return registry.getCustomApps();
+}
+
+/**
+ * Get all registered integrations
+ */
+export function getIntegrations(): IntegrationRegistryEntry[] {
+  return registry.getIntegrations();
 }
 
 /**
