@@ -1,6 +1,16 @@
-# @runlightyear/sdk
+# Lightyear SDK
 
-TypeScript SDK for building integrations with Lightyear - the fastest and easiest way for developers to integrate web-based applications.
+A TypeScript SDK for building data sync integrations with the Lightyear platform.
+
+## Features
+
+- **Type-safe Model Definitions** - Define data models with JSON Schema validation
+- **Flexible Collection Management** - Group and organize related models
+- **Custom App Integration** - Support for OAuth2, API Key, and Basic Auth apps
+- **Builder Pattern API** - Intuitive, chainable API for defining data structures
+- **Automatic Registry** - Tracks all defined elements for deployment
+- **Universal Handlers** - Works in AWS Lambda, VMs, Docker, Edge Functions, and more
+- **Minimal Bundle Size** - Optimized for fast cold starts and efficient execution
 
 ## Installation
 
@@ -8,76 +18,196 @@ TypeScript SDK for building integrations with Lightyear - the fastest and easies
 npm install @runlightyear/sdk
 # or
 pnpm add @runlightyear/sdk
-# or
-yarn add @runlightyear/sdk
 ```
 
-## Usage
+## Quick Start
 
-### Defining Collections
-
-The SDK provides a fluent builder API for defining data collections and models:
+### Defining Models
 
 ```typescript
-import { defineCollection, defineModel, match } from "@runlightyear/sdk";
+import { defineModel, match } from "@runlightyear/sdk";
 
-// Define a simple model
-const customer = defineModel("customer")
-  .withTitle("Customer")
+const userModel = defineModel("user")
+  .withTitle("User Account")
   .withSchema({
     type: "object",
     properties: {
       id: { type: "string" },
+      email: { type: "string" },
       name: { type: "string" },
-      email: { type: "string", format: "email" },
     },
-    required: ["id", "name", "email"],
   })
-  .withMatchPattern(match.property("email"))
+  .withMatchPattern(match.property("type"))
   .build();
+```
 
-// Define a collection with multiple models
-const crm = defineCollection("crm")
+### Defining Collections
+
+```typescript
+import { defineCollection } from "@runlightyear/sdk";
+
+const crmCollection = defineCollection("crm")
   .withTitle("CRM Data")
-  .withModel(customer)
-  .addModel("lead", {
-    title: "Lead",
+  .addModel("contact", {
+    title: "Contact Record",
     schema: {
       type: "object",
       properties: {
         id: { type: "string" },
-        name: { type: "string" },
-        status: { type: "string", enum: ["new", "qualified", "lost"] },
+        company: { type: "string" },
       },
     },
-    matchPattern: match.and(
-      match.property("status"),
-      match.jsonPath("$.metadata.type")
-    ),
   })
   .build();
 ```
 
-### Match Patterns
-
-Match patterns help identify which model in a collection incoming data should map to:
+### Defining Custom Apps
 
 ```typescript
-import { match } from "@runlightyear/sdk";
+import {
+  defineOAuth2CustomApp,
+  defineApiKeyCustomApp,
+  defineBasicCustomApp,
+} from "@runlightyear/sdk";
 
-// Simple property match
-match.property("email");
+// OAuth2 Custom App
+const githubApp = defineOAuth2CustomApp("github")
+  .withTitle("GitHub Integration")
+  .addSecret("client_id", { required: true })
+  .addSecret("client_secret", { required: true })
+  .addVariable("base_url", { defaultValue: "https://api.github.com" })
+  .build();
 
-// JSON path match
-match.jsonPath("$.customer.type");
+// API Key Custom App
+const sendgridApp = defineApiKeyCustomApp("sendgrid")
+  .withTitle("SendGrid Email Service")
+  .addSecret("api_key", { required: true })
+  .build();
 
-// Combine patterns
-match.or(
-  match.property("customer_id"),
-  match.jsonPath("$.relationships.customer")
+// Basic Auth Custom App
+const legacyApp = defineBasicCustomApp("legacy-system")
+  .withTitle("Legacy System")
+  .addSecret("username", { required: true })
+  .addSecret("password", { required: true })
+  .build();
+```
+
+## Universal Handlers
+
+The SDK provides universal handlers that work across different deployment environments.
+
+### Building Handlers
+
+```bash
+# Build optimized handler bundle
+pnpm build:handlers
+
+# Bundle will be created at dist/handlers.js (typically ~3.4KB)
+```
+
+### Using Handlers
+
+```typescript
+import { handler } from "@runlightyear/sdk";
+
+// Direct invocation (VM, Docker, serverless functions, etc.)
+const response = await handler(
+  { action: "deploy", payload: { environment: "prod" } },
+  { requestId: "req-123", remainingTimeMs: 30000 }
 );
 
-match.and(match.property("type"), match.property("status"));
+// Individual handler usage
+import { handleHealth, handleDeploy } from "@runlightyear/sdk";
+
+const health = await handleHealth({ requestId: "req-123" });
+const deploy = await handleDeploy({ environment: "production" });
+```
+
+### Supported Actions
+
+- `health` - Health check endpoint
+- `registry-stats` - Get registry statistics
+- `registry-export` - Export full registry for deployment
+- `deploy` - Deploy SDK elements (placeholder implementation)
+
+### Handler Event Format
+
+```typescript
+interface HandlerEvent {
+  operation: 'deploy' | 'health' | 'registry-export' | 'registry-stats';
+  payload?: any;
+}
+
+// Examples
+{ "operation": "health" }
+{ "operation": "deploy", "payload": { "environment": "production", "dryRun": false } }
+```
+
+## Deployment Options
+
+### Docker/VM
+
+```typescript
+import { handler } from "@runlightyear/sdk";
+
+const result = await handler(event, context);
+```
+
+### AWS Lambda
+
+```bash
+# Deploy dist/handlers.js to Lambda
+# Set handler: handler
+# Runtime: Node.js 18.x
+```
+
+### Edge Functions
+
+- Vercel Functions
+- Netlify Edge Functions
+- Cloudflare Workers
+- Deno Deploy
+
+### Kubernetes
+
+Deploy as a microservice with HTTP wrapper around the handlers.
+
+### Integration Example
+
+```typescript
+import express from "express";
+import { handler } from "@runlightyear/sdk";
+
+const app = express();
+app.use(express.json());
+
+app.post("/sdk/:operation", async (req, res) => {
+  try {
+    const result = await handler(
+      { operation: req.params.operation, payload: req.body },
+      { requestId: req.headers["x-request-id"], remainingTimeMs: 30000 }
+    );
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+```
+
+## Registry System
+
+The SDK automatically tracks all defined elements in a registry for deployment:
+
+```typescript
+import { getRegistryStats, exportRegistry } from "@runlightyear/sdk";
+
+// Get statistics
+const stats = getRegistryStats();
+console.log(`Total items: ${stats.totalItems}`);
+
+// Export for deployment
+const exported = exportRegistry();
+console.log("Ready for deployment:", exported);
 ```
 
 ## API Reference
@@ -94,6 +224,10 @@ match.and(match.property("type"), match.property("status"));
 ### Helpers
 
 - `match` - Helper object for creating match patterns
+  - `match.property(prop)` - Match by property value
+  - `match.jsonPath(path)` - Match by JSON path
+  - `match.or(...patterns)` - Logical OR of patterns
+  - `match.and(...patterns)` - Logical AND of patterns
 
 ### Registry
 
@@ -101,73 +235,61 @@ match.and(match.property("type"), match.property("status"));
 - `getCollections()` - Get all registered collections
 - `getCustomApps()` - Get all registered custom apps
 - `exportRegistry()` - Export for deployment
+- `getRegistryStats()` - Get registry statistics
+- `clearRegistry()` - Clear all registered items
 
-## Types
+### Handlers
 
-- `Model` - A single data model with schema and match pattern
-- `Collection` - A collection containing multiple related models
-- `CustomApp` - A custom app with authentication configuration
-- `MatchPattern` - Pattern for matching incoming data to models
-- `AppAuthType` - Authentication type: 'OAUTH2' | 'APIKEY' | 'BASIC'
+- `handler` - Universal handler function
+- `handleHealth` - Individual health handler
+- `handleRegistryExport` - Individual registry export handler
+- `handleRegistryStats` - Individual registry stats handler
+- `handleDeploy` - Individual deploy handler
+- `HandlerEvent` - TypeScript interface for handler events
+- `HandlerResponse` - TypeScript interface for handler responses
 
-### Registry for Deployment
+### Types
 
-The SDK automatically tracks all created elements in a global registry, making them available for deployment:
+- `Model` - Model definition interface
+- `Collection` - Collection definition interface
+- `CustomApp` - Custom app definition interface
+- `AppAuthType` - Authentication type ('OAUTH2' | 'APIKEY' | 'BASIC')
+- `MatchPattern` - Pattern matching interface
 
-```typescript
-import {
-  defineModel,
-  defineCollection,
-  exportRegistry,
-  getModels,
-  getCollections,
-} from "@runlightyear/sdk";
-
-// Create your models and collections
-const customer = defineModel("customer").build();
-const crm = defineCollection("crm").withModel(customer).build();
-
-// Registry automatically tracks everything
-console.log("Models:", getModels().length);
-console.log("Collections:", getCollections().length);
-
-// Export for deployment
-const deploymentData = exportRegistry();
-console.log("Ready for deployment:", deploymentData);
-```
-
-The registry provides:
-
-- **Automatic tracking** - All models and collections are registered when built
-- **Unique IDs** - Each element gets a unique identifier
-- **Metadata** - Tracks how and when elements were created
-- **Export functionality** - Generate deployment-ready data structures
-- **Statistics** - Get counts and summaries of registered elements
-
-## Features
-
-- ✅ Type-safe builder pattern
-- ✅ JSON Schema support for validation
-- ✅ Flexible match patterns for data mapping
-- ✅ Automatic registry for deployment tracking
-- ✅ Comprehensive TypeScript types
-- ✅ Zero runtime dependencies (except zod)
-
-## Development
+## Development Scripts
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Run in development mode
-pnpm dev
-
 # Build the package
 pnpm build
+
+# Build handler bundle
+pnpm build:handlers
 
 # Run tests
 pnpm test
 
-# Type checking
-pnpm compile
+# Run handler-specific tests
+pnpm test:handlers
+
+# Run examples
+pnpm example:basic
+pnpm example:registry
+pnpm example:customApps
+pnpm example:handlers
+
+# Deploy handlers (build only)
+pnpm deploy:handlers
 ```
+
+## Examples
+
+See the `examples/` directory for complete working examples:
+
+- `basic-collection.ts` - Basic usage patterns
+- `registry-example.ts` - Registry system demonstration
+- `customApps-example.ts` - Custom app creation
+- `handlers-example.ts` - Handler testing for all deployment environments
+
+## License
+
+MIT
