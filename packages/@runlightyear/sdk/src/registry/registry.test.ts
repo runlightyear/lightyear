@@ -22,7 +22,7 @@ describe("Registry", () => {
 
       const customer = defineModel("customer")
         .withTitle("Customer Model")
-        .build();
+        .deploy();
 
       const models = getModels();
       expect(models).toHaveLength(1);
@@ -33,9 +33,9 @@ describe("Registry", () => {
     });
 
     it("should register multiple models", () => {
-      defineModel("customer").build();
-      defineModel("order").build();
-      defineModel("product").build();
+      defineModel("customer").deploy();
+      defineModel("order").deploy();
+      defineModel("product").deploy();
 
       const models = getModels();
       expect(models).toHaveLength(3);
@@ -47,8 +47,8 @@ describe("Registry", () => {
     });
 
     it("should generate unique IDs for models", () => {
-      defineModel("customer").build();
-      defineModel("customer").build();
+      defineModel("customer").deploy();
+      defineModel("customer").deploy();
 
       const models = getModels();
       expect(models).toHaveLength(2);
@@ -60,7 +60,7 @@ describe("Registry", () => {
     it("should automatically register collections when built", () => {
       expect(getCollections()).toHaveLength(0);
 
-      const crm = defineCollection("crm").withTitle("CRM Collection").build();
+      const crm = defineCollection("crm").withTitle("CRM Collection").deploy();
 
       const collections = getCollections();
       expect(collections).toHaveLength(1);
@@ -74,19 +74,19 @@ describe("Registry", () => {
       const collection = defineCollection("crm")
         .addModel("customer")
         .addModel("lead")
-        .build();
+        .deploy();
 
       const collections = getCollections();
       expect(collections[0].metadata?.modelCount).toBe(2);
     });
 
     it("should register collection with models inside", () => {
-      const customer = defineModel("customer").build();
+      const customer = defineModel("customer").deploy();
 
       const crm = defineCollection("crm")
         .withModel(customer)
         .addModel("lead")
-        .build();
+        .deploy();
 
       // Should have 2 models (1 from defineModel, 1 from addModel)
       // and 1 collection
@@ -98,8 +98,8 @@ describe("Registry", () => {
 
   describe("Registry querying", () => {
     it("should get all items across types", () => {
-      defineModel("customer").build();
-      defineCollection("crm").build();
+      defineModel("customer").deploy();
+      defineCollection("crm").deploy();
 
       const allItems = getAllItems();
       expect(allItems).toHaveLength(2);
@@ -110,9 +110,9 @@ describe("Registry", () => {
     });
 
     it("should provide registry statistics", () => {
-      defineModel("customer").build();
-      defineModel("order").build();
-      defineCollection("crm").build();
+      defineModel("customer").deploy();
+      defineModel("order").deploy();
+      defineCollection("crm").deploy();
 
       const stats = getRegistryStats();
       expect(stats.totalItems).toBe(3);
@@ -122,8 +122,8 @@ describe("Registry", () => {
     });
 
     it("should export registry data for deployment", () => {
-      defineModel("customer").build();
-      defineCollection("crm").build();
+      defineModel("customer").deploy();
+      defineCollection("crm").deploy();
 
       const exported = exportRegistry();
       expect(exported.items).toHaveLength(2);
@@ -134,8 +134,8 @@ describe("Registry", () => {
 
   describe("Registry management", () => {
     it("should clear all items", () => {
-      defineModel("customer").build();
-      defineCollection("crm").build();
+      defineModel("customer").deploy();
+      defineCollection("crm").deploy();
 
       expect(getAllItems()).toHaveLength(2);
 
@@ -149,7 +149,7 @@ describe("Registry", () => {
     it("should track creation timestamps", () => {
       const beforeTime = new Date();
 
-      defineModel("customer").build();
+      defineModel("customer").deploy();
 
       const afterTime = new Date();
       const models = getModels();
@@ -167,14 +167,14 @@ describe("Registry", () => {
   describe("Complex scenarios", () => {
     it("should handle mixed operations correctly", () => {
       // Create standalone model
-      const customer = defineModel("customer").withTitle("Customer").build();
+      const customer = defineModel("customer").withTitle("Customer").deploy();
 
       // Create collection with models
       const crm = defineCollection("crm")
         .withModel(customer)
         .addModel("lead", { title: "Lead" })
         .addModel("opportunity")
-        .build();
+        .deploy();
 
       // Verify counts
       expect(getModels()).toHaveLength(3); // customer + lead + opportunity
@@ -188,9 +188,9 @@ describe("Registry", () => {
     });
 
     it("should maintain registry across multiple collection builds", () => {
-      defineCollection("crm").addModel("customer").build();
-      defineCollection("ecommerce").addModel("product").build();
-      defineCollection("analytics").addModel("event").build();
+      defineCollection("crm").addModel("customer").deploy();
+      defineCollection("ecommerce").addModel("product").deploy();
+      defineCollection("analytics").addModel("event").deploy();
 
       expect(getCollections()).toHaveLength(3);
       expect(getModels()).toHaveLength(3);

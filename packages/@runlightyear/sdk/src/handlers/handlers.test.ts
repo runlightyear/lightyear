@@ -84,7 +84,7 @@ describe("Handlers", () => {
 
     it("should handle deploy operation with logs", async () => {
       // Create some test data
-      defineOAuth2CustomApp("salesforce").build();
+      defineOAuth2CustomApp("salesforce").deploy();
 
       const event: HandlerEvent = {
         operation: "deploy",
@@ -161,7 +161,7 @@ describe("Handlers", () => {
       expect(healthResult.success).toBe(true);
       expect(healthResult.data.status).toBe("healthy");
 
-      defineOAuth2CustomApp("test-app").build();
+      defineOAuth2CustomApp("test-app").deploy();
       const deployResult = await handleDeploy({
         baseUrl: "https://api.test.com",
         dryRun: true,
@@ -180,7 +180,7 @@ describe("Handlers", () => {
       expect(healthNoContext.data.requestId).toMatch(/^req-\d+$/);
 
       // Deploy handler with no payload
-      defineOAuth2CustomApp("test-deploy").build();
+      defineOAuth2CustomApp("test-deploy").deploy();
       const deployNoPayload = await handleDeploy();
       expect(deployNoPayload.success).toBe(true);
       expect(deployNoPayload.data.environment).toBe("default");

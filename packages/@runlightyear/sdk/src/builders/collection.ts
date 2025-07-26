@@ -55,7 +55,7 @@ export class CollectionBuilder {
     return this;
   }
 
-  build(): Collection {
+  deploy(): Collection {
     const collection: Collection = {
       name: this.name,
       title: this.title,

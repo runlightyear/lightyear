@@ -30,7 +30,7 @@ export class ModelBuilder {
     return this;
   }
 
-  build(): Model {
+  deploy(): Model {
     const model: Model = {
       name: this.name,
       title: this.title,

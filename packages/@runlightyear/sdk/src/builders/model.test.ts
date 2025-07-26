@@ -3,7 +3,7 @@ import { defineModel } from "./model";
 
 describe("ModelBuilder", () => {
   it("should create a basic model", () => {
-    const model = defineModel("user").withTitle("User Model").build();
+    const model = defineModel("user").withTitle("User Model").deploy();
 
     expect(model.name).toBe("user");
     expect(model.title).toBe("User Model");
@@ -24,7 +24,7 @@ describe("ModelBuilder", () => {
       .withTitle("Customer")
       .withSchema(schema)
       .withMatchPattern("email")
-      .build();
+      .deploy();
 
     expect(model.name).toBe("customer");
     expect(model.title).toBe("Customer");
@@ -43,7 +43,7 @@ describe("ModelBuilder", () => {
         },
       })
       .withMatchPattern("id")
-      .build();
+      .deploy();
 
     expect(model.name).toBe("product");
     expect(model.title).toBe("Product");

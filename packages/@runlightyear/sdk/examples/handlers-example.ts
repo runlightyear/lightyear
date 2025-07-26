@@ -37,14 +37,14 @@ async function runHandlersExample() {
         name: { type: "string" },
       },
     })
-    .build();
+    .deploy();
 
   const githubApp = defineOAuth2CustomApp("github")
     .withTitle("GitHub Integration")
     .addSecret("client_id", { required: true })
     .addSecret("client_secret", { required: true })
     .addVariable("base_url", { defaultValue: "https://api.github.com" })
-    .build();
+    .deploy();
 
   console.log("✅ Created models and custom apps\n");
 

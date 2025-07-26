@@ -22,7 +22,7 @@ const customer = defineModel("customer")
     required: ["id", "name", "email"],
   })
   .withMatchPattern(match.property("email"))
-  .build();
+  .deploy();
 
 // Define a Lead model
 const lead = defineModel("lead")
@@ -48,7 +48,7 @@ const lead = defineModel("lead")
       match.or(match.property("score"), match.jsonPath("$.metadata.leadScore"))
     )
   )
-  .build();
+  .deploy();
 
 // Define a CRM Collection containing both models
 const crmCollection = defineCollection("crm")
@@ -81,7 +81,7 @@ const crmCollection = defineCollection("crm")
     },
     matchPattern: match.and(match.property("amount"), match.property("stage")),
   })
-  .build();
+  .deploy();
 
 // Example usage and logging
 console.log("CRM Collection:", JSON.stringify(crmCollection, null, 2));

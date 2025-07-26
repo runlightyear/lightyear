@@ -16,7 +16,7 @@ describe("CustomAppBuilder", () => {
     it("should create a basic OAuth2 custom app", () => {
       const app = defineOAuth2CustomApp("github")
         .withTitle("GitHub Integration")
-        .build();
+        .deploy();
 
       expect(app.name).toBe("github");
       expect(app.type).toBe("OAUTH2");
@@ -28,7 +28,7 @@ describe("CustomAppBuilder", () => {
     it("should create a basic API Key custom app", () => {
       const app = defineApiKeyCustomApp("stripe")
         .withTitle("Stripe Payments")
-        .build();
+        .deploy();
 
       expect(app.name).toBe("stripe");
       expect(app.type).toBe("APIKEY");
@@ -36,7 +36,7 @@ describe("CustomAppBuilder", () => {
     });
 
     it("should create a basic auth custom app", () => {
-      const app = defineBasicCustomApp("legacy-system").build();
+      const app = defineBasicCustomApp("legacy-system").deploy();
 
       expect(app.name).toBe("legacy-system");
       expect(app.type).toBe("BASIC");
@@ -46,7 +46,7 @@ describe("CustomAppBuilder", () => {
     it("should create custom app using generic defineCustomApp function", () => {
       const app = defineCustomApp("custom", "OAUTH2")
         .withTitle("Custom OAuth App")
-        .build();
+        .deploy();
 
       expect(app.name).toBe("custom");
       expect(app.type).toBe("OAUTH2");
@@ -69,7 +69,7 @@ describe("CustomAppBuilder", () => {
           defaultValue: "US",
           required: false,
         })
-        .build();
+        .deploy();
 
       expect(app.variables).toHaveLength(2);
       expect(app.variables![0].name).toBe("domain");
@@ -93,7 +93,7 @@ describe("CustomAppBuilder", () => {
           description: "OAuth2 Client Secret from Slack",
           required: true,
         })
-        .build();
+        .deploy();
 
       expect(app.secrets).toHaveLength(2);
       expect(app.secrets![0].name).toBe("client_id");
@@ -122,7 +122,7 @@ describe("CustomAppBuilder", () => {
         .withTitle("Database Connection")
         .addVariables(variables)
         .addSecrets(secrets)
-        .build();
+        .deploy();
 
       expect(app.variables).toHaveLength(2);
       expect(app.secrets).toHaveLength(2);
@@ -131,7 +131,7 @@ describe("CustomAppBuilder", () => {
     it("should not include empty variables/secrets arrays", () => {
       const app = defineApiKeyCustomApp("simple")
         .withTitle("Simple App")
-        .build();
+        .deploy();
 
       expect(app.variables).toBeUndefined();
       expect(app.secrets).toBeUndefined();
@@ -146,7 +146,7 @@ describe("CustomAppBuilder", () => {
         .withTitle("Google OAuth")
         .addSecret("client_id")
         .addSecret("client_secret")
-        .build();
+        .deploy();
 
       const apps = getCustomApps();
       expect(apps).toHaveLength(1);
@@ -166,7 +166,7 @@ describe("CustomAppBuilder", () => {
         .addVariable("var3")
         .addSecret("secret1")
         .addSecret("secret2")
-        .build();
+        .deploy();
 
       const apps = getCustomApps();
       expect(apps[0].metadata?.variableCount).toBe(3);
@@ -174,8 +174,8 @@ describe("CustomAppBuilder", () => {
     });
 
     it("should generate unique IDs for custom apps", () => {
-      defineOAuth2CustomApp("app1").build();
-      defineOAuth2CustomApp("app1").build(); // Same name, different instance
+      defineOAuth2CustomApp("app1").deploy();
+      defineOAuth2CustomApp("app1").deploy(); // Same name, different instance
 
       const apps = getCustomApps();
       expect(apps).toHaveLength(2);
@@ -206,7 +206,7 @@ describe("CustomAppBuilder", () => {
           defaultValue: "30000",
           required: false,
         })
-        .build();
+        .deploy();
 
       expect(app.name).toBe("comprehensive");
       expect(app.type).toBe("OAUTH2");

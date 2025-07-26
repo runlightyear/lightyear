@@ -38,7 +38,7 @@ const customer = defineModel("customer")
     required: ["id", "name", "email"],
   })
   .withMatchPattern(match.property("email"))
-  .build();
+  .deploy();
 
 const product = defineModel("product")
   .withTitle("Product")
@@ -51,7 +51,7 @@ const product = defineModel("product")
       category: { type: "string" },
     },
   })
-  .build();
+  .deploy();
 
 console.log(`✅ Created ${getModels().length} individual models\n`);
 
@@ -86,7 +86,7 @@ const crmCollection = defineCollection("crm")
       },
     },
   })
-  .build();
+  .deploy();
 
 const ecommerceCollection = defineCollection("ecommerce")
   .withTitle("E-commerce Platform")
@@ -103,7 +103,7 @@ const ecommerceCollection = defineCollection("ecommerce")
       },
     },
   })
-  .build();
+  .deploy();
 
 console.log(`✅ Created ${getCollections().length} collections\n`);
 

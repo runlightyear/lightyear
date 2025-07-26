@@ -40,7 +40,7 @@ const githubApp = defineOAuth2CustomApp("github")
     description: "OAuth2 Client Secret from GitHub App settings",
     required: true,
   })
-  .build();
+  .deploy();
 
 const slackApp = defineOAuth2CustomApp("slack")
   .withTitle("Slack Team Integration")
@@ -62,7 +62,7 @@ const slackApp = defineOAuth2CustomApp("slack")
     description: "Used to verify requests from Slack",
     required: false,
   })
-  .build();
+  .deploy();
 
 console.log(
   `✅ Created ${
@@ -95,7 +95,7 @@ const stripeApp = defineApiKeyCustomApp("stripe")
     description: "Your Stripe publishable key (starts with pk_)",
     required: false,
   })
-  .build();
+  .deploy();
 
 const mailgunApp = defineApiKeyCustomApp("mailgun")
   .withTitle("Mailgun Email Service")
@@ -115,7 +115,7 @@ const mailgunApp = defineApiKeyCustomApp("mailgun")
     description: "Your Mailgun private API key",
     required: true,
   })
-  .build();
+  .deploy();
 
 console.log(
   `✅ Created ${
@@ -148,7 +148,7 @@ const legacySystemApp = defineBasicCustomApp("legacy-crm")
     description: "Password for CRM authentication",
     required: true,
   })
-  .build();
+  .deploy();
 
 // Using the generic defineCustomApp function
 const customApp = defineCustomApp("custom-api", "BASIC")
@@ -163,7 +163,7 @@ const customApp = defineCustomApp("custom-api", "BASIC")
     title: "API Token",
     required: true,
   })
-  .build();
+  .deploy();
 
 console.log(
   `✅ Created ${

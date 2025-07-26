@@ -67,7 +67,7 @@ export class CustomAppBuilder {
     return this;
   }
 
-  build(): CustomApp {
+  deploy(): CustomApp {
     const app: CustomApp = {
       name: this.name,
       type: this.type,
