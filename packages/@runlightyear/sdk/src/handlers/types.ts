@@ -1,5 +1,13 @@
 export interface HandlerEvent {
-  operation: "deploy" | "health" | "registry-export" | "registry-stats" | "run";
+  operation:
+    | "deploy"
+    | "health"
+    | "registry-export"
+    | "registry-stats"
+    | "run"
+    | "getAuthRequestUrl"
+    | "requestAccessToken"
+    | "refreshAccessToken";
   payload?: any;
   // CLI-specific fields
   deployId?: string;
@@ -15,6 +23,10 @@ export interface HandlerEvent {
   webhook?: any;
   integration?: any;
   managedUser?: any;
+  // OAuth-specific fields
+  customAppName?: string;
+  authName?: string;
+  code?: string;
 }
 
 export interface HandlerResponse {

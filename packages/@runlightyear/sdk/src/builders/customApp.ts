@@ -1,4 +1,11 @@
-import type { CustomApp, AppAuthType, AppVariable, AppSecret } from "../types";
+import type {
+  CustomApp,
+  AppAuthType,
+  AppVariable,
+  AppSecret,
+  OAuthConnectorClass,
+  OAuthConnectorFactory,
+} from "../types";
 import { registerCustomApp } from "../registry";
 
 /**
@@ -10,6 +17,7 @@ export class CustomAppBuilder {
   private title?: string;
   private variables: AppVariable[] = [];
   private secrets: AppSecret[] = [];
+  private oauthConnector?: OAuthConnectorClass | OAuthConnectorFactory;
 
   constructor(name: string, type: AppAuthType) {
     this.name = name;
@@ -67,6 +75,16 @@ export class CustomAppBuilder {
     return this;
   }
 
+  /**
+   * Set the OAuth connector for OAuth2 custom apps
+   */
+  withOAuthConnector(
+    connector: OAuthConnectorClass | OAuthConnectorFactory
+  ): this {
+    this.oauthConnector = connector;
+    return this;
+  }
+
   deploy(): CustomApp {
     const app: CustomApp = {
       name: this.name,
@@ -74,6 +92,7 @@ export class CustomAppBuilder {
       title: this.title,
       variables: this.variables.length > 0 ? this.variables : undefined,
       secrets: this.secrets.length > 0 ? this.secrets : undefined,
+      oauthConnector: this.oauthConnector,
     };
 
     // Register the custom app in the global registry

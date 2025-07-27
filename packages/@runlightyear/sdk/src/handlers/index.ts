@@ -10,6 +10,11 @@ import { handleRegistryExport, handleRegistryStats } from "./registry";
 import { handleDeploy } from "./deploy";
 import { handleRun } from "./run";
 import {
+  handleGetAuthRequestUrl,
+  handleRequestAccessToken,
+  handleRefreshAccessToken,
+} from "./oauth";
+import {
   initializeLogCapture,
   setLogContext,
   clearLogContext,
@@ -138,6 +143,37 @@ export const handler: DirectHandler = async (
         }
         break;
 
+      case "getAuthRequestUrl":
+        internalResponse = await handleGetAuthRequestUrl({
+          customAppName: event.customAppName || "",
+          authName: event.authName || "",
+          oauthConfigData: event.payload?.oauthConfigData,
+          authData: event.payload?.authData,
+          oauthConnector: event.payload?.oauthConnector,
+        });
+        break;
+
+      case "requestAccessToken":
+        internalResponse = await handleRequestAccessToken({
+          customAppName: event.customAppName || "",
+          authName: event.authName || "",
+          code: event.code || "",
+          oauthConfigData: event.payload?.oauthConfigData,
+          authData: event.payload?.authData,
+          oauthConnector: event.payload?.oauthConnector,
+        });
+        break;
+
+      case "refreshAccessToken":
+        internalResponse = await handleRefreshAccessToken({
+          customAppName: event.customAppName || "",
+          authName: event.authName || "",
+          oauthConfigData: event.payload?.oauthConfigData,
+          authData: event.payload?.authData,
+          oauthConnector: event.payload?.oauthConnector,
+        });
+        break;
+
       default:
         internalResponse = {
           success: false,
@@ -182,3 +218,8 @@ export { handleHealth } from "./health";
 export { handleRegistryExport, handleRegistryStats } from "./registry";
 export { handleDeploy } from "./deploy";
 export { handleRun } from "./run";
+export {
+  handleGetAuthRequestUrl,
+  handleRequestAccessToken,
+  handleRefreshAccessToken,
+} from "./oauth";

@@ -57,6 +57,15 @@ export interface AppSecret {
   required?: boolean;
 }
 
+// OAuth connector types
+export interface OAuthConnectorClass {
+  new (props: any): any;
+}
+
+export interface OAuthConnectorFactory {
+  (props: any): any;
+}
+
 // Custom app definition
 export interface CustomApp {
   name: string;
@@ -64,6 +73,7 @@ export interface CustomApp {
   title?: string;
   variables?: AppVariable[];
   secrets?: AppSecret[];
+  oauthConnector?: OAuthConnectorClass | OAuthConnectorFactory;
 }
 
 // Integration definition

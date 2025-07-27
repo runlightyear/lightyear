@@ -23,5 +23,8 @@ export { IntegrationBuilder, defineIntegration } from "./integration";
 // Action builder
 export { ActionBuilder, defineAction } from "./action";
 
+// OAuth connector builder
+export { OAuthConnectorBuilder, defineOAuthConnector } from "./oauth";
+
 // Match pattern helpers
 export { match } from "./match";

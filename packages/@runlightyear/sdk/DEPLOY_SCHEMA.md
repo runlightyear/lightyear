@@ -328,6 +328,27 @@ The following API types don't have corresponding SDK builders yet:
 
 ### Important Notes
 
+#### OAuth Connector Detection
+
+When custom apps include OAuth connectors (created with `defineOAuthConnector` and attached via `.withOAuthConnector()`), the deployment handler automatically sets `hasOAuth: true` in the deployment schema. Apps without OAuth connectors will have `hasOAuth` undefined.
+
+**Example**:
+
+```typescript
+// SDK Builder
+const oauthConnector = defineOAuthConnector("GitHub")
+  .withAuthUrl("https://github.com/login/oauth/authorize")
+  .withTokenUrl("https://github.com/login/oauth/access_token")
+  .build();
+
+const app = defineOAuth2CustomApp("github-app")
+  .withOAuthConnector(oauthConnector) // ← OAuth connector provided
+  .deploy();
+
+// Deployment Schema Result
+// hasOAuth: true (automatically set)
+```
+
 #### Collections vs Integrations
 
 In our SDK, `IntegrationBuilder` includes collections via `.withCollection()` methods. However, the API schema treats integrations and collections as separate deployment items:
@@ -360,6 +381,7 @@ The deployment handler automatically transforms between these formats.
       "name": "github-app",
       "title": "GitHub Integration",
       "authType": "OAUTH2",
+      "hasOAuth": true,
       "secrets": ["client_id", "client_secret"]
     }
   },

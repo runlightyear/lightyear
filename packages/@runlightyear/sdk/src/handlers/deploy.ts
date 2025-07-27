@@ -180,6 +180,7 @@ function transformRegistryToDeploymentSchema(
               item.customApp.name ||
               "Unnamed Custom App",
             authType: item.customApp.type || "OAUTH2",
+            hasOAuth: item.customApp.oauthConnector ? true : undefined,
             variables: variables.length > 0 ? variables : undefined,
             secrets: secrets.length > 0 ? secrets : undefined,
           },
@@ -190,6 +191,9 @@ function transformRegistryToDeploymentSchema(
         );
         console.log(
           `   🔑 Auth type: ${customAppItem.customAppProps.authType}`
+        );
+        console.log(
+          `   🔐 Has OAuth: ${customAppItem.customAppProps.hasOAuth || false}`
         );
         deploymentItems.push(customAppItem);
         break;
