@@ -184,6 +184,63 @@ export const handler: DirectHandler = async (
 
     // Convert internal response to Lambda format
     const statusCode = internalResponse.success ? 200 : 400;
+
+    // For OAuth operations, format response to match lightyear package format
+    // CLI expects { authRequestUrl, message, logs } at top level
+    if (
+      operation === "getAuthRequestUrl" &&
+      internalResponse.success &&
+      internalResponse.data?.authRequestUrl
+    ) {
+      return {
+        statusCode,
+        body: JSON.stringify({
+          message: "Success",
+          logs: internalResponse.logs || [],
+          authRequestUrl: internalResponse.data.authRequestUrl,
+        }),
+      };
+    }
+
+    if (operation === "requestAccessToken" && internalResponse.success) {
+      return {
+        statusCode,
+        body: JSON.stringify({
+          message: "Success",
+          logs: internalResponse.logs || [],
+          ...(internalResponse.data || {}),
+        }),
+      };
+    }
+
+    if (operation === "refreshAccessToken" && internalResponse.success) {
+      return {
+        statusCode,
+        body: JSON.stringify({
+          message: "Success",
+          logs: internalResponse.logs || [],
+          ...(internalResponse.data || {}),
+        }),
+      };
+    }
+
+    // For OAuth errors, format to match lightyear error format
+    if (
+      (operation === "getAuthRequestUrl" ||
+        operation === "requestAccessToken" ||
+        operation === "refreshAccessToken") &&
+      !internalResponse.success
+    ) {
+      return {
+        statusCode: statusCode >= 400 ? statusCode : 500,
+        body: JSON.stringify({
+          message: internalResponse.error || "Unknown error",
+          logs: internalResponse.logs || [],
+        }),
+      };
+    }
+
+    // Default format for other operations
     return {
       statusCode,
       body: JSON.stringify(internalResponse),

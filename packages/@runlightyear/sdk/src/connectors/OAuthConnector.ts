@@ -1,4 +1,5 @@
 import { HttpProxyRequestProps, HttpProxyResponse, httpRequest } from "../http";
+import { updateAuthData, AuthData as ApiAuthData } from "../utils/api";
 
 /**
  * @public
@@ -98,25 +99,30 @@ export abstract class OAuthConnector {
     this.oauthConfigData = oauthConfigData;
     this.baseUrls = baseUrls;
 
+    this.appName = appName;
+    this.customAppName = customAppName;
+    this.authData = authData;
+    this.inDevelopment = inDevelopment;
+    this.proxied = proxied;
+  }
+
+  /**
+   * Validate that client credentials are available for operations that need them
+   */
+  private validateClientCredentials(): void {
     const { clientId, clientSecret } = this.oauthConfigData;
 
-    if (appName) {
+    if (this.appName) {
       if (!clientId) throw new Error("Client ID not set");
       if (!clientSecret) throw new Error("Client secret not set");
     }
 
     if (!clientId || !clientSecret) {
       console.error(
-        `Custom app ${customAppName} is missing client id and/or client secret. Configure at https://app.runlightyear.com/envs/<envName>/custom-apps/${customAppName}`
+        `Custom app ${this.customAppName} is missing client id and/or client secret. Configure at https://app.runlightyear.com/envs/<envName>/custom-apps/${this.customAppName}`
       );
       throw new Error("Custom app client id and/or client secret not set");
     }
-
-    this.appName = appName;
-    this.customAppName = customAppName;
-    this.authData = authData;
-    this.inDevelopment = inDevelopment;
-    this.proxied = proxied;
   }
 
   /**
@@ -152,15 +158,47 @@ export abstract class OAuthConnector {
     const base = this.getConfiguredAuthRequestUrlBase();
     if (!base) throw new Error("Missing authRequestUrlBase");
 
-    console.debug("Base URL:", base);
+    console.info("🔐 Generating OAuth Authorization URL");
+    console.info("=====================================");
 
     const params = this.getAuthRequestUrlParams();
-    console.debug("Params", params);
-
     const url = new URL(`${base}?${new URLSearchParams(params)}`);
-    console.debug("Auth request URL:", url.href);
 
-    console.info("Generated url");
+    // Enhanced logging with parameter breakdown
+    console.info("📍 Base Authorization URL:");
+    console.info(`   ${base}`);
+    console.info("");
+
+    console.info("🔧 OAuth Parameters:");
+    Object.entries(params).forEach(([key, value]) => {
+      if (key === "scope") {
+        console.info(`   ${key}: ${value}`);
+        // Show scope breakdown if it contains multiple scopes
+        const scopes = value.split(/[\s,+]/).filter((s) => s.length > 0);
+        if (scopes.length > 1) {
+          console.info(`   └── Scopes (${scopes.length}):`);
+          scopes.forEach((scope, index) => {
+            console.info(`       ${index + 1}. ${scope}`);
+          });
+        }
+      } else if (key === "client_id") {
+        // Redact client ID for security, show only first/last few chars
+        const redacted =
+          value.length > 8
+            ? `${value.substring(0, 4)}...${value.substring(value.length - 4)}`
+            : "[REDACTED]";
+        console.info(`   ${key}: ${redacted}`);
+      } else {
+        console.info(`   ${key}: ${value}`);
+      }
+    });
+    console.info("");
+
+    console.info("🌐 Complete Authorization URL:");
+    console.info(`   ${url.href}`);
+    console.info("");
+
+    console.info("✅ OAuth authorization URL generated successfully!");
 
     return url.href;
   }
@@ -394,6 +432,19 @@ export abstract class OAuthConnector {
       text: JSON.stringify(response.data),
     });
 
+    // Save the new auth data to the platform
+    const authName = this.authData?.authName;
+    if (!authName) throw new Error("Need an auth name");
+
+    await updateAuthData({
+      appName: this.appName,
+      customAppName: this.customAppName,
+      authName,
+      authData: newAuthData as unknown as ApiAuthData,
+    });
+
+    console.info("✅ Access token saved to platform successfully");
+
     return newAuthData;
   }
 
@@ -413,6 +464,19 @@ export abstract class OAuthConnector {
       headers: response.headers,
       text: JSON.stringify(response.data),
     });
+
+    // Save the refreshed auth data to the platform
+    const authName = this.authData?.authName;
+    if (!authName) throw new Error("Need an auth name");
+
+    await updateAuthData({
+      appName: this.appName,
+      customAppName: this.customAppName,
+      authName,
+      authData: newAuthData as unknown as ApiAuthData,
+    });
+
+    console.info("✅ Refreshed access token saved to platform successfully");
 
     return newAuthData;
   }
