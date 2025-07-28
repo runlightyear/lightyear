@@ -26,5 +26,8 @@ export { ActionBuilder, defineAction } from "./action";
 // OAuth connector builder
 export { OAuthConnectorBuilder, defineOAuthConnector } from "./oauth";
 
+// REST connector builder
+export { RestConnectorBuilder, defineRestConnector } from "./restConnector";
+
 // Match pattern helpers
 export { match } from "./match";

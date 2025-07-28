@@ -1,2 +1,2 @@
-export { OAuthConnector } from "./OAuthConnector";
-export type { OAuthConnectorProps, OAuthConfigData } from "./OAuthConnector";
+export { RestConnector } from "./RestConnector";
+export type { RestConnectorProps } from "./RestConnector";
