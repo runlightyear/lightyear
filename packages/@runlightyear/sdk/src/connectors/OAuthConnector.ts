@@ -406,11 +406,45 @@ export abstract class OAuthConnector {
   }
 
   async requestAccessToken(code: string): Promise<AuthData> {
+    console.info("🔄 Starting OAuth access token exchange");
+    console.info("=======================================");
+    console.info(`📱 Custom App: ${this.customAppName || this.appName}`);
+    console.info(`🔑 Auth Name: ${this.authData?.authName}`);
+    console.info(
+      `📝 Authorization Code: ${code.substring(0, 10)}...${code.substring(
+        code.length - 4
+      )}`
+    );
+    console.info("");
+
     const url = this.getConfiguredAccessTokenUrl();
     const headers = this.getRequestAccessTokenHeaders();
     const body = this.getRequestAccessTokenBody(code);
     const redactKeys = this.getRequestAccessTokenRedactKeys();
 
+    console.info("🌐 Token Exchange Request Details:");
+    console.info(`   URL: ${url}`);
+    console.info(`   Method: POST`);
+    console.info("   Headers:");
+    Object.entries(headers).forEach(([key, value]) => {
+      console.info(`     ${key}: ${value}`);
+    });
+    console.info("   Body Parameters:");
+    const bodyParams = new URLSearchParams(body);
+    for (const [key, value] of bodyParams.entries()) {
+      if (key === "client_secret" || key === "code") {
+        const redacted =
+          value.length > 8
+            ? `${value.substring(0, 4)}...${value.substring(value.length - 4)}`
+            : "[REDACTED]";
+        console.info(`     ${key}: ${redacted}`);
+      } else {
+        console.info(`     ${key}: ${value}`);
+      }
+    }
+    console.info("");
+
+    console.info("📡 Making token exchange request...");
     const response = await this.post({
       url,
       headers,
@@ -418,8 +452,32 @@ export abstract class OAuthConnector {
       redactKeys,
     });
 
-    console.debug("Response:", response);
+    console.info("📥 Token Exchange Response:");
+    console.info(`   Status: ${response.status} ${response.statusText}`);
+    console.info(
+      `   Success: ${
+        response.status >= 200 && response.status < 300 ? "✅" : "❌"
+      }`
+    );
+    console.info("   Response Headers:");
+    Object.entries(response.headers || {}).forEach(([key, value]) => {
+      console.info(`     ${key}: ${value}`);
+    });
 
+    if (response.data) {
+      console.info("   Response Data Structure:");
+      const dataKeys = Object.keys(response.data);
+      dataKeys.forEach((key) => {
+        if (key.includes("token") || key.includes("secret")) {
+          console.info(`     ${key}: [PRESENT - REDACTED]`);
+        } else {
+          console.info(`     ${key}: ${response.data[key]}`);
+        }
+      });
+    }
+    console.info("");
+
+    console.info("🔧 Processing token response...");
     const newAuthData = this.processRequestAccessTokenResponse({
       status: response.status,
       statusText: response.statusText,
@@ -427,32 +485,123 @@ export abstract class OAuthConnector {
       text: JSON.stringify(response.data),
     });
 
+    console.info("✅ Token processing complete!");
+    console.info(`   Token Type: ${newAuthData.tokenType || "Bearer"}`);
+    console.info(
+      `   Access Token: ${newAuthData.accessToken ? "RECEIVED" : "MISSING"}`
+    );
+    console.info(
+      `   Refresh Token: ${newAuthData.refreshToken ? "RECEIVED" : "MISSING"}`
+    );
+    console.info(`   Expires At: ${newAuthData.expiresAt || "Not specified"}`);
+    console.info("");
+
     // Save the new auth data to the platform
     const authName = this.authData?.authName;
     if (!authName) throw new Error("Need an auth name");
+
+    console.info("💾 Saving tokens to platform...");
+
+    // Filter auth data to only include fields accepted by the platform
+    const platformAuthData = {
+      appName: newAuthData.appName,
+      customAppName: newAuthData.customAppName,
+      managedUser: newAuthData.managedUser,
+      authName: newAuthData.authName,
+      accessToken: newAuthData.accessToken,
+      refreshToken: newAuthData.refreshToken,
+      expiresAt: newAuthData.expiresAt,
+      state: (newAuthData as any).state,
+      codeVerifier: (newAuthData as any).codeVerifier,
+      extraData: (newAuthData as any).extraData,
+      // Exclude: tokenType, apiKey, username, password, refreshedAt (not accepted by platform)
+    };
 
     await updateAuthData({
       appName: this.appName,
       customAppName: this.customAppName,
       authName,
-      authData: newAuthData as unknown as ApiAuthData,
+      authData: platformAuthData as unknown as ApiAuthData,
     });
 
-    console.info("✅ Access token saved to platform successfully");
+    console.info("🎉 OAuth Access Token Exchange Complete!");
+    console.info("========================================");
+    console.info("✅ Access token received and saved successfully");
+    console.info("✅ OAuth flow ready for API requests");
+    console.info("");
 
     return newAuthData;
   }
 
   async refreshAccessToken(): Promise<AuthData> {
+    console.info("🔄 Starting OAuth access token refresh");
+    console.info("======================================");
+    console.info(`📱 Custom App: ${this.customAppName || this.appName}`);
+    console.info(`🔑 Auth Name: ${this.authData?.authName}`);
+    console.info(
+      `🔄 Current Token Expires: ${this.authData?.expiresAt || "Unknown"}`
+    );
+    console.info(
+      `🕐 Current Token Refreshed: ${this.authData?.refreshedAt || "Never"}`
+    );
+    console.info("");
+
     const url = this.getRefreshTokenUrl();
     const headers = this.getRefreshAccessTokenHeaders();
     const body = this.getRefreshAccessTokenBody();
     const redactKeys = this.getRefreshAccessTokenRedactKeys();
 
+    console.info("🌐 Token Refresh Request Details:");
+    console.info(`   URL: ${url}`);
+    console.info(`   Method: POST`);
+    console.info("   Headers:");
+    Object.entries(headers).forEach(([key, value]) => {
+      console.info(`     ${key}: ${value}`);
+    });
+    console.info("   Body Parameters:");
+    const bodyParams = new URLSearchParams(body);
+    for (const [key, value] of bodyParams.entries()) {
+      if (key === "client_secret" || key === "refresh_token") {
+        const redacted =
+          value.length > 8
+            ? `${value.substring(0, 4)}...${value.substring(value.length - 4)}`
+            : "[REDACTED]";
+        console.info(`     ${key}: ${redacted}`);
+      } else {
+        console.info(`     ${key}: ${value}`);
+      }
+    }
+    console.info("");
+
+    console.info("📡 Making token refresh request...");
     const response = await this.post({ url, headers, body, redactKeys });
 
-    console.debug("Response:", response);
+    console.info("📥 Token Refresh Response:");
+    console.info(`   Status: ${response.status} ${response.statusText}`);
+    console.info(
+      `   Success: ${
+        response.status >= 200 && response.status < 300 ? "✅" : "❌"
+      }`
+    );
+    console.info("   Response Headers:");
+    Object.entries(response.headers || {}).forEach(([key, value]) => {
+      console.info(`     ${key}: ${value}`);
+    });
 
+    if (response.data) {
+      console.info("   Response Data Structure:");
+      const dataKeys = Object.keys(response.data);
+      dataKeys.forEach((key) => {
+        if (key.includes("token") || key.includes("secret")) {
+          console.info(`     ${key}: [PRESENT - REDACTED]`);
+        } else {
+          console.info(`     ${key}: ${response.data[key]}`);
+        }
+      });
+    }
+    console.info("");
+
+    console.info("🔧 Processing refresh response...");
     const newAuthData = this.processRefreshAccessTokenResponse({
       status: response.status,
       statusText: response.statusText,
@@ -460,18 +609,55 @@ export abstract class OAuthConnector {
       text: JSON.stringify(response.data),
     });
 
+    console.info("✅ Token refresh processing complete!");
+    console.info(`   Token Type: ${newAuthData.tokenType || "Bearer"}`);
+    console.info(
+      `   New Access Token: ${newAuthData.accessToken ? "RECEIVED" : "MISSING"}`
+    );
+    console.info(
+      `   New Refresh Token: ${
+        newAuthData.refreshToken ? "RECEIVED" : "MISSING"
+      }`
+    );
+    console.info(
+      `   New Expires At: ${newAuthData.expiresAt || "Not specified"}`
+    );
+    console.info(`   Refreshed At: ${newAuthData.refreshedAt || "Not set"}`);
+    console.info("");
+
     // Save the refreshed auth data to the platform
     const authName = this.authData?.authName;
     if (!authName) throw new Error("Need an auth name");
+
+    console.info("💾 Saving refreshed tokens to platform...");
+
+    // Filter auth data to only include fields accepted by the platform
+    const platformAuthData = {
+      appName: newAuthData.appName,
+      customAppName: newAuthData.customAppName,
+      managedUser: newAuthData.managedUser,
+      authName: newAuthData.authName,
+      accessToken: newAuthData.accessToken,
+      refreshToken: newAuthData.refreshToken,
+      expiresAt: newAuthData.expiresAt,
+      state: (newAuthData as any).state,
+      codeVerifier: (newAuthData as any).codeVerifier,
+      extraData: (newAuthData as any).extraData,
+      // Exclude: tokenType, apiKey, username, password, refreshedAt (not accepted by platform)
+    };
 
     await updateAuthData({
       appName: this.appName,
       customAppName: this.customAppName,
       authName,
-      authData: newAuthData as unknown as ApiAuthData,
+      authData: platformAuthData as unknown as ApiAuthData,
     });
 
-    console.info("✅ Refreshed access token saved to platform successfully");
+    console.info("🎉 OAuth Token Refresh Complete!");
+    console.info("=================================");
+    console.info("✅ Access token refreshed and saved successfully");
+    console.info("✅ OAuth flow ready for continued API requests");
+    console.info("");
 
     return newAuthData;
   }

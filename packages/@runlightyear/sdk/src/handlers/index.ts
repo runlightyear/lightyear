@@ -20,6 +20,7 @@ import {
   clearLogContext,
   getLogCapture,
   stopLogCapture,
+  LogEntry,
 } from "../logging";
 
 /**
@@ -144,34 +145,97 @@ export const handler: DirectHandler = async (
         break;
 
       case "getAuthRequestUrl":
-        internalResponse = await handleGetAuthRequestUrl({
-          customAppName: event.customAppName || "",
-          authName: event.authName || "",
-          oauthConfigData: event.payload?.oauthConfigData,
-          authData: event.payload?.authData,
-          oauthConnector: event.payload?.oauthConnector,
-        });
+        // Initialize log capture for OAuth operations
+        console.log("🚀 Starting log capture for OAuth getAuthRequestUrl...");
+        const getAuthLogCapture = initializeLogCapture();
+
+        try {
+          internalResponse = await handleGetAuthRequestUrl({
+            customAppName: event.customAppName || "",
+            authName: event.authName || "",
+            oauthConfigData: event.payload?.oauthConfigData,
+            authData: event.payload?.authData,
+            oauthConnector: event.payload?.oauthConnector,
+          });
+
+          // Add captured logs to the response
+          if (getAuthLogCapture) {
+            const capturedLogs = getAuthLogCapture
+              .getLogs()
+              .map(
+                (log: LogEntry) => `[${log.level.toUpperCase()}] ${log.message}`
+              );
+            internalResponse.logs = [
+              ...(internalResponse.logs || []),
+              ...capturedLogs,
+            ];
+          }
+        } finally {
+          stopLogCapture();
+        }
         break;
 
       case "requestAccessToken":
-        internalResponse = await handleRequestAccessToken({
-          customAppName: event.customAppName || "",
-          authName: event.authName || "",
-          code: event.code || "",
-          oauthConfigData: event.payload?.oauthConfigData,
-          authData: event.payload?.authData,
-          oauthConnector: event.payload?.oauthConnector,
-        });
+        // Initialize log capture for OAuth operations
+        console.log("🚀 Starting log capture for OAuth requestAccessToken...");
+        const requestTokenLogCapture = initializeLogCapture();
+
+        try {
+          internalResponse = await handleRequestAccessToken({
+            customAppName: event.customAppName || "",
+            authName: event.authName || "",
+            code: event.code || "",
+            oauthConfigData: event.payload?.oauthConfigData,
+            authData: event.payload?.authData,
+            oauthConnector: event.payload?.oauthConnector,
+          });
+
+          // Add captured logs to the response
+          if (requestTokenLogCapture) {
+            const capturedLogs = requestTokenLogCapture
+              .getLogs()
+              .map(
+                (log: LogEntry) => `[${log.level.toUpperCase()}] ${log.message}`
+              );
+            internalResponse.logs = [
+              ...(internalResponse.logs || []),
+              ...capturedLogs,
+            ];
+          }
+        } finally {
+          stopLogCapture();
+        }
         break;
 
       case "refreshAccessToken":
-        internalResponse = await handleRefreshAccessToken({
-          customAppName: event.customAppName || "",
-          authName: event.authName || "",
-          oauthConfigData: event.payload?.oauthConfigData,
-          authData: event.payload?.authData,
-          oauthConnector: event.payload?.oauthConnector,
-        });
+        // Initialize log capture for OAuth operations
+        console.log("🚀 Starting log capture for OAuth refreshAccessToken...");
+        const refreshTokenLogCapture = initializeLogCapture();
+
+        try {
+          internalResponse = await handleRefreshAccessToken({
+            customAppName: event.customAppName || "",
+            authName: event.authName || "",
+            oauthConfigData: event.payload?.oauthConfigData,
+            authData: event.payload?.authData,
+            oauthConnector: event.payload?.oauthConnector,
+          });
+
+          // Add captured logs to the response
+          if (refreshTokenLogCapture) {
+            const capturedLogs = refreshTokenLogCapture
+              .getLogs()
+              .map(
+                (log: LogEntry) => `[${log.level.toUpperCase()}] ${log.message}`
+              );
+            internalResponse.logs = [
+              ...(internalResponse.logs || []),
+              ...capturedLogs,
+            ];
+          }
+        } finally {
+          stopLogCapture();
+        }
         break;
 
       default:

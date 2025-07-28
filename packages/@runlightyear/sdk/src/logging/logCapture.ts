@@ -403,6 +403,13 @@ class LogCapture {
   }
 
   /**
+   * Get captured logs for processing (without uploading)
+   */
+  getLogs(): LogEntry[] {
+    return [...this.logs]; // Return a copy to prevent external modification
+  }
+
+  /**
    * Manually flush logs (for testing)
    */
   async flush(): Promise<void> {

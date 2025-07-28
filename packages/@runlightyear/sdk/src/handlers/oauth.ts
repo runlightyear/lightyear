@@ -223,11 +223,7 @@ export async function handleGetAuthRequestUrl(
     return {
       success: true,
       data: { authRequestUrl },
-      logs: [
-        "[INFO] Generated auth request URL successfully",
-        `[INFO] Authorization URL: ${authRequestUrl}`,
-        `[INFO] Ready for OAuth flow for ${customAppName}/${authName}`,
-      ],
+      logs: [], // Logs will be captured and added by the main handler
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -313,7 +309,7 @@ export async function handleRequestAccessToken(
     return {
       success: true,
       data: { authData: newAuthData },
-      logs: ["[INFO] Requested access token successfully"],
+      logs: [], // Logs will be captured and added by the main handler
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -385,7 +381,7 @@ export async function handleRefreshAccessToken(
     return {
       success: true,
       data: { authData: newAuthData },
-      logs: ["[INFO] Refreshed access token successfully"],
+      logs: [], // Logs will be captured and added by the main handler
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
