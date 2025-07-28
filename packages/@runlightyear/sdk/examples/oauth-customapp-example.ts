@@ -5,7 +5,7 @@ const myOAuthConnector = defineOAuthConnector("MyAPI")
   .withAuthUrl("https://api.example.com/oauth/authorize")
   .withTokenUrl("https://api.example.com/oauth/token")
   .withScope(["read", "write", "admin"])
-  .withScopeConnector(" ") // Use space separator
+  .withScopeSeparator(" ") // Use space separator
   .withAuthParams({
     prompt: "consent",
     access_type: "offline",
@@ -16,7 +16,7 @@ const myOAuthConnector = defineOAuthConnector("MyAPI")
 const googleConnector = defineOAuthConnector("MyGoogleApp")
   .withAuthUrl("https://accounts.google.com/o/oauth2/v2/auth")
   .withTokenUrl("https://oauth2.googleapis.com/token")
-  .withScopeConnector(" ") // Google uses space-separated scopes
+  .withScopeSeparator(" ") // Google uses space-separated scopes
   .withScope([
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/drive.file",
@@ -30,7 +30,7 @@ const googleConnector = defineOAuthConnector("MyGoogleApp")
 const githubConnector = defineOAuthConnector("MyGitHubApp")
   .withAuthUrl("https://github.com/login/oauth/authorize")
   .withTokenUrl("https://github.com/login/oauth/access_token")
-  .withScopeConnector(" ") // GitHub uses space-separated scopes
+  .withScopeSeparator(" ") // GitHub uses space-separated scopes
   .withScope(["repo", "user"])
   .withHeaders({
     Accept: "application/json",
@@ -40,7 +40,7 @@ const githubConnector = defineOAuthConnector("MyGitHubApp")
 const slackConnector = defineOAuthConnector("MySlackApp")
   .withAuthUrl("https://slack.com/oauth/v2/authorize")
   .withTokenUrl("https://slack.com/api/oauth.v2.access")
-  .withScopeConnector(",") // Slack uses comma-separated scopes
+  .withScopeSeparator(",") // Slack uses comma-separated scopes
   .withScope(["channels:read", "users:read", "chat:write"])
   .build();
 
@@ -51,7 +51,7 @@ const incrementalConnector = defineOAuthConnector("IncrementalAPI")
   .addScope("read") // Single scope
   .addScope(["write", "admin"]) // Multiple scopes at once
   .addScope("delete") // Another single scope
-  .withScopeConnector("+") // Use plus separator
+  .withScopeSeparator("+") // Use plus separator
   .build();
 
 // Example 4: Define custom apps with OAuth connectors
@@ -128,7 +128,7 @@ const advancedOAuthConnector = defineOAuthConnector("AdvancedAPI")
   .withTokenUrl("https://advanced-api.example.com/oauth2/token")
   .withRefreshUrl("https://advanced-api.example.com/oauth2/refresh")
   .withScope(["advanced:read", "advanced:write"])
-  .withScopeConnector(" ")
+  .withScopeSeparator(" ")
   .withAuthParams({
     prompt: "consent",
     access_type: "offline",
@@ -157,7 +157,7 @@ const microsoftConnector = defineOAuthConnector("MyMicrosoft")
   .withTokenUrl(
     "https://login.microsoftonline.com/your-tenant-id/oauth2/v2.0/token"
   )
-  .withScopeConnector(" ") // Microsoft uses space-separated scopes
+  .withScopeSeparator(" ") // Microsoft uses space-separated scopes
   .withScope([
     "https://graph.microsoft.com/Mail.Read",
     "https://graph.microsoft.com/User.Read",
@@ -176,7 +176,7 @@ const customApiWithCommaScopes = defineOAuthConnector("CommaAPI")
   .withScope(["read", "write"]) // Set initial scopes
   .addScope("delete") // Add single scope
   .addScope(["admin", "modify"]) // Add multiple scopes
-  .withScopeConnector(",") // Comma-separated
+  .withScopeSeparator(",") // Comma-separated
   .build();
 
 const customApiWithPlusScopes = defineOAuthConnector("PlusAPI")
@@ -184,7 +184,7 @@ const customApiWithPlusScopes = defineOAuthConnector("PlusAPI")
   .withTokenUrl("https://plus-api.example.com/oauth/token")
   .addScope(["read", "write"]) // Start with multiple scopes
   .addScope("delete") // Add single scope
-  .withScopeConnector("+") // Plus-separated
+  .withScopeSeparator("+") // Plus-separated
   .build();
 
 export {

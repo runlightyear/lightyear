@@ -119,7 +119,7 @@ export class OAuthConnectorBuilder {
    * Set the scope connector (separator) - default is space " "
    * Common alternatives: "," for comma, "+" for plus
    */
-  withScopeConnector(connector: string): this {
+  withScopeSeparator(connector: string): this {
     this.config.scopeConnector = connector;
     return this;
   }

@@ -11,7 +11,7 @@ import { defineOAuth2CustomApp, defineOAuthConnector } from "../src/index";
 const slackConnector = defineOAuthConnector("SlackOAuth")
   .withAuthUrl("https://slack.com/oauth/v2/authorize")
   .withTokenUrl("https://slack.com/api/oauth.v2.access")
-  .withScopeConnector(",") // Slack uses comma-separated scopes
+  .withScopeSeparator(",") // Slack uses comma-separated scopes
   .withScope(["channels:read", "users:read", "chat:write"])
   .withAuthParams({
     response_type: "code",
