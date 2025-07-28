@@ -225,17 +225,12 @@ export abstract class OAuthConnector {
   }
 
   getRedirectUri(): string {
-    console.debug("process.env.NODE_ENV", process.env.NODE_ENV);
     const suffix =
       this.inDevelopment || process.env.NODE_ENV === "development"
         ? "-local"
         : "";
 
-    if (this.appName) {
-      return `https://app.runlightyear.com/api/v1/oauth2/${this.appName}/redirect${suffix}`;
-    }
-
-    return `https://app.runlightyear.com/api/v1/custom-oauth2/${this.customAppName}/redirect${suffix}`;
+    return `https://app.runlightyear.com/oauth2/callback${suffix}`;
   }
 
   getRequestAccessTokenHeaders(): OAuthConnectorRequestAccessTokenHeaders {
