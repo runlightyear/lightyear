@@ -72,6 +72,11 @@ export function pushToDeployList(item: DeployItem) {
 export async function deploy({ envName }: Props) {
   console.debug("deployList", JSON.stringify(globalThis.deployList, null, 2));
 
+  if (!globalThis.deployList || globalThis.deployList.length === 0) {
+    console.warn("Warning: No actions, webhooks, integrations, or custom apps found to deploy.");
+    return;
+  }
+
   const names = globalThis.deployList.map((item) => {
     if (item.type === "customApp") {
       return item.customAppProps?.name;
