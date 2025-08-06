@@ -1,3 +1,5 @@
+import { getCurrentContext } from "../logging";
+
 /**
  * @public
  */
@@ -80,95 +82,101 @@ async function exponentialBackoffWithJitter(retryCount: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, waitTime));
 }
 
-// Basic HTTP implementation for SDK - for a real implementation, this would need
-// to integrate with the actual Lightyear proxy infrastructure
+// Get the current runId from log context
+function getCurrentRunId(): string | undefined {
+  return getCurrentContext().runId;
+}
+
+// HTTP implementation for SDK that uses the Lightyear proxy infrastructure
 export const httpRequest: HttpRequest = async (props) => {
-  const {
-    method = "GET",
-    url,
-    headers,
-    body,
-    data,
-    redactKeys,
-    maxRetries = 3,
-  } = props;
+  const { redactKeys, maxRetries = 3, ...rest } = props;
+
+  // Get environment variables
+  const envName = process.env.ENV_NAME || "dev";
+  const baseUrl = process.env.BASE_URL || "https://app.runlightyear.com";
+  const apiKey = process.env.LIGHTYEAR_API_KEY || process.env.API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      "Missing API key. Set LIGHTYEAR_API_KEY or API_KEY environment variable."
+    );
+  }
+
+  // Get the current runId from context
+  const runId = getCurrentRunId();
+
+  console.debug("SDK httpRequest - runId from context:", runId);
+  console.debug("SDK httpRequest - props:", JSON.stringify(rest, null, 2));
 
   const maxBackoffs = 5;
   let backoffCount = 0;
-  let lastError: Error | null = null;
 
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  do {
     try {
-      // This is a simplified implementation - in the real SDK, this would
-      // go through the Lightyear proxy infrastructure
-      const fetchOptions: RequestInit = {
-        method,
+      // Use the same proxy endpoint as the lightyear package
+      const proxyUrl = `${baseUrl}/api/v1/envs/${envName}/http-request`;
+
+      const requestBody = {
+        ...rest,
+        runId, // Include runId like the lightyear package does
+      };
+
+      console.debug("Making proxy request to:", proxyUrl);
+      console.debug("Request body:", JSON.stringify(requestBody, null, 2));
+
+      const response = await fetch(proxyUrl, {
+        method: "POST",
         headers: {
+          Authorization: `apiKey ${apiKey}`,
           "Content-Type": "application/json",
-          ...headers,
         },
-      };
+        body: JSON.stringify(requestBody),
+      });
 
-      if (body) {
-        fetchOptions.body = body;
-      } else if (data) {
-        fetchOptions.body = JSON.stringify(data);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Proxy request failed: ${response.status} ${response.statusText} - ${errorText}`
+        );
       }
 
-      const response = await fetch(url, fetchOptions);
+      const proxyResponse = (await response.json()) as HttpProxyResponse;
 
-      let responseData;
-      const contentType = response.headers.get("content-type");
-
-      if (contentType && contentType.includes("application/json")) {
-        responseData = await response.json();
-      } else {
-        responseData = await response.text();
-      }
-
-      const proxyResponse: HttpProxyResponse = {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-        data: responseData,
-      };
-
-      if (response.status === 429) {
+      if (proxyResponse.status === 429) {
         backoffCount += 1;
         if (backoffCount > maxBackoffs) {
           throw new HttpProxyResponseError(proxyResponse);
         }
         await exponentialBackoffWithJitter(backoffCount);
         continue;
-      } else if (response.status < 200 || response.status >= 300) {
+      } else if (proxyResponse.status < 200 || proxyResponse.status >= 300) {
         throw new HttpProxyResponseError(proxyResponse);
       } else {
         // Redact secrets in logs
         console.debug("redacting keys", redactKeys);
         for (const key of redactKeys || []) {
           if (proxyResponse.data[key]) {
-            // In a real implementation, this would integrate with the logging system
             console.debug(`Redacted key ${key} from response`);
+          } else {
+            console.debug(`key ${key} not found in response data`);
           }
         }
       }
 
       return proxyResponse;
     } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-
       if (error instanceof HttpProxyResponseError) {
         throw error;
       }
 
-      if (attempt === maxRetries) {
-        throw lastError;
+      // For non-HTTP errors, retry with exponential backoff
+      if (backoffCount < maxBackoffs) {
+        backoffCount += 1;
+        await exponentialBackoffWithJitter(backoffCount);
+        continue;
       }
 
-      // Wait before retrying
-      await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+      throw error;
     }
-  }
-
-  throw lastError || new Error("Max retries exceeded");
+  } while (true);
 };

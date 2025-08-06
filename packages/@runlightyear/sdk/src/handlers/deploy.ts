@@ -573,19 +573,21 @@ export const handleDeploy: DeployHandler = async (
     console.log("Deployment data:", deploymentData);
 
     if (deploymentData.length === 0) {
-      console.log("⚠️ No deployable items found in registry");
+      console.log("ℹ️ No deployable items found in registry");
       console.log("💡 Note: Only collections and custom apps are deployable");
       console.log(
         "💡 Standalone models must be part of a collection to be deployed"
       );
-      return {
-        success: false,
-        error: "No deployable items found in registry",
-        logs: [],
-      };
+      console.log(
+        "📤 Proceeding with empty deployment to clear/deactivate previous deployments"
+      );
     }
 
-    console.log(`\n🎯 Step 3: Deploying ${deploymentData.length} items...`);
+    const deploymentMessage =
+      deploymentData.length === 0
+        ? "\n🎯 Step 3: Deploying empty configuration (clearing previous deployments)..."
+        : `\n🎯 Step 3: Deploying ${deploymentData.length} items...`;
+    console.log(deploymentMessage);
     const deploymentResult = await postDeploymentData(
       deploymentData,
       deployPayload
@@ -593,13 +595,19 @@ export const handleDeploy: DeployHandler = async (
 
     console.log("✅ Deployment completed successfully!");
 
+    const isEmptyDeployment = deploymentData.length === 0;
+    const message = isEmptyDeployment
+      ? "Empty deployment completed successfully (may have deactivated previous items)"
+      : `Deployment completed successfully with ${deploymentData.length} items`;
+
     return {
       success: true,
       data: {
-        message: "Deployment completed successfully",
+        message,
         deployment: deploymentResult,
         registry: exported,
         deployedItems: deploymentData.length,
+        empty: isEmptyDeployment,
         environment:
           deployPayload.environment || process.env.ENV_NAME || "default",
         dryRun: deployPayload.dryRun === true,

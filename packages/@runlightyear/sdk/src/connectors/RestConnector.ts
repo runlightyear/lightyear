@@ -76,11 +76,6 @@ export class RestConnector {
       throw new Error("Request props are required");
     }
 
-    console.debug(
-      "RestConnector.request called with props:",
-      JSON.stringify(props, null, 2)
-    );
-
     const {
       method,
       url,
@@ -94,13 +89,7 @@ export class RestConnector {
     } = props;
 
     if (!url) {
-      throw new Error(
-        `URL is required for REST connector requests. Received props: ${JSON.stringify(
-          props,
-          null,
-          2
-        )}`
-      );
+      throw new Error("URL is required for REST connector requests");
     }
 
     const requestProps: HttpProxyRequestProps = {
@@ -131,11 +120,6 @@ export class RestConnector {
     redactKeys?: string[];
     maxRetries?: number;
   }): Promise<HttpProxyResponse> {
-    console.debug(
-      "RestConnector.get called with props:",
-      JSON.stringify(props, null, 2)
-    );
-
     return this.request({
       method: "GET",
       ...props,

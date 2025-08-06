@@ -6,6 +6,7 @@ export {
   setLogContext,
   clearLogContext,
   stopLogCapture,
+  getCurrentContext,
 } from "./logCapture";
 export type {
   LogEntry,

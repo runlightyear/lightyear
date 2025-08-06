@@ -179,6 +179,19 @@ class LogCapture {
   }
 
   /**
+   * Get the current context (for internal use)
+   */
+  getContext(): {
+    runId?: string;
+    deployId?: string;
+    deliveryId?: string;
+    subscriptionActivityId?: string;
+    authorizerActivityId?: string;
+  } {
+    return { ...this.currentContext };
+  }
+
+  /**
    * Create an interceptor for a console method
    */
   private createInterceptor(
@@ -453,6 +466,19 @@ export function setLogContext(context: {
   if (globalLogCapture) {
     globalLogCapture.setContext(context);
   }
+}
+
+/**
+ * Get the current context (for internal use by HTTP requests)
+ */
+export function getCurrentContext(): {
+  runId?: string;
+  deployId?: string;
+  deliveryId?: string;
+  subscriptionActivityId?: string;
+  authorizerActivityId?: string;
+} {
+  return globalLogCapture?.getContext() || {};
 }
 
 /**
