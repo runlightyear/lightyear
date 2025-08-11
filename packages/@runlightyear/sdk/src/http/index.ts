@@ -148,6 +148,24 @@ export const httpRequest: HttpRequest = async (props) => {
 
       if (!response.ok) {
         const errorText = await response.text();
+
+        // Only retry on 429 or 5xx errors from the proxy. Do NOT retry on 4xx
+        // like 422 (e.g., Invalid URL) since these are not transient.
+        const isRetriableHttpStatus =
+          response.status === 429 || response.status >= 500;
+
+        if (isRetriableHttpStatus) {
+          backoffCount += 1;
+          if (backoffCount > maxBackoffs) {
+            throw new Error(
+              `Proxy request failed: ${response.status} ${response.statusText} - ${errorText}`
+            );
+          }
+          await exponentialBackoffWithJitter(backoffCount);
+          continue;
+        }
+
+        // Non-retriable HTTP error
         throw new Error(
           `Proxy request failed: ${response.status} ${response.statusText} - ${errorText}`
         );
