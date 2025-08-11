@@ -116,13 +116,7 @@ export const httpRequest: HttpRequest = async (props) => {
   }
 
   // Get the current run and execution context
-  const {
-    runId,
-    integrationName,
-    managedUserId,
-    managedUserExternalId,
-    managedUserDisplayName,
-  } = getCurrentRunContext();
+  const { runId } = getCurrentRunContext();
 
   console.debug("SDK httpRequest - runId from context:", runId);
   console.debug("SDK httpRequest - props:", JSON.stringify(rest, null, 2));
@@ -138,12 +132,6 @@ export const httpRequest: HttpRequest = async (props) => {
       const requestBody = {
         ...rest,
         runId,
-        integrationName,
-        managedUser: {
-          id: managedUserId,
-          externalId: managedUserExternalId,
-          displayName: managedUserDisplayName,
-        },
       };
 
       console.debug("Making proxy request to:", proxyUrl);
