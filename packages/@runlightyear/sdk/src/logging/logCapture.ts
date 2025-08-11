@@ -40,6 +40,10 @@ class LogCapture {
     deliveryId?: string;
     subscriptionActivityId?: string;
     authorizerActivityId?: string;
+    integrationName?: string;
+    managedUserId?: string;
+    managedUserExternalId?: string;
+    managedUserDisplayName?: string | null;
   } = {};
 
   constructor(config: LogCaptureConfig = {}) {
@@ -147,6 +151,10 @@ class LogCapture {
     deliveryId?: string;
     subscriptionActivityId?: string;
     authorizerActivityId?: string;
+    integrationName?: string;
+    managedUserId?: string;
+    managedUserExternalId?: string;
+    managedUserDisplayName?: string | null;
   }): void {
     this.originalConsole.log("🔗 Setting log context:", context);
     this.currentContext = { ...this.currentContext, ...context };
@@ -187,6 +195,10 @@ class LogCapture {
     deliveryId?: string;
     subscriptionActivityId?: string;
     authorizerActivityId?: string;
+    integrationName?: string;
+    managedUserId?: string;
+    managedUserExternalId?: string;
+    managedUserDisplayName?: string | null;
   } {
     return { ...this.currentContext };
   }

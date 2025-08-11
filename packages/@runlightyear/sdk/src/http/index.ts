@@ -82,9 +82,22 @@ async function exponentialBackoffWithJitter(retryCount: number): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, waitTime));
 }
 
-// Get the current runId from log context
-function getCurrentRunId(): string | undefined {
-  return getCurrentContext().runId;
+// Get the current context values from log context
+function getCurrentRunContext(): {
+  runId?: string;
+  integrationName?: string;
+  managedUserId?: string;
+  managedUserExternalId?: string;
+  managedUserDisplayName?: string | null;
+} {
+  const ctx = getCurrentContext();
+  return {
+    runId: ctx.runId,
+    integrationName: (ctx as any).integrationName,
+    managedUserId: (ctx as any).managedUserId,
+    managedUserExternalId: (ctx as any).managedUserExternalId,
+    managedUserDisplayName: (ctx as any).managedUserDisplayName ?? null,
+  };
 }
 
 // HTTP implementation for SDK that uses the Lightyear proxy infrastructure
@@ -102,8 +115,14 @@ export const httpRequest: HttpRequest = async (props) => {
     );
   }
 
-  // Get the current runId from context
-  const runId = getCurrentRunId();
+  // Get the current run and execution context
+  const {
+    runId,
+    integrationName,
+    managedUserId,
+    managedUserExternalId,
+    managedUserDisplayName,
+  } = getCurrentRunContext();
 
   console.debug("SDK httpRequest - runId from context:", runId);
   console.debug("SDK httpRequest - props:", JSON.stringify(rest, null, 2));
@@ -118,7 +137,13 @@ export const httpRequest: HttpRequest = async (props) => {
 
       const requestBody = {
         ...rest,
-        runId, // Include runId like the lightyear package does
+        runId,
+        integrationName,
+        managedUser: {
+          id: managedUserId,
+          externalId: managedUserExternalId,
+          displayName: managedUserDisplayName,
+        },
       };
 
       console.debug("Making proxy request to:", proxyUrl);
