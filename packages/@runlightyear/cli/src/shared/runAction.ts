@@ -4,6 +4,11 @@ import runInContext from "./runInContext";
 import { prepareConsole } from "../logging";
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
+import {
+  clearRunCanceled,
+  isRunCanceled,
+  waitForRunCanceled,
+} from "./cancellation";
 
 export interface RunActionProps {
   actionName: string;
@@ -21,6 +26,11 @@ export default async function runAction({
   const baseUrl = getBaseUrl();
   const envName = getEnvName();
   const apiKey = getApiKey();
+
+  if (isRunCanceled(runId)) {
+    console.info("Run was canceled before start", runId);
+    return;
+  }
 
   const startResponse = await fetch(
     `${baseUrl}/api/v1/envs/${envName}/runs/${runId}`,
@@ -55,7 +65,7 @@ export default async function runAction({
   }
 
   if (handler) {
-    const handlerResult = await handler({
+    const handlerPromise = handler({
       operation: "run",
       actionName,
       runId,
@@ -63,13 +73,28 @@ export default async function runAction({
       logDisplayLevel,
     });
 
+    // Race the handler with a cancellation signal. If canceled first, skip uploading a result.
+    const result = await Promise.race([
+      handlerPromise,
+      (async () => {
+        await waitForRunCanceled(runId);
+        return { statusCode: 499, body: JSON.stringify({ logs: [] }) };
+      })(),
+    ] as const);
+
     prepareConsole();
 
-    const { statusCode, body } = handlerResult;
+    const { statusCode, body } = result;
 
     const responseData = JSON.parse(body);
 
     const { logs: logsFromVm } = responseData;
+
+    if (statusCode === 499) {
+      console.info("Run canceled while executing", runId);
+      clearRunCanceled(runId);
+      return;
+    }
 
     status =
       statusCode === 202

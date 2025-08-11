@@ -22,6 +22,7 @@ import handleRefreshAccessToken from "./handleRefreshAccessToken";
 import { handleRefreshSubscription } from "./handleRefreshSubscription";
 import { handleReceiveCustomAppWebhook } from "./handleReceiveCustomAppWebhook";
 import { trigger as triggerCommand } from "../trigger";
+import handleRunCanceled from "./handleRunCanceled";
 
 export const dev = new Command("dev");
 
@@ -64,6 +65,7 @@ dev
     });
 
     subscription.bind("localRunTriggered", handleRunLocal);
+    subscription.bind("localRunCanceled", handleRunCanceled);
     subscription.bind("localResubscribeTriggered", handleResubscribe);
     subscription.bind(
       "localGetAuthRequestUrlTriggered",

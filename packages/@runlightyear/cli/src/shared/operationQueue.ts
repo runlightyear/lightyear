@@ -101,6 +101,22 @@ export function pushOperation(operationQueueItem: OperationQueueItem) {
   }
 }
 
+export function cancelQueuedRun(runId: string): boolean {
+  // Remove any queued run operation matching runId that hasn't started yet
+  let removed = false;
+  for (let i = operationQueue.length - 1; i >= 0; i -= 1) {
+    const item = operationQueue[i];
+    if (item.operation === "run" && item.params.runId === runId) {
+      operationQueue.splice(i, 1);
+      removed = true;
+    }
+  }
+  if (removed) {
+    console.info("Canceled queued run", runId);
+  }
+  return removed;
+}
+
 async function processOperations() {
   if (queuePaused) {
     console.debug("Operation queue is paused, skipping processing");

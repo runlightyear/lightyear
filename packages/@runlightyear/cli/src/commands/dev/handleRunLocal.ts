@@ -1,5 +1,6 @@
 import pako from "pako";
 import { pushOperation } from "../../shared/operationQueue";
+import { clearRunCanceled } from "../../shared/cancellation";
 
 export default async function handleRunLocal(props: any) {
   console.debug("in handleRunLocal");
@@ -10,6 +11,11 @@ export default async function handleRunLocal(props: any) {
   const payload = JSON.parse(payloadStr);
 
   console.debug("payload", payload);
+
+  // If previously canceled, clear the flag when a fresh run comes in
+  if (payload.runId) {
+    clearRunCanceled(payload.runId);
+  }
 
   pushOperation({
     operation: "run",
