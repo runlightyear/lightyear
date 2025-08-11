@@ -78,7 +78,7 @@ async function exponentialBackoffWithJitter(retryCount: number): Promise<void> {
   const baseWaitTime = Math.pow(2, retryCount) * 1000; // Exponential backoff
   const jitter = getRandomJitter(5000); // Add up to 5 seconds of jitter
   const waitTime = baseWaitTime + jitter;
-  console.log(`Retrying in ${(waitTime / 1000).toFixed(2)} seconds...`);
+  console.log(`XXX Retrying in ${(waitTime / 1000).toFixed(2)} seconds...`);
   await new Promise((resolve) => setTimeout(resolve, waitTime));
 }
 
@@ -157,18 +157,25 @@ export const httpRequest: HttpRequest = async (props) => {
         if (isRetriableHttpStatus) {
           backoffCount += 1;
           if (backoffCount > maxBackoffs) {
-            throw new Error(
-              `Proxy request failed: ${response.status} ${response.statusText} - ${errorText}`
-            );
+            throw new HttpProxyResponseError({
+              status: response.status,
+              statusText: response.statusText,
+              headers: Object.fromEntries(response.headers.entries()),
+              data: errorText,
+            });
           }
           await exponentialBackoffWithJitter(backoffCount);
           continue;
         }
 
-        // Non-retriable HTTP error
-        throw new Error(
-          `Proxy request failed: ${response.status} ${response.statusText} - ${errorText}`
-        );
+        // Non-retriable HTTP error → surface as HttpProxyResponseError so callers
+        // can handle uniformly and we do not retry in our catch block below.
+        throw new HttpProxyResponseError({
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          data: errorText,
+        });
       }
 
       const proxyResponse = (await response.json()) as HttpProxyResponse;
@@ -196,7 +203,17 @@ export const httpRequest: HttpRequest = async (props) => {
 
       return proxyResponse;
     } catch (error) {
-      if (error instanceof HttpProxyResponseError) {
+      // Treat any error that carries a proxy response as non-retriable
+      if (isHttpProxyResponseError(error)) {
+        throw error;
+      }
+
+      // If the proxy responded with an HTTP error (e.g., 4xx/422) and we
+      // surfaced it as a generic Error string, do NOT retry.
+      if (
+        error instanceof Error &&
+        error.message.startsWith("Proxy request failed:")
+      ) {
         throw error;
       }
 
