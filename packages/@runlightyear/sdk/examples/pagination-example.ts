@@ -9,7 +9,7 @@ import { z } from "zod";
 import {
   defineTypedCollection,
   defineRestConnector,
-  createSyncConnector,
+  defineSyncConnector,
   PaginationStrategies,
 } from "../src";
 
@@ -51,10 +51,8 @@ const apiConnector = defineRestConnector()
   .build();
 
 // Example 1: Using built-in pagination strategy
-const syncWithCursorPagination = createSyncConnector(apiConnector, apiCollection)
-  .withDefaultPagination("cursor"); // Built-in cursor pagination
-
-syncWithCursorPagination
+const syncWithCursorPagination = defineSyncConnector(apiConnector, apiCollection)
+  .withDefaultPagination("cursor") // Built-in cursor pagination
   .addModelConnector("user")
   .withList("/users", {
     responseSchema: z.object({
@@ -68,10 +66,11 @@ syncWithCursorPagination
     }),
     transform: (response) => response.users,
     // No need to implement getNextPage - uses default cursor strategy
-  });
+  })
+  .build();
 
 // Example 2: Custom default pagination strategy
-const customPagination = createSyncConnector(apiConnector, apiCollection)
+const customPagination = defineSyncConnector(apiConnector, apiCollection)
   .withDefaultPagination({
     getNextPage: (response, current) => {
       // Custom logic: uses 'continuation' token
@@ -86,13 +85,12 @@ const customPagination = createSyncConnector(apiConnector, apiCollection)
     },
     extractHasMore: (response) => !!response.continuation,
     extractNextCursor: (response) => response.continuation,
-  });
+  })
+  .build();
 
 // Example 3: Override default for specific model
-const syncWithMixedPagination = createSyncConnector(apiConnector, apiCollection)
-  .withDefaultPagination("page"); // Default: page-based
-
-syncWithMixedPagination
+const syncWithMixedPagination = defineSyncConnector(apiConnector, apiCollection)
+  .withDefaultPagination("page") // Default: page-based
   .addModelConnector("user")
   .withList("/users", {
     responseSchema: z.object({
@@ -140,21 +138,25 @@ syncWithMixedPagination
       }
       return null;
     },
-  });
+  })
+  .build();
 
 // Example 4: Using predefined strategies
 async function demonstratePagination() {
   // HubSpot-style pagination
-  const hubspotStyle = createSyncConnector(apiConnector, apiCollection)
-    .withDefaultPagination(PaginationStrategies.hubspot);
+  const hubspotStyle = defineSyncConnector(apiConnector, apiCollection)
+    .withDefaultPagination(PaginationStrategies.hubspot)
+    .build();
 
   // Standard cursor pagination
-  const cursorStyle = createSyncConnector(apiConnector, apiCollection)
-    .withDefaultPagination(PaginationStrategies.cursor);
+  const cursorStyle = defineSyncConnector(apiConnector, apiCollection)
+    .withDefaultPagination(PaginationStrategies.cursor)
+    .build();
 
   // Offset-based pagination
-  const offsetStyle = createSyncConnector(apiConnector, apiCollection)
-    .withDefaultPagination(PaginationStrategies.offset);
+  const offsetStyle = defineSyncConnector(apiConnector, apiCollection)
+    .withDefaultPagination(PaginationStrategies.offset)
+    .build();
 
   console.log("Pagination strategies configured!");
 }

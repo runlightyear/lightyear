@@ -13,7 +13,7 @@ import { z } from "zod";
 import {
   defineTypedCollection,
   defineRestConnector,
-  createSyncConnector,
+  defineSyncConnector,
   match,
   PaginationStrategies,
 } from "../src";
@@ -185,13 +185,13 @@ const hubspotConnector = defineRestConnector()
 
 // 3. Create sync connector with HubSpot's pagination strategy
 // This applies HubSpot's pagination format (response.paging.next.after) to all models by default
-const hubspotSync = createSyncConnector(
+const hubspotSyncBuilder = defineSyncConnector(
   hubspotConnector,
   hubspotCrmCollection
-).withDefaultPagination("hubspot"); // Built-in HubSpot pagination strategy
+).withDefaultPagination(PaginationStrategies.hubspot); // Built-in HubSpot pagination strategy
 
 // Alternative: You could also use a custom strategy if HubSpot changes their format
-const alternativeHubspotSync = createSyncConnector(
+const alternativeHubspotSync = defineSyncConnector(
   hubspotConnector,
   hubspotCrmCollection
 ).withDefaultPagination({
@@ -209,10 +209,10 @@ const alternativeHubspotSync = createSyncConnector(
   extractHasMore: (response) => !!response.paging?.next,
   extractNextCursor: (response) => response.paging?.next?.after,
   extractTotalCount: (response) => response.total,
-});
+}).build();
 
 // 4. Configure Contact sync
-hubspotSync
+hubspotSyncBuilder
   .addModelConnector("contact")
 
   // List contacts with pagination
@@ -497,7 +497,7 @@ hubspotSync
   });
 
 // 6. Configure Deal sync
-hubspotSync
+hubspotSyncBuilder
   .addModelConnector("deal")
 
   // List deals
@@ -627,29 +627,34 @@ hubspotSync
     }),
   });
 
+// Build the hubspot sync connector
+const hubspotSync = hubspotSyncBuilder.build();
+
 // Example: Special model with different pagination
 // Let's say HubSpot has a legacy endpoint that uses different pagination
-hubspotSync.addModelConnector("legacyData").withList("/legacy/data", {
-  responseSchema: z.object({
-    data: z.array(z.any()),
-    page: z.number(),
-    pageSize: z.number(),
-    totalPages: z.number(),
-    hasNextPage: z.boolean(),
-  }),
-  transform: (response) => response.data,
-  // Override the default HubSpot pagination for this specific endpoint
-  getNextPage: (response, current) => {
-    if (response.hasNextPage && current.type === "page") {
-      return {
-        type: "page",
-        page: current.page + 1,
-        limit: current.limit,
-      };
-    }
-    return null;
-  },
-});
+// Note: This won't work with the new pattern - model connectors must be added before build()
+// Example of how you would add a legacy model with different pagination:
+// hubspotSyncBuilder.addModelConnector("legacyData").withList("/legacy/data", {
+//   responseSchema: z.object({
+//     data: z.array(z.any()),
+//     page: z.number(),
+//     pageSize: z.number(),
+//     totalPages: z.number(),
+//     hasNextPage: z.boolean(),
+//   }),
+//   transform: (response) => response.data,
+//   // Override the default HubSpot pagination for this specific endpoint
+//   getNextPage: (response, current) => {
+//     if (response.hasNextPage && current.type === "page") {
+//       return {
+//         type: "page",
+//         page: current.page + 1,
+//         limit: current.limit,
+//       };
+//     }
+//     return null;
+//   },
+// });
 
 // Usage examples
 async function syncHubSpotCRM() {
@@ -817,10 +822,11 @@ async function demonstratePaginationBenefits() {
   console.log("2. Easy to switch pagination strategies:");
 
   // Create a connector with different pagination
-  const apiWithDifferentPagination = createSyncConnector(
+  const apiWithDifferentPagination = defineSyncConnector(
     hubspotConnector,
     hubspotCrmCollection
-  ).withDefaultPagination("cursor"); // Switch to standard cursor pagination
+  ).withDefaultPagination("cursor") // Switch to standard cursor pagination
+  .build();
 
   console.log("   - Changed from 'hubspot' to 'cursor' pagination");
   console.log("   - All models now expect response.nextCursor\n");

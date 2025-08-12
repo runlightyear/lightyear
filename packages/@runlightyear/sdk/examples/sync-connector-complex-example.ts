@@ -13,7 +13,7 @@ import { z } from "zod";
 import {
   defineTypedCollection,
   defineRestConnector,
-  createSyncConnector,
+  defineSyncConnector,
   match,
 } from "../src";
 import type { ExtractModelTypes } from "../src";
@@ -81,11 +81,11 @@ const crmApiConnector = defineRestConnector()
   .addHeader("X-API-Version", "2024-01")
   .build();
 
-// 3. Create sync connector
-const crmSync = createSyncConnector(crmApiConnector, crmCollection);
+// 3. Create sync connector builder
+const crmSyncBuilder = defineSyncConnector(crmApiConnector, crmCollection);
 
 // 4. Configure account model connector with all operations
-crmSync
+crmSyncBuilder
   .addModelConnector("account")
   // List with cursor-based pagination
   .withList(
@@ -213,7 +213,7 @@ crmSync
 
 // 5. Configure contact model connector (showing chaining approach)
 // Alternative: You could chain multiple models using .and() or .addModelConnector()
-crmSync.addModelConnector("contact").withList("/contacts", {
+crmSyncBuilder.addModelConnector("contact").withList("/contacts", {
   responseSchema: z.object({
     contacts: z.array(
       z.object({
@@ -244,6 +244,9 @@ crmSync.addModelConnector("contact").withList("/contacts", {
     updatedAt: apiContact.updated_at,
   }),
 });
+
+// Build the sync connector
+const crmSync = crmSyncBuilder.build();
 
 // 6. Extend collection with a new model
 const extendedCrmCollection = defineTypedCollection("extended-crm")
@@ -281,11 +284,11 @@ const extendedCrmCollection = defineTypedCollection("extended-crm")
   )
   .deploy();
 
-// Create extended sync connector
-const extendedSync = crmSync.withExtendedCollection(extendedCrmCollection);
+// Create extended sync connector builder
+const extendedSyncBuilder = crmSyncBuilder.withExtendedCollection(extendedCrmCollection);
 
 // Add opportunity connector
-extendedSync.addModelConnector("opportunity").withList("/opportunities", {
+extendedSyncBuilder.addModelConnector("opportunity").withList("/opportunities", {
   responseSchema: z.array(
     z.object({
       id: z.string(),
@@ -310,17 +313,21 @@ extendedSync.addModelConnector("opportunity").withList("/opportunities", {
   }),
 });
 
+// Build the extended sync connector
+const extendedSync = extendedSyncBuilder.build();
+
 // 7. Example: Alternative chaining approach for multiple models
 // You could configure all models in a single chain:
-const chainedCrmSync = createSyncConnector(crmApiConnector, crmCollection);
+const chainedCrmSync = defineSyncConnector(crmApiConnector, crmCollection);
 
 chainedCrmSync
   .withDefaultPagination("cursor")
   // Add all models upfront
-  .withModelConnectors("account", "contact", "opportunity");
+  .withModelConnectors("account", "contact")
+  .build();
 
 // Or chain them one by one:
-const fluentCrmSync = createSyncConnector(crmApiConnector, crmCollection)
+const fluentCrmSync = defineSyncConnector(crmApiConnector, crmCollection)
   .withDefaultPagination("page");
 
 fluentCrmSync
@@ -339,10 +346,12 @@ fluentCrmSync
   .withList("/opportunities", {
     responseSchema: z.object({ opportunities: z.array(z.any()) }),
     transform: (response) => response.opportunities,
-  });
+  })
+  .build();
 
 // 8. Alter existing model connector behavior
-crmSync.alterModelConnector("account", (connector) => {
+// Note: alterModelConnector must be called on the builder before build()
+crmSyncBuilder.alterModelConnector("account", (connector) => {
   // Add custom filtering to list operation
   const originalList = connector.list.bind(connector);
   connector.list = async (pagination) => {

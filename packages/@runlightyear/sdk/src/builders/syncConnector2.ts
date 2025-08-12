@@ -563,6 +563,27 @@ export const PaginationStrategies = {
   }
 } as const;
 
+// Sync connector instance
+export class SyncConnector<TCollection extends CollectionWithSchema<any>> {
+  constructor(
+    private restConnector: RestConnector,
+    private collection: TCollection,
+    private modelConnectors: Map<string, ModelConnector<any, any, any>>,
+    private defaultPaginationStrategy?: PaginationStrategy
+  ) {}
+
+  getModelConnector<TModelName extends keyof ExtractModelTypes<TCollection> & string>(
+    modelName: TModelName
+  ): ModelConnector<TModelName, ExtractModelTypes<TCollection>[TModelName], any> | undefined {
+    return this.modelConnectors.get(modelName);
+  }
+
+  // Get all configured model names
+  getConfiguredModels(): string[] {
+    return Array.from(this.modelConnectors.keys());
+  }
+}
+
 // Sync connector builder
 export class SyncConnectorBuilder<TCollection extends CollectionWithSchema<any>> {
   private modelConnectors = new Map<string, ModelConnector<any, any, any>>();
@@ -610,12 +631,6 @@ export class SyncConnectorBuilder<TCollection extends CollectionWithSchema<any>>
     return this;
   }
 
-  getModelConnector<TModelName extends keyof ExtractModelTypes<TCollection> & string>(
-    modelName: TModelName
-  ): ModelConnector<TModelName, ExtractModelTypes<TCollection>[TModelName], any> | undefined {
-    return this.modelConnectors.get(modelName);
-  }
-
   // Extend collection with new model
   withExtendedCollection<TExtended extends CollectionWithSchema<any>>(
     extendedCollection: TExtended
@@ -636,14 +651,19 @@ export class SyncConnectorBuilder<TCollection extends CollectionWithSchema<any>>
     return this;
   }
 
-  // Get all configured model names
-  getConfiguredModels(): string[] {
-    return Array.from(this.modelConnectors.keys());
+  // Build the final sync connector
+  build(): SyncConnector<TCollection> {
+    return new SyncConnector(
+      this.restConnector,
+      this.collection,
+      new Map(this.modelConnectors),
+      this.defaultPaginationStrategy
+    );
   }
 }
 
 // Factory function
-export function createSyncConnector<TCollection extends CollectionWithSchema<any>>(
+export function defineSyncConnector<TCollection extends CollectionWithSchema<any>>(
   restConnector: RestConnector,
   collection: TCollection
 ): SyncConnectorBuilder<TCollection> {

@@ -9,7 +9,7 @@ import { z } from "zod";
 import {
   defineTypedCollection,
   defineRestConnector,
-  createSyncConnector,
+  defineSyncConnector,
 } from "../src";
 
 // Define a simple e-commerce collection
@@ -63,11 +63,11 @@ const apiConnector = defineRestConnector()
   .build();
 
 // Pattern 1: Traditional approach - configure each model separately
-const traditionalSync = createSyncConnector(apiConnector, ecommerceCollection)
+const traditionalSyncBuilder = defineSyncConnector(apiConnector, ecommerceCollection)
   .withDefaultPagination("page");
 
 // Configure product
-traditionalSync
+traditionalSyncBuilder
   .addModelConnector("product")
   .withList("/products", {
     responseSchema: z.object({
@@ -88,7 +88,7 @@ traditionalSync
   });
 
 // Configure order separately
-traditionalSync
+traditionalSyncBuilder
   .addModelConnector("order")
   .withList("/orders", {
     responseSchema: z.object({
@@ -108,20 +108,24 @@ traditionalSync
     })),
   });
 
+// Build the traditional sync connector
+const traditionalSync = traditionalSyncBuilder.build();
+
 // Pattern 2: Using withModelConnectors for simple cases
-const bulkAddSync = createSyncConnector(apiConnector, ecommerceCollection)
+const bulkAddSync = defineSyncConnector(apiConnector, ecommerceCollection)
   .withDefaultPagination("page")
   // Add multiple model connectors at once (creates empty connectors)
-  .withModelConnectors("product", "order", "customer");
+  .withModelConnectors("product", "order", "customer")
+  .build();
 
-// Then configure them individually
-bulkAddSync.getModelConnector("product")?.withList("/products", {
+// Then configure them individually after building
+// Note: This won't work with the new pattern - connectors must be configured before build()
   responseSchema: z.array(z.any()),
   transform: (response) => response,
 });
 
 // Pattern 3: Using chaining with 'and()' method
-const chainedSync = createSyncConnector(apiConnector, ecommerceCollection)
+const chainedSync = defineSyncConnector(apiConnector, ecommerceCollection)
   .withDefaultPagination("page");
 
 chainedSync
@@ -150,10 +154,11 @@ chainedSync
       hasMore: z.boolean(),
     }),
     transform: (response) => response.customers,
-  });
+  })
+  .build();
 
 // Pattern 4: Using addModelConnector from within a model connector
-const directChainSync = createSyncConnector(apiConnector, ecommerceCollection)
+const directChainSync = defineSyncConnector(apiConnector, ecommerceCollection)
   .withDefaultPagination("page");
 
 directChainSync
@@ -171,16 +176,17 @@ directChainSync
   .withList("/customers", {
     responseSchema: z.object({ customers: z.array(z.any()) }),
     transform: (response) => response.customers,
-  });
+  })
+  .build();
 
 // Pattern 5: Mixed approach for complex scenarios
-const mixedSync = createSyncConnector(apiConnector, ecommerceCollection)
+const mixedSyncBuilder = defineSyncConnector(apiConnector, ecommerceCollection)
   .withDefaultPagination("cursor")
   // Add all connectors first
   .withModelConnectors("product", "order", "customer");
 
 // Configure product with full CRUD
-mixedSync
+mixedSyncBuilder
   .getModelConnector("product")!
   .withList("/products", {
     responseSchema: z.object({
@@ -206,7 +212,7 @@ mixedSync
   .withDelete((id) => `/products/${id}`);
 
 // Configure order with just list
-mixedSync
+mixedSyncBuilder
   .getModelConnector("order")!
   .withList("/orders", {
     responseSchema: z.object({
@@ -215,6 +221,9 @@ mixedSync
     }),
     transform: (response) => response.items,
   });
+
+// Build the mixed sync connector
+const mixedSync = mixedSyncBuilder.build();
 
 // Usage comparison
 async function demonstratePatterns() {

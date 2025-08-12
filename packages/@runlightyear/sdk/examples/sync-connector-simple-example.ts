@@ -9,7 +9,7 @@ import { z } from "zod";
 import {
   defineTypedCollection,
   defineRestConnector,
-  createSyncConnector,
+  defineSyncConnector,
   match,
 } from "../src";
 
@@ -38,10 +38,9 @@ const apiConnector = defineRestConnector()
   .build();
 
 // 3. Create sync connector - initialized with REST connector and collection
-const syncConnector = createSyncConnector(apiConnector, todoCollection);
-
-// 4. Add a simple model connector for todos
-syncConnector.addModelConnector("todo").withList("/todos", {
+const syncConnector = defineSyncConnector(apiConnector, todoCollection)
+  // 4. Add a simple model connector for todos
+  .addModelConnector("todo").withList("/todos", {
   // Define the API response schema
   responseSchema: z.array(
     z.object({
@@ -58,7 +57,8 @@ syncConnector.addModelConnector("todo").withList("/todos", {
     completed: apiTodo.completed,
     createdAt: apiTodo.created_at,
   }),
-});
+})
+  .build();
 
 // Usage is simple
 async function syncTodos() {

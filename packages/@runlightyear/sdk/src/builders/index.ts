@@ -50,8 +50,10 @@ export type {
 // New sync connector (v2)
 export { 
   SyncConnectorBuilder,
+  SyncConnector as SyncConnectorV2,
   ModelConnector,
-  createSyncConnector,
+  defineSyncConnector as createSyncConnector,
+  defineSyncConnector,
   PaginationStrategies 
 } from "./syncConnector2";
 export type {

@@ -9,7 +9,7 @@ import { z } from "zod";
 import {
   defineTypedCollection,
   defineRestConnector,
-  createSyncConnector,
+  defineSyncConnector,
   match,
 } from "../src";
 import type { ExtractModelTypes } from "../src";
@@ -52,10 +52,10 @@ const apiConnector = defineRestConnector()
   .build();
 
 // 3. Create sync connector
-const taskSync = createSyncConnector(apiConnector, taskCollection);
+const taskSyncBuilder = defineSyncConnector(apiConnector, taskCollection);
 
 // 4. Configure the task model connector with all CRUD operations
-taskSync
+taskSyncBuilder
   .addModelConnector("task")
   
   // LIST - Get all tasks
@@ -117,6 +117,9 @@ taskSync
   
   // DELETE - Remove a task
   .withDelete((id) => `/tasks/${id}`);
+
+// Build the sync connector
+const taskSync = taskSyncBuilder.build();
 
 // Usage example showing all operations
 async function demonstrateCRUD() {
