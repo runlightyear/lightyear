@@ -401,8 +401,14 @@ importers:
 
   packages/@runlightyear/sdk:
     dependencies:
+      json-schema-to-ts:
+        specifier: ^3.1.0
+        version: 3.1.0
+      json-schema-to-zod:
+        specifier: ^2.6.1
+        version: 2.6.1
       zod:
-        specifier: ^3.22.4
+        specifier: ^3.24.4
         version: 3.24.4
     devDependencies:
       '@microsoft/api-extractor':
@@ -10813,6 +10819,11 @@ packages:
     dependencies:
       '@babel/runtime': 7.26.10
       ts-algebra: 2.0.0
+    dev: false
+
+  /json-schema-to-zod@2.6.1:
+    resolution: {integrity: sha512-uiHmWH21h9FjKJkRBntfVGTLpYlCZ1n98D0izIlByqQLqpmkQpNTBtfbdP04Na6+43lgsvrShFh2uWLkQDKJuQ==}
+    hasBin: true
     dev: false
 
   /json-schema-traverse@0.4.1:
