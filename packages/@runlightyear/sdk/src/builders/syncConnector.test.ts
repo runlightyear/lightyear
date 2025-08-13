@@ -113,16 +113,16 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           list: {
-            request: {
+            request: (params) => ({
               endpoint: "/users",
-            },
+            }),
           },
         })
         .with("product", {
           list: {
-            request: {
+            request: (params) => ({
               endpoint: "/products",
-            },
+            }),
           },
         })
         .build();

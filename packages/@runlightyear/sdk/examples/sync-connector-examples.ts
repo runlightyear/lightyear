@@ -9,17 +9,17 @@ import { createPaginatedResponseSchema } from "../src/builders/typedSyncHelpers"
 
 /**
  * Sync Connector Examples
- * 
+ *
  * These examples demonstrate how to use sync connectors with proper type safety.
- * 
+ *
  * Key features shown:
- * 1. Type-safe transform functions - receives the full API response typed with the 
+ * 1. Type-safe transform functions - receives the full API response typed with the
  *    response schema and must return an array matching the collection's model schema
  * 2. Using createListConfig helper for better type inference
  * 3. Using builder methods like listWithSchema for inline type safety
- * 4. Transform functions that handle various API response structures (paginated, 
+ * 4. Transform functions that handle various API response structures (paginated,
  *    wrapped, nested) and map them to collection models
- * 
+ *
  * The transform function gives you full control over how to extract items from
  * complex API responses while maintaining type safety.
  */
@@ -70,7 +70,7 @@ async function useBasicConnector() {
 
 /**
  * Define a sync connector that works with a rest api and a collection and has a list method
- * 
+ *
  * This example demonstrates the current limitation: the transform function parameter
  * is typed as 'any' even though we provide a responseSchema. Ideally, it should be
  * typed as CustomerApiResponse automatically.
@@ -159,7 +159,10 @@ const listSyncConnector = createSyncConnector(listRestConnector, listCollection)
   .build();
 
 // Alternative approach using the builder method with inline config
-const listSyncConnectorAlt = createSyncConnector(listRestConnector, listCollection)
+const listSyncConnectorAlt = createSyncConnector(
+  listRestConnector,
+  listCollection
+)
   .with("customer", {
     list: {
       request: (params) => ({
@@ -203,7 +206,7 @@ async function useListConnector() {
         `Customer ${customer.id}: ${customer.name} (${customer.status})`
       );
       console.log(`Email: ${customer.email}`);
-      
+
       // TypeScript would show error if we tried to access non-existent property
       // For example: console.log(customer.customer_id); // Error: Property 'customer_id' does not exist
     });
@@ -267,7 +270,7 @@ const usersSyncConnector = createSyncConnector(
         // Transform receives the paginated response
         transform: (response) => {
           // Extract users from the 'data' field
-          return response.data.map((user) => ({
+          return response.data.map((user: User) => ({
             ...user,
             // Can add computed properties
             displayName: `${user.firstName} ${user.lastName}`,
@@ -290,7 +293,9 @@ async function useUsersConnector() {
 
   if (userConnector?.list) {
     // List users - can pass cursor for pagination
-    const { items, nextCursor } = await userConnector.list({ cursor: undefined });
+    const { items, nextCursor } = await userConnector.list({
+      cursor: undefined,
+    });
 
     items.forEach((user) => {
       // Type inference shows all User properties plus computed ones
@@ -407,37 +412,26 @@ const fullCrudSyncConnector = createSyncConnector(
         request: (data) => ({
           endpoint: "/api/v3/products",
           method: "POST",
-        }),
-        // Transform request to match API expectations
-        transformRequest: (data: Product) => ({
-          ...data,
-          // Convert price to cents for API
-          price: Math.round(data.price * 100),
-        }),
-        // Transform response back to match collection model
-        transform: (response: any) => ({
-          ...response,
-          // Convert price back from cents
-          price: response.price / 100,
-          tags: response.tags || [],
+          data: {
+            // Transform the data to match API expectations
+            ...data,
+            // Convert price to cents for API
+            price: Math.round(data.price * 100),
+          },
         }),
       })
       .update({
         request: (id, data) => ({
           endpoint: `/api/v3/products/${id}`,
           method: "PUT",
-        }),
-        transformRequest: (data: Partial<Product>) => ({
-          ...data,
-          // Convert price to cents if present
-          ...(data.price !== undefined && {
-            price: Math.round(data.price * 100),
-          }),
-        }),
-        transform: (response: any) => ({
-          ...response,
-          price: response.price / 100,
-          tags: response.tags || [],
+          data: {
+            // Transform the data to match API expectations
+            ...data,
+            // Convert price to cents if present
+            ...(data.price !== undefined && {
+              price: Math.round(data.price * 100),
+            }),
+          },
         }),
       })
       .delete({

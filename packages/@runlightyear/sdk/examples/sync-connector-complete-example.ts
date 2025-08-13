@@ -85,7 +85,7 @@ const transformApiCustomerToModel = (apiCustomer: ApiCustomer): Customer => ({
   metadata: apiCustomer.metadata,
 });
 
-const transformModelToApiCustomer = (customer: Customer): Partial<ApiCustomer> => ({
+const transformModelToApiCustomer = (customer: Partial<Customer>): Partial<ApiCustomer> => ({
   full_name: customer.name,
   email_address: customer.email,
   phone_number: customer.phone || null,
