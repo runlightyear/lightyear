@@ -275,10 +275,11 @@ const usersSyncConnector = createSyncConnector(
         },
       })
       .create({
-        request: {
+        request: (data) => ({
           endpoint: "/users",
           method: "POST",
-        },
+          data,
+        }),
       })
   )
   .build();
@@ -403,10 +404,10 @@ const fullCrudSyncConnector = createSyncConnector(
         },
       })
       .create({
-        request: {
+        request: (data) => ({
           endpoint: "/api/v3/products",
           method: "POST",
-        },
+        }),
         // Transform request to match API expectations
         transformRequest: (data: Product) => ({
           ...data,
@@ -422,10 +423,10 @@ const fullCrudSyncConnector = createSyncConnector(
         }),
       })
       .update({
-        request: {
-          endpoint: (id: string) => `/api/v3/products/${id}`,
+        request: (id, data) => ({
+          endpoint: `/api/v3/products/${id}`,
           method: "PUT",
-        },
+        }),
         transformRequest: (data: Partial<Product>) => ({
           ...data,
           // Convert price to cents if present
@@ -440,31 +441,34 @@ const fullCrudSyncConnector = createSyncConnector(
         }),
       })
       .delete({
-        request: {
-          endpoint: (id: string) => `/api/v3/products/${id}`,
+        request: (id) => ({
+          endpoint: `/api/v3/products/${id}`,
           method: "DELETE",
-        },
+        }),
       })
       .bulk({
         create: {
-          request: {
+          request: (items) => ({
             endpoint: "/api/v3/products/bulk",
             method: "POST",
-          },
+            data: items,
+          }),
           batchSize: 50,
         },
         update: {
-          request: {
+          request: (items) => ({
             endpoint: "/api/v3/products/bulk",
             method: "PATCH",
-          },
+            data: items,
+          }),
           batchSize: 50,
         },
         delete: {
-          request: {
+          request: (ids) => ({
             endpoint: "/api/v3/products/bulk-delete",
             method: "POST",
-          },
+            data: { ids },
+          }),
           batchSize: 100,
         },
       })

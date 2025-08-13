@@ -170,9 +170,9 @@ const badConfig = createListConfig<Customer, ApiListResponse>({
 
 // This will also cause an error - missing required properties
 const badConfig2 = createListConfig<Customer, ApiListResponse>({
-  request: {
+  request: (params) => ({
     endpoint: "/customers",
-  },
+  }),
   responseSchema: apiListResponseSchema,
   transform: (response) => {
     return response.customers.map((customer) => ({
@@ -275,6 +275,104 @@ transform: (items) => items.map(item => ({
   ...item,
   computed: calculateValue(item),
 }))
+```
+
+## Dynamic Request Creation
+
+All request configurations are now functions that receive the appropriate data and return the request configuration. This enables dynamic request creation based on runtime data:
+
+### List Requests
+```typescript
+const listConfig = {
+  list: {
+    request: (params: ListParams) => ({
+      endpoint: "/api/customers",
+      method: "GET",
+      params: {
+        page: params.page || 1,
+        limit: params.limit || 50,
+        cursor: params.cursor,
+      },
+    }),
+    // ...
+  },
+};
+```
+
+### Create Requests
+```typescript
+const createConfig = {
+  create: {
+    request: (data: Customer) => ({
+      endpoint: "/api/customers",
+      method: "POST",
+      data: {
+        // Can transform or validate data before sending
+        ...data,
+        created_at: new Date().toISOString(),
+      },
+    }),
+    // ...
+  },
+};
+```
+
+### Update Requests
+```typescript
+const updateConfig = {
+  update: {
+    request: (id: string, data: Partial<Customer>) => ({
+      endpoint: `/api/customers/${id}`,
+      method: "PATCH",
+      data,
+    }),
+    // ...
+  },
+};
+```
+
+### Delete Requests
+```typescript
+const deleteConfig = {
+  delete: {
+    request: (id: string) => ({
+      endpoint: `/api/customers/${id}`,
+      method: "DELETE",
+    }),
+  },
+};
+```
+
+### Bulk Operations
+```typescript
+const bulkConfig = {
+  bulk: {
+    create: {
+      request: (items: Customer[]) => ({
+        endpoint: "/api/customers/bulk",
+        method: "POST",
+        data: { customers: items },
+      }),
+      batchSize: 100,
+    },
+    update: {
+      request: (items: Array<{ id: string; data: Partial<Customer> }>) => ({
+        endpoint: "/api/customers/bulk-update",
+        method: "PATCH",
+        data: { updates: items },
+      }),
+      batchSize: 50,
+    },
+    delete: {
+      request: (ids: string[]) => ({
+        endpoint: "/api/customers/bulk-delete",
+        method: "POST",
+        data: { ids },
+      }),
+      batchSize: 200,
+    },
+  },
+};
 ```
 
 ## Migration Guide

@@ -33,49 +33,55 @@ export interface ListConfig<T = any, R = any> {
 }
 
 export interface CreateConfig<T = any> {
-  request: {
+  request: (data: T) => {
     endpoint: string;
     method?: "POST" | "PUT";
+    data?: any;
   };
   transform?: (response: any) => T;
   transformRequest?: (data: T) => any;
 }
 
 export interface UpdateConfig<T = any> {
-  request: {
-    endpoint: string | ((id: string) => string);
+  request: (id: string, data: Partial<T>) => {
+    endpoint: string;
     method?: "PUT" | "PATCH" | "POST";
+    data?: any;
   };
   transform?: (response: any) => T;
   transformRequest?: (data: Partial<T>) => any;
 }
 
 export interface DeleteConfig {
-  request: {
-    endpoint: string | ((id: string) => string);
+  request: (id: string) => {
+    endpoint: string;
     method?: "DELETE" | "POST";
+    data?: any;
   };
 }
 
-export interface BulkConfig {
+export interface BulkConfig<T = any> {
   create?: {
-    request: {
+    request: (items: T[]) => {
       endpoint: string;
       method?: "POST" | "PUT";
+      data?: any;
     };
     batchSize?: number;
   };
   update?: {
-    request: {
+    request: (items: Array<{ id: string; data: Partial<T> }>) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
+      data?: any;
     };
     batchSize?: number;
   };
   delete?: {
-    request: {
+    request: (ids: string[]) => {
       endpoint: string;
       method?: "DELETE" | "POST";
+      data?: any;
     };
     batchSize?: number;
   };
@@ -86,7 +92,7 @@ export interface ModelConnectorConfig<T = any> {
   create?: CreateConfig<T>;
   update?: UpdateConfig<T>;
   delete?: DeleteConfig;
-  bulk?: BulkConfig;
+  bulk?: BulkConfig<T>;
 }
 
 // Type-safe config builder interfaces
@@ -107,7 +113,7 @@ export interface TypedModelConnectorConfig<TModel> {
   create?: CreateConfig<TModel>;
   update?: UpdateConfig<TModel>;
   delete?: DeleteConfig;
-  bulk?: BulkConfig;
+  bulk?: BulkConfig<TModel>;
 }
 
 // Helper type to infer response type from schema
@@ -224,14 +230,18 @@ export class SyncConnectorBuilder<
 
     if (config.create) {
       connector.create = async (data: any) => {
-        const requestData = config.create!.transformRequest 
+        // Apply transformRequest if provided
+        const transformedData = config.create!.transformRequest 
           ? config.create!.transformRequest(data)
           : data;
 
+        // Get request configuration from the function
+        const requestConfig = config.create!.request(data);
+        
         const response = await this.restConnector.request({
-          method: config.create!.request.method || "POST",
-          url: config.create!.request.endpoint,
-          data: requestData,
+          method: requestConfig.method || "POST",
+          url: requestConfig.endpoint,
+          data: requestConfig.data || transformedData,
         });
 
         return config.create!.transform 
@@ -242,18 +252,18 @@ export class SyncConnectorBuilder<
 
     if (config.update) {
       connector.update = async (id: string, data: any) => {
-        const endpoint = typeof config.update!.request.endpoint === "function"
-          ? config.update!.request.endpoint(id)
-          : config.update!.request.endpoint.replace("{id}", id);
-        
-        const requestData = config.update!.transformRequest 
+        // Apply transformRequest if provided
+        const transformedData = config.update!.transformRequest 
           ? config.update!.transformRequest(data)
           : data;
+        
+        // Get request configuration from the function
+        const requestConfig = config.update!.request(id, data);
           
         const response = await this.restConnector.request({
-          method: config.update!.request.method || "PUT",
-          url: endpoint,
-          data: requestData,
+          method: requestConfig.method || "PUT",
+          url: requestConfig.endpoint,
+          data: requestConfig.data || transformedData,
         });
         
         return config.update!.transform 
@@ -264,13 +274,13 @@ export class SyncConnectorBuilder<
 
     if (config.delete) {
       connector.delete = async (id: string) => {
-        const endpoint = typeof config.delete!.request.endpoint === "function"
-          ? config.delete!.request.endpoint(id)
-          : config.delete!.request.endpoint.replace("{id}", id);
+        // Get request configuration from the function
+        const requestConfig = config.delete!.request(id);
           
         await this.restConnector.request({
-          method: config.delete!.request.method || "DELETE",
-          url: endpoint,
+          method: requestConfig.method || "DELETE",
+          url: requestConfig.endpoint,
+          data: requestConfig.data,
         });
       };
     }
@@ -282,10 +292,12 @@ export class SyncConnectorBuilder<
         
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
+          const requestConfig = config.bulk!.create!.request(batch);
+          
           const response = await this.restConnector.request({
-            method: config.bulk!.create!.request.method || "POST",
-            url: config.bulk!.create!.request.endpoint,
-            data: batch,
+            method: requestConfig.method || "POST",
+            url: requestConfig.endpoint,
+            data: requestConfig.data || batch,
           });
           results.push(...(Array.isArray(response.data) ? response.data : [response.data]));
         }
@@ -301,10 +313,12 @@ export class SyncConnectorBuilder<
         
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
+          const requestConfig = config.bulk!.update!.request(batch);
+          
           const response = await this.restConnector.request({
-            method: config.bulk!.update!.request.method || "PUT",
-            url: config.bulk!.update!.request.endpoint,
-            data: batch,
+            method: requestConfig.method || "PUT",
+            url: requestConfig.endpoint,
+            data: requestConfig.data || batch,
           });
           results.push(...(Array.isArray(response.data) ? response.data : [response.data]));
         }
@@ -319,10 +333,12 @@ export class SyncConnectorBuilder<
         
         for (let i = 0; i < ids.length; i += batchSize) {
           const batch = ids.slice(i, i + batchSize);
+          const requestConfig = config.bulk!.delete!.request(batch);
+          
           await this.restConnector.request({
-            method: config.bulk!.delete!.request.method || "DELETE",
-            url: config.bulk!.delete!.request.endpoint,
-            data: batch,
+            method: requestConfig.method || "DELETE",
+            url: requestConfig.endpoint,
+            data: requestConfig.data || batch,
           });
         }
       };
@@ -381,22 +397,44 @@ export class ModelConnectorConfigBuilder<T = any> {
     return this;
   }
 
-  create(config: CreateConfig<T>): this {
+  create(config: {
+    request: (data: T) => {
+      endpoint: string;
+      method?: "POST" | "PUT";
+      data?: any;
+    };
+    transform?: (response: any) => T;
+    transformRequest?: (data: T) => any;
+  }): this {
     this.config.create = config;
     return this;
   }
 
-  update(config: UpdateConfig<T>): this {
+  update(config: {
+    request: (id: string, data: Partial<T>) => {
+      endpoint: string;
+      method?: "PUT" | "PATCH" | "POST";
+      data?: any;
+    };
+    transform?: (response: any) => T;
+    transformRequest?: (data: Partial<T>) => any;
+  }): this {
     this.config.update = config;
     return this;
   }
 
-  delete(config: DeleteConfig): this {
+  delete(config: {
+    request: (id: string) => {
+      endpoint: string;
+      method?: "DELETE" | "POST";
+      data?: any;
+    };
+  }): this {
     this.config.delete = config;
     return this;
   }
 
-  bulk(config: BulkConfig): this {
+  bulk(config: BulkConfig<T>): this {
     this.config.bulk = config;
     return this;
   }
