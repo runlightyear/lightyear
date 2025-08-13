@@ -36,6 +36,9 @@ export {
   ModelConnectorConfigBuilder,
   createSyncConnector,
   createListConfig,
+  createCreateConfig,
+  createUpdateConfig,
+  createDeleteConfig,
 } from "./syncConnector";
 
 export type {
@@ -64,3 +67,10 @@ export {
 
 // Match pattern helpers
 export { match } from "./match";
+
+// Model connector builder
+export {
+  ModelConnectorBuilder,
+  createModelConnector,
+  type InferModelType,
+} from "./modelConnector";

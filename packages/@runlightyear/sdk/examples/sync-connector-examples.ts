@@ -4,6 +4,9 @@ import {
   createRestConnector,
   createSyncConnector,
   createListConfig,
+  createCreateConfig,
+  createUpdateConfig,
+  createDeleteConfig,
 } from "../src";
 import { createPaginatedResponseSchema } from "../src/builders/typedSyncHelpers";
 
@@ -15,10 +18,16 @@ import { createPaginatedResponseSchema } from "../src/builders/typedSyncHelpers"
  * Key features shown:
  * 1. Type-safe transform functions - receives the full API response typed with the
  *    response schema and must return an array matching the collection's model schema
- * 2. Using createListConfig helper for better type inference
+ * 2. Using createListConfig, createCreateConfig, createUpdateConfig, and 
+ *    createDeleteConfig helpers for better type inference
  * 3. Using builder methods like listWithSchema for inline type safety
  * 4. Transform functions that handle various API response structures (paginated,
  *    wrapped, nested) and map them to collection models
+ *
+ * The type-safe config helpers ensure:
+ * - Create operations receive the full model type
+ * - Update operations receive Partial<Model> type
+ * - All operations maintain proper type inference throughout
  *
  * The transform function gives you full control over how to extract items from
  * complex API responses while maintaining type safety.
@@ -247,6 +256,36 @@ const usersRestConnector = createRestConnector()
   })
   .build();
 
+// Using type-safe helper functions for better type inference
+const userCreateConfig = createCreateConfig<User>({
+  request: (data) => {
+    // TypeScript knows data is of type User with all required properties
+    return {
+      endpoint: "/users",
+      method: "POST",
+      data: {
+        // Transform to API format if needed
+        user_name: data.username,
+        email_address: data.email,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        role: data.role,
+        is_active: data.isActive,
+      },
+    };
+  },
+  // Transform API response back to model format
+  transform: (response: any) => ({
+    id: response.user_id,
+    username: response.user_name,
+    email: response.email_address,
+    firstName: response.first_name,
+    lastName: response.last_name,
+    role: response.role,
+    isActive: response.is_active,
+  }),
+});
+
 const usersSyncConnector = createSyncConnector(
   usersRestConnector,
   usersCollection
@@ -277,13 +316,7 @@ const usersSyncConnector = createSyncConnector(
           }));
         },
       })
-      .create({
-        request: (data) => ({
-          endpoint: "/users",
-          method: "POST",
-          data,
-        }),
-      })
+      .create(userCreateConfig) // Using the type-safe config
   )
   .build();
 
@@ -372,63 +405,78 @@ const productApiResponseSchema = z.object({
 
 type ProductApiResponse = z.infer<typeof productApiResponseSchema>;
 
+// Create type-safe configurations for CRUD operations
+const productListConfig = createListConfig<Product, ProductApiResponse>({
+  request: (params) => ({
+    endpoint: "/api/v3/products",
+    method: "GET",
+    params: {
+      page: params.page || 1,
+      limit: params.limit || 100,
+    },
+  }),
+  responseSchema: productApiResponseSchema,
+  transform: (response) => {
+    // TypeScript knows response.products is Product[]
+    return response.products.map((item) => ({
+      ...item,
+      price:
+        typeof item.price === "number" && item.price > 1000
+          ? item.price / 100
+          : item.price,
+      tags: item.tags || [],
+    }));
+  },
+});
+
+const productCreateConfig = createCreateConfig<Product>({
+  request: (data) => {
+    // TypeScript enforces that data has all Product properties
+    return {
+      endpoint: "/api/v3/products",
+      method: "POST",
+      data: {
+        ...data,
+        price: Math.round(data.price * 100), // Convert to cents
+      },
+    };
+  },
+});
+
+const productUpdateConfig = createUpdateConfig<Product>({
+  request: (id, data) => {
+    // TypeScript knows data is Partial<Product>
+    return {
+      endpoint: `/api/v3/products/${id}`,
+      method: "PUT",
+      data: {
+        ...data,
+        // Convert price to cents if present
+        ...(data.price !== undefined && {
+          price: Math.round(data.price * 100),
+        }),
+      },
+    };
+  },
+});
+
+const productDeleteConfig = createDeleteConfig({
+  request: (id) => ({
+    endpoint: `/api/v3/products/${id}`,
+    method: "DELETE",
+  }),
+});
+
 const fullCrudSyncConnector = createSyncConnector(
   fullCrudRestConnector,
   fullCrudCollection
 )
   .add("product", (builder) =>
     builder
-      .list({
-        request: (params) => ({
-          endpoint: "/api/v3/products",
-          method: "GET",
-          params: {
-            page: params.page || 1,
-            limit: params.limit || 100,
-          },
-        }),
-        responseSchema: productApiResponseSchema,
-        transform: (response) => {
-          return response.products.map((item) => ({
-            ...item,
-            price:
-              typeof item.price === "number" && item.price > 1000
-                ? item.price / 100
-                : item.price,
-            tags: item.tags || [],
-          }));
-        },
-      })
-      .create({
-        request: (data) => ({
-          endpoint: "/api/v3/products",
-          method: "POST",
-          data: {
-            ...data,
-            price: Math.round(data.price * 100),
-          },
-        }),
-      })
-      .update({
-        request: (id, data) => ({
-          endpoint: `/api/v3/products/${id}`,
-          method: "PUT",
-          data: {
-            // Transform the data to match API expectations
-            ...data,
-            // Convert price to cents if present
-            ...(data.price !== undefined && {
-              price: Math.round(data.price * 100),
-            }),
-          },
-        }),
-      })
-      .delete({
-        request: (id) => ({
-          endpoint: `/api/v3/products/${id}`,
-          method: "DELETE",
-        }),
-      })
+      .list(productListConfig)
+      .create(productCreateConfig)
+      .update(productUpdateConfig)
+      .delete(productDeleteConfig)
       .bulk({
         create: {
           request: (items) => ({

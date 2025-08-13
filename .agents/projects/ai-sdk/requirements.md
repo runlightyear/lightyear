@@ -28,6 +28,7 @@ Some things to consider:
   - RestConnectors
   - OAuthConnectors
   - SyncConnectors (do not have names or titles and aren't deployed as objects)
+  - ModelConnectors (do not have names or titles and aren't deployed as objects)
 - Things that are deployed, but cannot exist independently:
   - Models (exist only on collections)
   - Variables (exist on custom apps, actions, and webhooks)
@@ -39,7 +40,11 @@ For artifacts that will just exist in memory and be executed, let's use the buil
 
 I am uncertain how we want to handle the things that are deployed, but cannot exist independently. You should recommend a solution. The important thing is to preserve type safety and make it easy to understand.
 
-We will define a SyncConnector later to complete the picture, but let's hold off on that for now.
+For the rest connectors, when defining headers, there is a special syntax we can use for auth secrets. To specify an authorization header, the value can be 'Bearer {{ accessToken }}'. Other substitutions available are:
+
+- apiKey
+- username
+- password
 
 In the example-templates directory, I have a number of example templates (named like action-examples-template.md, collection-examples-template.md, etc.) that show how to use the SDK. I want you to create a directory in @runlightyear/sdk/examples that contains these templates populated with the examples you create. Important:
 
@@ -72,3 +77,4 @@ In the example-templates directory, I have a number of example templates (named 
 - The list method should support various forms of paging, including cursor based and page based.
 - The developer should be able to alter a model on an existing collection and the behavior of the corresponding model connector.
 - The sync connector must provide a way to transform the list item response into a list of objects that conform to the collection's relevant model.
+- Do not resort to as any in anything facing the developer. We need to make this super typesafe.

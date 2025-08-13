@@ -14,13 +14,11 @@ describe("CollectionBuilder", () => {
   });
 
   it("should create a collection with models", () => {
-    const user = defineModel("user").deploy();
-    const admin = defineModel("admin").deploy();
+    const collectionBuilder = defineCollection("users");
+    const user = defineModel(collectionBuilder, "user").deploy();
+    const admin = defineModel(collectionBuilder, "admin").deploy();
 
-    const collection = defineCollection("users")
-      .withModel(user)
-      .withModel(admin)
-      .deploy();
+    const collection = collectionBuilder.deploy();
 
     expect(collection.name).toBe("users");
     expect(collection.models).toHaveLength(2);
@@ -50,9 +48,13 @@ describe("CollectionBuilder", () => {
   });
 
   it("should support adding multiple models at once", () => {
-    const customer = defineModel("customer").deploy();
-    const lead = defineModel("lead").deploy();
+    // Create models separately with their own collections first
+    const tempCollection1 = defineCollection("temp1");
+    const tempCollection2 = defineCollection("temp2");
+    const customer = defineModel(tempCollection1, "customer").deploy();
+    const lead = defineModel(tempCollection2, "lead").deploy();
 
+    // Then add them to the target collection
     const collection = defineCollection("crm")
       .withModels([customer, lead])
       .deploy();
@@ -63,11 +65,12 @@ describe("CollectionBuilder", () => {
   });
 
   it("should support method chaining", () => {
-    const user = defineModel("user").deploy();
-
-    const collection = defineCollection("users")
-      .withTitle("User Management")
-      .withModel(user)
+    const collectionBuilder = defineCollection("users")
+      .withTitle("User Management");
+    
+    const user = defineModel(collectionBuilder, "user").deploy();
+    
+    const collection = collectionBuilder
       .addModel("admin", { title: "Administrator" })
       .deploy();
 

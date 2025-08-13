@@ -512,3 +512,46 @@ export function createListConfig<TModel, TResponse>(
 ): ListConfig<TModel, TResponse> {
   return config;
 }
+
+// Type-safe create config factory for better inference
+export function createCreateConfig<TModel>(
+  config: {
+    request: (data: TModel) => {
+      endpoint: string;
+      method?: "POST" | "PUT";
+      data?: any;
+    };
+    transform?: (response: any) => TModel;
+    transformRequest?: (data: TModel) => any;
+  }
+): CreateConfig<TModel> {
+  return config;
+}
+
+// Type-safe update config factory for better inference
+export function createUpdateConfig<TModel>(
+  config: {
+    request: (id: string, data: Partial<TModel>) => {
+      endpoint: string;
+      method?: "PUT" | "PATCH" | "POST";
+      data?: any;
+    };
+    transform?: (response: any) => TModel;
+    transformRequest?: (data: Partial<TModel>) => any;
+  }
+): UpdateConfig<TModel> {
+  return config;
+}
+
+// Type-safe delete config factory
+export function createDeleteConfig(
+  config: {
+    request: (id: string) => {
+      endpoint: string;
+      method?: "DELETE" | "POST";
+      data?: any;
+    };
+  }
+): DeleteConfig {
+  return config;
+}

@@ -44,6 +44,18 @@
 
 **_ Example goes here _**
 
+## Define a model on a collection, but separate from the collection definition
+
+**_ Example goes here _**
+
+## Define a model on a collection with a schema, but separate from the collection definition
+
+**_ Example goes here _**
+
+## Define a model on a collection with a schema and a match pattern, but separate from the collection
+
+**_ Example goes here _**
+
 ## Infer the type of a model schema directly from the collection and demonstrate the type's usage and demostrate it works with positive and negative examples (use ts-expect-error to demonstrate the errors)
 
 **_ Example goes here _**
