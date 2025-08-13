@@ -23,6 +23,7 @@
     "deploy:handlers": "npm run build:handlers && echo 'Handlers bundle ready for deployment at dist/handlers.js'"
   },
   "dependencies": {
+    "json-schema-to-ts": "^3.1.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {

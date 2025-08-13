@@ -29,5 +29,37 @@ export { OAuthConnectorBuilder, createOAuthConnector, defineOAuthConnector } fro
 // REST connector builder
 export { RestConnectorBuilder, createRestConnector, defineRestConnector } from "./restConnector";
 
+// Sync connector builder
+export {
+  SyncConnectorBuilder,
+  SyncConnector,
+  ModelConnectorConfigBuilder,
+  createSyncConnector,
+  createListConfig,
+} from "./syncConnector";
+
+export type {
+  ModelConnector,
+  ModelConnectorConfig,
+  PaginationConfig,
+  ListConfig,
+  CreateConfig,
+  UpdateConfig,
+  DeleteConfig,
+  BulkConfig,
+} from "./syncConnector";
+
+// Typed sync helpers
+export {
+  createListResponseSchema,
+  createPaginatedResponseSchema,
+  validateModelExists,
+  isValidPaginationType,
+  extractNestedData,
+  batchItems,
+  createModelConfig,
+  type InferZodType,
+} from "./typedSyncHelpers";
+
 // Match pattern helpers
 export { match } from "./match";

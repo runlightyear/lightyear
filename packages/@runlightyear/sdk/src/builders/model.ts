@@ -2,6 +2,9 @@ import type { JSONSchema7 } from "json-schema";
 import type { Model, MatchPattern } from "../types";
 import { registerModel } from "../registry";
 
+// Type to accept both JSONSchema7 and const schemas
+type Schema = JSONSchema7 | Readonly<any>;
+
 /**
  * Model Builder - fluent API for creating models
  */
@@ -20,8 +23,8 @@ export class ModelBuilder {
     return this;
   }
 
-  withSchema(schema: JSONSchema7): this {
-    this.schema = schema;
+  withSchema(schema: Schema): this {
+    this.schema = schema as JSONSchema7;
     return this;
   }
 

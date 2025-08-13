@@ -2,6 +2,9 @@ import type { JSONSchema7 } from "json-schema";
 import type { Collection, Model, MatchPattern } from "../types";
 import { registerCollection, registerModel } from "../registry";
 
+// Type to accept both JSONSchema7 and const schemas
+type Schema = JSONSchema7 | Readonly<any>;
+
 /**
  * Collection Builder - fluent API for creating collections
  */
@@ -38,14 +41,14 @@ export class CollectionBuilder {
     name: string,
     options?: {
       title?: string;
-      schema?: JSONSchema7;
+      schema?: Schema;
       matchPattern?: MatchPattern;
     }
   ): this {
     const model: Model = {
       name,
       title: options?.title,
-      schema: options?.schema,
+      schema: options?.schema as JSONSchema7,
       matchPattern: options?.matchPattern,
     };
 

@@ -168,7 +168,7 @@ export interface SyncResult {
   };
 }
 
-export interface SyncConnector {
+export interface SyncConnectorDefinition {
   name: string;
   title?: string;
   collection: Collection;

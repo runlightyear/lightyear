@@ -16,7 +16,7 @@
 
 **_ Example goes here _**
 
-## Define a collection with a name and a title and a model (with schema)
+## Define a collection with a name and a title and a model (with schema) defined inline
 
 **_ Example goes here _**
 
@@ -44,10 +44,10 @@
 
 **_ Example goes here _**
 
-## Extract a type from a model that is part of a collection and demonstrate the type's usage
+## Infer the type of a model schema directly from the collection and demonstrate the type's usage and demostrate it works with positive and negative examples (use ts-expect-error to demonstrate the errors)
 
 **_ Example goes here _**
 
-## Extract a type with the model names that are part of a collection and demonstrate the type's usage
+## Infer a type with the model names that are part of a collection directly from the collection and demonstrate the type's usage and demostrate it works with positive and negative examples (use ts-expect-error to demonstrate the errors)
 
 **_ Example goes here _**
