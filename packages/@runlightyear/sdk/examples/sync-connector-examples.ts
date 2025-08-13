@@ -388,22 +388,13 @@ const fullCrudSyncConnector = createSyncConnector(
           },
         }),
         responseSchema: productApiResponseSchema,
-        pagination: {
-          type: "page",
-          pageSize: 100,
-          pageField: "page",
-          limitField: "limit",
-        },
-        // Transform receives full response with products array
         transform: (response) => {
           return response.products.map((item) => ({
             ...item,
-            // Convert price from cents to dollars if needed
             price:
               typeof item.price === "number" && item.price > 1000
                 ? item.price / 100
                 : item.price,
-            // Ensure tags is always an array
             tags: item.tags || [],
           }));
         },
@@ -413,9 +404,7 @@ const fullCrudSyncConnector = createSyncConnector(
           endpoint: "/api/v3/products",
           method: "POST",
           data: {
-            // Transform the data to match API expectations
             ...data,
-            // Convert price to cents for API
             price: Math.round(data.price * 100),
           },
         }),
