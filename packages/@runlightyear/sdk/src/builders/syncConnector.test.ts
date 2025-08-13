@@ -51,8 +51,10 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           list: {
-            endpoint: "/users",
-            method: "GET",
+            request: {
+              endpoint: "/users",
+              method: "GET",
+            },
           },
         })
         .build();
@@ -67,16 +69,21 @@ describe("SyncConnector", () => {
         .add("product", (builder) =>
           builder
             .list({
-              endpoint: "/products",
+              request: {
+                endpoint: "/products",
+              },
               responseSchema: z.array(z.object({
                 id: z.string(),
                 name: z.string(),
                 price: z.number(),
               })),
+              transform: (response) => response,
             })
             .create({
-              endpoint: "/products",
-              method: "POST",
+              request: {
+                endpoint: "/products",
+                method: "POST",
+              },
             })
         )
         .build();
@@ -92,7 +99,11 @@ describe("SyncConnector", () => {
       expect(() => {
         createSyncConnector(mockRestConnector, collection)
           .with("nonExistentModel" as any, {
-            list: { endpoint: "/test" },
+            list: {
+            request: {
+              endpoint: "/test",
+            },
+          },
           });
       }).toThrow('Model "nonExistentModel" does not exist in collection');
     });
@@ -100,10 +111,18 @@ describe("SyncConnector", () => {
     it("should chain multiple model connectors", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
-          list: { endpoint: "/users" },
+          list: {
+            request: {
+              endpoint: "/users",
+            },
+          },
         })
         .with("product", {
-          list: { endpoint: "/products" },
+          list: {
+            request: {
+              endpoint: "/products",
+            },
+          },
         })
         .build();
 
@@ -126,8 +145,10 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           list: {
-            endpoint: "/users",
-            method: "GET",
+            request: {
+              endpoint: "/users",
+              method: "GET",
+            },
           },
         })
         .build();
@@ -162,7 +183,9 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           list: {
-            endpoint: "/users",
+            request: {
+              endpoint: "/users",
+            },
             responseSchema: z.array(UserSchema),
           },
         })
@@ -191,7 +214,9 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           list: {
-            endpoint: "/users",
+            request: {
+              endpoint: "/users",
+            },
             transform: (response: any) => response.results.users,
           },
         })
@@ -216,7 +241,9 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           list: {
-            endpoint: "/users",
+            request: {
+              endpoint: "/users",
+            },
             transform: (response: any[]) => response.map((item: any) => ({
               id: item.user_id,
               name: item.full_name,
@@ -244,8 +271,10 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           create: {
-            endpoint: "/users",
-            method: "POST",
+            request: {
+              endpoint: "/users",
+              method: "POST",
+            },
           },
         })
         .build();
@@ -270,8 +299,10 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           update: {
-            endpoint: (id) => `/users/${id}`,
-            method: "PATCH",
+            request: {
+              endpoint: (id) => `/users/${id}`,
+              method: "PATCH",
+            },
           },
         })
         .build();
@@ -296,7 +327,9 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           create: {
-            endpoint: "/users",
+            request: {
+              endpoint: "/users",
+            },
             transformRequest: (data: any) => ({
               full_name: data.name,
               email_address: data.email,
@@ -345,8 +378,10 @@ describe("SyncConnector", () => {
         .with("user", {
           bulk: {
             create: {
-              endpoint: "/users/bulk",
-              method: "POST",
+              request: {
+                endpoint: "/users/bulk",
+                method: "POST",
+              },
               batchSize: 2,
             },
           },
@@ -385,10 +420,18 @@ describe("SyncConnector", () => {
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
-          list: { endpoint: "/users" },
+          list: {
+            request: {
+              endpoint: "/users",
+            },
+          },
         })
         .with("product", {
-          list: { endpoint: "/products" },
+          list: {
+            request: {
+              endpoint: "/products",
+            },
+          },
         })
         .build();
 
@@ -420,11 +463,15 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, typedCollection)
         .with("user", {
           list: {
-            endpoint: "/users",
+            request: {
+              endpoint: "/users",
+            },
             responseSchema: z.array(UserSchema),
           },
           create: {
-            endpoint: "/users",
+            request: {
+              endpoint: "/users",
+            },
           },
         })
         .build();

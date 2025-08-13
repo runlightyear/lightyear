@@ -126,8 +126,10 @@ type CustomerListResponse = z.infer<typeof customerListResponseSchema>;
 
 // Using the new createListConfig helper for better type inference
 const customerListConfig = createListConfig<Customer, CustomerListResponse>({
-  endpoint: "/customers",
-  method: "GET",
+  request: {
+    endpoint: "/customers",
+    method: "GET",
+  },
   responseSchema: customerListResponseSchema,
   pagination: {
     type: "page",
@@ -156,8 +158,10 @@ const listSyncConnector = createSyncConnector(listRestConnector, listCollection)
 const listSyncConnectorAlt = createSyncConnector(listRestConnector, listCollection)
   .with("customer", {
     list: {
-      endpoint: "/customers",
-      method: "GET",
+      request: {
+        endpoint: "/customers",
+        method: "GET",
+      },
       responseSchema: customerListResponseSchema,
       pagination: {
         type: "page",
@@ -238,8 +242,10 @@ const usersSyncConnector = createSyncConnector(
 )
   .add("user", (builder) =>
     builder
-      .listWithSchema({
-        endpoint: "/users",
+      .list({
+        request: {
+          endpoint: "/users",
+        },
         responseSchema: createPaginatedResponseSchema(UserSchema),
         pagination: {
           type: "cursor",
@@ -257,8 +263,10 @@ const usersSyncConnector = createSyncConnector(
         },
       })
       .create({
-        endpoint: "/users",
-        method: "POST",
+        request: {
+          endpoint: "/users",
+          method: "POST",
+        },
       })
   )
   .build();
@@ -352,9 +360,11 @@ const fullCrudSyncConnector = createSyncConnector(
 )
   .add("product", (builder) =>
     builder
-      .listWithSchema({
-        endpoint: "/api/v3/products",
-        method: "GET",
+      .list({
+        request: {
+          endpoint: "/api/v3/products",
+          method: "GET",
+        },
         responseSchema: productApiResponseSchema,
         pagination: {
           type: "page",
@@ -377,8 +387,10 @@ const fullCrudSyncConnector = createSyncConnector(
         },
       })
       .create({
-        endpoint: "/api/v3/products",
-        method: "POST",
+        request: {
+          endpoint: "/api/v3/products",
+          method: "POST",
+        },
         // Transform request to match API expectations
         transformRequest: (data: Product) => ({
           ...data,
@@ -394,8 +406,10 @@ const fullCrudSyncConnector = createSyncConnector(
         }),
       })
       .update({
-        endpoint: (id: string) => `/api/v3/products/${id}`,
-        method: "PUT",
+        request: {
+          endpoint: (id: string) => `/api/v3/products/${id}`,
+          method: "PUT",
+        },
         transformRequest: (data: Partial<Product>) => ({
           ...data,
           // Convert price to cents if present
@@ -410,23 +424,31 @@ const fullCrudSyncConnector = createSyncConnector(
         }),
       })
       .delete({
-        endpoint: (id: string) => `/api/v3/products/${id}`,
-        method: "DELETE",
+        request: {
+          endpoint: (id: string) => `/api/v3/products/${id}`,
+          method: "DELETE",
+        },
       })
       .bulk({
         create: {
-          endpoint: "/api/v3/products/bulk",
-          method: "POST",
+          request: {
+            endpoint: "/api/v3/products/bulk",
+            method: "POST",
+          },
           batchSize: 50,
         },
         update: {
-          endpoint: "/api/v3/products/bulk",
-          method: "PATCH",
+          request: {
+            endpoint: "/api/v3/products/bulk",
+            method: "PATCH",
+          },
           batchSize: 50,
         },
         delete: {
-          endpoint: "/api/v3/products/bulk-delete",
-          method: "POST",
+          request: {
+            endpoint: "/api/v3/products/bulk-delete",
+            method: "POST",
+          },
           batchSize: 100,
         },
       })

@@ -59,7 +59,9 @@ type ApiListResponse = z.infer<typeof apiListResponseSchema>;
 
 // Example 1: Using createListConfig helper for maximum type safety
 const typeSafeListConfig = createListConfig<CollectionUser, ApiListResponse>({
-  endpoint: "/users",
+  request: {
+    endpoint: "/users",
+  },
   responseSchema: apiListResponseSchema,
   // Transform receives the full response and returns an array
   transform: (response) => {
@@ -86,7 +88,9 @@ const syncConnector = createSyncConnector(apiConnector, userCollection)
 const syncConnectorInline = createSyncConnector(apiConnector, userCollection)
   .with("user", {
     list: {
-      endpoint: "/users",
+      request: {
+        endpoint: "/users",
+      },
       responseSchema: apiListResponseSchema,
       // Transform with explicit type annotations
       transform: (response: ApiListResponse): CollectionUser[] => {
@@ -102,11 +106,13 @@ const syncConnectorInline = createSyncConnector(apiConnector, userCollection)
   })
   .build();
 
-// Example 3: Using the builder pattern with listWithSchema
+// Example 3: Using the builder pattern with list method
 const syncConnectorBuilder = createSyncConnector(apiConnector, userCollection)
   .add("user", (builder) =>
-    builder.listWithSchema({
-      endpoint: "/users",
+    builder.list({
+      request: {
+        endpoint: "/users",
+      },
       responseSchema: apiListResponseSchema,
       // Transform is properly typed with the full response!
       transform: (response) => {
@@ -150,7 +156,9 @@ async function demonstrateTypeSafety() {
 /*
 // This would cause a TypeScript error - not returning an array:
 const badConfig = createListConfig<CollectionUser, ApiListResponse>({
-  endpoint: "/users",
+  request: {
+    endpoint: "/users",
+  },
   responseSchema: apiListResponseSchema,
   transform: (response) => {
     // Error: Must return CollectionUser[], not CollectionUser
@@ -166,7 +174,9 @@ const badConfig = createListConfig<CollectionUser, ApiListResponse>({
 
 // This would also cause a TypeScript error - missing required properties:
 const badConfig2 = createListConfig<CollectionUser, ApiListResponse>({
-  endpoint: "/users",
+  request: {
+    endpoint: "/users",
+  },
   responseSchema: apiListResponseSchema,
   transform: (response) => {
     return response.users.map((apiUser) => ({
@@ -181,7 +191,9 @@ const badConfig2 = createListConfig<CollectionUser, ApiListResponse>({
 
 // This would cause an error - wrong property type:
 const badConfig3 = createListConfig<CollectionUser, ApiListResponse>({
-  endpoint: "/users",
+  request: {
+    endpoint: "/users",
+  },
   responseSchema: apiListResponseSchema,
   transform: (response) => {
     return response.users.map((apiUser) => ({

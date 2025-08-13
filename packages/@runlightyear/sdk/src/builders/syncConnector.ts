@@ -13,46 +13,60 @@ export interface PaginationConfig {
 }
 
 export interface ListConfig<T = any, R = any> {
-  endpoint: string;
-  method?: "GET" | "POST";
+  request: {
+    endpoint: string;
+    method?: "GET" | "POST";
+  };
   responseSchema?: z.ZodType<R>;
   pagination?: PaginationConfig;
   transform?: (response: R) => T[];
 }
 
 export interface CreateConfig<T = any> {
-  endpoint: string;
-  method?: "POST" | "PUT";
+  request: {
+    endpoint: string;
+    method?: "POST" | "PUT";
+  };
   transform?: (response: any) => T;
   transformRequest?: (data: T) => any;
 }
 
 export interface UpdateConfig<T = any> {
-  endpoint: string | ((id: string) => string);
-  method?: "PUT" | "PATCH" | "POST";
+  request: {
+    endpoint: string | ((id: string) => string);
+    method?: "PUT" | "PATCH" | "POST";
+  };
   transform?: (response: any) => T;
   transformRequest?: (data: Partial<T>) => any;
 }
 
 export interface DeleteConfig {
-  endpoint: string | ((id: string) => string);
-  method?: "DELETE" | "POST";
+  request: {
+    endpoint: string | ((id: string) => string);
+    method?: "DELETE" | "POST";
+  };
 }
 
 export interface BulkConfig {
   create?: {
-    endpoint: string;
-    method?: "POST" | "PUT";
+    request: {
+      endpoint: string;
+      method?: "POST" | "PUT";
+    };
     batchSize?: number;
   };
   update?: {
-    endpoint: string;
-    method?: "PUT" | "PATCH" | "POST";
+    request: {
+      endpoint: string;
+      method?: "PUT" | "PATCH" | "POST";
+    };
     batchSize?: number;
   };
   delete?: {
-    endpoint: string;
-    method?: "DELETE" | "POST";
+    request: {
+      endpoint: string;
+      method?: "DELETE" | "POST";
+    };
     batchSize?: number;
   };
 }
@@ -67,8 +81,10 @@ export interface ModelConnectorConfig<T = any> {
 
 // Type-safe config builder interfaces
 export interface TypedListConfig<TModel, TResponse> {
-  endpoint: string;
-  method?: "GET" | "POST";
+  request: {
+    endpoint: string;
+    method?: "GET" | "POST";
+  };
   responseSchema?: z.ZodType<TResponse>;
   pagination?: PaginationConfig;
   transform?: (response: TResponse) => TModel[];
@@ -87,8 +103,10 @@ type InferResponseType<S> = S extends z.ZodType<infer R> ? R : any;
 
 // Type-safe list config that infers response type from schema
 export interface TypeSafeListConfig<TModel, TResponseSchema extends z.ZodType<any> | undefined = undefined> {
-  endpoint: string;
-  method?: "GET" | "POST";
+  request: {
+    endpoint: string;
+    method?: "GET" | "POST";
+  };
   responseSchema?: TResponseSchema;
   pagination?: PaginationConfig;
   transform?: TResponseSchema extends z.ZodType<any> 
@@ -153,8 +171,8 @@ export class SyncConnectorBuilder<
     if (config.list) {
       connector.list = async (params?: any) => {
         const response = await this.restConnector.request({
-          method: config.list!.method || "GET",
-          url: config.list!.endpoint,
+          method: config.list!.request.method || "GET",
+          url: config.list!.request.endpoint,
           params,
         });
 
@@ -187,8 +205,8 @@ export class SyncConnectorBuilder<
           : data;
 
         const response = await this.restConnector.request({
-          method: config.create!.method || "POST",
-          url: config.create!.endpoint,
+          method: config.create!.request.method || "POST",
+          url: config.create!.request.endpoint,
           data: requestData,
         });
 
@@ -200,16 +218,16 @@ export class SyncConnectorBuilder<
 
     if (config.update) {
       connector.update = async (id: string, data: any) => {
-        const endpoint = typeof config.update!.endpoint === "function"
-          ? config.update!.endpoint(id)
-          : config.update!.endpoint.replace("{id}", id);
+        const endpoint = typeof config.update!.request.endpoint === "function"
+          ? config.update!.request.endpoint(id)
+          : config.update!.request.endpoint.replace("{id}", id);
         
         const requestData = config.update!.transformRequest 
           ? config.update!.transformRequest(data)
           : data;
           
         const response = await this.restConnector.request({
-          method: config.update!.method || "PUT",
+          method: config.update!.request.method || "PUT",
           url: endpoint,
           data: requestData,
         });
@@ -222,12 +240,12 @@ export class SyncConnectorBuilder<
 
     if (config.delete) {
       connector.delete = async (id: string) => {
-        const endpoint = typeof config.delete!.endpoint === "function"
-          ? config.delete!.endpoint(id)
-          : config.delete!.endpoint.replace("{id}", id);
+        const endpoint = typeof config.delete!.request.endpoint === "function"
+          ? config.delete!.request.endpoint(id)
+          : config.delete!.request.endpoint.replace("{id}", id);
           
         await this.restConnector.request({
-          method: config.delete!.method || "DELETE",
+          method: config.delete!.request.method || "DELETE",
           url: endpoint,
         });
       };
@@ -241,8 +259,8 @@ export class SyncConnectorBuilder<
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
           const response = await this.restConnector.request({
-            method: config.bulk!.create!.method || "POST",
-            url: config.bulk!.create!.endpoint,
+            method: config.bulk!.create!.request.method || "POST",
+            url: config.bulk!.create!.request.endpoint,
             data: batch,
           });
           results.push(...(Array.isArray(response.data) ? response.data : [response.data]));
@@ -260,8 +278,8 @@ export class SyncConnectorBuilder<
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
           const response = await this.restConnector.request({
-            method: config.bulk!.update!.method || "PUT",
-            url: config.bulk!.update!.endpoint,
+            method: config.bulk!.update!.request.method || "PUT",
+            url: config.bulk!.update!.request.endpoint,
             data: batch,
           });
           results.push(...(Array.isArray(response.data) ? response.data : [response.data]));
@@ -278,8 +296,8 @@ export class SyncConnectorBuilder<
         for (let i = 0; i < ids.length; i += batchSize) {
           const batch = ids.slice(i, i + batchSize);
           await this.restConnector.request({
-            method: config.bulk!.delete!.method || "DELETE",
-            url: config.bulk!.delete!.endpoint,
+            method: config.bulk!.delete!.request.method || "DELETE",
+            url: config.bulk!.delete!.request.endpoint,
             data: batch,
           });
         }
@@ -324,26 +342,11 @@ export class SyncConnectorBuilder<
 export class ModelConnectorConfigBuilder<T = any> {
   private config: ModelConnectorConfig<T> = {};
 
-  list(config: ListConfig<T, any>): this {
-    this.config.list = config;
-    return this;
-  }
-
-  listTyped<R>(config: {
-    endpoint: string;
-    method?: "GET" | "POST";
-    responseSchema: z.ZodType<R>;
-    pagination?: PaginationConfig;
-    transform: (response: R) => T[];
-  }): this {
-    this.config.list = config;
-    return this;
-  }
-
-  // New method that provides better type inference
-  listWithSchema<TSchema extends z.ZodType<any>>(config: {
-    endpoint: string;
-    method?: "GET" | "POST";
+  list<TSchema extends z.ZodType<any>>(config: {
+    request: {
+      endpoint: string;
+      method?: "GET" | "POST";
+    };
     responseSchema: TSchema;
     pagination?: PaginationConfig;
     transform: (response: z.infer<TSchema>) => T[];
@@ -432,8 +435,10 @@ export function createSyncConnector<
 // Type-safe config factory for better inference
 export function createListConfig<TModel, TResponse>(
   config: {
-    endpoint: string;
-    method?: "GET" | "POST";
+    request: {
+      endpoint: string;
+      method?: "GET" | "POST";
+    };
     responseSchema: z.ZodType<TResponse>;
     pagination?: PaginationConfig;
     transform: (response: TResponse) => TModel[];

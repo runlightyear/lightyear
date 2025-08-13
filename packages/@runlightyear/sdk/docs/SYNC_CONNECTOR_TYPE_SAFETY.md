@@ -43,7 +43,10 @@ interface Customer {
 
 // Create type-safe list configuration
 const listConfig = createListConfig<Customer, ApiListResponse>({
-  endpoint: "/customers",
+  request: {
+    endpoint: "/customers",
+    method: "GET",
+  },
   responseSchema: apiListResponseSchema,
   // Transform receives the full response object
   // Must return an array of Customer objects
@@ -62,15 +65,17 @@ const listConfig = createListConfig<Customer, ApiListResponse>({
 });
 ```
 
-### Using Builder Pattern with `listWithSchema`
+### Using Builder Pattern with `list`
 
 The builder pattern also provides type safety:
 
 ```typescript
 const syncConnector = createSyncConnector(restConnector, collection)
   .add("customer", (builder) =>
-    builder.listWithSchema({
-      endpoint: "/customers",
+    builder.list({
+      request: {
+        endpoint: "/customers",
+      },
       responseSchema: customerListResponseSchema,
       // Transform receives the full response
       transform: (response) => {
@@ -95,7 +100,10 @@ You can also use explicit type annotations for clarity:
 const syncConnector = createSyncConnector(restConnector, collection)
   .with("customer", {
     list: {
-      endpoint: "/customers",
+      request: {
+        endpoint: "/customers",
+        method: "GET",
+      },
       responseSchema: customerListResponseSchema,
       // Explicit type annotations
       transform: (response: CustomerListResponse): Customer[] => {
@@ -133,7 +141,9 @@ Your IDE will provide:
 ```typescript
 // This will cause a TypeScript error - not returning an array
 const badConfig = createListConfig<Customer, ApiListResponse>({
-  endpoint: "/customers",
+  request: {
+    endpoint: "/customers",
+  },
   responseSchema: apiListResponseSchema,
   transform: (response) => {
     // Error: Must return Customer[], not Customer
@@ -148,7 +158,9 @@ const badConfig = createListConfig<Customer, ApiListResponse>({
 
 // This will also cause an error - missing required properties
 const badConfig2 = createListConfig<Customer, ApiListResponse>({
-  endpoint: "/customers",
+  request: {
+    endpoint: "/customers",
+  },
   responseSchema: apiListResponseSchema,
   transform: (response) => {
     return response.customers.map((customer) => ({
@@ -164,7 +176,7 @@ const badConfig2 = createListConfig<Customer, ApiListResponse>({
 ## Best Practices
 
 1. **Always define response schemas**: Use Zod schemas to define the complete shape of API responses, including pagination metadata
-2. **Use type-safe helpers**: Prefer `createListConfig` or `listWithSchema` for better type inference
+2. **Use type-safe helpers**: Prefer `createListConfig` or the builder `list` method for better type inference
 3. **Handle nested data**: The transform function receives the full response, so you can handle complex nested structures
 4. **Keep transforms simple**: Transform functions should focus on data mapping, not business logic
 5. **Document response structures**: Add comments explaining the expected API response format
@@ -236,7 +248,9 @@ After:
 ```typescript
 .with("customer", {
   list: createListConfig<Customer, ApiListResponse>({
-    endpoint: "/customers",
+    request: {
+      endpoint: "/customers",
+    },
     responseSchema: apiListResponseSchema,
     transform: (response) => {
       return response.customers.map((customer) => ({
