@@ -2,11 +2,8 @@
  * Builders module - Re-exports all builder classes and helpers
  */
 
-// Model builder
-export { ModelBuilder, defineModel } from "./model";
-
-// Collection builder
-export { CollectionBuilder, defineCollection } from "./collection";
+// Collection and Model builders
+export { CollectionBuilder, ModelBuilder, defineCollection, defineModel } from "./collection";
 
 // Custom App builder
 export {
@@ -30,32 +27,13 @@ export { OAuthConnectorBuilder, defineOAuthConnector } from "./oauth";
 export { RestConnectorBuilder, defineRestConnector } from "./restConnector";
 
 // Sync connector builder
-export { SyncConnectorBuilder, SyncConnector, defineSyncConnector } from "./syncConnector";
-export type { SyncOptions, SyncResult } from "./syncConnector";
-
-// Enhanced sync connector builder
-export { 
-  EnhancedSyncConnectorBuilder, 
-  EnhancedSyncConnector, 
-  defineEnhancedSyncConnector 
-} from "./enhancedSyncConnector";
-export type { 
-  ModelConnectorConfig,
-  PaginationParams,
-  PaginatedResponse,
-  SyncOperation,
-  SyncChange
-} from "./enhancedSyncConnector";
-
-// New sync connector (v2)
 export { 
   SyncConnectorBuilder,
-  SyncConnector as SyncConnectorV2,
+  SyncConnector,
   ModelConnector,
-  defineSyncConnector as createSyncConnector,
   defineSyncConnector,
   PaginationStrategies 
-} from "./syncConnector2";
+} from "./syncConnector";
 export type {
   Pagination,
   PagePagination,
@@ -69,18 +47,11 @@ export type {
   UpdateConfig,
   DeleteConfig,
   BulkConfig
-} from "./syncConnector2";
+} from "./syncConnector";
 
 // Match pattern helpers
 export { match } from "./match";
 
-// Typed collection and model builders
-export { 
-  TypedCollectionBuilder, 
-  TypedModelBuilder,
-  defineTypedCollection,
-  defineTypedModel
-} from "./typedCollection";
 
 // Schema type inference utilities
 export type { 

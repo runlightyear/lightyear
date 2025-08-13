@@ -62,12 +62,12 @@ describe("IntegrationBuilder", () => {
 
   describe("Collections", () => {
     it("should add collections to integration", () => {
-      const contact = defineModel("contact").withTitle("Contact").deploy();
+      const contact = defineModel("contact", { type: "object" }).withTitle("Contact").build();
 
       const crm = defineCollection("crm")
         .withTitle("CRM Collection")
         .withModel(contact)
-        .deploy();
+        .deployLegacy();
 
       const integration = defineIntegration("crm-sync")
         .withApp("salesforce")
@@ -79,11 +79,11 @@ describe("IntegrationBuilder", () => {
     });
 
     it("should add multiple collections at once", () => {
-      const contact = defineModel("contact").deploy();
-      const account = defineModel("account").deploy();
+      const contact = defineModel("contact", { type: "object" }).build();
+      const account = defineModel("account", { type: "object" }).build();
 
-      const crm = defineCollection("crm").withModel(contact).deploy();
-      const sales = defineCollection("sales").withModel(account).deploy();
+      const crm = defineCollection("crm").withModel(contact).deployLegacy();
+      const sales = defineCollection("sales").withModel(account).deployLegacy();
 
       const integration = defineIntegration("multi-sync")
         .withApp("salesforce")
@@ -99,15 +99,15 @@ describe("IntegrationBuilder", () => {
     });
 
     it("should support adding collections incrementally", () => {
-      const contact = defineModel("contact").deploy();
-      const account = defineModel("account").deploy();
-      const opportunity = defineModel("opportunity").deploy();
+      const contact = defineModel("contact", { type: "object" }).build();
+      const account = defineModel("account", { type: "object" }).build();
+      const opportunity = defineModel("opportunity", { type: "object" }).build();
 
-      const crm = defineCollection("crm").withModel(contact).deploy();
-      const sales = defineCollection("sales").withModel(account).deploy();
+      const crm = defineCollection("crm").withModel(contact).deployLegacy();
+      const sales = defineCollection("sales").withModel(account).deployLegacy();
       const pipeline = defineCollection("pipeline")
         .withModel(opportunity)
-        .deploy();
+        .deployLegacy();
 
       const integration = defineIntegration("incremental-sync")
         .withApp("salesforce")
@@ -178,8 +178,8 @@ describe("IntegrationBuilder", () => {
     });
 
     it("should work with both collections and actions", () => {
-      const contact = defineModel("contact").deploy();
-      const crm = defineCollection("crm").withModel(contact).deploy();
+      const contact = defineModel("contact", { type: "object" }).build();
+      const crm = defineCollection("crm").withModel(contact).deployLegacy();
       const syncAction = defineAction("sync").deploy();
 
       const integration = defineIntegration("complete-integration")
