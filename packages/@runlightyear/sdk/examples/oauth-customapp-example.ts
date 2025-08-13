@@ -1,7 +1,7 @@
-import { defineOAuth2CustomApp, defineOAuthConnector } from "../src/index";
+import { defineOAuth2CustomApp, createOAuthConnector } from "../src/index";
 
 // Example 1: Using the fluent OAuth connector builder with array-based scopes
-const myOAuthConnector = defineOAuthConnector("MyAPI")
+const myOAuthConnector = createOAuthConnector("MyAPI")
   .withAuthUrl("https://api.example.com/oauth/authorize")
   .withTokenUrl("https://api.example.com/oauth/token")
   .withScope(["read", "write", "admin"])
@@ -13,7 +13,7 @@ const myOAuthConnector = defineOAuthConnector("MyAPI")
   .build();
 
 // Example 2: Defining connectors for common providers manually
-const googleConnector = defineOAuthConnector("MyGoogleApp")
+const googleConnector = createOAuthConnector("MyGoogleApp")
   .withAuthUrl("https://accounts.google.com/o/oauth2/v2/auth")
   .withTokenUrl("https://oauth2.googleapis.com/token")
   .withScopeSeparator(" ") // Google uses space-separated scopes
@@ -27,7 +27,7 @@ const googleConnector = defineOAuthConnector("MyGoogleApp")
   })
   .build();
 
-const githubConnector = defineOAuthConnector("MyGitHubApp")
+const githubConnector = createOAuthConnector("MyGitHubApp")
   .withAuthUrl("https://github.com/login/oauth/authorize")
   .withTokenUrl("https://github.com/login/oauth/access_token")
   .withScopeSeparator(" ") // GitHub uses space-separated scopes
@@ -37,20 +37,20 @@ const githubConnector = defineOAuthConnector("MyGitHubApp")
   })
   .build();
 
-const slackConnector = defineOAuthConnector("MySlackApp")
+const slackConnector = createOAuthConnector("MySlackApp")
   .withAuthUrl("https://slack.com/oauth/v2/authorize")
   .withTokenUrl("https://slack.com/api/oauth.v2.access")
   .withScopeSeparator(",") // Slack uses comma-separated scopes
   .withScope(["channels:read", "users:read", "chat:write"])
   .build();
 
-// Example 3: Using addScope for incremental scope building
-const incrementalConnector = defineOAuthConnector("IncrementalAPI")
+// Example 3: Building scopes incrementally
+const incrementalConnector = createOAuthConnector("IncrementalAPI")
   .withAuthUrl("https://api.example.com/oauth/authorize")
   .withTokenUrl("https://api.example.com/oauth/token")
-  .addScope("read") // Single scope
-  .addScope(["write", "admin"]) // Multiple scopes at once
-  .addScope("delete") // Another single scope
+  .addScope("read") // Add single scope
+  .addScope(["write", "admin"]) // Add multiple scopes
+  .addScope("delete") // Add another scope
   .withScopeSeparator("+") // Use plus separator
   .build();
 

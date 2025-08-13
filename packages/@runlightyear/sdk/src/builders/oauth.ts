@@ -198,7 +198,8 @@ export class OAuthConnectorBuilder {
 
 /**
  * Factory function for creating an OAuth connector builder
+ * Use the fluent API to configure and then call .build() to create the connector factory
  */
-export function defineOAuthConnector(name: string): OAuthConnectorBuilder {
+export function createOAuthConnector(name: string): OAuthConnectorBuilder {
   return new OAuthConnectorBuilder(name);
 }

@@ -1,4 +1,4 @@
-import { defineRestConnector } from "../src/builders/restConnector";
+import { createRestConnector } from "../src/builders";
 
 /**
  **## REST Connector Usage Examples**
@@ -8,34 +8,34 @@ import { defineRestConnector } from "../src/builders/restConnector";
  */
 
 // Example 1: Basic REST connector with default headers
-const basicConnector = defineRestConnector()
+const basicConnector = createRestConnector()
   .withBaseUrl("https://api.example.com")
   .build();
 
-// Example 2: Connector with custom headers
-const connectorWithHeaders = defineRestConnector()
+// Example 2: Connector with custom headers - built incrementally
+const connectorWithHeaders = createRestConnector()
   .withBaseUrl("https://api.github.com")
   .addHeader("Authorization", "Bearer your-token-here")
   .addHeader("User-Agent", "MyApp/1.0")
   .build();
 
 // Example 3: Connector with completely custom headers (overriding defaults)
-const customHeadersConnector = defineRestConnector()
+const customHeadersConnector = createRestConnector()
   .withBaseUrl("https://api.example.com")
   .withHeaders({
     "Content-Type": "application/xml",
     Accept: "application/xml",
-    Authorization: "Bearer token123",
+    Authorization: "Bearer token123"
   })
   .build();
 
 // Example 4: Adding multiple headers at once
-const bulkHeadersConnector = defineRestConnector()
+const bulkHeadersConnector = createRestConnector()
   .withBaseUrl("https://jsonplaceholder.typicode.com")
   .addHeaders({
     "X-API-Key": "abc123",
     "X-Client-Version": "1.0.0",
-    "Cache-Control": "no-cache",
+    "Cache-Control": "no-cache"
   })
   .build();
 

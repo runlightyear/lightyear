@@ -21,17 +21,18 @@ export { IntegrationBuilder, defineIntegration } from "./integration";
 export { ActionBuilder, defineAction } from "./action";
 
 // OAuth connector builder
-export { OAuthConnectorBuilder, defineOAuthConnector } from "./oauth";
+export { OAuthConnectorBuilder, createOAuthConnector } from "./oauth";
 
 // REST connector builder
-export { RestConnectorBuilder, defineRestConnector } from "./restConnector";
+export { RestConnectorBuilder, createRestConnector } from "./restConnector";
 
 // Sync connector builder
 export { 
   SyncConnectorBuilder,
   SyncConnector,
   ModelConnector,
-  defineSyncConnector,
+  createSyncConnector,
+  createListConfig,
   PaginationStrategies 
 } from "./syncConnector";
 export type {

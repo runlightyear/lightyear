@@ -33,12 +33,18 @@ export class ModelBuilder<TSchema extends JSONSchema> {
       matchPattern: this.matchPattern,
     };
 
+    return model;
+  }
+
+  deploy(): ModelWithSchema<TSchema> & { name: string } {
+    const model = this.build();
+
     registerModel(model as any, {
       builderType: "ModelBuilder",
       createdBy: "defineModel",
     });
 
-    return model;
+    return model as ModelWithSchema<TSchema> & { name: string };
   }
 }
 
@@ -74,17 +80,27 @@ export class CollectionBuilder<TModels extends Record<string, ModelWithSchema<an
     return this;
   }
 
-  // Type-safe method with schema
+  // Type-safe method - overloaded to accept either a deployed model or schema+configure
   addModel<TName extends string, TSchema extends JSONSchema>(
-    name: TName,
-    schema: TSchema,
+    modelOrName: (ModelWithSchema<TSchema> & { name: TName }) | TName,
+    schema?: TSchema,
     configure?: (builder: ModelBuilder<TSchema>) => ModelBuilder<TSchema>
   ): CollectionBuilder<TModels & Record<TName, ModelWithSchema<TSchema>>> {
-    const builder = new ModelBuilder(name, schema);
-    const configuredBuilder = configure ? configure(builder) : builder;
-    const model = configuredBuilder.build();
+    let model: ModelWithSchema<TSchema> & { name: string };
     
-    (this.models as any)[name] = model;
+    if (typeof modelOrName === 'string' && schema) {
+      // Old style: addModel(name, schema, configure)
+      const builder = new ModelBuilder(modelOrName, schema);
+      const configuredBuilder = configure ? configure(builder) : builder;
+      model = configuredBuilder.deploy();
+    } else if (typeof modelOrName === 'object') {
+      // New style: addModel(deployedModel)
+      model = modelOrName;
+    } else {
+      throw new Error('Invalid arguments to addModel');
+    }
+    
+    (this.models as any)[model.name] = model;
     this.modelsArray.push(model as any);
     
     return this as any;

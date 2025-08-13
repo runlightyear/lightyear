@@ -74,7 +74,8 @@ export class RestConnectorBuilder {
 
 /**
  * Factory function for creating a REST connector builder
+ * Use the fluent API to configure and then call .build() to create the connector
  */
-export function defineRestConnector(): RestConnectorBuilder {
+export function createRestConnector(): RestConnectorBuilder {
   return new RestConnectorBuilder();
 }

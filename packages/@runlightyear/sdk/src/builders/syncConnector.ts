@@ -662,8 +662,22 @@ export class SyncConnectorBuilder<TCollection extends CollectionWithSchema<any>>
   }
 }
 
-// Factory function
-export function defineSyncConnector<TCollection extends CollectionWithSchema<any>>(
+// Helper function for better type inference in list configs
+export function createListConfig<TSchema extends z.ZodTypeAny, TModel>(
+  config: {
+    responseSchema: TSchema;
+    transform: (response: z.infer<TSchema>) => TModel[];
+    getNextPage?: (response: any, currentPagination: Pagination) => Pagination | null;
+  }
+): ListConfig<TSchema, TModel> {
+  return config;
+}
+
+/**
+ * Factory function for creating a sync connector builder
+ * Use the fluent API to configure and then call .build() to create the connector
+ */
+export function createSyncConnector<TCollection extends CollectionWithSchema<any>>(
   restConnector: RestConnector,
   collection: TCollection
 ): SyncConnectorBuilder<TCollection> {
