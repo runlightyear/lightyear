@@ -14,6 +14,11 @@ export class CollectionBuilder {
     this.name = name;
   }
 
+  withName(name: string): this {
+    this.name = name;
+    return this;
+  }
+
   withTitle(title: string): this {
     this.title = title;
     return this;

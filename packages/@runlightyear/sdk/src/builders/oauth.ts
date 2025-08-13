@@ -25,8 +25,10 @@ export interface OAuthConnectorBuilderConfig {
 export class OAuthConnectorBuilder {
   private config: Partial<OAuthConnectorBuilderConfig> = {};
 
-  constructor(name: string) {
-    this.config.name = name;
+  constructor(name?: string) {
+    if (name) {
+      this.config.name = name;
+    }
     this.config.scopes = [];
     this.config.scopeConnector = " "; // Default to space separator
   }
@@ -198,6 +200,13 @@ export class OAuthConnectorBuilder {
 
 /**
  * Factory function for creating an OAuth connector builder
+ */
+export function createOAuthConnector(): OAuthConnectorBuilder {
+  return new OAuthConnectorBuilder();
+}
+
+/**
+ * @deprecated Use createOAuthConnector instead
  */
 export function defineOAuthConnector(name: string): OAuthConnectorBuilder {
   return new OAuthConnectorBuilder(name);

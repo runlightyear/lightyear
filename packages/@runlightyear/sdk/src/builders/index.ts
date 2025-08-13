@@ -24,10 +24,10 @@ export { IntegrationBuilder, defineIntegration } from "./integration";
 export { ActionBuilder, defineAction } from "./action";
 
 // OAuth connector builder
-export { OAuthConnectorBuilder, defineOAuthConnector } from "./oauth";
+export { OAuthConnectorBuilder, createOAuthConnector, defineOAuthConnector } from "./oauth";
 
 // REST connector builder
-export { RestConnectorBuilder, defineRestConnector } from "./restConnector";
+export { RestConnectorBuilder, createRestConnector, defineRestConnector } from "./restConnector";
 
 // Match pattern helpers
 export { match } from "./match";

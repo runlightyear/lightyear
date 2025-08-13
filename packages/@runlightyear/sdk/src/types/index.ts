@@ -136,3 +136,42 @@ export interface Action {
   secrets?: AppSecret[];
   run?: RunFunc;
 }
+
+// Sync Connector types
+export type SyncOperation = "create" | "update" | "delete";
+export type SyncMode = "full" | "incremental";
+
+export interface SyncState {
+  lastSyncTime?: Date;
+  cursor?: string;
+  version?: string;
+  [key: string]: any;
+}
+
+export interface ListResponse<T = any> {
+  items: T[];
+  nextState?: Partial<SyncState>;
+  hasMore?: boolean;
+}
+
+export interface SyncResult {
+  read: {
+    created: number;
+    updated: number;
+    errors: Array<{ item: any; error: string }>;
+  };
+  write: {
+    created: number;
+    updated: number;
+    deleted: number;
+    errors: Array<{ change: any; error: string }>;
+  };
+}
+
+export interface SyncConnector {
+  name: string;
+  title?: string;
+  collection: Collection;
+  connectorType: "rest" | "graphql" | "custom";
+  sync(mode: SyncMode): Promise<SyncResult>;
+}

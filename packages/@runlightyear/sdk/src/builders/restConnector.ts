@@ -75,6 +75,13 @@ export class RestConnectorBuilder {
 /**
  * Factory function for creating a REST connector builder
  */
-export function defineRestConnector(): RestConnectorBuilder {
+export function createRestConnector(): RestConnectorBuilder {
   return new RestConnectorBuilder();
+}
+
+/**
+ * @deprecated Use createRestConnector instead
+ */
+export function defineRestConnector(): RestConnectorBuilder {
+  return createRestConnector();
 }
