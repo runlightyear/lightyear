@@ -59,9 +59,13 @@ type ApiListResponse = z.infer<typeof apiListResponseSchema>;
 
 // Example 1: Using createListConfig helper for maximum type safety
 const typeSafeListConfig = createListConfig<CollectionUser, ApiListResponse>({
-  request: {
+  request: (params) => ({
     endpoint: "/users",
-  },
+    params: {
+      page: params.page || 1,
+      per_page: params.limit || 20,
+    },
+  }),
   responseSchema: apiListResponseSchema,
   // Transform receives the full response and returns an array
   transform: (response) => {
@@ -88,9 +92,13 @@ const syncConnector = createSyncConnector(apiConnector, userCollection)
 const syncConnectorInline = createSyncConnector(apiConnector, userCollection)
   .with("user", {
     list: {
-      request: {
+      request: (params) => ({
         endpoint: "/users",
-      },
+        params: {
+          page: params.page || 1,
+          per_page: params.limit || 20,
+        },
+      }),
       responseSchema: apiListResponseSchema,
       // Transform with explicit type annotations
       transform: (response: ApiListResponse): CollectionUser[] => {
@@ -110,8 +118,19 @@ const syncConnectorInline = createSyncConnector(apiConnector, userCollection)
 const syncConnectorBuilder = createSyncConnector(apiConnector, userCollection)
   .add("user", (builder) =>
     builder.list({
-      request: {
-        endpoint: "/users",
+      request: (params) => {
+        // Can handle different pagination strategies
+        if (params.cursor) {
+          return {
+            endpoint: "/users",
+            params: { cursor: params.cursor, limit: params.limit },
+          };
+        } else {
+          return {
+            endpoint: "/users",
+            params: { page: params.page || 1, per_page: params.limit || 20 },
+          };
+        }
       },
       responseSchema: apiListResponseSchema,
       // Transform is properly typed with the full response!
@@ -133,7 +152,8 @@ async function demonstrateTypeSafety() {
   const userConnector = syncConnector.getModelConnector("user");
   
   if (userConnector?.list) {
-    const { items } = await userConnector.list();
+    // Can pass pagination parameters
+    const { items, nextCursor } = await userConnector.list({ page: 1, limit: 50 });
     
     // items is properly typed as CollectionUser[]
     items.forEach((user) => {
@@ -156,9 +176,9 @@ async function demonstrateTypeSafety() {
 /*
 // This would cause a TypeScript error - not returning an array:
 const badConfig = createListConfig<CollectionUser, ApiListResponse>({
-  request: {
+  request: (params) => ({
     endpoint: "/users",
-  },
+  }),
   responseSchema: apiListResponseSchema,
   transform: (response) => {
     // Error: Must return CollectionUser[], not CollectionUser
@@ -174,9 +194,9 @@ const badConfig = createListConfig<CollectionUser, ApiListResponse>({
 
 // This would also cause a TypeScript error - missing required properties:
 const badConfig2 = createListConfig<CollectionUser, ApiListResponse>({
-  request: {
+  request: (params) => ({
     endpoint: "/users",
-  },
+  }),
   responseSchema: apiListResponseSchema,
   transform: (response) => {
     return response.users.map((apiUser) => ({
@@ -191,9 +211,9 @@ const badConfig2 = createListConfig<CollectionUser, ApiListResponse>({
 
 // This would cause an error - wrong property type:
 const badConfig3 = createListConfig<CollectionUser, ApiListResponse>({
-  request: {
+  request: (params) => ({
     endpoint: "/users",
-  },
+  }),
   responseSchema: apiListResponseSchema,
   transform: (response) => {
     return response.users.map((apiUser) => ({

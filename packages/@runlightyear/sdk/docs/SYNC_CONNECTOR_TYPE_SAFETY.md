@@ -43,10 +43,14 @@ interface Customer {
 
 // Create type-safe list configuration
 const listConfig = createListConfig<Customer, ApiListResponse>({
-  request: {
+  request: (params) => ({
     endpoint: "/customers",
     method: "GET",
-  },
+    params: {
+      page: params.page || 1,
+      limit: params.limit || 20,
+    },
+  }),
   responseSchema: apiListResponseSchema,
   // Transform receives the full response object
   // Must return an array of Customer objects
@@ -73,9 +77,13 @@ The builder pattern also provides type safety:
 const syncConnector = createSyncConnector(restConnector, collection)
   .add("customer", (builder) =>
     builder.list({
-      request: {
+      request: (params) => ({
         endpoint: "/customers",
-      },
+        params: {
+          page: params.page || 1,
+          limit: params.limit || 20,
+        },
+      }),
       responseSchema: customerListResponseSchema,
       // Transform receives the full response
       transform: (response) => {
@@ -100,10 +108,14 @@ You can also use explicit type annotations for clarity:
 const syncConnector = createSyncConnector(restConnector, collection)
   .with("customer", {
     list: {
-      request: {
+      request: (params) => ({
         endpoint: "/customers",
         method: "GET",
-      },
+        params: {
+          page: params.page || 1,
+          limit: params.limit || 20,
+        },
+      }),
       responseSchema: customerListResponseSchema,
       // Explicit type annotations
       transform: (response: CustomerListResponse): Customer[] => {
@@ -141,9 +153,9 @@ Your IDE will provide:
 ```typescript
 // This will cause a TypeScript error - not returning an array
 const badConfig = createListConfig<Customer, ApiListResponse>({
-  request: {
+  request: (params) => ({
     endpoint: "/customers",
-  },
+  }),
   responseSchema: apiListResponseSchema,
   transform: (response) => {
     // Error: Must return Customer[], not Customer
@@ -183,20 +195,63 @@ const badConfig2 = createListConfig<Customer, ApiListResponse>({
 
 ## Common Patterns
 
-### Paginated Responses
+### Cursor-Based Pagination
 ```typescript
-const paginatedResponseSchema = z.object({
-  data: z.array(itemSchema),
-  pagination: z.object({
-    page: z.number(),
-    pageSize: z.number(),
-    total: z.number(),
-    hasMore: z.boolean(),
+const cursorListConfig = createListConfig<Item, CursorResponse>({
+  request: (params) => ({
+    endpoint: "/items",
+    params: {
+      cursor: params.cursor,
+      limit: params.limit || 50,
+    },
   }),
+  responseSchema: cursorResponseSchema,
+  pagination: {
+    type: "cursor",
+    cursorField: "nextCursor",
+  },
+  transform: (response) => response.items,
 });
+```
 
-// Transform extracts items from data field
-transform: (response) => response.data
+### Page-Based Pagination
+```typescript
+const pageListConfig = createListConfig<Item, PagedResponse>({
+  request: (params) => ({
+    endpoint: "/items",
+    params: {
+      page: params.page || 1,
+      per_page: params.limit || 20,
+    },
+  }),
+  responseSchema: pagedResponseSchema,
+  pagination: {
+    type: "page",
+    pageField: "page",
+    limitField: "per_page",
+  },
+  transform: (response) => response.data,
+});
+```
+
+### Offset-Based Pagination
+```typescript
+const offsetListConfig = createListConfig<Item, OffsetResponse>({
+  request: (params) => ({
+    endpoint: "/items",
+    params: {
+      offset: params.offset || 0,
+      limit: params.limit || 100,
+    },
+  }),
+  responseSchema: offsetResponseSchema,
+  pagination: {
+    type: "offset",
+    offsetField: "offset",
+    limitField: "limit",
+  },
+  transform: (response) => response.results,
+});
 ```
 
 ### Wrapped Responses
@@ -248,9 +303,12 @@ After:
 ```typescript
 .with("customer", {
   list: createListConfig<Customer, ApiListResponse>({
-    request: {
+    request: (params) => ({
       endpoint: "/customers",
-    },
+      params: {
+        page: params.page || 1,
+      },
+    }),
     responseSchema: apiListResponseSchema,
     transform: (response) => {
       return response.customers.map((customer) => ({

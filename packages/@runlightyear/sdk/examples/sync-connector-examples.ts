@@ -126,10 +126,14 @@ type CustomerListResponse = z.infer<typeof customerListResponseSchema>;
 
 // Using the new createListConfig helper for better type inference
 const customerListConfig = createListConfig<Customer, CustomerListResponse>({
-  request: {
+  request: (params) => ({
     endpoint: "/customers",
     method: "GET",
-  },
+    params: {
+      page: params.page || 1,
+      limit: params.limit || 50,
+    },
+  }),
   responseSchema: customerListResponseSchema,
   pagination: {
     type: "page",
@@ -158,10 +162,14 @@ const listSyncConnector = createSyncConnector(listRestConnector, listCollection)
 const listSyncConnectorAlt = createSyncConnector(listRestConnector, listCollection)
   .with("customer", {
     list: {
-      request: {
+      request: (params) => ({
         endpoint: "/customers",
         method: "GET",
-      },
+        params: {
+          page: params.page || 1,
+          limit: params.limit || 50,
+        },
+      }),
       responseSchema: customerListResponseSchema,
       pagination: {
         type: "page",
@@ -243,9 +251,13 @@ const usersSyncConnector = createSyncConnector(
   .add("user", (builder) =>
     builder
       .list({
-        request: {
+        request: (params) => ({
           endpoint: "/users",
-        },
+          params: {
+            cursor: params.cursor,
+            limit: params.limit || 100,
+          },
+        }),
         responseSchema: createPaginatedResponseSchema(UserSchema),
         pagination: {
           type: "cursor",
@@ -276,8 +288,8 @@ async function useUsersConnector() {
   const userConnector = usersSyncConnector.getModelConnector("user");
 
   if (userConnector?.list) {
-    // List users
-    const { items } = await userConnector.list();
+    // List users - can pass cursor for pagination
+    const { items, nextCursor } = await userConnector.list({ cursor: undefined });
 
     items.forEach((user) => {
       // Type inference shows all User properties plus computed ones
@@ -361,10 +373,14 @@ const fullCrudSyncConnector = createSyncConnector(
   .add("product", (builder) =>
     builder
       .list({
-        request: {
+        request: (params) => ({
           endpoint: "/api/v3/products",
           method: "GET",
-        },
+          params: {
+            page: params.page || 1,
+            limit: params.limit || 100,
+          },
+        }),
         responseSchema: productApiResponseSchema,
         pagination: {
           type: "page",

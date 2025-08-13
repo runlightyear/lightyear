@@ -12,10 +12,20 @@ export interface PaginationConfig {
   limitField?: string;
 }
 
+export interface ListParams {
+  cursor?: string;
+  page?: number;
+  offset?: number;
+  limit?: number;
+  [key: string]: any;
+}
+
 export interface ListConfig<T = any, R = any> {
-  request: {
+  request: (params: ListParams) => {
     endpoint: string;
     method?: "GET" | "POST";
+    params?: Record<string, any>;
+    data?: any;
   };
   responseSchema?: z.ZodType<R>;
   pagination?: PaginationConfig;
@@ -81,9 +91,11 @@ export interface ModelConnectorConfig<T = any> {
 
 // Type-safe config builder interfaces
 export interface TypedListConfig<TModel, TResponse> {
-  request: {
+  request: (params: ListParams) => {
     endpoint: string;
     method?: "GET" | "POST";
+    params?: Record<string, any>;
+    data?: any;
   };
   responseSchema?: z.ZodType<TResponse>;
   pagination?: PaginationConfig;
@@ -103,9 +115,11 @@ type InferResponseType<S> = S extends z.ZodType<infer R> ? R : any;
 
 // Type-safe list config that infers response type from schema
 export interface TypeSafeListConfig<TModel, TResponseSchema extends z.ZodType<any> | undefined = undefined> {
-  request: {
+  request: (params: ListParams) => {
     endpoint: string;
     method?: "GET" | "POST";
+    params?: Record<string, any>;
+    data?: any;
   };
   responseSchema?: TResponseSchema;
   pagination?: PaginationConfig;
@@ -169,11 +183,15 @@ export class SyncConnectorBuilder<
     };
 
     if (config.list) {
-      connector.list = async (params?: any) => {
+      connector.list = async (params?: ListParams) => {
+        // Get request configuration from the function
+        const requestConfig = config.list!.request(params || {});
+        
         const response = await this.restConnector.request({
-          method: config.list!.request.method || "GET",
-          url: config.list!.request.endpoint,
-          params,
+          method: requestConfig.method || "GET",
+          url: requestConfig.endpoint,
+          params: requestConfig.params,
+          data: requestConfig.data,
         });
 
         let data = response.data;
@@ -191,9 +209,15 @@ export class SyncConnectorBuilder<
           items = Array.isArray(data) ? data : [data];
         }
 
+        // Extract pagination info based on pagination config
+        let nextCursor: string | undefined;
+        if (config.list!.pagination?.type === "cursor" && config.list!.pagination.cursorField) {
+          nextCursor = data[config.list!.pagination.cursorField];
+        }
+
         return {
           items,
-          nextCursor: response.data.nextCursor,
+          nextCursor,
         };
       };
     }
@@ -343,9 +367,11 @@ export class ModelConnectorConfigBuilder<T = any> {
   private config: ModelConnectorConfig<T> = {};
 
   list<TSchema extends z.ZodType<any>>(config: {
-    request: {
+    request: (params: ListParams) => {
       endpoint: string;
       method?: "GET" | "POST";
+      params?: Record<string, any>;
+      data?: any;
     };
     responseSchema: TSchema;
     pagination?: PaginationConfig;
@@ -435,9 +461,11 @@ export function createSyncConnector<
 // Type-safe config factory for better inference
 export function createListConfig<TModel, TResponse>(
   config: {
-    request: {
+    request: (params: ListParams) => {
       endpoint: string;
       method?: "GET" | "POST";
+      params?: Record<string, any>;
+      data?: any;
     };
     responseSchema: z.ZodType<TResponse>;
     pagination?: PaginationConfig;

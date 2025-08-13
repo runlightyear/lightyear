@@ -43,6 +43,7 @@ export type {
   ModelConnectorConfig,
   PaginationConfig,
   ListConfig,
+  ListParams,
   CreateConfig,
   UpdateConfig,
   DeleteConfig,

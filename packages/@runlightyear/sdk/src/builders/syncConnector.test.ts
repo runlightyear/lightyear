@@ -51,10 +51,10 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           list: {
-            request: {
+            request: (params) => ({
               endpoint: "/users",
               method: "GET",
-            },
+            }),
           },
         })
         .build();
@@ -100,10 +100,10 @@ describe("SyncConnector", () => {
         createSyncConnector(mockRestConnector, collection)
           .with("nonExistentModel" as any, {
             list: {
-            request: {
-              endpoint: "/test",
+              request: (params) => ({
+                endpoint: "/test",
+              }),
             },
-          },
           });
       }).toThrow('Model "nonExistentModel" does not exist in collection');
     });
@@ -145,10 +145,10 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           list: {
-            request: {
+            request: (params) => ({
               endpoint: "/users",
               method: "GET",
-            },
+            }),
           },
         })
         .build();
@@ -214,9 +214,9 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           list: {
-            request: {
+            request: (params) => ({
               endpoint: "/users",
-            },
+            }),
             transform: (response: any) => response.results.users,
           },
         })
@@ -241,9 +241,9 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           list: {
-            request: {
+            request: (params) => ({
               endpoint: "/users",
-            },
+            }),
             transform: (response: any[]) => response.map((item: any) => ({
               id: item.user_id,
               name: item.full_name,
@@ -421,16 +421,16 @@ describe("SyncConnector", () => {
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
           list: {
-            request: {
+            request: (params) => ({
               endpoint: "/users",
-            },
+            }),
           },
         })
         .with("product", {
           list: {
-            request: {
+            request: (params) => ({
               endpoint: "/products",
-            },
+            }),
           },
         })
         .build();
