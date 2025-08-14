@@ -19,7 +19,7 @@ export interface ListParams {
   [key: string]: any;
 }
 
-export interface ListConfig<T = any, R = any> {
+export interface ListConfig<T = any, R = unknown> {
   request: (params: ListParams) => {
     endpoint: string;
     method?: "GET" | "POST";
@@ -136,7 +136,7 @@ export interface TypeSafeListConfig<
   pagination?: PaginationConfig;
   transform?: TResponseSchema extends z.ZodType<any>
     ? (response: InferResponseType<TResponseSchema>) => TModel[]
-    : (response: any) => TModel[];
+    : (response: unknown) => TModel[];
 }
 
 export interface ModelConnector<T = any> {
@@ -452,7 +452,7 @@ export class SyncModelConnectorBuilder<T = any> {
     pagination?: PaginationConfig;
     transform?: TSchema extends z.ZodType<any>
       ? (response: z.infer<TSchema>) => T[]
-      : (response: any) => T[];
+      : (response: unknown) => T[];
   }): this {
     this.config.list = config as any;
     return this;
