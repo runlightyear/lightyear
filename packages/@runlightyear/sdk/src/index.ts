@@ -19,3 +19,6 @@ export * from "./http";
 
 // Logging exports (for log capture and upload)
 export * from "./logging";
+
+// Helper exports
+export * from "./helpers/collection-helpers";

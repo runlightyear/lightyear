@@ -60,6 +60,10 @@
 
 **_ Example goes here _**
 
+## Define a new collection and a model with a json schema, then infer the typescript type of that model schema directly from the collection via the model's name as opposed to position in the collection's models array and demonstrate the type's usage and demostrate it works with positive and negative examples (use ts-expect-error to demonstrate the errors)
+
+**_ Example goes here _**
+
 ## Infer a type with the model names that are part of a collection directly from the collection and demonstrate the type's usage and demostrate it works with positive and negative examples (use ts-expect-error to demonstrate the errors)
 
 **_ Example goes here _**

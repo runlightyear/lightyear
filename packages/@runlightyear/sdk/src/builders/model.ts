@@ -9,14 +9,14 @@ type Schema = JSONSchema7 | Readonly<any>;
 /**
  * Model Builder - fluent API for creating models that belong to a collection
  */
-export class ModelBuilder<TSchema = unknown> {
+export class ModelBuilder<TSchema = unknown, TName extends string = string> {
   private collection: Collection | CollectionBuilder;
-  private name: string;
+  private name: TName;
   private title?: string;
   private schema?: TSchema extends Readonly<any> ? TSchema : JSONSchema7;
   private matchPattern?: MatchPattern;
 
-  constructor(collection: Collection | CollectionBuilder, name: string) {
+  constructor(collection: Collection | CollectionBuilder, name: TName) {
     this.collection = collection;
     this.name = name;
   }
@@ -28,9 +28,9 @@ export class ModelBuilder<TSchema = unknown> {
 
   withSchema<TNewSchema extends Schema>(
     schema: TNewSchema
-  ): ModelBuilder<TNewSchema> {
+  ): ModelBuilder<TNewSchema, TName> {
     this.schema = schema as any;
-    return this as unknown as ModelBuilder<TNewSchema>;
+    return this as unknown as ModelBuilder<TNewSchema, TName>;
   }
 
   withMatchPattern(pattern: MatchPattern): this {
@@ -38,8 +38,8 @@ export class ModelBuilder<TSchema = unknown> {
     return this;
   }
 
-  deploy(): Model<TSchema> {
-    const model: Model<TSchema> = {
+  deploy(): Model<TSchema, TName> {
+    const model: Model<TSchema, TName> = {
       name: this.name,
       title: this.title,
       schema: this.schema,
@@ -77,9 +77,9 @@ export class ModelBuilder<TSchema = unknown> {
  * @param collection - The collection this model belongs to
  * @param name - The name of the model
  */
-export function defineModel(
+export function defineModel<N extends string>(
   collection: Collection | CollectionBuilder,
-  name: string
-): ModelBuilder {
+  name: N
+): ModelBuilder<unknown, N> {
   return new ModelBuilder(collection, name);
 }

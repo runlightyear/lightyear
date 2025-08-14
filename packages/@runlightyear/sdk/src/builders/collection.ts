@@ -8,10 +8,10 @@ type Schema = JSONSchema7 | Readonly<any>;
 /**
  * Collection Builder - fluent API for creating collections
  */
-export class CollectionBuilder {
+export class CollectionBuilder<TModels extends readonly Model<any, any>[] = readonly []> {
   private name: string;
   private title?: string;
-  private models: Model<any>[] = [];
+  private models: Model<any, any>[] = [];
 
   constructor(name: string) {
     this.name = name;
@@ -21,50 +21,54 @@ export class CollectionBuilder {
     return this.name;
   }
 
-  withName(name: string): this {
+  withName(name: string): CollectionBuilder<TModels> {
     this.name = name;
-    return this;
+    return this as any;
   }
 
-  withTitle(title: string): this {
+  withTitle(title: string): CollectionBuilder<TModels> {
     this.title = title;
-    return this;
+    return this as any;
   }
 
-  withModel(model: Model<any>): this {
+  withModel<M extends Model<any, any>>(
+    model: M
+  ): CollectionBuilder<readonly [...TModels, M]> {
     this.models.push(model);
-    return this;
+    return this as any;
   }
 
-  withModels(models: Model<any>[]): this {
+  withModels<M extends readonly Model<any, any>[]>(
+    models: M
+  ): CollectionBuilder<readonly [...TModels, ...M]> {
     this.models.push(...models);
-    return this;
+    return this as any;
   }
 
-  addModel(
-    name: string,
+  addModel<N extends string, S extends Schema = any>(
+    name: N,
     options?: {
       title?: string;
-      schema?: Schema;
+      schema?: S;
       matchPattern?: MatchPattern;
     }
-  ): this {
-    const model: Model<any> = {
+  ): CollectionBuilder<readonly [...TModels, Model<S, N>]> {
+    const model: Model<S, N> = {
       name,
       title: options?.title,
-      schema: options?.schema as any,
+      schema: options?.schema,
       matchPattern: options?.matchPattern,
-    };
+    } as Model<S, N>;
 
     // Register the model in the registry
-    registerModel(model, {
+    registerModel(model as Model<any, any>, {
       builderType: "CollectionBuilder",
       createdBy: "addModel",
       parentCollection: this.name,
     });
 
-    this.models.push(model);
-    return this;
+    this.models.push(model as Model<any, any>);
+    return this as any;
   }
 
   deploy(): Collection {
@@ -81,7 +85,10 @@ export class CollectionBuilder {
       modelCount: this.models.length,
     });
 
-    return collection;
+    // Return with type assertion to preserve model types
+    return collection as Collection & {
+      models: TModels extends readonly [...infer M] ? M : Model<any, any>[];
+    };
   }
 }
 

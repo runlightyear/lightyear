@@ -24,8 +24,8 @@ export type MatchPattern =
   | AndMatchPattern;
 
 // Model definition
-export interface Model<TSchema = unknown> {
-  name: string;
+export interface Model<TSchema = unknown, TName extends string = string> {
+  name: TName;
   title?: string;
   // Preserve the literal type for inference while remaining compatible at runtime
   schema?: TSchema extends Readonly<any> ? TSchema : JSONSchema7;
@@ -36,7 +36,7 @@ export interface Model<TSchema = unknown> {
 export interface Collection {
   name: string;
   title?: string;
-  models: Model<any>[];
+  models: Model<any, any>[];
 }
 
 // App authentication types
@@ -186,3 +186,19 @@ export type InferModelData<M> = M extends Model<infer S>
     ? FromSchema<S>
     : unknown
   : unknown;
+
+// Helper to find a model by name in an array
+type FindModel<Models, Name extends string> = Models extends readonly any[]
+  ? Extract<Models[number], { name: Name }>
+  : never;
+
+// Helper to infer a model's data type from a collection and model name literal
+export type InferModelDataFromCollection<C, N extends string> = 
+  C extends { models: infer Models }
+    ? FindModel<Models, N> extends Model<infer S, any>
+      ? InferModelData<Model<S, N>>
+      : unknown
+    : unknown;
+
+// Concise alias matching the desired API style: Infer<typeof collection, 'modelName'>
+export type Infer<C, N extends string> = InferModelDataFromCollection<C, N>;
