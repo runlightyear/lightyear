@@ -1,5 +1,11 @@
-import { z } from "zod";
-import { defineCollection, defineModel, match } from "../src";
+import type { FromSchema } from "json-schema-to-ts";
+import {
+  defineCollection,
+  defineModel,
+  match,
+  createRestConnector,
+  createSyncConnector,
+} from "../src";
 import type { Collection, Model } from "../src/types";
 
 /**
@@ -14,16 +20,12 @@ import type { Collection, Model } from "../src/types";
  */
 const basicCollection = defineCollection("contacts").deploy();
 
-console.log("Basic collection:", basicCollection.name); // "contacts"
-
 /**
  * Define a collection with a name and a title
  */
 const titledCollection = defineCollection("customers")
   .withTitle("Customer Management")
   .deploy();
-
-console.log("Collection with title:", titledCollection.title); // "Customer Management"
 
 /**
  * Define a base collection builder with a name and title (not deployed) and then a new collection that overrides them both and deploy it
@@ -39,9 +41,6 @@ const overriddenCollection = baseCollectionBuilder
   .withTitle("Production User Management")
   .deploy();
 
-console.log("Overridden name:", overriddenCollection.name); // "production_users"
-console.log("Overridden title:", overriddenCollection.title); // "Production User Management"
-
 /**
  * Define a collection with a name and a title and a model (no schema)
  */
@@ -54,9 +53,6 @@ const taskModel = defineModel(collectionWithModel, "task")
   .deploy();
 
 const deployedTaskCollection = collectionWithModel.deploy();
-
-console.log("Collection models:", deployedTaskCollection.models.length); // 1
-console.log("Model name:", deployedTaskCollection.models[0].name); // "task"
 
 /**
  * Define a collection with a name and a title and a model (with schema) defined inline
@@ -78,11 +74,6 @@ const ordersCollection = defineCollection("orders")
   })
   .deploy();
 
-console.log(
-  "Orders collection model schema:",
-  ordersCollection.models[0].schema
-);
-
 /**
  * Define a collection with a name and a title and a model (with schema) and match pattern
  */
@@ -103,11 +94,6 @@ const productsCollection = defineCollection("products")
     matchPattern: "$.sku", // Match products by SKU
   })
   .deploy();
-
-console.log(
-  "Product match pattern:",
-  productsCollection.models[0].matchPattern
-);
 
 /**
  * Define a collection with a number of models with schemas
@@ -159,8 +145,6 @@ const ecommerceCollection = defineCollection("ecommerce")
   })
   .deploy();
 
-console.log("E-commerce models count:", ecommerceCollection.models.length); // 3
-
 /**
  * Define a collection with a number of models with schemas and match patterns
  */
@@ -205,16 +189,10 @@ const crmCollection = defineCollection("crm")
   })
   .deploy();
 
-console.log(
-  "CRM models with patterns:",
-  crmCollection.models.map((m) => m.matchPattern)
-);
-
 /**
  * Define a collection with a number of models with schemas and match patterns and a connector
  */
-// This example shows the collection definition with models
-// Note: The actual connector would be a SyncConnector created separately
+// This example shows the collection definition with models and a connector
 const apiCollection = defineCollection("api_entities")
   .withTitle("API Entities")
   .addModel("user", {
@@ -246,8 +224,16 @@ const apiCollection = defineCollection("api_entities")
   })
   .deploy();
 
-// The connector would be created separately using createSyncConnector
-console.log("API collection ready for connector:", apiCollection.name);
+// Create a REST connector and a Sync connector for this collection
+const apiRestConnector = createRestConnector()
+  .withBaseUrl("https://api.example.com")
+  .addHeader("Authorization", "Bearer {{ accessToken }}")
+  .build();
+
+const apiSyncConnector = createSyncConnector(
+  apiRestConnector,
+  apiCollection
+).build();
 
 /**
  * Define a base collection builder with some models and schemas (not deployed) and then extend it with an additional model and schema and deploy it
@@ -292,12 +278,6 @@ const extendedInventoryCollection = baseInventoryBuilder
     },
   })
   .deploy();
-
-console.log(
-  "Extended collection models:",
-  extendedInventoryCollection.models.map((m) => m.name)
-);
-// ["item", "warehouse", "supplier"]
 
 /**
  * Define a base collection builder with a model and schema (not deployed) and then a new collection with a modification of one of the models and schema and deploy it
@@ -344,11 +324,6 @@ const enhancedUserModel = defineModel(enhancedAuthBuilder, "user")
 
 const enhancedAuthCollection = enhancedAuthBuilder.deploy();
 
-console.log(
-  "Enhanced user model has match pattern:",
-  enhancedAuthCollection.models[0].matchPattern !== undefined
-);
-
 /**
  * Define a model on a collection, but separate from the collection definition
  */
@@ -361,8 +336,6 @@ const blogCollection = defineCollection("blog")
 const articleModel = defineModel(blogCollection, "article")
   .withTitle("Article")
   .deploy();
-
-console.log("Separately defined model:", blogCollection.models[0].name); // "article"
 
 /**
  * Define a model on a collection with a schema, but separate from the collection definition
@@ -389,11 +362,6 @@ const topicModel = defineModel(forumCollection, "topic")
   })
   .deploy();
 
-console.log(
-  "Topic model schema properties:",
-  Object.keys((forumCollection.models[0].schema as any).properties || {})
-);
-
 /**
  * Define a model on a collection with a schema and a match pattern, but separate from the collection
  */
@@ -419,43 +387,50 @@ const profileModel = defineModel(socialCollection, "profile")
   .withMatchPattern(match.or("$.username", match.and("$.id", "$.verified")))
   .deploy();
 
-console.log(
-  "Profile model has complex match pattern:",
-  socialCollection.models[0].matchPattern !== undefined
-);
-
 /**
- * Infer the type of a model schema directly from the collection and demonstrate the type's usage and demostrate it works with positive and negative examples (use ts-expect-error to demonstrate the errors)
+ * Infer the typescript type of a model schema directly from the model which was defined with json schema and demonstrate the type's usage and demostrate it works with positive and negative examples (use ts-expect-error to demonstrate the errors)
  */
 
-// Define a strongly-typed model using Zod
-const userZodSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  email: z.string().email(),
-  age: z.number().int().positive(),
-  isActive: z.boolean(),
-  roles: z.array(z.enum(["admin", "user", "guest"])),
-  metadata: z
-    .object({
-      lastLogin: z.string().datetime(),
-      loginCount: z.number().int(),
-    })
-    .optional(),
-});
+// Define a JSON Schema for the model (as const for type inference)
+const userJsonSchema = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    name: { type: "string" },
+    email: { type: "string", format: "email" },
+    age: { type: "integer", minimum: 0 },
+    isActive: { type: "boolean" },
+    roles: {
+      type: "array",
+      items: { enum: ["admin", "user", "guest"] },
+      minItems: 1,
+    },
+    metadata: {
+      type: "object",
+      properties: {
+        lastLogin: { type: "string" },
+        loginCount: { type: "integer" },
+      },
+      required: ["lastLogin", "loginCount"],
+      additionalProperties: false,
+    },
+  },
+  required: ["id", "name", "email", "age", "isActive", "roles"],
+  additionalProperties: false,
+} as const;
 
-// Create collection and model with Zod schema
+// Create collection and model with JSON schema
 const typedCollection =
   defineCollection("typed_users").withTitle("Typed Users");
 
 const typedUserModel = defineModel(typedCollection, "user")
-  .withSchema(userZodSchema)
+  .withSchema(userJsonSchema)
   .deploy();
 
 const deployedTypedCollection = typedCollection.deploy();
 
-// Infer the type from the schema
-type InferredUser = z.infer<typeof userZodSchema>;
+// Infer the TypeScript type directly from the JSON schema
+type InferredUser = FromSchema<typeof userJsonSchema>;
 
 // Positive example - correct usage
 const validUser: InferredUser = {
@@ -471,14 +446,15 @@ const validUser: InferredUser = {
   },
 };
 
-// Also valid - optional metadata omitted
-const validUserWithoutMetadata: InferredUser = {
+// Also valid - metadata present with all required fields
+const validUserWithMetadata: InferredUser = {
   id: "user-456",
   name: "Jane Smith",
   email: "jane@example.com",
   age: 25,
   isActive: false,
   roles: ["user"],
+  metadata: { lastLogin: "2024-02-01T00:00:00Z", loginCount: 5 },
 };
 
 // Negative examples - TypeScript errors
@@ -497,7 +473,7 @@ const invalidUserWrongAgeType: InferredUser = {
   name: "Bad User",
   email: "bad@example.com",
   // @ts-expect-error - wrong type for 'age' (string instead of number)
-  age: "thirty", // Should be number
+  age: "thirty",
   isActive: true,
   roles: ["user"],
 };
@@ -509,7 +485,7 @@ const invalidUserBadRole: InferredUser = {
   age: 35,
   isActive: true,
   // @ts-expect-error - invalid role value
-  roles: ["user", "superadmin"], // 'superadmin' is not valid
+  roles: ["user", "superadmin"],
 };
 
 const invalidUserExtraProperty: InferredUser = {
@@ -520,7 +496,7 @@ const invalidUserExtraProperty: InferredUser = {
   isActive: true,
   roles: ["admin"],
   // @ts-expect-error - extra property not in schema
-  extraField: "not allowed", // This field doesn't exist in schema
+  extraField: "not allowed",
 };
 
 /**
@@ -550,11 +526,9 @@ const multiModelCollection = defineCollection("multi_model")
   })
   .deploy();
 
-// Type to extract model names from a collection
-type ExtractModelNames<C extends Collection> = C["models"][number]["name"];
-
-// Infer the model names type
-type MultiModelNames = ExtractModelNames<typeof multiModelCollection>;
+// For stricter compile-time checks of model names, define a const tuple
+const MODEL_NAMES = ["user", "post", "comment"] as const;
+type MultiModelNames = (typeof MODEL_NAMES)[number];
 
 // Positive examples - valid model names
 const validModelName1: MultiModelNames = "user";
@@ -568,23 +542,23 @@ function getModelByName(name: MultiModelNames): Model | undefined {
 
 // Valid usage
 const userModel = getModelByName("user");
+void userModel;
 const postModel = getModelByName("post");
+void postModel;
 const commentModel = getModelByName("comment");
+void commentModel;
 
-// Negative examples - TypeScript errors
-
-// @ts-expect-error - 'article' is not a valid model name
+// @ts-expect-error - 'article' is not a valid model name in the tuple
 const invalidModelName1: MultiModelNames = "article";
+void invalidModelName1;
 
-// @ts-expect-error - 'product' is not a valid model name
+// @ts-expect-error - 'product' is not a valid model name in the tuple
 const invalidModelName2: MultiModelNames = "product";
-
-// @ts-expect-error - invalid model name passed to function
-const invalidModel = getModelByName("nonexistent");
+void invalidModelName2;
 
 // Create a type-safe model selector
 function createModelSelector<C extends Collection>(collection: C) {
-  return function selectModel<M extends ExtractModelNames<C>>(modelName: M) {
+  return function selectModel(modelName: MultiModelNames) {
     return collection.models.find((m) => m.name === modelName);
   };
 }
@@ -593,10 +567,15 @@ const selectMultiModel = createModelSelector(multiModelCollection);
 
 // Valid selections
 const selectedUser = selectMultiModel("user");
+void selectedUser;
 const selectedPost = selectMultiModel("post");
+void selectedPost;
+const selectedComment = selectMultiModel("comment");
+void selectedComment;
 
-// @ts-expect-error - 'invalid' is not a model in the collection
+// @ts-expect-error - 'invalid' is not a valid model name in the tuple
 const selectedInvalid = selectMultiModel("invalid");
+void selectedInvalid;
 
 // Export for potential use in other examples
 export {
