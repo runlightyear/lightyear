@@ -5,10 +5,26 @@ import { registerCollection, registerModel } from "../registry";
 // Type to accept both JSONSchema7 and const schemas
 type Schema = JSONSchema7 | Readonly<any>;
 
+// Helper type to convert TModels array to a name->model mapping
+type ModelsToMap<TModels> = TModels extends readonly Model<any, any>[]
+  ? { [M in TModels[number] as M["name"]]: M }
+  : {};
+
+// Type for the getModel method with proper overloads
+interface TypedCollectionMethods<TModels> {
+  getModel<K extends keyof ModelsToMap<TModels> & string>(
+    name: K
+  ): ModelsToMap<TModels>[K] | undefined;
+  getModel(name: string): Model<any, any> | undefined;
+}
+
 /**
  * Collection Builder - fluent API for creating collections
  */
-export class CollectionBuilder<TModels extends readonly Model<any, any>[] = readonly []> {
+export class CollectionBuilder<
+  TModels extends readonly Model<any, any>[] = readonly [],
+  TSchemas extends Record<string, any> = {}
+> {
   private name: string;
   private title?: string;
   private models: Model<any, any>[] = [];
@@ -21,26 +37,26 @@ export class CollectionBuilder<TModels extends readonly Model<any, any>[] = read
     return this.name;
   }
 
-  withName(name: string): CollectionBuilder<TModels> {
+  withName(name: string): CollectionBuilder<TModels, TSchemas> {
     this.name = name;
     return this as any;
   }
 
-  withTitle(title: string): CollectionBuilder<TModels> {
+  withTitle(title: string): CollectionBuilder<TModels, TSchemas> {
     this.title = title;
     return this as any;
   }
 
   withModel<M extends Model<any, any>>(
     model: M
-  ): CollectionBuilder<readonly [...TModels, M]> {
+  ): CollectionBuilder<readonly [...TModels, M], TSchemas> {
     this.models.push(model);
     return this as any;
   }
 
   withModels<M extends readonly Model<any, any>[]>(
     models: M
-  ): CollectionBuilder<readonly [...TModels, ...M]> {
+  ): CollectionBuilder<readonly [...TModels, ...M], TSchemas> {
     this.models.push(...models);
     return this as any;
   }
@@ -52,7 +68,7 @@ export class CollectionBuilder<TModels extends readonly Model<any, any>[] = read
       schema?: S;
       matchPattern?: MatchPattern;
     }
-  ): CollectionBuilder<readonly [...TModels, Model<S, N>]> {
+  ): CollectionBuilder<readonly [...TModels, Model<S, N>], TSchemas & { [K in N]: S }> {
     const model: Model<S, N> = {
       name,
       title: options?.title,
@@ -71,11 +87,19 @@ export class CollectionBuilder<TModels extends readonly Model<any, any>[] = read
     return this as any;
   }
 
-  deploy(): Collection {
+  deploy(): Collection & TypedCollectionMethods<TModels> & { __schemas?: TSchemas } {
+    // Build model map for efficient lookup
+    const modelMap = new Map<string, Model<any, any>>();
+    for (const model of this.models) {
+      modelMap.set(model.name, model);
+    }
+
+    // Create collection with getModel method
     const collection: Collection = {
       name: this.name,
       title: this.title,
       models: this.models,
+      getModel: (name: string) => modelMap.get(name),
     };
 
     // Register the collection in the global registry
@@ -85,10 +109,8 @@ export class CollectionBuilder<TModels extends readonly Model<any, any>[] = read
       modelCount: this.models.length,
     });
 
-    // Return with type assertion to preserve model types
-    return collection as Collection & {
-      models: TModels extends readonly [...infer M] ? M : Model<any, any>[];
-    };
+    // Return with type assertion to preserve model types and schema mapping
+    return collection as Collection & TypedCollectionMethods<TModels> & { __schemas?: TSchemas };
   }
 }
 

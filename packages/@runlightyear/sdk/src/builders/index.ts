@@ -7,7 +7,6 @@ export { ModelBuilder, defineModel } from "./model";
 
 // Collection builder
 export { CollectionBuilder, defineCollection } from "./collection";
-export { createTypedCollection } from "./typed-collection";
 
 // Custom App builder
 export {

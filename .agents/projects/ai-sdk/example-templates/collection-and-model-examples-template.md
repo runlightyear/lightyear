@@ -56,7 +56,7 @@
 
 **_ Example goes here _**
 
-## Infer the typescript type of a model schema directly from the model which was defined with json schema and demonstrate the type's usage and demostrate it works with positive and negative examples (use ts-expect-error to demonstrate the errors)
+## Infer the typescript type of a model schema directly from the model which was defined with json schema and demonstrate the type's usage and demonstrate it works with positive and negative examples (use ts-expect-error to demonstrate the errors)
 
 **_ Example goes here _**
 
