@@ -1,226 +1,91 @@
-import { z } from "zod";
-import {
-  defineCollection,
-  createRestConnector,
-  createSyncConnector,
-  createListConfig,
-  createCreateConfig,
-  createUpdateConfig,
-  createDeleteConfig,
-} from "../src";
-import { createPaginatedResponseSchema } from "../src/builders/typedSyncHelpers";
-
 /**
  * Sync Connector Examples
  *
- * These examples demonstrate how to use sync connectors with proper type safety.
- *
- * Key features shown:
- * 1. Type-safe transform functions - receives the full API response typed with the
- *    response schema and must return an array matching the collection's model schema
- * 2. Using createListConfig, createCreateConfig, createUpdateConfig, and 
- *    createDeleteConfig helpers for better type inference
- * 3. Using builder methods like listWithSchema for inline type safety
- * 4. Transform functions that handle various API response structures (paginated,
- *    wrapped, nested) and map them to collection models
- *
- * The type-safe config helpers ensure:
- * - Create operations receive the full model type
- * - Update operations receive Partial<Model> type
- * - All operations maintain proper type inference throughout
- *
- * The transform function gives you full control over how to extract items from
- * complex API responses while maintaining type safety.
+ * Note: Each example demonstrates type inference by using the sync connector
+ * in a way that shows the types are properly inferred.
  */
+
+import { z } from "zod";
+import { defineCollection, createSyncConnector, RestConnector } from "../src";
 
 /**
  * Define a basic sync connector that works with a rest api and a collection
  */
 
-const ContactSchema = z.object({
+// Define schemas for our models
+const UserSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string().email(),
-  phone: z.string().optional(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
 });
 
-type Contact = z.infer<typeof ContactSchema>;
-
-const basicCollection = defineCollection("contacts")
-  .withTitle("Contacts")
-  .addModel("contact", {
-    title: "Contact",
-    schema: ContactSchema as any,
-  })
+// Create a collection
+const userCollection = defineCollection("users")
+  .addModel("user", { schema: UserSchema })
   .deploy();
 
-const basicRestConnector = createRestConnector()
-  .withBaseUrl("https://api.example.com")
-  .addHeader("Authorization", "Bearer ${auth.accessToken}")
-  .build();
+// Initialize REST connector
+const apiConnector = new RestConnector({
+  baseUrl: "https://api.example.com",
+  headers: {
+    Authorization: "Bearer {{ accessToken }}",
+  },
+});
 
+// Create a basic sync connector
 const basicSyncConnector = createSyncConnector(
-  basicRestConnector,
-  basicCollection
+  apiConnector,
+  userCollection
 ).build();
 
-// Demonstrate type inference - getModelConnector should return undefined for non-existent models
-const basicContactConnector = basicSyncConnector.getModelConnector("contact");
-const basicNonExistent = basicSyncConnector.getModelConnector(
-  "nonExistent" as any
-);
-
-// Use the sync method to verify the connector works
-async function useBasicConnector() {
-  await basicSyncConnector.sync();
-}
+// Access the connectors
+const restConnector = basicSyncConnector.getRestConnector();
+void restConnector;
+const collection = basicSyncConnector.getCollection();
+void collection;
 
 /**
  * Define a sync connector that works with a rest api and a collection and has a list method
- *
- * This example demonstrates the current limitation: the transform function parameter
- * is typed as 'any' even though we provide a responseSchema. Ideally, it should be
- * typed as CustomerApiResponse automatically.
  */
 
-const listCollection = defineCollection("customers")
-  .withTitle("Customers")
-  .addModel("customer", {
-    title: "Customer",
-    schema: z.object({
-      id: z.string(),
-      name: z.string(),
-      email: z.string().email(),
-      status: z.enum(["active", "inactive"]),
-    }) as any,
-  })
-  .deploy();
-
-const listRestConnector = createRestConnector()
-  .withBaseUrl("https://api.crm.com/v1")
-  .addHeader("X-API-Key", "${secrets.apiKey}")
-  .build();
-
-// Define the actual API response schema (different from our model)
-const customerApiResponseSchema = z.object({
-  customer_id: z.string(),
-  full_name: z.string(),
-  email_address: z.string().email(),
-  is_active: z.boolean(),
-  created_at: z.string(),
-  tier: z.string().optional(),
+// Define response schema for list endpoint
+const UserListResponseSchema = z.object({
+  users: z.array(UserSchema),
+  nextPage: z.string().optional(),
+  totalCount: z.number(),
 });
 
-type CustomerApiResponse = z.infer<typeof customerApiResponseSchema>;
-
-// Define our desired model type that matches the collection schema
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  status: "active" | "inactive";
-}
-
-// Define a response schema for the list endpoint
-const customerListResponseSchema = z.object({
-  customers: z.array(customerApiResponseSchema),
-  total: z.number(),
-  page: z.number(),
-  pageSize: z.number(),
-});
-
-type CustomerListResponse = z.infer<typeof customerListResponseSchema>;
-
-// Using the new createListConfig helper for better type inference
-const customerListConfig = createListConfig<Customer, CustomerListResponse>({
-  request: (params) => ({
-    endpoint: "/customers",
-    method: "GET",
-    params: {
-      page: params.page || 1,
-      limit: params.limit || 50,
-    },
-  }),
-  responseSchema: customerListResponseSchema,
-  pagination: {
-    type: "page",
-    pageSize: 50,
-    pageField: "page",
-    limitField: "limit",
-  },
-  // Transform function receives the full response and returns an array
-  transform: (response) => {
-    return response.customers.map((customer) => ({
-      id: customer.customer_id,
-      name: customer.full_name,
-      email: customer.email_address,
-      status: customer.is_active ? "active" : "inactive",
-    }));
-  },
-});
-
-const listSyncConnector = createSyncConnector(listRestConnector, listCollection)
-  .with("customer", {
-    list: customerListConfig,
-  })
-  .build();
-
-// Alternative approach using the builder method with inline config
-const listSyncConnectorAlt = createSyncConnector(
-  listRestConnector,
-  listCollection
-)
-  .with("customer", {
+// Create sync connector with list method
+const syncConnectorWithList = createSyncConnector(apiConnector, userCollection)
+  .with("user", {
     list: {
       request: (params) => ({
-        endpoint: "/customers",
+        endpoint: "/users",
         method: "GET",
         params: {
           page: params.page || 1,
-          limit: params.limit || 50,
+          limit: params.limit || 20,
         },
       }),
-      responseSchema: customerListResponseSchema,
-      pagination: {
-        type: "page",
-        pageSize: 50,
-        pageField: "page",
-        limitField: "limit",
-      },
-      // Transform receives full response and returns array
-      transform: (response: CustomerListResponse): Customer[] => {
-        return response.customers.map((customer) => ({
-          id: customer.customer_id,
-          name: customer.full_name,
-          email: customer.email_address,
-          status: customer.is_active ? "active" : "inactive",
-        }));
-      },
+      responseSchema: UserListResponseSchema,
+      transform: (response) => response.users,
     },
   })
   .build();
 
-// Use the list sync connector to demonstrate type inference
-async function useListConnector() {
-  const customerConnector = listSyncConnector.getModelConnector("customer");
+// Demonstrate type inference with list method
+async function demonstrateListTypeInference() {
+  const userConnector = syncConnectorWithList.getModelConnector("user");
 
-  if (customerConnector?.list) {
-    const { items, nextCursor } = await customerConnector.list({ page: 1 });
-
-    // Type inference shows items as transformed customers
-    items.forEach((customer) => {
-      console.log(
-        `Customer ${customer.id}: ${customer.name} (${customer.status})`
-      );
-      console.log(`Email: ${customer.email}`);
-
-      // TypeScript would show error if we tried to access non-existent property
-      // For example: console.log(customer.customer_id); // Error: Property 'customer_id' does not exist
+  if (userConnector?.list) {
+    const result = await userConnector.list({ page: 1, limit: 10 });
+    // TypeScript knows result.items is User[]
+    result.items.forEach((user) => {
+      console.log(user.name); // Type-safe access to user properties
+      console.log(user.email);
     });
-
-    console.log(`Next cursor: ${nextCursor}`);
   }
 }
 
@@ -228,132 +93,58 @@ async function useListConnector() {
  * Define a sync connector that works with a rest api and a collection and has a list method and a create method
  */
 
-const UserSchema = z.object({
-  id: z.string(),
-  username: z.string(),
-  email: z.string().email(),
-  firstName: z.string(),
-  lastName: z.string(),
-  role: z.enum(["admin", "user", "guest"]),
-  isActive: z.boolean(),
-});
-
-type User = z.infer<typeof UserSchema>;
-
-const usersCollection = defineCollection("users")
-  .withTitle("Users")
-  .addModel("user", {
-    title: "User",
-    schema: UserSchema as any,
-  })
-  .deploy();
-
-const usersRestConnector = createRestConnector()
-  .withBaseUrl("https://api.userservice.com/v2")
-  .withHeaders({
-    "Content-Type": "application/json",
-    Authorization: "Bearer ${auth.accessToken}",
-  })
-  .build();
-
-// Using type-safe helper functions for better type inference
-const userCreateConfig = createCreateConfig<User>({
-  request: (data) => {
-    // TypeScript knows data is of type User with all required properties
-    return {
-      endpoint: "/users",
-      method: "POST",
-      data: {
-        // Transform to API format if needed
-        user_name: data.username,
-        email_address: data.email,
-        first_name: data.firstName,
-        last_name: data.lastName,
-        role: data.role,
-        is_active: data.isActive,
-      },
-    };
-  },
-  // Transform API response back to model format
-  transform: (response: any) => ({
-    id: response.user_id,
-    username: response.user_name,
-    email: response.email_address,
-    firstName: response.first_name,
-    lastName: response.last_name,
-    role: response.role,
-    isActive: response.is_active,
-  }),
-});
-
-const usersSyncConnector = createSyncConnector(
-  usersRestConnector,
-  usersCollection
+const syncConnectorWithListAndCreate = createSyncConnector(
+  apiConnector,
+  userCollection
 )
-  .add("user", (builder) =>
-    builder
-      .list({
-        request: (params) => ({
-          endpoint: "/users",
-          params: {
-            cursor: params.cursor,
-            limit: params.limit || 100,
-          },
-        }),
-        responseSchema: createPaginatedResponseSchema(UserSchema),
-        pagination: {
-          type: "cursor",
-          cursorField: "nextCursor",
-          pageSize: 100,
+  .with("user", {
+    list: {
+      request: (params) => ({
+        endpoint: "/users",
+        params: {
+          page: params.page || 1,
+          limit: params.limit || 20,
         },
-        // Transform receives the paginated response
-        transform: (response) => {
-          // Extract users from the 'data' field
-          return response.data.map((user: User) => ({
-            ...user,
-            // Can add computed properties
-            displayName: `${user.firstName} ${user.lastName}`,
-          }));
-        },
-      })
-      .create(userCreateConfig) // Using the type-safe config
-  )
+      }),
+      responseSchema: UserListResponseSchema,
+      transform: (response) => response.users,
+    },
+    create: {
+      request: (user) => ({
+        endpoint: "/users",
+        method: "POST",
+        data: user,
+      }),
+      transform: (response) => response.data,
+    },
+  })
   .build();
 
-// Use the users sync connector to demonstrate type inference with list and create
-async function useUsersConnector() {
-  const userConnector = usersSyncConnector.getModelConnector("user");
-
-  if (userConnector?.list) {
-    // List users - can pass cursor for pagination
-    const { items, nextCursor } = await userConnector.list({
-      cursor: undefined,
-    });
-
-    items.forEach((user) => {
-      // Type inference shows all User properties plus computed ones
-      console.log(`User: ${user.username} (${user.email})`);
-      console.log(`Name: ${user.firstName} ${user.lastName}`);
-      console.log(`Role: ${user.role}, Active: ${user.isActive}`);
-      // If using transform with computed property:
-      // console.log(`Display: ${user.displayName}`);
-    });
-  }
+// Demonstrate type inference with list and create methods
+async function demonstrateListAndCreateTypeInference() {
+  const userConnector =
+    syncConnectorWithListAndCreate.getModelConnector("user");
 
   if (userConnector?.create) {
-    // Create a new user
+    // TypeScript enforces the correct user structure
     const newUser = await userConnector.create({
-      id: "user-123",
-      username: "johndoe",
+      id: "",
+      name: "John Doe",
       email: "john@example.com",
-      firstName: "John",
-      lastName: "Doe",
-      role: "user",
-      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     });
 
-    // Type inference should show newUser as User type
-    console.log(`Created user: ${newUser.username} with ID: ${newUser.id}`);
+    // Type-safe access to created user
+    console.log(`Created user: ${newUser.name} with id: ${newUser.id}`);
+  }
+
+  if (userConnector?.list) {
+    const users = await userConnector.list({ page: 1 });
+    // Type-safe iteration over users
+    users.items.forEach((user) => {
+      console.log(`${user.name} - ${user.email}`);
+    });
   }
 }
 
@@ -361,230 +152,113 @@ async function useUsersConnector() {
  * Define a sync connector that works with a rest api and a collection and has a list method and a create, update, and delete method
  */
 
-const ProductSchema = z.object({
-  id: z.string(),
-  sku: z.string(),
-  name: z.string(),
-  description: z.string(),
-  price: z.number(),
-  currency: z.string(),
-  inventory: z.number(),
-  category: z.string(),
-  tags: z.array(z.string()),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-type Product = z.infer<typeof ProductSchema>;
-
-const fullCrudCollection = defineCollection("products")
-  .withTitle("Products")
-  .addModel("product", {
-    title: "Product",
-    schema: ProductSchema as any,
-    matchPattern: "$.sku",
-  })
-  .deploy();
-
-const fullCrudRestConnector = createRestConnector()
-  .withBaseUrl("https://api.ecommerce.com")
-  .addHeader("X-Store-ID", "${variables.storeId}")
-  .addHeader("Authorization", "Bearer ${auth.accessToken}")
-  .build();
-
-// Define the API response schema separately for clarity
-const productApiResponseSchema = z.object({
-  products: z.array(ProductSchema),
-  pagination: z.object({
-    total: z.number(),
-    page: z.number(),
-    pageSize: z.number(),
-    hasNext: z.boolean(),
-  }),
-});
-
-type ProductApiResponse = z.infer<typeof productApiResponseSchema>;
-
-// Create type-safe configurations for CRUD operations
-const productListConfig = createListConfig<Product, ProductApiResponse>({
-  request: (params) => ({
-    endpoint: "/api/v3/products",
-    method: "GET",
-    params: {
-      page: params.page || 1,
-      limit: params.limit || 100,
+const fullCrudSyncConnector = createSyncConnector(apiConnector, userCollection)
+  .with("user", {
+    list: {
+      request: (params) => ({
+        endpoint: "/users",
+        params: {
+          page: params.page || 1,
+          limit: params.limit || 20,
+          sortBy: params.sortBy || "createdAt",
+          sortOrder: params.sortOrder || "desc",
+        },
+      }),
+      responseSchema: UserListResponseSchema,
+      pagination: {
+        type: "page",
+        pageField: "page",
+        pageSize: 20,
+      },
+      transform: (response) => response.users,
     },
-  }),
-  responseSchema: productApiResponseSchema,
-  transform: (response) => {
-    // TypeScript knows response.products is Product[]
-    return response.products.map((item) => ({
-      ...item,
-      price:
-        typeof item.price === "number" && item.price > 1000
-          ? item.price / 100
-          : item.price,
-      tags: item.tags || [],
-    }));
-  },
-});
-
-const productCreateConfig = createCreateConfig<Product>({
-  request: (data) => {
-    // TypeScript enforces that data has all Product properties
-    return {
-      endpoint: "/api/v3/products",
-      method: "POST",
-      data: {
-        ...data,
-        price: Math.round(data.price * 100), // Convert to cents
+    create: {
+      request: (user) => ({
+        endpoint: "/users",
+        method: "POST",
+        data: user,
+      }),
+      transformRequest: (user) => {
+        // Remove id field for creation
+        const { id, ...userData } = user;
+        return userData;
       },
-    };
-  },
-});
-
-const productUpdateConfig = createUpdateConfig<Product>({
-  request: (id, data) => {
-    // TypeScript knows data is Partial<Product>
-    return {
-      endpoint: `/api/v3/products/${id}`,
-      method: "PUT",
-      data: {
-        ...data,
-        // Convert price to cents if present
-        ...(data.price !== undefined && {
-          price: Math.round(data.price * 100),
-        }),
+      transform: (response) => response.data,
+    },
+    update: {
+      request: (id, data) => ({
+        endpoint: `/users/${id}`,
+        method: "PUT",
+        data,
+      }),
+      transformRequest: (data) => {
+        // Remove read-only fields
+        const { id, createdAt, ...updateData } = data;
+        return updateData;
       },
-    };
-  },
-});
-
-const productDeleteConfig = createDeleteConfig({
-  request: (id) => ({
-    endpoint: `/api/v3/products/${id}`,
-    method: "DELETE",
-  }),
-});
-
-const fullCrudSyncConnector = createSyncConnector(
-  fullCrudRestConnector,
-  fullCrudCollection
-)
-  .add("product", (builder) =>
-    builder
-      .list(productListConfig)
-      .create(productCreateConfig)
-      .update(productUpdateConfig)
-      .delete(productDeleteConfig)
-      .bulk({
-        create: {
-          request: (items) => ({
-            endpoint: "/api/v3/products/bulk",
-            method: "POST",
-            data: items,
-          }),
-          batchSize: 50,
-        },
-        update: {
-          request: (items) => ({
-            endpoint: "/api/v3/products/bulk",
-            method: "PATCH",
-            data: items,
-          }),
-          batchSize: 50,
-        },
-        delete: {
-          request: (ids) => ({
-            endpoint: "/api/v3/products/bulk-delete",
-            method: "POST",
-            data: { ids },
-          }),
-          batchSize: 100,
-        },
-      })
-  )
+      transform: (response) => response.data,
+    },
+    delete: {
+      request: (id) => ({
+        endpoint: `/users/${id}`,
+        method: "DELETE",
+      }),
+    },
+  })
   .build();
 
-// Use the full CRUD sync connector to demonstrate all operations with type inference
-async function useFullCrudConnector() {
-  // Get a model connector
-  const productConnector = fullCrudSyncConnector.getModelConnector("product");
+// Demonstrate type inference with all CRUD methods
+async function demonstrateFullCrudTypeInference() {
+  const userConnector = fullCrudSyncConnector.getModelConnector("user");
 
-  if (productConnector?.list) {
-    // List products
-    const { items, nextCursor } = await productConnector.list({ page: 1 });
-    console.log(`Found ${items.length} products`);
-
-    // Create a product
-    if (productConnector.create) {
-      const newProduct = await productConnector.create({
-        id: "prod-123",
-        sku: "SKU-001",
-        name: "Example Product",
-        description: "A great product",
-        price: 99.99,
-        currency: "USD",
-        inventory: 100,
-        category: "Electronics",
-        tags: ["new", "featured"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
-      console.log("Created product:", newProduct);
-    }
-
-    // Update a product
-    if (productConnector.update) {
-      const updatedProduct = await productConnector.update("prod-123", {
-        price: 89.99,
-        inventory: 95,
-      });
-      console.log("Updated product:", updatedProduct);
-    }
-
-    // Bulk create products
-    if (productConnector.bulkCreate) {
-      const products: Product[] = [
-        {
-          id: "prod-124",
-          sku: "SKU-002",
-          name: "Product 2",
-          description: "Another product",
-          price: 149.99,
-          currency: "USD",
-          inventory: 50,
-          category: "Electronics",
-          tags: ["premium"],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: "prod-125",
-          sku: "SKU-003",
-          name: "Product 3",
-          description: "Yet another product",
-          price: 199.99,
-          currency: "USD",
-          inventory: 25,
-          category: "Electronics",
-          tags: ["premium", "limited"],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ];
-
-      const createdProducts = await productConnector.bulkCreate(products);
-      console.log(`Created ${createdProducts.length} products in bulk`);
-    }
-
-    // Delete a product
-    if (productConnector.delete) {
-      await productConnector.delete("prod-123");
-      console.log("Deleted product");
-    }
+  if (!userConnector) {
+    throw new Error("User connector not found");
   }
 
-  // Run a full sync
-  await fullCrudSyncConnector.sync();
+  // CREATE - TypeScript enforces correct user structure
+  if (userConnector.create) {
+    const newUser = await userConnector.create({
+      id: "", // Will be generated by API
+      name: "Jane Smith",
+      email: "jane@example.com",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    console.log(`Created user: ${newUser.name}`);
+
+    // UPDATE - TypeScript knows this is Partial<User>
+    if (userConnector.update) {
+      const updatedUser = await userConnector.update(newUser.id, {
+        name: "Jane Doe",
+        updatedAt: new Date().toISOString(),
+      });
+      console.log(`Updated user: ${updatedUser.name}`);
+    }
+
+    // LIST - TypeScript infers User[] for items
+    if (userConnector.list) {
+      const userList = await userConnector.list({
+        sortBy: "name",
+        sortOrder: "asc",
+      });
+
+      userList.items.forEach((user) => {
+        // All user properties are type-safe
+        console.log(`${user.id}: ${user.name} (${user.email})`);
+      });
+    }
+
+    // DELETE - TypeScript ensures id is a string
+    if (userConnector.delete) {
+      await userConnector.delete(newUser.id);
+      console.log(`Deleted user: ${newUser.id}`);
+    }
+  }
 }
+
+// Export examples for testing
+export {
+  demonstrateListTypeInference,
+  demonstrateListAndCreateTypeInference,
+  demonstrateFullCrudTypeInference,
+};
