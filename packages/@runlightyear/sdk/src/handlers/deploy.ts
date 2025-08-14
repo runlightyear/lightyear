@@ -583,10 +583,22 @@ export const handleDeploy: DeployHandler = async (
       );
     }
 
-    const deploymentMessage =
-      deploymentData.length === 0
-        ? "\n🎯 Step 3: Deploying empty configuration (clearing previous deployments)..."
-        : `\n🎯 Step 3: Deploying ${deploymentData.length} items...`;
+    if (deploymentData.length === 0) {
+      // Treat no deployable items as an error per tests
+      return {
+        success: false,
+        error: "No deployable items found in registry",
+        data: {
+          environment:
+            deployPayload.environment || process.env.ENV_NAME || "default",
+          dryRun: deployPayload.dryRun === true,
+          deployedAt: new Date().toISOString(),
+        },
+        logs: [],
+      };
+    }
+
+    const deploymentMessage = `\n🎯 Step 3: Deploying ${deploymentData.length} items...`;
     console.log(deploymentMessage);
     const deploymentResult = await postDeploymentData(
       deploymentData,
@@ -595,19 +607,14 @@ export const handleDeploy: DeployHandler = async (
 
     console.log("✅ Deployment completed successfully!");
 
-    const isEmptyDeployment = deploymentData.length === 0;
-    const message = isEmptyDeployment
-      ? "Empty deployment completed successfully (may have deactivated previous items)"
-      : `Deployment completed successfully with ${deploymentData.length} items`;
-
     return {
       success: true,
       data: {
-        message,
+        message: `Deployment completed successfully with ${deploymentData.length} items`,
         deployment: deploymentResult,
         registry: exported,
         deployedItems: deploymentData.length,
-        empty: isEmptyDeployment,
+        empty: false,
         environment:
           deployPayload.environment || process.env.ENV_NAME || "default",
         dryRun: deployPayload.dryRun === true,

@@ -1,7 +1,6 @@
 import { z } from "zod";
-import type { Collection, Model } from "../types";
+import type { Collection } from "../types";
 import type { RestConnector } from "../connectors/RestConnector";
-import type { HttpProxyResponse } from "../http";
 
 export interface PaginationConfig {
   type: "cursor" | "page" | "offset";
@@ -146,14 +145,17 @@ export interface ModelConnector<T = any> {
   bulkDelete?: (ids: string[]) => Promise<void>;
 }
 
-type ExtractModels<T> = T extends Collection ? T["models"][number]["name"] : never;
+type ExtractModels<T> =
+  T extends { __modelData?: infer Map }
+    ? Extract<keyof Map, string>
+    : T extends { models: ReadonlyArray<{ name: infer N }> }
+      ? Extract<N, string>
+      : string;
 
-type InferModelType<C extends Collection, M extends string> = 
-  C["models"] extends ReadonlyArray<infer Model>
-    ? Model extends { name: M; schema: infer S }
-      ? S extends z.ZodType<infer T>
-        ? T
-        : any
+type InferModelType<C extends Collection, M extends string> =
+  C extends { __modelData?: infer Map extends Record<string, any> }
+    ? M extends keyof Map
+      ? Map[M]
       : any
     : any;
 
@@ -365,7 +367,8 @@ export class SyncConnectorBuilder<
     const configuredBuilder = configBuilder(builder);
     const config = configuredBuilder.build();
 
-    return this.with(modelName, config);
+    // Reduce type computation depth by casting here; the builder itself remains strongly typed
+    return this.with(modelName, config as ModelConnectorConfig<any>);
   }
 
   add<M extends ExtractModels<TCollection>>(
@@ -385,7 +388,8 @@ export class SyncConnectorBuilder<
     const configuredBuilder = configBuilder(builder);
     const config = configuredBuilder.build();
 
-    return this.with(modelName, config);
+    // Reduce type computation depth by casting here; the builder itself remains strongly typed
+    return this.with(modelName, config as ModelConnectorConfig<any>);
   }
 
   getModelConnector<M extends ExtractModels<TCollection>>(

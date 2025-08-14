@@ -1,10 +1,11 @@
 import type { JSONSchema7 } from "json-schema";
 import type { Model, MatchPattern, Collection } from "../types";
+import type { z } from "zod";
 import { registerModel } from "../registry";
 import { CollectionBuilder } from "./collection";
 
-// Type to accept both JSONSchema7 and const schemas
-type Schema = JSONSchema7 | Readonly<any>;
+// Type to accept JSONSchema7, const object schemas, and Zod schemas
+type Schema = JSONSchema7 | Readonly<any> | z.ZodType<any>;
 
 /**
  * Model Builder - fluent API for creating models that belong to a collection
@@ -13,7 +14,11 @@ export class ModelBuilder<TSchema = unknown, TName extends string = string> {
   private collection: Collection | CollectionBuilder;
   private name: TName;
   private title?: string;
-  private schema?: TSchema extends Readonly<any> ? TSchema : JSONSchema7;
+  private schema?: TSchema extends Readonly<any>
+    ? TSchema
+    : TSchema extends z.ZodType<any>
+      ? TSchema
+      : JSONSchema7;
   private matchPattern?: MatchPattern;
 
   constructor(collection: Collection | CollectionBuilder, name: TName) {

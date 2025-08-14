@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { RestConnector } from "../connectors/RestConnector";
-import type { Model } from "../types";
+import type { Model, InferModelData } from "../types";
 import type {
   ListConfig,
   CreateConfig,
@@ -224,8 +224,16 @@ export class ModelConnectorBuilder<T = any> {
 export function createModelConnector<T = any>(
   restConnector: RestConnector,
   model: Model
-): ModelConnectorBuilder<T> {
-  return new ModelConnectorBuilder<T>(restConnector, model);
+): ModelConnectorBuilder<T>;
+export function createModelConnector<M extends Model>(
+  restConnector: RestConnector,
+  model: M
+): ModelConnectorBuilder<InferModelData<M>>;
+export function createModelConnector(
+  restConnector: RestConnector,
+  model: Model
+): ModelConnectorBuilder<any> {
+  return new ModelConnectorBuilder<any>(restConnector, model);
 }
 
 /**

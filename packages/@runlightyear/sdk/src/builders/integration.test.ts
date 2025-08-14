@@ -62,7 +62,8 @@ describe("IntegrationBuilder", () => {
 
   describe("Collections", () => {
     it("should add collections to integration", () => {
-      const contact = defineModel("contact").withTitle("Contact").deploy();
+      const tmp = defineCollection("tmp-models");
+      const contact = defineModel(tmp, "contact").withTitle("Contact").deploy();
 
       const crm = defineCollection("crm")
         .withTitle("CRM Collection")
@@ -79,8 +80,9 @@ describe("IntegrationBuilder", () => {
     });
 
     it("should add multiple collections at once", () => {
-      const contact = defineModel("contact").deploy();
-      const account = defineModel("account").deploy();
+      const tmp = defineCollection("tmp-models");
+      const contact = defineModel(tmp, "contact").deploy();
+      const account = defineModel(tmp, "account").deploy();
 
       const crm = defineCollection("crm").withModel(contact).deploy();
       const sales = defineCollection("sales").withModel(account).deploy();
@@ -99,9 +101,10 @@ describe("IntegrationBuilder", () => {
     });
 
     it("should support adding collections incrementally", () => {
-      const contact = defineModel("contact").deploy();
-      const account = defineModel("account").deploy();
-      const opportunity = defineModel("opportunity").deploy();
+      const tmp = defineCollection("tmp-models");
+      const contact = defineModel(tmp, "contact").deploy();
+      const account = defineModel(tmp, "account").deploy();
+      const opportunity = defineModel(tmp, "opportunity").deploy();
 
       const crm = defineCollection("crm").withModel(contact).deploy();
       const sales = defineCollection("sales").withModel(account).deploy();
@@ -178,7 +181,8 @@ describe("IntegrationBuilder", () => {
     });
 
     it("should work with both collections and actions", () => {
-      const contact = defineModel("contact").deploy();
+      const tmp = defineCollection("tmp-models");
+      const contact = defineModel(tmp, "contact").deploy();
       const crm = defineCollection("crm").withModel(contact).deploy();
       const syncAction = defineAction("sync").deploy();
 

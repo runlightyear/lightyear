@@ -1,14 +1,30 @@
 import type { JSONSchema7 } from "json-schema";
+import type { z } from "zod";
 import type { Collection, Model, MatchPattern } from "../types";
 import { registerCollection, registerModel } from "../registry";
 
-// Type to accept both JSONSchema7 and const schemas
-type Schema = JSONSchema7 | Readonly<any>;
+// Type to accept JSONSchema7, const schemas, and Zod schemas
+type Schema = JSONSchema7 | Readonly<any> | z.ZodType<any>;
 
 // Helper type to convert TModels array to a name->model mapping
 type ModelsToMap<TModels> = TModels extends readonly Model<any, any>[]
   ? { [M in TModels[number] as M["name"]]: M }
   : {};
+
+// Helper types to produce a name -> model data mapping for stronger inference
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+  k: infer I
+) => void
+  ? I
+  : never;
+
+type ModelNameToDataMap<TModels> = UnionToIntersection<
+  TModels extends readonly any[]
+    ? TModels[number] extends Model<infer S, infer N extends string>
+      ? { [K in N]: import("../types").InferModelData<Model<S, N>> }
+      : {}
+    : {}
+>;
 
 // Type for the getModel method with proper overloads
 interface TypedCollectionMethods<TModels> {
@@ -87,7 +103,9 @@ export class CollectionBuilder<
     return this as any;
   }
 
-  deploy(): Collection & TypedCollectionMethods<TModels> & { __schemas?: TSchemas } {
+  deploy(): Collection &
+    TypedCollectionMethods<TModels> &
+    { __schemas?: TSchemas; __models?: TModels; __modelData?: ModelNameToDataMap<TModels> } {
     // Build model map for efficient lookup
     const modelMap = new Map<string, Model<any, any>>();
     for (const model of this.models) {
@@ -109,8 +127,10 @@ export class CollectionBuilder<
       modelCount: this.models.length,
     });
 
-    // Return with type assertion to preserve model types and schema mapping
-    return collection as Collection & TypedCollectionMethods<TModels> & { __schemas?: TSchemas };
+    // Return with type assertion to preserve schema and model generic types for inference via phantom properties
+    return collection as Collection &
+      TypedCollectionMethods<TModels> &
+      { __schemas?: TSchemas; __models?: TModels; __modelData?: ModelNameToDataMap<TModels> };
   }
 }
 
