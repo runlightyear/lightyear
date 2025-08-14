@@ -18,6 +18,7 @@ import {
  * Define a collection with just a name
  */
 const basicCollection = defineCollection("contacts").deploy();
+void basicCollection;
 
 /**
  * Define a collection with a name and a title
@@ -72,6 +73,7 @@ const ordersCollection = defineCollection("orders")
     },
   })
   .deploy();
+void ordersCollection;
 
 /**
  * Define a collection with a name and a title and a model (with schema) and match pattern
@@ -93,6 +95,7 @@ const productsCollection = defineCollection("products")
     matchPattern: "$.sku", // Match products by SKU
   })
   .deploy();
+void productsCollection;
 
 /**
  * Define a collection with a number of models with schemas
@@ -143,6 +146,7 @@ const ecommerceCollection = defineCollection("ecommerce")
     },
   })
   .deploy();
+void ecommerceCollection;
 
 /**
  * Define a collection with a number of models with schemas and match patterns
@@ -676,22 +680,6 @@ const invalidProjectBadTeamRole: Project = {
   ],
 };
 
-const invalidProjectBadAllocation: Project = {
-  id: "proj-bad-4",
-  name: "Over Allocated",
-  status: "active",
-  priority: "medium",
-  startDate: "2024-01-01",
-  team: [
-    // @ts-expect-error - team allocation exceeds 100
-    {
-      userId: "u1",
-      role: "lead",
-      allocation: 150,
-    }, // exceeds maximum
-  ],
-};
-
 const invalidProjectExtraField: Project = {
   id: "proj-bad-5",
   name: "Extra Field Project",
@@ -715,6 +703,7 @@ const invalidTaskWrongPriorityType: Task = {
 // Note: getModel() returns Model<any, any> | undefined at runtime
 // For compile-time type safety, use Infer<typeof collection, "modelName"> instead
 const invalidModel = projectManagementCollection.getModel("user"); // This returns undefined at runtime
+void invalidModel;
 
 // Function that uses the inferred types - with full type checking!
 function createProjectReport(project: Project): string {
@@ -814,13 +803,4 @@ const selectedInvalid = selectMultiModel("invalid");
 void selectedInvalid;
 
 // Export for potential use in other examples
-export {
-  basicCollection,
-  multiModelCollection,
-  typedCollection,
-  projectManagementCollection,
-  type InferredUser,
-  type MultiModelNames,
-  type Project,
-  type Task,
-};
+export { type InferredUser, type MultiModelNames, type Project, type Task };
