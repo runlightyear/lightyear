@@ -1,4 +1,5 @@
 import type { JSONSchema7 } from "json-schema";
+import type { FromSchema } from "json-schema-to-ts";
 
 /**
  * Core types for collections and models
@@ -23,10 +24,11 @@ export type MatchPattern =
   | AndMatchPattern;
 
 // Model definition
-export interface Model {
+export interface Model<TSchema = unknown> {
   name: string;
   title?: string;
-  schema?: JSONSchema7;
+  // Preserve the literal type for inference while remaining compatible at runtime
+  schema?: TSchema extends Readonly<any> ? TSchema : JSONSchema7;
   matchPattern?: MatchPattern;
 }
 
@@ -34,7 +36,7 @@ export interface Model {
 export interface Collection {
   name: string;
   title?: string;
-  models: Model[];
+  models: Model<any>[];
 }
 
 // App authentication types
@@ -175,3 +177,12 @@ export interface SyncConnectorDefinition {
   connectorType: "rest" | "graphql" | "custom";
   sync(mode: SyncMode): Promise<SyncResult>;
 }
+
+// Type helper to infer the data type of a model from its schema
+export type InferModelData<M> = M extends Model<infer S>
+  ? S extends import("zod").ZodType<infer R>
+    ? R
+    : S extends Readonly<any>
+    ? FromSchema<S>
+    : unknown
+  : unknown;

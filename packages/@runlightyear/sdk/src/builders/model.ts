@@ -9,11 +9,11 @@ type Schema = JSONSchema7 | Readonly<any>;
 /**
  * Model Builder - fluent API for creating models that belong to a collection
  */
-export class ModelBuilder {
+export class ModelBuilder<TSchema = unknown> {
   private collection: Collection | CollectionBuilder;
   private name: string;
   private title?: string;
-  private schema?: JSONSchema7;
+  private schema?: TSchema extends Readonly<any> ? TSchema : JSONSchema7;
   private matchPattern?: MatchPattern;
 
   constructor(collection: Collection | CollectionBuilder, name: string) {
@@ -26,9 +26,11 @@ export class ModelBuilder {
     return this;
   }
 
-  withSchema(schema: Schema): this {
-    this.schema = schema as JSONSchema7;
-    return this;
+  withSchema<TNewSchema extends Schema>(
+    schema: TNewSchema
+  ): ModelBuilder<TNewSchema> {
+    this.schema = schema as any;
+    return this as unknown as ModelBuilder<TNewSchema>;
   }
 
   withMatchPattern(pattern: MatchPattern): this {
@@ -36,8 +38,8 @@ export class ModelBuilder {
     return this;
   }
 
-  deploy(): Model {
-    const model: Model = {
+  deploy(): Model<TSchema> {
+    const model: Model<TSchema> = {
       name: this.name,
       title: this.title,
       schema: this.schema,
@@ -46,18 +48,19 @@ export class ModelBuilder {
 
     // If collection is a CollectionBuilder, add the model to it
     if (this.collection instanceof CollectionBuilder) {
-      this.collection.withModel(model);
+      this.collection.withModel(model as unknown as Model);
     } else {
       // If it's already a deployed collection, add to its models array
-      if (!this.collection.models.some(m => m.name === model.name)) {
-        this.collection.models.push(model);
+      if (!this.collection.models.some((m) => m.name === model.name)) {
+        this.collection.models.push(model as unknown as Model);
       }
     }
 
     // Register the model in the global registry
-    const collectionName = this.collection instanceof CollectionBuilder 
-      ? this.collection.getName() 
-      : this.collection.name;
+    const collectionName =
+      this.collection instanceof CollectionBuilder
+        ? this.collection.getName()
+        : this.collection.name;
 
     registerModel(model, {
       builderType: "ModelBuilder",
@@ -74,6 +77,9 @@ export class ModelBuilder {
  * @param collection - The collection this model belongs to
  * @param name - The name of the model
  */
-export function defineModel(collection: Collection | CollectionBuilder, name: string): ModelBuilder {
+export function defineModel(
+  collection: Collection | CollectionBuilder,
+  name: string
+): ModelBuilder {
   return new ModelBuilder(collection, name);
 }

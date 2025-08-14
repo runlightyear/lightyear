@@ -1,4 +1,4 @@
-import type { FromSchema } from "json-schema-to-ts";
+import type { InferModelData } from "../src/types";
 import {
   defineCollection,
   defineModel,
@@ -391,46 +391,42 @@ const profileModel = defineModel(socialCollection, "profile")
  * Infer the typescript type of a model schema directly from the model which was defined with json schema and demonstrate the type's usage and demostrate it works with positive and negative examples (use ts-expect-error to demonstrate the errors)
  */
 
-// Define a JSON Schema for the model (as const for type inference)
-const userJsonSchema = {
-  type: "object",
-  properties: {
-    id: { type: "string" },
-    name: { type: "string" },
-    email: { type: "string", format: "email" },
-    age: { type: "integer", minimum: 0 },
-    isActive: { type: "boolean" },
-    roles: {
-      type: "array",
-      items: { enum: ["admin", "user", "guest"] },
-      minItems: 1,
-    },
-    metadata: {
-      type: "object",
-      properties: {
-        lastLogin: { type: "string" },
-        loginCount: { type: "integer" },
-      },
-      required: ["lastLogin", "loginCount"],
-      additionalProperties: false,
-    },
-  },
-  required: ["id", "name", "email", "age", "isActive", "roles"],
-  additionalProperties: false,
-} as const;
-
-// Create collection and model with JSON schema
 const typedCollection =
   defineCollection("typed_users").withTitle("Typed Users");
 
 const typedUserModel = defineModel(typedCollection, "user")
-  .withSchema(userJsonSchema)
+  .withSchema({
+    type: "object",
+    properties: {
+      id: { type: "string" },
+      name: { type: "string" },
+      email: { type: "string", format: "email" },
+      age: { type: "integer", minimum: 0 },
+      isActive: { type: "boolean" },
+      roles: {
+        type: "array",
+        items: { enum: ["admin", "user", "guest"] },
+        minItems: 1,
+      },
+      metadata: {
+        type: "object",
+        properties: {
+          lastLogin: { type: "string" },
+          loginCount: { type: "integer" },
+        },
+        required: ["lastLogin", "loginCount"],
+        additionalProperties: false,
+      },
+    },
+    required: ["id", "name", "email", "age", "isActive", "roles"],
+    additionalProperties: false,
+  } as const)
   .deploy();
 
 const deployedTypedCollection = typedCollection.deploy();
 
-// Infer the TypeScript type directly from the JSON schema
-type InferredUser = FromSchema<typeof userJsonSchema>;
+// Infer the TypeScript type THROUGH the model
+type InferredUser = InferModelData<typeof typedUserModel>;
 
 // Positive example - correct usage
 const validUser: InferredUser = {
@@ -467,6 +463,7 @@ const invalidUserMissingEmail: InferredUser = {
   isActive: true,
   roles: ["guest"],
 };
+void invalidUserMissingEmail;
 
 const invalidUserWrongAgeType: InferredUser = {
   id: "user-bad-1",

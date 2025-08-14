@@ -11,7 +11,7 @@ type Schema = JSONSchema7 | Readonly<any>;
 export class CollectionBuilder {
   private name: string;
   private title?: string;
-  private models: Model[] = [];
+  private models: Model<any>[] = [];
 
   constructor(name: string) {
     this.name = name;
@@ -31,12 +31,12 @@ export class CollectionBuilder {
     return this;
   }
 
-  withModel(model: Model): this {
+  withModel(model: Model<any>): this {
     this.models.push(model);
     return this;
   }
 
-  withModels(models: Model[]): this {
+  withModels(models: Model<any>[]): this {
     this.models.push(...models);
     return this;
   }
@@ -49,10 +49,10 @@ export class CollectionBuilder {
       matchPattern?: MatchPattern;
     }
   ): this {
-    const model: Model = {
+    const model: Model<any> = {
       name,
       title: options?.title,
-      schema: options?.schema as JSONSchema7,
+      schema: options?.schema as any,
       matchPattern: options?.matchPattern,
     };
 
