@@ -26,6 +26,7 @@ void basicCollection;
 const titledCollection = defineCollection("customers")
   .withTitle("Customer Management")
   .deploy();
+void titledCollection;
 
 /**
  * Define a base collection builder with a name and title (not deployed) and then a new collection that overrides them both and deploy it
@@ -191,6 +192,7 @@ const crmCollection = defineCollection("crm")
     matchPattern: match.and(match.property("id"), match.property("stage")),
   })
   .deploy();
+void crmCollection;
 
 /**
  * Define a collection with a number of models with schemas and match patterns and a connector
@@ -226,6 +228,7 @@ const apiCollection = defineCollection("api_entities")
     matchPattern: "$.id",
   })
   .deploy();
+void apiCollection;
 
 // Create a REST connector and a Sync connector for this collection
 const apiRestConnector = createRestConnector()
@@ -334,6 +337,7 @@ const enhancedAuthCollection = enhancedAuthBuilder.deploy();
 const blogCollection = defineCollection("blog")
   .withTitle("Blog System")
   .deploy();
+void blogCollection;
 
 // Then define a model separately
 const articleModel = defineModel(blogCollection, "article")
@@ -347,6 +351,7 @@ const articleModel = defineModel(blogCollection, "article")
 const forumCollection = defineCollection("forum")
   .withTitle("Forum Platform")
   .deploy();
+void forumCollection;
 
 // Define model with schema separately
 const topicModel = defineModel(forumCollection, "topic")
@@ -372,6 +377,7 @@ const topicModel = defineModel(forumCollection, "topic")
 const socialCollection = defineCollection("social")
   .withTitle("Social Network")
   .deploy();
+void socialCollection;
 
 // Define model with schema and match pattern
 const profileModel = defineModel(socialCollection, "profile")
@@ -594,8 +600,9 @@ const projectManagementCollection = defineCollection("project_management")
 
 // Infer the TypeScript type directly from the collection using model names
 // This demonstrates type inference by model name rather than array position
-type Project = Infer<typeof projectManagementCollection, "project">;
-type Task = Infer<typeof projectManagementCollection, "task">;
+type ProjectManagementCollection = typeof projectManagementCollection;
+type Project = Infer<ProjectManagementCollection, "project">;
+type Task = Infer<ProjectManagementCollection, "task">;
 
 // Attempting to infer from a non-existent model returns 'unknown'
 type InvalidModel = Infer<typeof projectManagementCollection, "user">; // type is 'unknown'
@@ -704,6 +711,7 @@ const invalidTaskWrongPriorityType: Task = {
 // For compile-time type safety, use Infer<typeof collection, "modelName"> instead
 const invalidModel = projectManagementCollection.getModel("user"); // This returns undefined at runtime
 void invalidModel;
+void projectManagementCollection;
 
 // Function that uses the inferred types - with full type checking!
 function createProjectReport(project: Project): string {
@@ -750,6 +758,7 @@ const multiModelCollection = defineCollection("multi_model")
     },
   })
   .deploy();
+void multiModelCollection;
 
 // For stricter compile-time checks of model names, define a const tuple
 const MODEL_NAMES = ["user", "post", "comment"] as const;
@@ -803,4 +812,4 @@ const selectedInvalid = selectMultiModel("invalid");
 void selectedInvalid;
 
 // Export for potential use in other examples
-export { type InferredUser, type MultiModelNames, type Project, type Task };
+export { type InferredUser, type MultiModelNames };
