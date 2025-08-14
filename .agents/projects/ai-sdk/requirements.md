@@ -24,27 +24,30 @@ Some things to consider:
   - Collections
   - Actions
   - Webhooks
-- Things that will just exist in memory and be executed:
-  - RestConnectors
-  - OAuthConnectors
-  - SyncConnectors (do not have names or titles and aren't deployed as objects)
-  - ModelConnectors (do not have names or titles and aren't deployed as objects)
 - Things that are deployed, but cannot exist independently:
   - Models (exist only on collections)
   - Variables (exist on custom apps, actions, and webhooks)
   - Secrets (exist on custom apps, actions, and webhooks)
+- Things that will just exist in memory and be executed:
+  - RestConnectors
+  - OAuthConnectors
+  - SyncConnectors (do not have names or titles and aren't deployed as objects)
+- Things that will just exist in memory and be executed, but cannot exist independently:
+  - ModelConnectors (do not have names or titles and aren't deployed as objects)
 
 For artifacts that will be deployed and can exist independently, let's use the builder pattern and let's call the initial function defineXXX, where XXX is the name of the artifact. At the end of the builder, we will call the deploy function. These generally need a name and a title.
 
 For artifacts that will just exist in memory and be executed, let's use the builder pattern and let's call the initial function createXXX, where XXX is the name of the artifact. At the end of the builder, we will call the build function. These do not need a name or a title.
 
-I am uncertain how we want to handle the things that are deployed, but cannot exist independently. You should recommend a solution. The important thing is to preserve type safety and make it easy to understand.
+For things that are deployed, but cannot exist independently, we will use the builder pattern and call the initial function defineXXX, where XXX is the name of the artifact along with an initial parameter that is the thing it depends on. At the end of the builder, we will call the deploy function. These generally need a name and a title.
 
 For the rest connectors, when defining headers, there is a special syntax we can use for auth secrets. To specify an authorization header, the value can be 'Bearer {{ accessToken }}'. Other substitutions available are:
 
 - apiKey
 - username
 - password
+
+For sync connectors, most will have a set of model connectors that correspond to the models on the collection. We will use the builder pattern to define the sync connector and then use the .with method to add the model connectors.
 
 In the example-templates directory, I have a number of example templates (named like action-examples-template.md, collection-examples-template.md, etc.) that show how to use the SDK. I want you to create a directory in @runlightyear/sdk/examples that contains these templates populated with the examples you create. Important:
 

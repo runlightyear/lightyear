@@ -33,6 +33,7 @@ export { RestConnectorBuilder, createRestConnector, defineRestConnector } from "
 export {
   SyncConnectorBuilder,
   SyncConnector,
+  SyncModelConnectorBuilder,
   ModelConnectorConfigBuilder,
   createSyncConnector,
   createListConfig,

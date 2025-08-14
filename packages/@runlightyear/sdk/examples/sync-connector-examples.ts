@@ -47,7 +47,7 @@ const collection = basicSyncConnector.getCollection();
 void collection;
 
 /**
- * Define a sync connector that works with a rest api and a collection and has a list method
+ * Define a sync connector that works with a rest api and a collection and has a model connector with a list method
  */
 
 // Define response schema for list endpoint
@@ -59,8 +59,8 @@ const UserListResponseSchema = z.object({
 
 // Create sync connector with list method
 const syncConnectorWithList = createSyncConnector(apiConnector, userCollection)
-  .with("user", {
-    list: {
+  .withModelConnector("user", (modelConnector) =>
+    modelConnector.withList({
       request: (params) => ({
         endpoint: "/users",
         method: "GET",
@@ -71,8 +71,8 @@ const syncConnectorWithList = createSyncConnector(apiConnector, userCollection)
       }),
       responseSchema: UserListResponseSchema,
       transform: (response) => response.users,
-    },
-  })
+    })
+  )
   .build();
 
 // Demonstrate type inference with list method
@@ -90,34 +90,35 @@ async function demonstrateListTypeInference() {
 }
 
 /**
- * Define a sync connector that works with a rest api and a collection and has a list method and a create method
+ * Define a sync connector that works with a rest api and a collection and has a model connector with a list method and a create method
  */
 
 const syncConnectorWithListAndCreate = createSyncConnector(
   apiConnector,
   userCollection
 )
-  .with("user", {
-    list: {
-      request: (params) => ({
-        endpoint: "/users",
-        params: {
-          page: params.page || 1,
-          limit: params.limit || 20,
-        },
-      }),
-      responseSchema: UserListResponseSchema,
-      transform: (response) => response.users,
-    },
-    create: {
-      request: (user) => ({
-        endpoint: "/users",
-        method: "POST",
-        data: user,
-      }),
-      transform: (response) => response.data,
-    },
-  })
+  .withModelConnector("user", (modelConnector) =>
+    modelConnector
+      .withList({
+        request: (params) => ({
+          endpoint: "/users",
+          params: {
+            page: params.page || 1,
+            limit: params.limit || 20,
+          },
+        }),
+        responseSchema: UserListResponseSchema,
+        transform: (response) => response.users,
+      })
+      .withCreate({
+        request: (user) => ({
+          endpoint: "/users",
+          method: "POST",
+          data: user,
+        }),
+        transform: (response) => response.data,
+      })
+  )
   .build();
 
 // Demonstrate type inference with list and create methods
@@ -149,62 +150,63 @@ async function demonstrateListAndCreateTypeInference() {
 }
 
 /**
- * Define a sync connector that works with a rest api and a collection and has a list method and a create, update, and delete method
+ * Define a sync connector that works with a rest api and a collection and has a model connector with a list method and a create, update, and delete method
  */
 
 const fullCrudSyncConnector = createSyncConnector(apiConnector, userCollection)
-  .with("user", {
-    list: {
-      request: (params) => ({
-        endpoint: "/users",
-        params: {
-          page: params.page || 1,
-          limit: params.limit || 20,
-          sortBy: params.sortBy || "createdAt",
-          sortOrder: params.sortOrder || "desc",
+  .withModelConnector("user", (modelConnector) =>
+    modelConnector
+      .withList({
+        request: (params) => ({
+          endpoint: "/users",
+          params: {
+            page: params.page || 1,
+            limit: params.limit || 20,
+            sortBy: params.sortBy || "createdAt",
+            sortOrder: params.sortOrder || "desc",
+          },
+        }),
+        responseSchema: UserListResponseSchema,
+        pagination: {
+          type: "page",
+          pageField: "page",
+          pageSize: 20,
         },
-      }),
-      responseSchema: UserListResponseSchema,
-      pagination: {
-        type: "page",
-        pageField: "page",
-        pageSize: 20,
-      },
-      transform: (response) => response.users,
-    },
-    create: {
-      request: (user) => ({
-        endpoint: "/users",
-        method: "POST",
-        data: user,
-      }),
-      transformRequest: (user) => {
-        // Remove id field for creation
-        const { id, ...userData } = user;
-        return userData;
-      },
-      transform: (response) => response.data,
-    },
-    update: {
-      request: (id, data) => ({
-        endpoint: `/users/${id}`,
-        method: "PUT",
-        data,
-      }),
-      transformRequest: (data) => {
-        // Remove read-only fields
-        const { id, createdAt, ...updateData } = data;
-        return updateData;
-      },
-      transform: (response) => response.data,
-    },
-    delete: {
-      request: (id) => ({
-        endpoint: `/users/${id}`,
-        method: "DELETE",
-      }),
-    },
-  })
+        transform: (response) => response.users,
+      })
+      .withCreate({
+        request: (user) => ({
+          endpoint: "/users",
+          method: "POST",
+          data: user,
+        }),
+        transformRequest: (user) => {
+          // Remove id field for creation
+          const { id, ...userData } = user;
+          return userData;
+        },
+        transform: (response) => response.data,
+      })
+      .withUpdate({
+        request: (id, data) => ({
+          endpoint: `/users/${id}`,
+          method: "PUT",
+          data,
+        }),
+        transformRequest: (data) => {
+          // Remove read-only fields
+          const { id, createdAt, ...updateData } = data;
+          return updateData;
+        },
+        transform: (response) => response.data,
+      })
+      .withDelete({
+        request: (id) => ({
+          endpoint: `/users/${id}`,
+          method: "DELETE",
+        }),
+      })
+  )
   .build();
 
 // Demonstrate type inference with all CRUD methods

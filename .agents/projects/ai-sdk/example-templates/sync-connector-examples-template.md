@@ -6,14 +6,14 @@ Note: Each example should demonstrate type inference by using the sync connector
 
 **_ Example goes here _**
 
-## Define a sync connector that works with a rest api and a collection and has a list method
+## Define a sync connector that works with a rest api and a collection and has a model connector with a list method
 
 **_ Example goes here - should use the list method to demonstrate type inference _**
 
-## Define a sync connector that works with a rest api and a collection and has a list method and a create method
+## Define a sync connector that works with a rest api and a collection and has a model connector with a list method and a create method
 
 **_ Example goes here - should use both list and create methods to demonstrate type inference _**
 
-## Define a sync connector that works with a rest api and a collection and has a list method and a create, update, and delete method
+## Define a sync connector that works with a rest api and a collection and has a model connector with a list method and a create, update, and delete method
 
 **_ Example goes here - should use all CRUD methods to demonstrate type inference _**
