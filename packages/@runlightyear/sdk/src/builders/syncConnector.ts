@@ -42,7 +42,10 @@ export interface CreateConfig<T = any> {
 }
 
 export interface UpdateConfig<T = any> {
-  request: (id: string, data: Partial<T>) => {
+  request: (
+    id: string,
+    data: Partial<T>
+  ) => {
     endpoint: string;
     method?: "PUT" | "PATCH" | "POST";
     data?: any;
@@ -119,7 +122,10 @@ export interface TypedModelConnectorConfig<TModel> {
 type InferResponseType<S> = S extends z.ZodType<infer R> ? R : any;
 
 // Type-safe list config that infers response type from schema
-export interface TypeSafeListConfig<TModel, TResponseSchema extends z.ZodType<any> | undefined = undefined> {
+export interface TypeSafeListConfig<
+  TModel,
+  TResponseSchema extends z.ZodType<any> | undefined = undefined
+> {
   request: (params: ListParams) => {
     endpoint: string;
     method?: "GET" | "POST";
@@ -128,7 +134,7 @@ export interface TypeSafeListConfig<TModel, TResponseSchema extends z.ZodType<an
   };
   responseSchema?: TResponseSchema;
   pagination?: PaginationConfig;
-  transform?: TResponseSchema extends z.ZodType<any> 
+  transform?: TResponseSchema extends z.ZodType<any>
     ? (response: InferResponseType<TResponseSchema>) => TModel[]
     : (response: any) => TModel[];
 }
@@ -145,19 +151,19 @@ export interface ModelConnector<T = any> {
   bulkDelete?: (ids: string[]) => Promise<void>;
 }
 
-type ExtractModels<T> =
-  T extends { __modelData?: infer Map }
-    ? Extract<keyof Map, string>
-    : T extends { models: ReadonlyArray<{ name: infer N }> }
-      ? Extract<N, string>
-      : string;
+type ExtractModels<T> = T extends { __modelData?: infer Map }
+  ? Extract<keyof Map, string>
+  : T extends { models: ReadonlyArray<{ name: infer N }> }
+  ? Extract<N, string>
+  : string;
 
-type InferModelType<C extends Collection, M extends string> =
-  C extends { __modelData?: infer Map extends Record<string, any> }
-    ? M extends keyof Map
-      ? Map[M]
-      : any
-    : any;
+type InferModelType<C extends Collection, M extends string> = C extends {
+  __modelData?: infer Map extends Record<string, any>;
+}
+  ? M extends keyof Map
+    ? Map[M]
+    : any
+  : any;
 
 export class SyncConnectorBuilder<
   TRestConnector extends RestConnector = RestConnector,
@@ -176,12 +182,14 @@ export class SyncConnectorBuilder<
     modelName: M,
     config: ModelConnectorConfig<InferModelType<TCollection, M>>
   ): this {
-    const model = this.collection.models.find(m => m.name === modelName);
-    
+    const model = this.collection.models.find((m) => m.name === modelName);
+
     if (!model) {
       throw new Error(
         `Model "${modelName}" does not exist in collection "${this.collection.name}". ` +
-        `Available models: ${this.collection.models.map(m => m.name).join(", ")}`
+          `Available models: ${this.collection.models
+            .map((m) => m.name)
+            .join(", ")}`
       );
     }
 
@@ -194,7 +202,7 @@ export class SyncConnectorBuilder<
       connector.list = async (params?: ListParams) => {
         // Get request configuration from the function
         const requestConfig = config.list!.request(params || {});
-        
+
         const response = await this.restConnector.request({
           method: requestConfig.method || "GET",
           url: requestConfig.endpoint,
@@ -219,7 +227,10 @@ export class SyncConnectorBuilder<
 
         // Extract pagination info based on pagination config
         let nextCursor: string | undefined;
-        if (config.list!.pagination?.type === "cursor" && config.list!.pagination.cursorField) {
+        if (
+          config.list!.pagination?.type === "cursor" &&
+          config.list!.pagination.cursorField
+        ) {
           nextCursor = data[config.list!.pagination.cursorField];
         }
 
@@ -233,20 +244,20 @@ export class SyncConnectorBuilder<
     if (config.create) {
       connector.create = async (data: any) => {
         // Apply transformRequest if provided
-        const transformedData = config.create!.transformRequest 
+        const transformedData = config.create!.transformRequest
           ? config.create!.transformRequest(data)
           : data;
 
         // Get request configuration from the function
         const requestConfig = config.create!.request(data);
-        
+
         const response = await this.restConnector.request({
           method: requestConfig.method || "POST",
           url: requestConfig.endpoint,
           data: requestConfig.data || transformedData,
         });
 
-        return config.create!.transform 
+        return config.create!.transform
           ? config.create!.transform(response.data)
           : response.data;
       };
@@ -255,20 +266,20 @@ export class SyncConnectorBuilder<
     if (config.update) {
       connector.update = async (id: string, data: any) => {
         // Apply transformRequest if provided
-        const transformedData = config.update!.transformRequest 
+        const transformedData = config.update!.transformRequest
           ? config.update!.transformRequest(data)
           : data;
-        
+
         // Get request configuration from the function
         const requestConfig = config.update!.request(id, data);
-          
+
         const response = await this.restConnector.request({
           method: requestConfig.method || "PUT",
           url: requestConfig.endpoint,
           data: requestConfig.data || transformedData,
         });
-        
-        return config.update!.transform 
+
+        return config.update!.transform
           ? config.update!.transform(response.data)
           : response.data;
       };
@@ -278,7 +289,7 @@ export class SyncConnectorBuilder<
       connector.delete = async (id: string) => {
         // Get request configuration from the function
         const requestConfig = config.delete!.request(id);
-          
+
         await this.restConnector.request({
           method: requestConfig.method || "DELETE",
           url: requestConfig.endpoint,
@@ -291,40 +302,46 @@ export class SyncConnectorBuilder<
       connector.bulkCreate = async (items: any[]) => {
         const batchSize = config.bulk!.create!.batchSize || 100;
         const results: any[] = [];
-        
+
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
           const requestConfig = config.bulk!.create!.request(batch);
-          
+
           const response = await this.restConnector.request({
             method: requestConfig.method || "POST",
             url: requestConfig.endpoint,
             data: requestConfig.data || batch,
           });
-          results.push(...(Array.isArray(response.data) ? response.data : [response.data]));
+          results.push(
+            ...(Array.isArray(response.data) ? response.data : [response.data])
+          );
         }
-        
+
         return results;
       };
     }
 
     if (config.bulk?.update) {
-      connector.bulkUpdate = async (items: Array<{ id: string; data: any }>) => {
+      connector.bulkUpdate = async (
+        items: Array<{ id: string; data: any }>
+      ) => {
         const batchSize = config.bulk!.update!.batchSize || 100;
         const results: any[] = [];
-        
+
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
           const requestConfig = config.bulk!.update!.request(batch);
-          
+
           const response = await this.restConnector.request({
             method: requestConfig.method || "PUT",
             url: requestConfig.endpoint,
             data: requestConfig.data || batch,
           });
-          results.push(...(Array.isArray(response.data) ? response.data : [response.data]));
+          results.push(
+            ...(Array.isArray(response.data) ? response.data : [response.data])
+          );
         }
-        
+
         return results;
       };
     }
@@ -332,11 +349,11 @@ export class SyncConnectorBuilder<
     if (config.bulk?.delete) {
       connector.bulkDelete = async (ids: string[]) => {
         const batchSize = config.bulk!.delete!.batchSize || 100;
-        
+
         for (let i = 0; i < ids.length; i += batchSize) {
           const batch = ids.slice(i, i + batchSize);
           const requestConfig = config.bulk!.delete!.request(batch);
-          
+
           await this.restConnector.request({
             method: requestConfig.method || "DELETE",
             url: requestConfig.endpoint,
@@ -352,18 +369,24 @@ export class SyncConnectorBuilder<
 
   withModelConnector<M extends ExtractModels<TCollection>>(
     modelName: M,
-    configBuilder: (builder: SyncModelConnectorBuilder<InferModelType<TCollection, M>>) => SyncModelConnectorBuilder<InferModelType<TCollection, M>>
+    configBuilder: (
+      builder: SyncModelConnectorBuilder<InferModelType<TCollection, M>>
+    ) => SyncModelConnectorBuilder<InferModelType<TCollection, M>>
   ): this {
-    const model = this.collection.models.find(m => m.name === modelName);
-    
+    const model = this.collection.models.find((m) => m.name === modelName);
+
     if (!model) {
       throw new Error(
         `Model "${modelName}" does not exist in collection "${this.collection.name}". ` +
-        `Available models: ${this.collection.models.map(m => m.name).join(", ")}`
+          `Available models: ${this.collection.models
+            .map((m) => m.name)
+            .join(", ")}`
       );
     }
 
-    const builder = new SyncModelConnectorBuilder<InferModelType<TCollection, M>>();
+    const builder = new SyncModelConnectorBuilder<
+      InferModelType<TCollection, M>
+    >();
     const configuredBuilder = configBuilder(builder);
     const config = configuredBuilder.build();
 
@@ -373,18 +396,24 @@ export class SyncConnectorBuilder<
 
   add<M extends ExtractModels<TCollection>>(
     modelName: M,
-    configBuilder: (builder: ModelConnectorConfigBuilder<InferModelType<TCollection, M>>) => ModelConnectorConfigBuilder<InferModelType<TCollection, M>>
+    configBuilder: (
+      builder: ModelConnectorConfigBuilder<InferModelType<TCollection, M>>
+    ) => ModelConnectorConfigBuilder<InferModelType<TCollection, M>>
   ): this {
-    const model = this.collection.models.find(m => m.name === modelName);
-    
+    const model = this.collection.models.find((m) => m.name === modelName);
+
     if (!model) {
       throw new Error(
         `Model "${modelName}" does not exist in collection "${this.collection.name}". ` +
-        `Available models: ${this.collection.models.map(m => m.name).join(", ")}`
+          `Available models: ${this.collection.models
+            .map((m) => m.name)
+            .join(", ")}`
       );
     }
 
-    const builder = new ModelConnectorConfigBuilder<InferModelType<TCollection, M>>();
+    const builder = new ModelConnectorConfigBuilder<
+      InferModelType<TCollection, M>
+    >();
     const configuredBuilder = configBuilder(builder);
     const config = configuredBuilder.build();
 
@@ -395,11 +424,17 @@ export class SyncConnectorBuilder<
   getModelConnector<M extends ExtractModels<TCollection>>(
     modelName: M
   ): ModelConnector<InferModelType<TCollection, M>> | undefined {
-    return this.modelConnectors.get(modelName) as ModelConnector<InferModelType<TCollection, M>> | undefined;
+    return this.modelConnectors.get(modelName) as
+      | ModelConnector<InferModelType<TCollection, M>>
+      | undefined;
   }
 
   build(): SyncConnector<TRestConnector, TCollection> {
-    return new SyncConnector(this.restConnector, this.collection, this.modelConnectors);
+    return new SyncConnector(
+      this.restConnector,
+      this.collection,
+      this.modelConnectors
+    );
   }
 }
 
@@ -415,7 +450,7 @@ export class SyncModelConnectorBuilder<T = any> {
     };
     responseSchema?: TSchema;
     pagination?: PaginationConfig;
-    transform?: TSchema extends z.ZodType<any> 
+    transform?: TSchema extends z.ZodType<any>
       ? (response: z.infer<TSchema>) => T[]
       : (response: any) => T[];
   }): this {
@@ -437,7 +472,10 @@ export class SyncModelConnectorBuilder<T = any> {
   }
 
   withUpdate(config: {
-    request: (id: string, data: Partial<T>) => {
+    request: (
+      id: string,
+      data: Partial<T>
+    ) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
       data?: any;
@@ -502,7 +540,10 @@ export class ModelConnectorConfigBuilder<T = any> {
   }
 
   update(config: {
-    request: (id: string, data: Partial<T>) => {
+    request: (
+      id: string,
+      data: Partial<T>
+    ) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
       data?: any;
@@ -564,7 +605,9 @@ export class SyncConnector<
   getModelConnector<M extends ExtractModels<TCollection>>(
     modelName: M
   ): ModelConnector<InferModelType<TCollection, M>> | undefined {
-    return this.modelConnectors.get(modelName) as ModelConnector<InferModelType<TCollection, M>> | undefined;
+    return this.modelConnectors.get(modelName) as
+      | ModelConnector<InferModelType<TCollection, M>>
+      | undefined;
   }
 
   async sync(): Promise<void> {
@@ -588,61 +631,56 @@ export function createSyncConnector<
 }
 
 // Type-safe config factory for better inference
-export function createListConfig<TModel, TResponse>(
-  config: {
-    request: (params: ListParams) => {
-      endpoint: string;
-      method?: "GET" | "POST";
-      params?: Record<string, any>;
-      data?: any;
-    };
-    responseSchema: z.ZodType<TResponse>;
-    pagination?: PaginationConfig;
-    transform: (response: TResponse) => TModel[];
-  }
-): ListConfig<TModel, TResponse> {
+export function createListConfig<TModel, TResponse>(config: {
+  request: (params: ListParams) => {
+    endpoint: string;
+    method?: "GET" | "POST";
+    params?: Record<string, any>;
+    data?: any;
+  };
+  responseSchema: z.ZodType<TResponse>;
+  pagination?: PaginationConfig;
+  transform: (response: TResponse) => TModel[];
+}): ListConfig<TModel, TResponse> {
   return config;
 }
 
 // Type-safe create config factory for better inference
-export function createCreateConfig<TModel>(
-  config: {
-    request: (data: TModel) => {
-      endpoint: string;
-      method?: "POST" | "PUT";
-      data?: any;
-    };
-    transform?: (response: any) => TModel;
-    transformRequest?: (data: TModel) => any;
-  }
-): CreateConfig<TModel> {
+export function createCreateConfig<TModel>(config: {
+  request: (data: TModel) => {
+    endpoint: string;
+    method?: "POST" | "PUT";
+    data?: any;
+  };
+  transform?: (response: any) => TModel;
+  transformRequest?: (data: TModel) => any;
+}): CreateConfig<TModel> {
   return config;
 }
 
 // Type-safe update config factory for better inference
-export function createUpdateConfig<TModel>(
-  config: {
-    request: (id: string, data: Partial<TModel>) => {
-      endpoint: string;
-      method?: "PUT" | "PATCH" | "POST";
-      data?: any;
-    };
-    transform?: (response: any) => TModel;
-    transformRequest?: (data: Partial<TModel>) => any;
-  }
-): UpdateConfig<TModel> {
+export function createUpdateConfig<TModel>(config: {
+  request: (
+    id: string,
+    data: Partial<TModel>
+  ) => {
+    endpoint: string;
+    method?: "PUT" | "PATCH" | "POST";
+    data?: any;
+  };
+  transform?: (response: any) => TModel;
+  transformRequest?: (data: Partial<TModel>) => any;
+}): UpdateConfig<TModel> {
   return config;
 }
 
 // Type-safe delete config factory
-export function createDeleteConfig(
-  config: {
-    request: (id: string) => {
-      endpoint: string;
-      method?: "DELETE" | "POST";
-      data?: any;
-    };
-  }
-): DeleteConfig {
+export function createDeleteConfig(config: {
+  request: (id: string) => {
+    endpoint: string;
+    method?: "DELETE" | "POST";
+    data?: any;
+  };
+}): DeleteConfig {
   return config;
 }
