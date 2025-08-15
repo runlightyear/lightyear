@@ -8,21 +8,21 @@ import type { Collection, Model } from "../types";
 /**
  * Extract the schema type from a Zod schema
  */
-export type InferZodType<T> = T extends z.ZodType<infer U> ? U : never;
+export type InferZodType<T> = T extends z.ZodTypeAny ? z.infer<T> : never;
 
 /**
  * Create a typed list response schema
  */
-export function createListResponseSchema<T extends z.ZodType<any>>(
+export function createListResponseSchema<T extends z.ZodTypeAny>(
   itemSchema: T
-): z.ZodType<InferZodType<T>[]> {
+): z.ZodArray<T> {
   return z.array(itemSchema);
 }
 
 /**
  * Create a paginated list response schema
  */
-export function createPaginatedResponseSchema<T extends z.ZodType<any>>(
+export function createPaginatedResponseSchema<T extends z.ZodTypeAny>(
   itemSchema: T,
   options?: {
     itemsField?: string;
@@ -48,16 +48,16 @@ export function validateModelExists(
   collection: Collection,
   modelName: string
 ): Model {
-  const model = collection.models.find(m => m.name === modelName);
-  
+  const model = collection.models.find((m) => m.name === modelName);
+
   if (!model) {
-    const availableModels = collection.models.map(m => m.name).join(", ");
+    const availableModels = collection.models.map((m) => m.name).join(", ");
     throw new Error(
       `Model "${modelName}" does not exist in collection "${collection.name}". ` +
-      `Available models: ${availableModels}`
+        `Available models: ${availableModels}`
     );
   }
-  
+
   return model;
 }
 
@@ -75,17 +75,17 @@ export function isValidPaginationType(
  */
 export function extractNestedData(data: any, path: string): any {
   if (!path) return data;
-  
+
   const segments = path.split(".");
   let result = data;
-  
+
   for (const segment of segments) {
     if (result === null || result === undefined) {
       return undefined;
     }
     result = result[segment];
   }
-  
+
   return result;
 }
 
@@ -94,11 +94,11 @@ export function extractNestedData(data: any, path: string): any {
  */
 export function batchItems<T>(items: T[], batchSize: number): T[][] {
   const batches: T[][] = [];
-  
+
   for (let i = 0; i < items.length; i += batchSize) {
     batches.push(items.slice(i, i + batchSize));
   }
-  
+
   return batches;
 }
 
@@ -120,22 +120,21 @@ export function createModelConfig<T>() {
         limitField?: string;
       };
     }) => ({ list: config }),
-    
-    create: (config: {
-      endpoint: string;
-      method?: "POST" | "PUT";
-    }) => ({ create: config }),
-    
+
+    create: (config: { endpoint: string; method?: "POST" | "PUT" }) => ({
+      create: config,
+    }),
+
     update: (config: {
       endpoint: string | ((id: string) => string);
       method?: "PUT" | "PATCH" | "POST";
     }) => ({ update: config }),
-    
+
     delete: (config: {
       endpoint: string | ((id: string) => string);
       method?: "DELETE" | "POST";
     }) => ({ delete: config }),
-    
+
     bulk: (config: {
       create?: {
         endpoint: string;
