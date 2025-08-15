@@ -54,17 +54,26 @@ export class IntegrationBuilder {
   }
 
   /**
-   * Add an action to this integration
+   * Add one or more actions to this integration
    */
-  withAction(action: Action): this {
-    this.actions[action.name] = action;
+  withAction(action: Action): this;
+  withAction(...actions: Action[]): this;
+  withAction(...actions: Action[]): this {
+    actions.forEach((action) => {
+      this.actions[action.name] = action;
+    });
     return this;
   }
 
   /**
    * Add multiple actions to this integration
    */
-  withActions(actions: Action[]): this {
+  withActions(...actions: Action[]): this;
+  withActions(actions: Action[]): this;
+  withActions(...actionsOrArray: Action[] | [Action[]]): this {
+    const actions = Array.isArray(actionsOrArray[0])
+      ? (actionsOrArray[0] as Action[])
+      : (actionsOrArray as Action[]);
     actions.forEach((action) => {
       this.actions[action.name] = action;
     });
