@@ -54,11 +54,12 @@ export class IntegrationBuilder {
   }
 
   /**
-   * Add one or more actions to this integration
+   * Set the actions on this integration (override any previously set actions)
    */
   withAction(action: Action): this;
   withAction(...actions: Action[]): this;
   withAction(...actions: Action[]): this {
+    this.actions = {};
     actions.forEach((action) => {
       this.actions[action.name] = action;
     });
@@ -66,11 +67,39 @@ export class IntegrationBuilder {
   }
 
   /**
-   * Add multiple actions to this integration
+   * Set multiple actions on this integration (override any previously set actions)
    */
   withActions(...actions: Action[]): this;
   withActions(actions: Action[]): this;
   withActions(...actionsOrArray: Action[] | [Action[]]): this {
+    const actions = Array.isArray(actionsOrArray[0])
+      ? (actionsOrArray[0] as Action[])
+      : (actionsOrArray as Action[]);
+    this.actions = {};
+    actions.forEach((action) => {
+      this.actions[action.name] = action;
+    });
+    return this;
+  }
+
+  /**
+   * Add one or more actions (incremental, does not clear existing)
+   */
+  addAction(action: Action): this;
+  addAction(...actions: Action[]): this;
+  addAction(...actions: Action[]): this {
+    actions.forEach((action) => {
+      this.actions[action.name] = action;
+    });
+    return this;
+  }
+
+  /**
+   * Add multiple actions (incremental, does not clear existing)
+   */
+  addActions(...actions: Action[]): this;
+  addActions(actions: Action[]): this;
+  addActions(...actionsOrArray: Action[] | [Action[]]): this {
     const actions = Array.isArray(actionsOrArray[0])
       ? (actionsOrArray[0] as Action[])
       : (actionsOrArray as Action[]);

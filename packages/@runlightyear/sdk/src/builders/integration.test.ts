@@ -169,9 +169,9 @@ describe("IntegrationBuilder", () => {
 
       const integration = defineIntegration("incremental-actions")
         .withApp("salesforce")
-        .withAction(syncAction)
-        .withAction(importAction)
-        .withActions([exportAction])
+        .addAction(syncAction)
+        .addAction(importAction)
+        .addActions([exportAction])
         .deploy();
 
       expect(Object.keys(integration.actions)).toHaveLength(3);
@@ -255,8 +255,8 @@ describe("IntegrationBuilder", () => {
         .withCustomApp(customApp)
         .withCollection("crm", crm)
         .withCollection("sales", sales)
-        .withAction(syncAction)
-        .withAction(exportAction)
+        .addAction(syncAction)
+        .addAction(exportAction)
         .deploy();
 
       const integrations = getIntegrations();
