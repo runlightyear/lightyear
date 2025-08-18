@@ -16,22 +16,23 @@ These requirements describe how the `sync` function must behave for a Sync Conne
 
 ## Public API
 
-- **SyncConnector.sync(syncId, direction?)**
+- **SyncConnector.sync()**
 
-  - Signature: `(syncId: string, direction: "push" | "pull" | "bidirectional" = "bidirectional") => Promise<void>`
-  - Orchestrates syncing of all models within a collection for a given `syncId`.
+  - Signature: `() => Promise<void>`
+  - Orchestrates syncing of all models within a collection. No parameters are required; the connector reads required state (e.g., `syncId`, direction) from context and the platform.
 
-- **ModelConnector.sync(syncId, direction?)**
-  - Signature: `(syncId: string, direction: "push" | "pull" | "bidirectional" = "bidirectional") => Promise<void>`
-  - Executes the sync for a specific model: pulls external data into the platform and/or pushes local changes to the external system.
+- **ModelConnector.sync()**
+  - Signature: `() => Promise<void>`
+  - Executes the sync for a specific model: pulls external data into the platform and/or pushes local changes to the external system. No parameters are required; model sync reads state from context and the platform.
 
-Note: The SDK’s current `SyncConnector.sync()` signature differs (no arguments). For parity with the Lightyear runtime, the AI SDK `sync` should accept `syncId` and `direction` and implement the orchestration below while leveraging the SDK’s config-driven model connectors.
+Note: The AI SDK intentionally uses a parameterless `sync()` API. The runtime/action wrapper sets context (e.g., `setContext({ syncId })`) before invoking sync. The requested direction is derived from the platform’s sync record and defaults to "bidirectional" when unspecified.
 
 ## Preconditions and Context
 
 - `syncId` is created by the platform when the sync run starts (see `base/syncAction.ts` `startSync`). The calling action sets context: `setContext({ syncId })`.
 - Auth must be present and must include a managed user:
   - `connector.getAuthData()` must be non-null and `auth.managedUser` must exist. Otherwise, throw an error.
+- Direction is obtained from the platform sync record (e.g., a field set for the run). If not specified, default to "bidirectional". Resumption uses `currentDirection` stored in the sync record.
 
 ## High-Level Flow
 
@@ -42,21 +43,22 @@ Note: The SDK’s current `SyncConnector.sync()` signature differs (no arguments
 3. Fetch the current sync state: `getSync({ syncId })`.
 4. If `sync.currentModel?.name` is present, resume from that model by slicing the list starting at that model name.
 5. For each `modelName` in `modelsToSync`:
-   - Look up the model connector instance from `this.getModels()[modelName]`.
+   - Look up the model connector instance from `this.getModelConnector(modelName)`.
    - If found:
      - `updateSync({ syncId, currentModelName: modelName })`.
-     - `await model.sync(syncId, direction)`.
+     - `await model.sync()`.
      - After the model finishes, clear the direction marker: `updateSync({ syncId, currentDirection: null })`.
 
 ### Model-level processing (ModelConnector)
 
-1. Resolve `authData = connector.getAuthData()`; extract `managedUserId`.
-2. Load sync state: `const sync = await getSync({ syncId })` and derive:
+1. Read run context: `const { syncId, managedUserId } = getContext()`; throw if `syncId` is missing.
+2. Resolve connector auth and validate presence of a managed user (e.g., `auth.managedUser`).
+3. Load sync state: `const sync = await getSync({ syncId })` and derive:
    - `syncType` (`FULL` | `INCREMENTAL`).
    - `cursor` (only if `sync.lastBatch?.modelName === this.modelName`, else `undefined`).
    - `lastExternalId` and `lastExternalUpdatedAt` from `sync.modelStatuses[this.modelName]`.
-   - `currentDirection` from sync.
-3. Pull phase (only if `direction` is `pull` or `bidirectional`, and `currentDirection !== "PUSH"`):
+   - `requestedDirection` from the sync record (default to "bidirectional") and `currentDirection` from sync.
+4. Pull phase (only if `requestedDirection` is `pull` or `bidirectional`, and `currentDirection !== "PUSH"`):
    - `updateSync({ syncId, currentDirection: "PULL" })`.
    - Repeat until no more pages/batches:
      - If time limit exceeded (`isTimeLimitExceeded()`), then `pauseSync(syncId)` and `throw RERUN`.
@@ -66,7 +68,7 @@ Note: The SDK’s current `SyncConnector.sync()` signature differs (no arguments
      - Include incremental watermarks in params: pass `lastExternalId` and `lastExternalUpdatedAt` to the list `request(params)` so the config can map them to provider-specific query fields.
      - Transform `items` into platform objects `{ externalId, externalUpdatedAt, data }` via the SDK transform function or a model-specific mapper, then call `upsertObjectBatch({ collectionName, syncId, modelName, app, customApp, managedUserId, objects, cursor?, async: true })`.
      - Update `lastExternalId/lastExternalUpdatedAt` from the last item in the processed page.
-4. Push phase (only if `direction` is `push` or `bidirectional`):
+5. Push phase (only if `requestedDirection` is `push` or `bidirectional`):
    - `updateSync({ syncId, currentDirection: "PUSH" })`.
    - Repeat:
      - If time limit exceeded, `pauseSync(syncId)` and `throw RERUN`.
@@ -163,12 +165,12 @@ SDK note: The SDK builder itself does not include these platform calls. The AI S
   - Resumes mid-collection from `currentModelName`.
   - Resumes mid-model with `lastBatch.cursor` and respects `currentDirection`.
 - On time-limit exceed, the run pauses and signals `RERUN`; the next run resumes correctly without duplicating work.
-- Missing model connectors are skipped gracefully (no crash) when not present in `this.getModels()`.
-- SDK parity: `SyncConnector.sync(syncId, direction?)` integrates the builder-configured model operations with platform APIs; supports cursor/page/offset pagination loops; uses `bulk.*` when present; and passes watermarks to list requests.
+- Missing model connectors are skipped gracefully (no crash) when not present in the configured model connectors (i.e., `getModelConnector(modelName)` returns `undefined`).
+- SDK parity: `SyncConnector.sync()` and `ModelConnector.sync()` accept no parameters, derive `syncId` and direction from context/the sync record, integrate the builder-configured model operations with platform APIs; support cursor/page/offset pagination loops; use `bulk.*` when present; and pass watermarks to list requests.
 
 ## Notes for Implementers
 
-- `SyncConnector.getModels()` must return a mapping `{ [modelName: string]: ModelConnector }` for all supported models in the collection. The platform’s `getModels()` list defines the authoritative order and subset to sync.
+- The Sync Connector maintains model connectors configured via the SDK builder and accessible through `getModelConnector(modelName)`. The platform’s `getModels()` list defines the authoritative order and subset to sync.
 - `ModelConnector` implementations should batch API calls efficiently and respect provider rate limits.
 - If the external API exposes reliable watermarks beyond `updatedAt`, incorporate them in `list` to maximize incremental efficiency.
 - In the SDK, prefer using `responseSchema` for validation and `transform`/`transformRequest` for shape mapping. Ensure `T` exposes stable `id` and `updatedAt` for watermarking.
