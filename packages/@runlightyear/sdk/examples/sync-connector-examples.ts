@@ -116,7 +116,11 @@ const syncConnectorWithListAndCreate = createSyncConnector(
           method: "POST",
           data: user,
         }),
-        transform: (response) => response.data,
+        responseSchema: z.object({ data: UserSchema }).transform((r) => r.data),
+        extract: (created) => ({
+          externalId: created.id,
+          externalUpdatedAt: created.updatedAt,
+        }),
       })
   )
   .build();
@@ -180,29 +184,27 @@ const fullCrudSyncConnector = createSyncConnector(apiConnector, userCollection)
           method: "POST",
           data: user,
         }),
-        transformRequest: (user) => {
-          // Remove id field for creation
-          const { id, ...userData } = user;
-          return userData;
-        },
-        transform: (response) => response.data,
+        responseSchema: z.object({ data: UserSchema }).transform((r) => r.data),
+        extract: (created) => ({
+          externalId: created.id,
+          externalUpdatedAt: created.updatedAt,
+        }),
       })
       .withUpdate({
-        request: (id, data) => ({
-          endpoint: `/users/${id}`,
+        request: (externalId, data) => ({
+          endpoint: `/users/${externalId}`,
           method: "PUT",
           data,
         }),
-        transformRequest: (data) => {
-          // Remove read-only fields
-          const { id, createdAt, ...updateData } = data;
-          return updateData;
-        },
-        transform: (response) => response.data,
+        responseSchema: z.object({ data: UserSchema }).transform((r) => r.data),
+        extract: (updated) => ({
+          externalId: updated.id,
+          externalUpdatedAt: updated.updatedAt,
+        }),
       })
       .withDelete({
-        request: (id) => ({
-          endpoint: `/users/${id}`,
+        request: (externalId) => ({
+          endpoint: `/users/${externalId}`,
           method: "DELETE",
         }),
       })

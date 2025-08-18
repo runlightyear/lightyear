@@ -37,8 +37,11 @@ export interface CreateConfig<T = any> {
     method?: "POST" | "PUT";
     data?: any;
   };
-  transform?: (response: any) => T;
-  transformRequest?: (data: T) => any;
+  responseSchema?: z.ZodType<T>;
+  extract?: (item: T) => {
+    externalId: string;
+    externalUpdatedAt: string | null;
+  };
 }
 
 export interface UpdateConfig<T = any> {
@@ -50,8 +53,11 @@ export interface UpdateConfig<T = any> {
     method?: "PUT" | "PATCH" | "POST";
     data?: any;
   };
-  transform?: (response: any) => T;
-  transformRequest?: (data: Partial<T>) => any;
+  responseSchema?: z.ZodType<T>;
+  extract?: (item: T) => {
+    externalId: string;
+    externalUpdatedAt: string | null;
+  };
 }
 
 export interface DeleteConfig {
@@ -288,52 +294,46 @@ export class SyncConnectorBuilder<
 
     if (config.create) {
       connector.create = async (data: any) => {
-        // Apply transformRequest if provided
-        const transformedData = config.create!.transformRequest
-          ? config.create!.transformRequest(data)
-          : data;
-
         // Get request configuration from the function
         const requestConfig = config.create!.request(data);
 
         const response = await this.restConnector.request({
           method: requestConfig.method || "POST",
           url: requestConfig.endpoint,
-          data: requestConfig.data || transformedData,
+          data: requestConfig.data ?? data,
         });
 
-        return config.create!.transform
-          ? config.create!.transform(response.data)
+        // Validate response if schema provided
+        const validated = (config.create as any).responseSchema
+          ? (config.create as any).responseSchema.parse(response.data)
           : response.data;
+        return validated as any;
       };
     }
 
     if (config.update) {
-      connector.update = async (id: string, data: any) => {
-        // Apply transformRequest if provided
-        const transformedData = config.update!.transformRequest
-          ? config.update!.transformRequest(data)
-          : data;
-
+      connector.update = async (externalId: string, data: any) => {
         // Get request configuration from the function
-        const requestConfig = config.update!.request(id, data);
+        const requestConfig = config.update!.request(externalId, data);
 
         const response = await this.restConnector.request({
           method: requestConfig.method || "PUT",
           url: requestConfig.endpoint,
-          data: requestConfig.data || transformedData,
+          data: requestConfig.data ?? data,
         });
 
-        return config.update!.transform
-          ? config.update!.transform(response.data)
+        // Validate response if schema provided
+        const validated = (config.update as any).responseSchema
+          ? (config.update as any).responseSchema.parse(response.data)
           : response.data;
+        return validated as any;
       };
     }
 
     if (config.delete) {
-      connector.delete = async (id: string) => {
+      connector.delete = async (externalId: string) => {
         // Get request configuration from the function
-        const requestConfig = config.delete!.request(id);
+        const requestConfig = config.delete!.request(externalId);
 
         await this.restConnector.request({
           method: requestConfig.method || "DELETE",
@@ -503,37 +503,43 @@ export class SyncModelConnectorBuilder<T = any> {
     return this;
   }
 
-  withCreate(config: {
+  withCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
     request: (data: T) => {
       endpoint: string;
       method?: "POST" | "PUT";
       data?: any;
     };
-    transform?: (response: any) => T;
-    transformRequest?: (data: T) => any;
+    responseSchema?: TSchema;
+    extract?: (item: T) => {
+      externalId: string;
+      externalUpdatedAt: string | null;
+    };
   }): this {
     this.config.create = config;
     return this;
   }
 
-  withUpdate(config: {
+  withUpdate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
     request: (
-      id: string,
+      externalId: string,
       data: Partial<T>
     ) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
       data?: any;
     };
-    transform?: (response: any) => T;
-    transformRequest?: (data: Partial<T>) => any;
+    responseSchema?: TSchema;
+    extract?: (item: T) => {
+      externalId: string;
+      externalUpdatedAt: string | null;
+    };
   }): this {
     this.config.update = config;
     return this;
   }
 
   withDelete(config: {
-    request: (id: string) => {
+    request: (externalId: string) => {
       endpoint: string;
       method?: "DELETE" | "POST";
       data?: any;
@@ -571,37 +577,43 @@ export class ModelConnectorConfigBuilder<T = any> {
     return this;
   }
 
-  create(config: {
+  create<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
     request: (data: T) => {
       endpoint: string;
       method?: "POST" | "PUT";
       data?: any;
     };
-    transform?: (response: any) => T;
-    transformRequest?: (data: T) => any;
+    responseSchema?: TSchema;
+    extract?: (item: T) => {
+      externalId: string;
+      externalUpdatedAt: string | null;
+    };
   }): this {
     this.config.create = config;
     return this;
   }
 
-  update(config: {
+  update<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
     request: (
-      id: string,
+      externalId: string,
       data: Partial<T>
     ) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
       data?: any;
     };
-    transform?: (response: any) => T;
-    transformRequest?: (data: Partial<T>) => any;
+    responseSchema?: TSchema;
+    extract?: (item: T) => {
+      externalId: string;
+      externalUpdatedAt: string | null;
+    };
   }): this {
     this.config.update = config;
     return this;
   }
 
   delete(config: {
-    request: (id: string) => {
+    request: (externalId: string) => {
       endpoint: string;
       method?: "DELETE" | "POST";
       data?: any;
@@ -711,8 +723,11 @@ export function createCreateConfig<TModel>(config: {
     method?: "POST" | "PUT";
     data?: any;
   };
-  transform?: (response: any) => TModel;
-  transformRequest?: (data: TModel) => any;
+  responseSchema?: z.ZodType<TModel>;
+  extract?: (item: TModel) => {
+    externalId: string;
+    externalUpdatedAt: string | null;
+  };
 }): CreateConfig<TModel> {
   return config;
 }
@@ -727,8 +742,11 @@ export function createUpdateConfig<TModel>(config: {
     method?: "PUT" | "PATCH" | "POST";
     data?: any;
   };
-  transform?: (response: any) => TModel;
-  transformRequest?: (data: Partial<TModel>) => any;
+  responseSchema?: z.ZodType<TModel>;
+  extract?: (item: TModel) => {
+    externalId: string;
+    externalUpdatedAt: string | null;
+  };
 }): UpdateConfig<TModel> {
   return config;
 }
