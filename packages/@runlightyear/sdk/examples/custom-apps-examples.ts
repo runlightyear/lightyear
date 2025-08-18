@@ -9,6 +9,7 @@ import {
   defineBasicCustomApp,
   defineOAuth2CustomApp,
   createOAuthConnector,
+  defineCustomApp,
 } from "../src";
 
 /**
@@ -102,6 +103,15 @@ const salesforceApp = defineOAuth2CustomApp("salesforce")
   })
   .deploy();
 
+/**
+ * Define a duplicate custom app with a different name and title
+ */
+
+const duplicateSalesforceApp = defineCustomApp
+  .from(salesforceApp)
+  .withTitle("Salesforce CRM v2")
+  .deploy();
+
 // Export examples for reference
 export {
   simpleApiKeyApp,
@@ -111,4 +121,5 @@ export {
   slackApp,
   githubApp,
   salesforceApp,
+  duplicateSalesforceApp,
 };

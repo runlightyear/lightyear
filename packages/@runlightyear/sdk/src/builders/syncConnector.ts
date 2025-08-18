@@ -178,6 +178,51 @@ export class SyncConnectorBuilder<
     this.collection = collection;
   }
 
+  /**
+   * Copy-constructor: create a builder from an existing SyncConnectorBuilder or SyncConnector
+   */
+  static from<RC extends RestConnector, C extends Collection>(
+    source: SyncConnectorBuilder<RC, C> | SyncConnector<RC, C>
+  ): SyncConnectorBuilder<RC, C> {
+    if (source instanceof SyncConnectorBuilder) {
+      const builder = new SyncConnectorBuilder<RC, C>(
+        (source as any).restConnector,
+        (source as any).collection
+      );
+      const existing = (source as any).modelConnectors as Map<
+        string,
+        ModelConnector
+      >;
+      existing.forEach((connector, name) => {
+        builder.add(name as any, (b: any) => {
+          const cfg = (connector as any).config as ModelConnectorConfig<any>;
+          const bb = new ModelConnectorConfigBuilder<any>();
+          if (cfg.list) bb.list(cfg.list as any);
+          if (cfg.create) bb.create(cfg.create);
+          if (cfg.update) bb.update(cfg.update);
+          if (cfg.delete) bb.delete(cfg.delete);
+          if (cfg.bulk) bb.bulk(cfg.bulk);
+          return bb;
+        });
+      });
+      return builder;
+    }
+
+    const restConnector = (source as SyncConnector<RC, C>).getRestConnector();
+    const collection = (source as SyncConnector<RC, C>).getCollection();
+    const builder = new SyncConnectorBuilder<RC, C>(restConnector, collection);
+    for (const model of collection.models) {
+      const connector = (source as SyncConnector<RC, C>).getModelConnector(
+        model.name as any
+      ) as ModelConnector<any> | undefined;
+      if (connector && (connector as any).config) {
+        const cfg = (connector as any).config as ModelConnectorConfig<any>;
+        builder.with(model.name as any, cfg as ModelConnectorConfig<any>);
+      }
+    }
+    return builder;
+  }
+
   with<M extends ExtractModels<TCollection>>(
     modelName: M,
     config: ModelConnectorConfig<InferModelType<TCollection, M>>
@@ -620,15 +665,29 @@ export class SyncConnector<
   }
 }
 
-export function createSyncConnector<
+export interface CreateSyncConnectorFn<
   TRestConnector extends RestConnector,
   TCollection extends Collection
->(
-  restConnector: TRestConnector,
-  collection: TCollection
-): SyncConnectorBuilder<TRestConnector, TCollection> {
-  return new SyncConnectorBuilder(restConnector, collection);
+> {
+  (
+    restConnector: TRestConnector,
+    collection: TCollection
+  ): SyncConnectorBuilder<TRestConnector, TCollection>;
+  from: (
+    source:
+      | SyncConnectorBuilder<TRestConnector, TCollection>
+      | SyncConnector<TRestConnector, TCollection>
+  ) => SyncConnectorBuilder<TRestConnector, TCollection>;
 }
+
+export const createSyncConnector: CreateSyncConnectorFn<
+  RestConnector,
+  Collection
+> = ((restConnector: any, collection: any) =>
+  new SyncConnectorBuilder(restConnector, collection)) as any;
+
+(createSyncConnector as any).from = (source: any) =>
+  SyncConnectorBuilder.from(source);
 
 // Type-safe config factory for better inference
 export function createListConfig<TModel, TResponse>(config: {

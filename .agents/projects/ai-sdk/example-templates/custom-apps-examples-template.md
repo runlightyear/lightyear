@@ -27,3 +27,7 @@
 ## Create a custom app with OAUTH2 authentication and a title and a connector and a variable and a secret
 
 **_ Example goes here _**
+
+## Define a duplicate custom app of an instantiated custom app with a different name and title
+
+**_ Example goes here _**

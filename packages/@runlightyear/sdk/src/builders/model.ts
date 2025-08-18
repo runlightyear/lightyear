@@ -17,13 +17,27 @@ export class ModelBuilder<TSchema = unknown, TName extends string = string> {
   private schema?: TSchema extends Readonly<any>
     ? TSchema
     : TSchema extends z.ZodType<any>
-      ? TSchema
-      : JSONSchema7;
+    ? TSchema
+    : JSONSchema7;
   private matchPattern?: MatchPattern;
 
   constructor(collection: Collection | CollectionBuilder, name: TName) {
     this.collection = collection;
     this.name = name;
+  }
+
+  /**
+   * Copy-constructor: create a builder from an existing model
+   */
+  static from<TS = unknown, TN extends string = string>(
+    collection: Collection | CollectionBuilder,
+    source: Model<TS, TN>
+  ): ModelBuilder<TS, TN> {
+    const builder = new ModelBuilder<TS, TN>(collection, source.name as TN);
+    if (source.title) builder.withTitle(source.title);
+    if (source.schema) builder.withSchema(source.schema as any);
+    if (source.matchPattern) builder.withMatchPattern(source.matchPattern);
+    return builder;
   }
 
   withTitle(title: string): this {
@@ -82,9 +96,19 @@ export class ModelBuilder<TSchema = unknown, TName extends string = string> {
  * @param collection - The collection this model belongs to
  * @param name - The name of the model
  */
-export function defineModel<N extends string>(
-  collection: Collection | CollectionBuilder,
-  name: N
-): ModelBuilder<unknown, N> {
-  return new ModelBuilder(collection, name);
+export interface DefineModelFn {
+  <N extends string>(
+    collection: Collection | CollectionBuilder,
+    name: N
+  ): ModelBuilder<unknown, N>;
+  from: <TS = unknown, TN extends string = string>(
+    collection: Collection | CollectionBuilder,
+    source: Model<TS, TN>
+  ) => ModelBuilder<TS, TN>;
 }
+
+export const defineModel: DefineModelFn = ((collection: any, name: any) =>
+  new ModelBuilder(collection, name)) as unknown as DefineModelFn;
+
+defineModel.from = (collection: any, source: any) =>
+  ModelBuilder.from(collection, source);

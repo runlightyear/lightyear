@@ -32,6 +32,14 @@ export class ActionBuilder {
     this.name = name;
   }
 
+  /**
+   * Change the builder's name. Useful when duplicating an action.
+   */
+  withName(name: string): this {
+    this.name = name;
+    return this;
+  }
+
   withTitle(title: string): this {
     this.title = title;
     return this;
@@ -96,6 +104,53 @@ export class ActionBuilder {
     return this;
   }
 
+  /**
+   * Create a builder from an existing action or builder (copy constructor pattern).
+   */
+  static from(source: Action | ActionBuilder): ActionBuilder {
+    if (source instanceof ActionBuilder) {
+      const builder = new ActionBuilder(source.name);
+      if (source.title) builder.withTitle(source.title);
+      if (source.description) builder.withDescription(source.description);
+      if (source.variables.length > 0) {
+        builder.addVariables(source.variables.map((v) => ({ ...v })));
+      }
+      if (source.secrets.length > 0) {
+        builder.addSecrets(source.secrets.map((s) => ({ ...s })));
+      }
+      if (source.runFunction) builder.withRun(source.runFunction);
+      return builder;
+    }
+
+    const action = source as Action;
+    const builder = new ActionBuilder(action.name);
+    if (action.title) builder.withTitle(action.title);
+    if (action.description) builder.withDescription(action.description);
+    if (action.variables && action.variables.length > 0) {
+      builder.addVariables(action.variables.map((v) => ({ ...v })));
+    }
+    if (action.secrets && action.secrets.length > 0) {
+      builder.addSecrets(action.secrets.map((s) => ({ ...s })));
+    }
+    if (action.run) builder.withRun(action.run);
+    return builder;
+  }
+
+  /**
+   * Backwards-compatible alias of from() for actions.
+   */
+  static fromAction(action: Action): ActionBuilder {
+    return ActionBuilder.from(action);
+  }
+
+  /**
+   * Duplicate this builder into a new one with a different name.
+   * Title and other fields can be overridden on the returned builder.
+   */
+  duplicateAs(newName: string): ActionBuilder {
+    return ActionBuilder.from(this).withName(newName);
+  }
+
   deploy(): Action {
     const action: Action = {
       name: this.name,
@@ -128,6 +183,16 @@ export class ActionBuilder {
 /**
  * Factory function for creating an action builder
  */
-export function defineAction(name: string): ActionBuilder {
-  return new ActionBuilder(name);
+export interface DefineActionFn {
+  (name: string): ActionBuilder;
+  from: (source: Action | ActionBuilder) => ActionBuilder;
+  fromAction: (action: Action) => ActionBuilder;
 }
+
+export const defineAction: DefineActionFn = ((name: string) =>
+  new ActionBuilder(name)) as DefineActionFn;
+
+defineAction.from = (source: Action | ActionBuilder) =>
+  ActionBuilder.from(source);
+
+defineAction.fromAction = (action: Action) => ActionBuilder.from(action);

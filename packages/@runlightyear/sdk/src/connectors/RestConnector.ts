@@ -38,6 +38,13 @@ export class RestConnector {
   }
 
   /**
+   * Get the configured base URL
+   */
+  getBaseUrl(): string {
+    return this.baseUrl;
+  }
+
+  /**
    * Get the default headers for requests
    */
   getDefaultHeaders(): Record<string, string> {

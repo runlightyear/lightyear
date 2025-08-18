@@ -63,6 +63,28 @@ export class CollectionBuilder<
     return this as any;
   }
 
+  /**
+   * Copy-constructor: create a builder from an existing collection or builder
+   */
+  static from(source: Collection | CollectionBuilder): CollectionBuilder {
+    const name =
+      source instanceof CollectionBuilder ? source.getName() : source.name;
+    const builder = new CollectionBuilder(name);
+    const title =
+      source instanceof CollectionBuilder
+        ? (source as any).title
+        : source.title;
+    if (title) builder.withTitle(title);
+    const models =
+      source instanceof CollectionBuilder
+        ? (source as any).models
+        : source.models;
+    if (models && models.length > 0) {
+      builder.withModels(models.map((m: Model<any, any>) => ({ ...m })) as any);
+    }
+    return builder;
+  }
+
   withModel<M extends Model<any, any>>(
     model: M
   ): CollectionBuilder<readonly [...TModels, M], TSchemas> {
@@ -84,7 +106,10 @@ export class CollectionBuilder<
       schema?: S;
       matchPattern?: MatchPattern;
     }
-  ): CollectionBuilder<readonly [...TModels, Model<S, N>], TSchemas & { [K in N]: S }> {
+  ): CollectionBuilder<
+    readonly [...TModels, Model<S, N>],
+    TSchemas & { [K in N]: S }
+  > {
     const model: Model<S, N> = {
       name,
       title: options?.title,
@@ -104,8 +129,11 @@ export class CollectionBuilder<
   }
 
   deploy(): Collection &
-    TypedCollectionMethods<TModels> &
-    { __schemas?: TSchemas; __models?: TModels; __modelData?: ModelNameToDataMap<TModels> } {
+    TypedCollectionMethods<TModels> & {
+      __schemas?: TSchemas;
+      __models?: TModels;
+      __modelData?: ModelNameToDataMap<TModels>;
+    } {
     // Build model map for efficient lookup
     const modelMap = new Map<string, Model<any, any>>();
     for (const model of this.models) {
@@ -129,14 +157,24 @@ export class CollectionBuilder<
 
     // Return with type assertion to preserve schema and model generic types for inference via phantom properties
     return collection as Collection &
-      TypedCollectionMethods<TModels> &
-      { __schemas?: TSchemas; __models?: TModels; __modelData?: ModelNameToDataMap<TModels> };
+      TypedCollectionMethods<TModels> & {
+        __schemas?: TSchemas;
+        __models?: TModels;
+        __modelData?: ModelNameToDataMap<TModels>;
+      };
   }
 }
 
 /**
  * Factory function for creating a collection builder
  */
-export function defineCollection(name: string): CollectionBuilder {
-  return new CollectionBuilder(name);
+export interface DefineCollectionFn {
+  (name: string): CollectionBuilder;
+  from: (source: Collection | CollectionBuilder) => CollectionBuilder;
 }
+
+export const defineCollection: DefineCollectionFn = ((name: string) =>
+  new CollectionBuilder(name)) as unknown as DefineCollectionFn;
+
+defineCollection.from = (source: Collection | CollectionBuilder) =>
+  CollectionBuilder.from(source);

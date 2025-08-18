@@ -15,6 +15,41 @@ export class IntegrationBuilder {
     this.name = name;
   }
 
+  /**
+   * Copy-constructor: create a builder from an existing integration or builder
+   */
+  static from(source: Integration | IntegrationBuilder): IntegrationBuilder {
+    const builder = new IntegrationBuilder(
+      source instanceof IntegrationBuilder ? (source as any).name : source.name
+    );
+    const title =
+      source instanceof IntegrationBuilder
+        ? (source as any).title
+        : source.title;
+    if (title) builder.withTitle(title);
+    const app =
+      source instanceof IntegrationBuilder ? (source as any).app : source.app;
+    if (app) {
+      if (app.type === "builtin") builder.withApp(app.name);
+      if (app.type === "custom" && app.definition)
+        builder.withCustomApp(app.definition);
+    }
+    const collections =
+      source instanceof IntegrationBuilder
+        ? (source as any).collections
+        : source.collections;
+    if (collections) builder.withCollections({ ...collections });
+    const actions =
+      source instanceof IntegrationBuilder
+        ? ((source as any).actions as Record<string, Action>)
+        : (source.actions as Record<string, Action>);
+    if (actions) {
+      const actionList = Object.values(actions) as Action[];
+      builder.withActions(actionList);
+    }
+    return builder;
+  }
+
   withTitle(title: string): this {
     this.title = title;
     return this;
@@ -140,6 +175,13 @@ export class IntegrationBuilder {
 /**
  * Factory function for creating an integration builder
  */
-export function defineIntegration(name: string): IntegrationBuilder {
-  return new IntegrationBuilder(name);
+export interface DefineIntegrationFn {
+  (name: string): IntegrationBuilder;
+  from: (source: Integration | IntegrationBuilder) => IntegrationBuilder;
 }
+
+export const defineIntegration: DefineIntegrationFn = ((name: string) =>
+  new IntegrationBuilder(name)) as unknown as DefineIntegrationFn;
+
+defineIntegration.from = (source: Integration | IntegrationBuilder) =>
+  IntegrationBuilder.from(source);

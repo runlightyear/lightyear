@@ -1,22 +1,21 @@
 /**
  * Integration Examples
- * 
+ *
  * Various examples showing how to define integrations with apps, collections, and actions
  */
 
-import { 
-  defineIntegration, 
-  defineCollection, 
+import {
+  defineIntegration,
+  defineCollection,
   defineAction,
-  defineApiKeyCustomApp
+  defineApiKeyCustomApp,
 } from "../src";
 
 /**
  * Define an integration with a name
  */
 
-const simpleIntegration = defineIntegration("data-sync")
-  .deploy();
+const simpleIntegration = defineIntegration("data-sync").deploy();
 
 /**
  * Define an integration with a name and a title
@@ -45,7 +44,7 @@ const customCRMApp = defineApiKeyCustomApp("custom-crm")
   .addVariable("api_endpoint", {
     title: "API Endpoint",
     description: "Base URL for the CRM API",
-    required: true
+    required: true,
   })
   .deploy();
 
@@ -66,12 +65,12 @@ const syncContactsAction = defineAction("sync-contacts")
     title: "Sync Direction",
     description: "Direction of synchronization",
     defaultValue: "bidirectional",
-    required: true
+    required: true,
   })
   .withRun(async ({ variables, auths }) => {
     console.log(`Syncing contacts: ${variables.sync_direction}`);
     // Sync logic here
-    return { synced: 100, errors: 0 };
+    return;
   })
   .deploy();
 
@@ -81,11 +80,21 @@ const actionIntegration = defineIntegration("contact-manager")
   .withAction(syncContactsAction)
   .deploy();
 
+/**
+ * Define a duplicate integration from an instantiated integration
+ */
+
+const duplicateIntegration = defineIntegration
+  .from(actionIntegration)
+  .withTitle("Contact Management System v2")
+  .deploy();
+
 // Export examples for reference
 export {
   simpleIntegration,
   titledIntegration,
   builtinAppIntegration,
   customAppIntegration,
-  actionIntegration
+  actionIntegration,
+  duplicateIntegration,
 };

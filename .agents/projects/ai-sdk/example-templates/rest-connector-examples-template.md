@@ -15,3 +15,7 @@
 ## Define a REST connector with a base URL and a header and an Authorization header using an access token
 
 **_ Example goes here _**
+
+## Define a duplicate REST connector of an instantiated REST connector with a different base URL and a different Authorization header
+
+**_ Example goes here _**

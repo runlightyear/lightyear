@@ -34,6 +34,17 @@ export class OAuthConnectorBuilder {
   }
 
   /**
+   * Copy-constructor: create a builder from an existing OAuthConnectorBuilder
+   */
+  static from(source: OAuthConnectorBuilder): OAuthConnectorBuilder {
+    const builder = new OAuthConnectorBuilder((source as any).config.name);
+    (builder as any).config = JSON.parse(
+      JSON.stringify((source as any).config)
+    );
+    return builder;
+  }
+
+  /**
    * Set the OAuth authorization endpoint URL
    */
   withAuthUrl(url: string): this {
@@ -201,9 +212,16 @@ export class OAuthConnectorBuilder {
 /**
  * Factory function for creating an OAuth connector builder
  */
-export function createOAuthConnector(): OAuthConnectorBuilder {
-  return new OAuthConnectorBuilder();
+export interface CreateOAuthConnectorFn {
+  (): OAuthConnectorBuilder;
+  from: (source: OAuthConnectorBuilder) => OAuthConnectorBuilder;
 }
+
+export const createOAuthConnector: CreateOAuthConnectorFn = (() =>
+  new OAuthConnectorBuilder()) as unknown as CreateOAuthConnectorFn;
+
+createOAuthConnector.from = (source: OAuthConnectorBuilder) =>
+  OAuthConnectorBuilder.from(source);
 
 /**
  * @deprecated Use createOAuthConnector instead

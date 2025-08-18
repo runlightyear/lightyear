@@ -92,6 +92,16 @@ const multiConfigAction = defineAction("data-sync")
   })
   .deploy();
 
+/**
+ * Define a duplicate action from an instantiated action
+ */
+
+const duplicateAction = defineAction
+  .from(multiConfigAction)
+  .withName("data-sync-v2")
+  .withTitle("Advanced Data Synchronization v2")
+  .deploy();
+
 // Export examples for reference
 export {
   simpleAction,
@@ -99,4 +109,5 @@ export {
   secretAction,
   configuredAction,
   multiConfigAction,
+  duplicateAction,
 };

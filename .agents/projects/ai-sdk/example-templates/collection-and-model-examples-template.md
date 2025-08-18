@@ -67,3 +67,7 @@
 ## Infer a type with the model names that are part of a collection directly from the collection and demonstrate the type's usage and demostrate it works with positive and negative examples (use ts-expect-error to demonstrate the errors)
 
 **_ Example goes here _**
+
+## Define a copy of an instantiated collection with a different name and title
+
+**_ Example goes here _**

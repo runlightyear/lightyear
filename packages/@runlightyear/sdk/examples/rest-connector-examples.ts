@@ -1,17 +1,16 @@
 /**
  * REST Connector Examples
- * 
+ *
  * Various examples showing how to create REST connectors with different configurations
  */
 
-import { createRestConnector } from "../src";
+import { createRestConnector, RestConnector } from "../src";
 
 /**
  * Define a REST connector
  */
 
-const simpleConnector = createRestConnector()
-  .build();
+const simpleConnector = createRestConnector().build();
 
 /**
  * Define a REST connector with a base URL
@@ -40,10 +39,18 @@ const tokenConnector = createRestConnector()
   .addHeader("Authorization", "Bearer {{auths.github.accessToken}}")
   .build();
 
+/**
+ * Define a duplicate REST connector from an instantiated connector
+ */
+
+const duplicateTokenConnector = createRestConnector
+  .from(tokenConnector)
+  .withBaseUrl("https://api.githubenterprise.com")
+  .withHeaders({
+    Accept: "application/vnd.github.v3+json",
+    Authorization: "Bearer {{auths.github_enterprise.accessToken}}",
+  })
+  .build();
+
 // Export examples for reference
-export {
-  simpleConnector,
-  baseUrlConnector,
-  apiKeyConnector,
-  tokenConnector
-};
+export { simpleConnector, baseUrlConnector, apiKeyConnector, tokenConnector };

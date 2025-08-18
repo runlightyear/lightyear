@@ -258,6 +258,21 @@ async function demonstrateFullCrudTypeInference() {
   }
 }
 
+/**
+ * Define a duplicate sync connector with an additional model connector
+ */
+
+const duplicatedFullCrudSyncConnector = createSyncConnector
+  .from(fullCrudSyncConnector)
+  .withModelConnector("user", (b) =>
+    b.withCreate({
+      request: (data: any) => ({ endpoint: "/users", method: "POST", data }),
+    })
+  )
+  .build();
+
+void duplicatedFullCrudSyncConnector;
+
 // Export examples for testing
 export {
   demonstrateListTypeInference,

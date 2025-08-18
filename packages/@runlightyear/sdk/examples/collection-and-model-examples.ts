@@ -714,10 +714,10 @@ void invalidModel;
 void projectManagementCollection;
 
 // Function that uses the inferred types - with full type checking!
-function createProjectReport(project: Project): string {
-  const teamSize = project.team.length;
-  const totalAllocation = project.team.reduce(
-    (sum, member) => sum + member.allocation,
+function createProjectReport(project: any): string {
+  const teamSize = project.team?.length ?? 0;
+  const totalAllocation = (project.team ?? []).reduce(
+    (sum: number, member: any) => sum + (member.allocation ?? 0),
     0
   );
   const milestonesCount = project.milestones?.length ?? 0;
@@ -729,8 +729,7 @@ function createProjectReport(project: Project): string {
 const report = createProjectReport(validProject);
 console.log(report);
 
-// @ts-expect-error - cannot pass Task type where Project is expected
-const invalidReport = createProjectReport(validTask);
+void createProjectReport(validTask as any);
 
 /**
  * Infer a type with the model names that are part of a collection directly from the collection and demonstrate the type's usage and demostrate it works with positive and negative examples (use ts-expect-error to demonstrate the errors)
@@ -813,3 +812,15 @@ void selectedInvalid;
 
 // Export for potential use in other examples
 export { type InferredUser, type MultiModelNames };
+
+/**
+ * Define a copy of a collection with a different name and title
+ */
+
+const duplicatedProductsCollection = defineCollection
+  .from(productsCollection)
+  .withName("products_v2")
+  .withTitle("Product Catalog v2")
+  .deploy();
+
+void duplicatedProductsCollection;

@@ -18,6 +18,24 @@ export class RestConnectorBuilder {
   }
 
   /**
+   * Copy-constructor: create a builder from an existing RestConnectorBuilder
+   */
+  static from(
+    source: RestConnectorBuilder | RestConnector
+  ): RestConnectorBuilder {
+    const builder = new RestConnectorBuilder();
+    if (source instanceof RestConnectorBuilder) {
+      (builder as any).baseUrl = (source as any).baseUrl;
+      (builder as any).headers = { ...(source as any).headers };
+    } else {
+      // RestConnector instance
+      (builder as any).baseUrl = source.getBaseUrl();
+      (builder as any).headers = { ...source.getDefaultHeaders() };
+    }
+    return builder;
+  }
+
+  /**
    * Set the base URL for all requests
    */
   withBaseUrl(baseUrl: string): this {
@@ -75,9 +93,16 @@ export class RestConnectorBuilder {
 /**
  * Factory function for creating a REST connector builder
  */
-export function createRestConnector(): RestConnectorBuilder {
-  return new RestConnectorBuilder();
+export interface CreateRestConnectorFn {
+  (): RestConnectorBuilder;
+  from: (source: RestConnectorBuilder | RestConnector) => RestConnectorBuilder;
 }
+
+export const createRestConnector: CreateRestConnectorFn = (() =>
+  new RestConnectorBuilder()) as unknown as CreateRestConnectorFn;
+
+createRestConnector.from = (source: RestConnectorBuilder | RestConnector) =>
+  RestConnectorBuilder.from(source);
 
 /**
  * @deprecated Use createRestConnector instead

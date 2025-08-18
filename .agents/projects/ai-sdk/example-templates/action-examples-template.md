@@ -19,3 +19,7 @@
 ## Define an action with a name, title, and multiple variables and multiple secrets
 
 **_ Example goes here _**
+
+## Define a duplicate action of an instantiated action with a different name and title
+
+**_ Example goes here _**

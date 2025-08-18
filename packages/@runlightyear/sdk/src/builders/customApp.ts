@@ -24,6 +24,38 @@ export class CustomAppBuilder {
     this.type = type;
   }
 
+  /**
+   * Copy-constructor: create a builder from an existing custom app or builder
+   */
+  static from(source: CustomApp | CustomAppBuilder): CustomAppBuilder {
+    const name =
+      source instanceof CustomAppBuilder ? (source as any).name : source.name;
+    const type =
+      source instanceof CustomAppBuilder ? (source as any).type : source.type;
+    const builder = new CustomAppBuilder(name, type);
+    const title =
+      source instanceof CustomAppBuilder ? (source as any).title : source.title;
+    if (title) builder.withTitle(title);
+    const variables =
+      source instanceof CustomAppBuilder
+        ? (source as any).variables
+        : source.variables;
+    if (variables && variables.length > 0)
+      builder.addVariables(variables.map((v: AppVariable) => ({ ...v })));
+    const secrets =
+      source instanceof CustomAppBuilder
+        ? (source as any).secrets
+        : source.secrets;
+    if (secrets && secrets.length > 0)
+      builder.addSecrets(secrets.map((s: AppSecret) => ({ ...s })));
+    const oauthConnector =
+      source instanceof CustomAppBuilder
+        ? (source as any).oauthConnector
+        : source.oauthConnector;
+    if (oauthConnector) builder.withOAuthConnector(oauthConnector);
+    return builder;
+  }
+
   withTitle(title: string): this {
     this.title = title;
     return this;
@@ -131,9 +163,15 @@ export function defineBasicCustomApp(name: string): CustomAppBuilder {
 /**
  * Generic factory function for creating any custom app type
  */
-export function defineCustomApp(
+export interface DefineCustomAppFn {
+  (name: string, type: AppAuthType): CustomAppBuilder;
+  from: (source: CustomApp | CustomAppBuilder) => CustomAppBuilder;
+}
+
+export const defineCustomApp: DefineCustomAppFn = ((
   name: string,
   type: AppAuthType
-): CustomAppBuilder {
-  return new CustomAppBuilder(name, type);
-}
+) => new CustomAppBuilder(name, type)) as unknown as DefineCustomAppFn;
+
+defineCustomApp.from = (source: CustomApp | CustomAppBuilder) =>
+  CustomAppBuilder.from(source);
