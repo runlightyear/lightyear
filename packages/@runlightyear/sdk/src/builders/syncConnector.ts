@@ -715,25 +715,48 @@ export class SyncConnector<
       retrieveDelta,
       confirmChangeBatch,
       pauseSync,
+      startSync,
     } = await import("../platform/sync.js");
-    const { getCurrentContext } = await import("../logging/index.js");
+    const { getCurrentContext, getLogCapture } = await import(
+      "../logging/index.js"
+    );
     const { isTimeLimitExceeded, resetTimeLimit } = await import(
       "../utils/time.js"
     );
 
     const ctx = getCurrentContext();
-    const syncId: string | undefined = (ctx as any)?.syncId;
+    let syncId: string | undefined = (ctx as any)?.syncId;
     const managedUserId: string | undefined = (ctx as any)?.managedUserId;
     const app: string | undefined = (ctx as any)?.appName ?? undefined;
     const customApp: string | undefined =
       (ctx as any)?.customAppName ?? undefined;
 
+    // If syncId is not provided in context, start a new sync via API
     if (!syncId) {
-      throw new Error("Missing syncId in context");
+      if (!managedUserId) {
+        throw new Error("Missing managedUserId in context");
+      }
+      const collectionName = this.collection.name;
+      const sync = await startSync({
+        collectionName,
+        appName: app ?? null,
+        customAppName: customApp ?? null,
+        managedUserId,
+      });
+      console.info(
+        `Started sync ${sync?.id} (${
+          sync?.type || "UNKNOWN"
+        }) for collection ${collectionName}`
+      );
+      syncId = sync?.id;
+      if (!syncId) {
+        throw new Error("Failed to start sync: missing id in response");
+      }
+      // Set syncId into the log/context so subsequent platform calls can read it
+      getLogCapture()?.setContext({ syncId } as any);
     }
-    if (!managedUserId) {
-      throw new Error("Missing managedUserId in context");
-    }
+    // managedUserId may be undefined in local/direct runs; the platform sync record
+    // retains the managed user, so we don't require it here.
 
     // Reset time budget for this run
     resetTimeLimit();

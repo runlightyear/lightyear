@@ -21,6 +21,30 @@ export async function getModels(props: {
   return (await response.json()) as Array<GetModelsResponseItem>;
 }
 
+/**
+ * Create a new sync run on the platform and return the created sync record.
+ */
+export async function startSync(props: {
+  collectionName: string;
+  appName?: string | null;
+  customAppName?: string | null;
+  managedUserId: string;
+  fullSyncFrequency?: number;
+}): Promise<any> {
+  const envName = process.env.ENV_NAME || "dev";
+  const response = await makeApiRequest(`/api/v1/envs/${envName}/syncs`, {
+    method: "POST",
+    data: {
+      collectionName: props.collectionName,
+      appName: props.appName ?? null,
+      customAppName: props.customAppName ?? null,
+      managedUserId: props.managedUserId,
+      fullSyncFrequency: props.fullSyncFrequency,
+    },
+  });
+  return await response.json();
+}
+
 export async function getSync(props: { syncId: string }): Promise<any> {
   const envName = process.env.ENV_NAME || "dev";
   const response = await makeApiRequest(
