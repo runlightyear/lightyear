@@ -920,7 +920,6 @@ export class SyncConnector<
               modelName,
               app,
               customApp,
-              managedUserId,
               objects,
               cursor: nextCursor,
               async: true,

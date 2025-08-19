@@ -119,7 +119,6 @@ export async function upsertObjectBatch(props: {
   modelName: string;
   app?: string | undefined;
   customApp?: string | undefined;
-  managedUserId?: string | null;
   objects: Array<{
     objectId?: string;
     externalId: string;
@@ -139,7 +138,6 @@ export async function upsertObjectBatch(props: {
         syncId: props.syncId,
         appName: props.app,
         customAppName: props.customApp,
-        managedUserId: props.managedUserId,
         objects: props.objects,
         overwrite: props.overwrite,
         async: props.async,
