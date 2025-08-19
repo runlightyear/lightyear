@@ -894,25 +894,14 @@ export class SyncConnector<
               break; // page/offset end or no data
             }
 
-            // Map items to platform object shape
-            const objects = items.map((item: any) => {
-              const externalId =
-                item.id ?? item.externalId ?? item.uuid ?? item._id;
-              const externalUpdatedAt =
-                item.updatedAt ?? item.updateTime ?? item.modifiedAt ?? null;
-              if (!externalId) {
-                throw new Error(
-                  `List must return items with stable id for model ${modelName}`
-                );
-              }
-              return {
-                externalId: String(externalId),
-                externalUpdatedAt: externalUpdatedAt
-                  ? String(externalUpdatedAt)
-                  : null,
-                data: item,
-              };
-            });
+            // Items are already in platform-ready shape from transform
+            const objects = items.map((it: any) => ({
+              externalId: String(it.externalId),
+              externalUpdatedAt: it.externalUpdatedAt
+                ? String(it.externalUpdatedAt)
+                : null,
+              data: it.data,
+            }));
 
             await upsertObjectBatch({
               collectionName,
