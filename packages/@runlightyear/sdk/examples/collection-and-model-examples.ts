@@ -1,4 +1,5 @@
 import type { InferModelData, Collection, Model, Infer } from "../src/types";
+import type { JSONSchema7 } from "json-schema";
 import {
   defineCollection,
   defineModel,
@@ -6,6 +7,7 @@ import {
   createRestConnector,
   createSyncConnector,
 } from "../src";
+import { z } from "zod";
 
 /**
  * Collection and Model Examples
@@ -75,6 +77,57 @@ const ordersCollection = defineCollection("orders")
   })
   .deploy();
 void ordersCollection;
+
+/**
+ * Catch an invalid JSON schema at runtime
+ */
+const BadTaskSchema: unknown = {
+  type: "object",
+  properties: { id: { type: "string" } },
+  // invalid: required must be an array of strings
+  required: "id",
+};
+
+try {
+  defineCollection("bad_tasks")
+    .withTitle("Bad Tasks")
+    .addModel("task", { schema: BadTaskSchema as JSONSchema7 })
+    .deploy();
+} catch (e) {
+  console.warn("Schema validation error:", (e as Error).message);
+}
+
+/**
+ * Only JSON Schemas are supported (Zod is not allowed)
+ * TypeScript should catch this usage.
+ */
+const ZodTask = z.object({ id: z.string(), title: z.string() });
+
+// If someone bypasses TypeScript with a cast, the runtime will throw. Demonstrate catching it:
+try {
+  defineCollection("zod_tasks_runtime")
+    .addModel("task", { schema: ZodTask as unknown as JSONSchema7 })
+    .deploy();
+} catch (e) {
+  console.warn("Runtime error for Zod schema:", (e as Error).message);
+}
+
+/**
+ * Compile-time error examples (TypeScript)
+ */
+// 1) Zod schema is not assignable to JSONSchema7
+defineCollection("zod_tasks_compile")
+  // @ts-expect-error Zod schemas are not supported. Please provide a JSON Schema.
+  .addModel("task", { schema: ZodTask })
+  .deploy();
+
+// 2) Invalid JSON Schema shape caught by types:
+const BadTaskSchemaCompile: JSONSchema7 = {
+  type: "object",
+  properties: { id: { type: "string" } },
+  // @ts-expect-error 'required' must be an array of strings in JSONSchema7
+  required: "id",
+};
 
 /**
  * Define a collection with a name and a title and a model (with schema) and match pattern

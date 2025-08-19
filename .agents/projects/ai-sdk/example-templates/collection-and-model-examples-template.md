@@ -71,3 +71,11 @@
 ## Define a copy of an instantiated collection with a different name and title
 
 **_ Example goes here _**
+
+## Show an example of a collection with a model that has an ill-defined schema and show that we catch it with typescript
+
+**_ Example goes here _**
+
+## Define a collection with a name and a title and a model (with JSON schema)
+
+**_ Example goes here _**

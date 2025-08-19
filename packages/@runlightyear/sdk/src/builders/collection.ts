@@ -1,10 +1,11 @@
 import type { JSONSchema7 } from "json-schema";
-import type { z } from "zod";
+import { z } from "zod";
 import type { Collection, Model, MatchPattern } from "../types";
 import { registerCollection, registerModel } from "../registry";
 
-// Type to accept JSONSchema7, const schemas, and Zod schemas
-type Schema = JSONSchema7 | Readonly<any> | z.ZodType<any>;
+// For now we only support JSON Schema.
+// Passing Zod schemas is intentionally disallowed at the type level.
+type Schema = JSONSchema7;
 
 // Helper type to convert TModels array to a name->model mapping
 type ModelsToMap<TModels> = TModels extends readonly Model<any, any>[]
@@ -110,6 +111,28 @@ export class CollectionBuilder<
     readonly [...TModels, Model<S, N>],
     TSchemas & { [K in N]: S }
   > {
+    // If a schema is provided, validate that it's a JSON Schema (not Zod), and sanity-check it
+    const providedSchema = options?.schema as unknown;
+    if (isZodSchema(providedSchema)) {
+      throw new Error(
+        `Model "${name}": Zod schemas are not supported. Please provide a JSON Schema (draft-07).`
+      );
+    }
+    if (
+      providedSchema &&
+      typeof providedSchema === "object" &&
+      !Array.isArray(providedSchema) &&
+      !isZodSchema(providedSchema)
+    ) {
+      // Only attempt validation if the object appears to be a JSON Schema
+      if (isJsonSchemaCandidate(providedSchema as Record<string, unknown>)) {
+        validateJsonSchemaOrThrow(
+          providedSchema as JSONSchema7,
+          name as string
+        );
+      }
+    }
+
     const model: Model<S, N> = {
       name,
       title: options?.title,
@@ -162,6 +185,119 @@ export class CollectionBuilder<
         __models?: TModels;
         __modelData?: ModelNameToDataMap<TModels>;
       };
+  }
+}
+
+/**
+ * Determine if a value is a Zod schema at runtime.
+ */
+function isZodSchema(value: unknown): value is z.ZodTypeAny {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    // Zod schemas expose safeParse/parse methods
+    (typeof (value as any).safeParse === "function" ||
+      typeof (value as any).parse === "function")
+  );
+}
+
+/**
+ * Heuristic to decide whether an arbitrary object looks like a JSON Schema.
+ * We do not attempt full validation here; we only proceed when common
+ * JSON Schema keywords are present to avoid false positives for plain objects.
+ */
+function isJsonSchemaCandidate(obj: Record<string, unknown>): boolean {
+  const jsonSchemaKeys = [
+    "$schema",
+    "$id",
+    "$ref",
+    "type",
+    "properties",
+    "items",
+    "required",
+    "oneOf",
+    "anyOf",
+    "allOf",
+    "enum",
+    "const",
+    "format",
+    "additionalProperties",
+    "patternProperties",
+    "minimum",
+    "maximum",
+  ];
+  return jsonSchemaKeys.some((k) =>
+    Object.prototype.hasOwnProperty.call(obj, k)
+  );
+}
+
+/**
+ * Minimal runtime sanity checks for a JSON Schema draft-07 object.
+ * This is not a full JSON Schema validator, but it catches common mistakes
+ * and provides clear error messages early in the developer workflow.
+ */
+function validateJsonSchemaOrThrow(
+  schema: JSONSchema7,
+  modelName: string
+): void {
+  if (!schema || typeof schema !== "object" || Array.isArray(schema)) {
+    throw new Error(
+      `Model "${modelName}": JSON schema must be a non-null object`
+    );
+  }
+
+  // If type is provided, ensure it is valid
+  const validTypes = [
+    "string",
+    "number",
+    "integer",
+    "boolean",
+    "array",
+    "object",
+    "null",
+  ];
+  if (schema.type) {
+    const typeVal = schema.type;
+    if (
+      !(typeof typeVal === "string"
+        ? validTypes.includes(typeVal)
+        : Array.isArray(typeVal) &&
+          typeVal.every((t) => validTypes.includes(t)))
+    ) {
+      throw new Error(
+        `Model "${modelName}": schema.type must be one of ${validTypes.join(
+          ", "
+        )}`
+      );
+    }
+  }
+
+  // If object schema, properties (when provided) must be an object map
+  if (schema.type === "object" || schema.properties) {
+    if (schema.properties && typeof schema.properties !== "object") {
+      throw new Error(
+        `Model "${modelName}": schema.properties must be an object when provided`
+      );
+    }
+    if (schema.required && !Array.isArray(schema.required)) {
+      throw new Error(
+        `Model "${modelName}": schema.required must be an array of strings when provided`
+      );
+    }
+  }
+
+  // If array schema, items (when provided) must be a schema or array of schemas
+  if (schema.type === "array" || schema.items) {
+    const items = schema.items as unknown;
+    const ok =
+      !items ||
+      typeof items === "object" ||
+      (Array.isArray(items) && items.every((it) => typeof it === "object"));
+    if (!ok) {
+      throw new Error(
+        `Model "${modelName}": schema.items must be a schema object or array of schema objects`
+      );
+    }
   }
 }
 
