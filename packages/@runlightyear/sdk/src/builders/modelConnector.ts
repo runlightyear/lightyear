@@ -66,7 +66,7 @@ export class ModelConnectorBuilder<T = any> {
     if (this.config.list) {
       connector.list = async (params?: ListParams) => {
         const requestConfig = this.config.list!.request(params || {});
-        
+
         const response = await this.restConnector.request({
           method: requestConfig.method || "GET",
           url: requestConfig.endpoint,
@@ -75,21 +75,24 @@ export class ModelConnectorBuilder<T = any> {
         });
 
         let data = response.data;
-        let items: T[] = [];
+        let items: Array<{
+          externalId: string;
+          externalUpdatedAt: string | null;
+          data: T;
+        }>;
 
         if (this.config.list!.responseSchema) {
           data = this.config.list!.responseSchema.parse(data);
         }
 
-        if (this.config.list!.transform) {
-          items = this.config.list!.transform(data);
-        } else {
-          items = Array.isArray(data) ? data : [data];
-        }
+        items = this.config.list!.transform(data);
 
         let nextCursor: string | undefined;
-        if (this.config.list!.pagination?.type === "cursor" && this.config.list!.pagination.cursorField) {
-          nextCursor = data[this.config.list!.pagination.cursorField];
+        if (
+          this.config.list!.pagination?.type === "cursor" &&
+          this.config.list!.pagination.cursorField
+        ) {
+          nextCursor = (data as any)[this.config.list!.pagination.cursorField];
         }
 
         return {
@@ -102,19 +105,19 @@ export class ModelConnectorBuilder<T = any> {
     // Add create implementation
     if (this.config.create) {
       connector.create = async (data: T) => {
-        const transformedData = this.config.create!.transformRequest 
+        const transformedData = this.config.create!.transformRequest
           ? this.config.create!.transformRequest(data)
           : data;
 
         const requestConfig = this.config.create!.request(data);
-        
+
         const response = await this.restConnector.request({
           method: requestConfig.method || "POST",
           url: requestConfig.endpoint,
           data: requestConfig.data || transformedData,
         });
 
-        return this.config.create!.transform 
+        return this.config.create!.transform
           ? this.config.create!.transform(response.data)
           : response.data;
       };
@@ -123,19 +126,19 @@ export class ModelConnectorBuilder<T = any> {
     // Add update implementation
     if (this.config.update) {
       connector.update = async (id: string, data: Partial<T>) => {
-        const transformedData = this.config.update!.transformRequest 
+        const transformedData = this.config.update!.transformRequest
           ? this.config.update!.transformRequest(data)
           : data;
-        
+
         const requestConfig = this.config.update!.request(id, data);
-          
+
         const response = await this.restConnector.request({
           method: requestConfig.method || "PUT",
           url: requestConfig.endpoint,
           data: requestConfig.data || transformedData,
         });
-        
-        return this.config.update!.transform 
+
+        return this.config.update!.transform
           ? this.config.update!.transform(response.data)
           : response.data;
       };
@@ -145,7 +148,7 @@ export class ModelConnectorBuilder<T = any> {
     if (this.config.delete) {
       connector.delete = async (id: string) => {
         const requestConfig = this.config.delete!.request(id);
-          
+
         await this.restConnector.request({
           method: requestConfig.method || "DELETE",
           url: requestConfig.endpoint,
@@ -159,40 +162,46 @@ export class ModelConnectorBuilder<T = any> {
       connector.bulkCreate = async (items: T[]) => {
         const batchSize = this.config.bulk!.create!.batchSize || 100;
         const results: T[] = [];
-        
+
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
           const requestConfig = this.config.bulk!.create!.request(batch);
-          
+
           const response = await this.restConnector.request({
             method: requestConfig.method || "POST",
             url: requestConfig.endpoint,
             data: requestConfig.data || batch,
           });
-          results.push(...(Array.isArray(response.data) ? response.data : [response.data]));
+          results.push(
+            ...(Array.isArray(response.data) ? response.data : [response.data])
+          );
         }
-        
+
         return results;
       };
     }
 
     if (this.config.bulk?.update) {
-      connector.bulkUpdate = async (items: Array<{ id: string; data: Partial<T> }>) => {
+      connector.bulkUpdate = async (
+        items: Array<{ id: string; data: Partial<T> }>
+      ) => {
         const batchSize = this.config.bulk!.update!.batchSize || 100;
         const results: T[] = [];
-        
+
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
           const requestConfig = this.config.bulk!.update!.request(batch);
-          
+
           const response = await this.restConnector.request({
             method: requestConfig.method || "PUT",
             url: requestConfig.endpoint,
             data: requestConfig.data || batch,
           });
-          results.push(...(Array.isArray(response.data) ? response.data : [response.data]));
+          results.push(
+            ...(Array.isArray(response.data) ? response.data : [response.data])
+          );
         }
-        
+
         return results;
       };
     }
@@ -200,11 +209,11 @@ export class ModelConnectorBuilder<T = any> {
     if (this.config.bulk?.delete) {
       connector.bulkDelete = async (ids: string[]) => {
         const batchSize = this.config.bulk!.delete!.batchSize || 100;
-        
+
         for (let i = 0; i < ids.length; i += batchSize) {
           const batch = ids.slice(i, i + batchSize);
           const requestConfig = this.config.bulk!.delete!.request(batch);
-          
+
           await this.restConnector.request({
             method: requestConfig.method || "DELETE",
             url: requestConfig.endpoint,

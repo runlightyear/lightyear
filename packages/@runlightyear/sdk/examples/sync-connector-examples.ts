@@ -16,13 +16,10 @@ import { defineCollection, createSyncConnector, RestConnector } from "../src";
 const UserJsonSchema = {
   type: "object",
   properties: {
-    id: { type: "string" },
     name: { type: "string" },
     email: { type: "string", format: "email" },
-    createdAt: { type: "string" },
-    updatedAt: { type: "string" },
   },
-  required: ["id", "name", "email", "createdAt", "updatedAt"],
+  required: ["name", "email"],
   additionalProperties: false,
 } as const;
 
@@ -88,7 +85,10 @@ const syncConnectorWithList = createSyncConnector(apiConnector, userCollection)
         response.users.map((u) => ({
           externalId: u.id,
           externalUpdatedAt: u.updatedAt,
-          data: u,
+          data: {
+            name: u.name,
+            email: u.email,
+          },
         })),
     })
   )
