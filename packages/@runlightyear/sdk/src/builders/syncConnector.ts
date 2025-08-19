@@ -734,7 +734,9 @@ export class SyncConnector<
     // If syncId is not provided in context, start a new sync via API
     if (!syncId) {
       if (!managedUserId) {
-        throw new Error("Missing managedUserId in context");
+        console.warn(
+          "No managedUserId in context; attempting to start sync without it"
+        );
       }
       const collectionName = this.collection.name;
       const sync = await startSync({
@@ -755,8 +757,10 @@ export class SyncConnector<
       // Set syncId into the log/context so subsequent platform calls can read it
       getLogCapture()?.setContext({ syncId } as any);
     }
-    // managedUserId may be undefined in local/direct runs; the platform sync record
-    // retains the managed user, so we don't require it here.
+    // Require managed user for sync execution
+    if (!managedUserId) {
+      throw new Error("Missing managedUserId in context");
+    }
 
     // Reset time budget for this run
     resetTimeLimit();

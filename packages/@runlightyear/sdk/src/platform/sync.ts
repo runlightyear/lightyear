@@ -28,7 +28,7 @@ export async function startSync(props: {
   collectionName: string;
   appName?: string | null;
   customAppName?: string | null;
-  managedUserId: string;
+  managedUserId?: string;
   fullSyncFrequency?: number;
 }): Promise<any> {
   const envName = process.env.ENV_NAME || "dev";
@@ -38,7 +38,7 @@ export async function startSync(props: {
       collectionName: props.collectionName,
       appName: props.appName ?? null,
       customAppName: props.customAppName ?? null,
-      managedUserId: props.managedUserId,
+      managedUserId: props.managedUserId ?? null,
       fullSyncFrequency: props.fullSyncFrequency,
     },
   });

@@ -136,16 +136,54 @@ export const handleRun: RunHandler = async (
 
     console.log(`🚀 Executing action function...`);
 
+    // If managedUser is not provided, fetch run function props from the platform
+    let effectiveAuths = auths || {};
+    let effectiveVariables = variables || {};
+    let effectiveSecrets = secrets || {};
+    let effectiveWebhook = webhook || null;
+    let effectiveIntegration = integration || null;
+    let effectiveManagedUser = managedUser || null;
+
+    try {
+      if (!effectiveManagedUser && runId) {
+        const { getRunFuncProps } = await import("../platform/run.js");
+        const fetched = await getRunFuncProps(runId);
+        if (fetched) {
+          effectiveAuths = fetched.auths || effectiveAuths;
+          effectiveVariables = fetched.variables || effectiveVariables;
+          effectiveSecrets = fetched.secrets || effectiveSecrets;
+          effectiveWebhook = fetched.webhook || effectiveWebhook;
+          effectiveIntegration = fetched.integration || effectiveIntegration;
+          effectiveManagedUser = fetched.managedUser || effectiveManagedUser;
+          if (effectiveManagedUser?.externalId) {
+            // Populate log context to include managed user for subsequent calls
+            try {
+              const { getLogCapture } = await import("../logging/index.js");
+              getLogCapture()?.setContext({
+                managedUserId: effectiveManagedUser.externalId,
+                managedUserExternalId: effectiveManagedUser.externalId,
+                managedUserDisplayName:
+                  effectiveManagedUser.displayName ?? null,
+                integrationName: effectiveIntegration?.name,
+              } as any);
+            } catch {}
+          }
+        }
+      }
+    } catch (e) {
+      console.debug("Optional run props fetch failed:", e);
+    }
+
     // Execute the action function with the provided data
     const runProps = {
       data: data || null,
       context: context || null,
-      auths: auths || {},
-      variables: variables || {},
-      secrets: secrets || {},
-      webhook: webhook || null,
-      integration: integration || null,
-      managedUser: managedUser || null,
+      auths: effectiveAuths,
+      variables: effectiveVariables,
+      secrets: effectiveSecrets,
+      webhook: effectiveWebhook,
+      integration: effectiveIntegration,
+      managedUser: effectiveManagedUser,
     };
 
     console.log(
