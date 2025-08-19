@@ -540,12 +540,14 @@ export class SyncModelConnectorBuilder<T = any> {
       data?: any;
     };
     responseSchema?: TSchema;
-    extract: (item: T) => {
+    extract: (
+      item: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
+    ) => {
       externalId: string;
       externalUpdatedAt: string | null;
     };
   }): this {
-    this.config.create = config;
+    this.config.create = config as unknown as CreateConfig<T>;
     return this;
   }
 
@@ -559,12 +561,14 @@ export class SyncModelConnectorBuilder<T = any> {
       data?: any;
     };
     responseSchema?: TSchema;
-    extract: (item: T) => {
+    extract: (
+      item: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
+    ) => {
       externalId?: string;
       externalUpdatedAt: string | null;
     };
   }): this {
-    this.config.update = config;
+    this.config.update = config as unknown as UpdateConfig<T>;
     return this;
   }
 
@@ -614,12 +618,14 @@ export class ModelConnectorConfigBuilder<T = any> {
       data?: any;
     };
     responseSchema?: TSchema;
-    extract: (item: T) => {
+    extract: (
+      item: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
+    ) => {
       externalId: string;
       externalUpdatedAt: string | null;
     };
   }): this {
-    this.config.create = config;
+    this.config.create = config as unknown as CreateConfig<T>;
     return this;
   }
 
@@ -633,12 +639,14 @@ export class ModelConnectorConfigBuilder<T = any> {
       data?: any;
     };
     responseSchema?: TSchema;
-    extract: (item: T) => {
+    extract: (
+      item: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
+    ) => {
       externalId?: string;
       externalUpdatedAt: string | null;
     };
   }): this {
-    this.config.update = config;
+    this.config.update = config as unknown as UpdateConfig<T>;
     return this;
   }
 
