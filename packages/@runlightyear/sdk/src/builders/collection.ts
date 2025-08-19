@@ -3,9 +3,9 @@ import { z } from "zod";
 import type { Collection, Model, MatchPattern } from "../types";
 import { registerCollection, registerModel } from "../registry";
 
-// For now we only support JSON Schema.
-// Passing Zod schemas is intentionally disallowed at the type level.
-type Schema = JSONSchema7;
+// For now we only support JSON Schema (or readonly JSON-like objects).
+// Passing Zod schemas is intentionally disallowed at runtime.
+type Schema = JSONSchema7 | Readonly<any>;
 
 // Helper type to convert TModels array to a name->model mapping
 type ModelsToMap<TModels> = TModels extends readonly Model<any, any>[]

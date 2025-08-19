@@ -12,18 +12,32 @@ import { defineCollection, createSyncConnector, RestConnector } from "../src";
  * Define a basic sync connector that works with a rest api and a collection
  */
 
-// Define schemas for our models
-const UserSchema = z.object({
+// Define JSON Schema for our model (collections require JSON Schema)
+const UserJsonSchema = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    name: { type: "string" },
+    email: { type: "string", format: "email" },
+    createdAt: { type: "string" },
+    updatedAt: { type: "string" },
+  },
+  required: ["id", "name", "email", "createdAt", "updatedAt"],
+  additionalProperties: false,
+} as const;
+
+// Zod schema used only for HTTP response validation (optional)
+const ZUser = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string().email(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 });
 
-// Create a collection
+// Create a collection using the JSON Schema
 const userCollection = defineCollection("users")
-  .addModel("user", { schema: UserSchema })
+  .addModel("user", { schema: UserJsonSchema })
   .deploy();
 
 // Initialize REST connector
@@ -52,7 +66,7 @@ void collection;
 
 // Define response schema for list endpoint
 const UserListResponseSchema = z.object({
-  users: z.array(UserSchema),
+  users: z.array(ZUser),
   nextPage: z.string().optional(),
   totalCount: z.number(),
 });
@@ -70,7 +84,12 @@ const syncConnectorWithList = createSyncConnector(apiConnector, userCollection)
         },
       }),
       responseSchema: UserListResponseSchema,
-      transform: (response) => response.users,
+      transform: (response) =>
+        response.users.map((u) => ({
+          externalId: u.id,
+          externalUpdatedAt: u.updatedAt,
+          data: u,
+        })),
     })
   )
   .build();
@@ -81,10 +100,10 @@ async function demonstrateListTypeInference() {
 
   if (userConnector?.list) {
     const result = await userConnector.list({ page: 1, limit: 10 });
-    // TypeScript knows result.items is User[]
-    result.items.forEach((user) => {
-      console.log(user.name); // Type-safe access to user properties
-      console.log(user.email);
+    // result.items is Array<{ externalId, externalUpdatedAt, data: User }>
+    result.items.forEach(({ data }) => {
+      console.log(data.name);
+      console.log(data.email);
     });
   }
 }
@@ -108,7 +127,12 @@ const syncConnectorWithListAndCreate = createSyncConnector(
           },
         }),
         responseSchema: UserListResponseSchema,
-        transform: (response) => response.users,
+        transform: (response) =>
+          response.users.map((u) => ({
+            externalId: u.id,
+            externalUpdatedAt: u.updatedAt,
+            data: u,
+          })),
       })
       .withCreate({
         request: (obj) => ({
@@ -116,10 +140,10 @@ const syncConnectorWithListAndCreate = createSyncConnector(
           method: "POST",
           data: obj,
         }),
-        responseSchema: z.object({ data: UserSchema }),
+        responseSchema: z.object({ data: ZUser }),
         extract: (response) => ({
-          externalId: response.id,
-          externalUpdatedAt: response.updatedAt,
+          externalId: response.data.id,
+          externalUpdatedAt: response.data.updatedAt,
         }),
       })
   )
@@ -146,9 +170,8 @@ async function demonstrateListAndCreateTypeInference() {
 
   if (userConnector?.list) {
     const users = await userConnector.list({ page: 1 });
-    // Type-safe iteration over users
-    users.items.forEach((user) => {
-      console.log(`${user.name} - ${user.email}`);
+    users.items.forEach(({ data }) => {
+      console.log(`${data.name} - ${data.email}`);
     });
   }
 }
@@ -176,7 +199,12 @@ const fullCrudSyncConnector = createSyncConnector(apiConnector, userCollection)
           pageField: "page",
           pageSize: 20,
         },
-        transform: (response) => response.users,
+        transform: (response) =>
+          response.users.map((u) => ({
+            externalId: u.id,
+            externalUpdatedAt: u.updatedAt,
+            data: u,
+          })),
       })
       .withCreate({
         request: (user) => ({
@@ -184,10 +212,10 @@ const fullCrudSyncConnector = createSyncConnector(apiConnector, userCollection)
           method: "POST",
           data: user,
         }),
-        responseSchema: z.object({ data: UserSchema }),
+        responseSchema: z.object({ data: ZUser }),
         extract: (response) => ({
-          externalId: response.id,
-          externalUpdatedAt: response.updatedAt,
+          externalId: response.data.id,
+          externalUpdatedAt: response.data.updatedAt,
         }),
       })
       .withUpdate({
@@ -196,9 +224,9 @@ const fullCrudSyncConnector = createSyncConnector(apiConnector, userCollection)
           method: "PUT",
           data: obj,
         }),
-        responseSchema: z.object({ data: UserSchema }),
+        responseSchema: z.object({ data: ZUser }),
         extract: (response) => ({
-          externalUpdatedAt: response.updatedAt,
+          externalUpdatedAt: response.data.updatedAt,
         }),
       })
       .withDelete({
@@ -245,9 +273,9 @@ async function demonstrateFullCrudTypeInference() {
         sortOrder: "asc",
       });
 
-      userList.items.forEach((user) => {
+      userList.items.forEach(({ data }) => {
         // All user properties are type-safe
-        console.log(`${user.id}: ${user.name} (${user.email})`);
+        console.log(`${data.id}: ${data.name} (${data.email})`);
       });
     }
 
@@ -268,6 +296,11 @@ const duplicatedFullCrudSyncConnector = createSyncConnector
   .withModelConnector("user", (b) =>
     b.withCreate({
       request: (obj) => ({ endpoint: "/users", method: "POST", data: obj }),
+      responseSchema: ZUser,
+      extract: (res) => ({
+        externalId: res.id,
+        externalUpdatedAt: res.updatedAt,
+      }),
     })
   )
   .build();
@@ -280,3 +313,65 @@ export {
   demonstrateListAndCreateTypeInference,
   demonstrateFullCrudTypeInference,
 };
+
+// --- Additional compile-time safety examples for SyncConnector ---
+
+// Ensure list transform returns items with a stable id
+const ListResp = z.object({
+  items: z.array(
+    z.object({ taskId: z.string(), updatedAt: z.string().nullable() })
+  ),
+});
+
+const TaskJsonSchema = {
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    title: { type: "string" },
+    updatedAt: { oneOf: [{ type: "string" }, { type: "null" }] },
+  },
+  required: ["id", "title"],
+} as const;
+
+const taskCollection = defineCollection("task_mgmt")
+  .addModel("task", { schema: TaskJsonSchema })
+  .deploy();
+
+const rest = new RestConnector({ baseUrl: "https://api.example.com" });
+
+const taskSync = createSyncConnector(rest, taskCollection)
+  .withModelConnector("task", (m) =>
+    m
+      .withList({
+        request: () => ({ endpoint: "/tasks" }),
+        responseSchema: ListResp,
+        // @ts-expect-error mapping must return items with `id`, `externalUpdatedAt`, and `data`
+        transform: (r) => r.items, // missing mapping from taskId -> externalId and wrapping as data
+      })
+      .withCreate({
+        request: (obj) => ({ endpoint: "/tasks", method: "POST", data: obj }),
+        responseSchema: z.object({
+          id: z.string(),
+          updatedAt: z.string().nullable(),
+        }),
+        // @ts-expect-error extract must return externalId and externalUpdatedAt
+        extract: (_res) => ({ externalId: _res.id }),
+      })
+      .withUpdate({
+        request: (id, obj) => ({
+          endpoint: `/tasks/${id}`,
+          method: "PUT",
+          data: obj,
+        }),
+        responseSchema: z.object({
+          id: z.string(),
+          updatedAt: z.string().nullable(),
+        }),
+        // Correct extract example
+        extract: (res) => ({
+          externalId: res.id,
+          externalUpdatedAt: res.updatedAt,
+        }),
+      })
+  )
+  .build();

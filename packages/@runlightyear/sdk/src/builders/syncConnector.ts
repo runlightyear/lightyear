@@ -19,16 +19,21 @@ export interface ListParams {
   [key: string]: any;
 }
 
-export interface ListConfig<T = any, R = unknown> {
+export interface ListConfig<TModel = any, TResponse = unknown> {
   request: (params: ListParams) => {
     endpoint: string;
     method?: "GET" | "POST";
     params?: Record<string, any>;
     data?: any;
   };
-  responseSchema?: z.ZodType<R>;
+  responseSchema?: z.ZodType<TResponse>;
   pagination?: PaginationConfig;
-  transform?: (response: R) => T[];
+  // Force transform to return objects ready for platform ingestion
+  transform: (response: TResponse) => Array<{
+    externalId: string;
+    externalUpdatedAt: string | null;
+    data: TModel;
+  }>;
 }
 
 export interface CreateConfig<T = any> {
@@ -121,7 +126,11 @@ export interface TypedListConfig<TModel, TResponse> {
   };
   responseSchema?: z.ZodType<TResponse>;
   pagination?: PaginationConfig;
-  transform?: (response: TResponse) => TModel[];
+  transform: (response: TResponse) => Array<{
+    externalId: string;
+    externalUpdatedAt: string | null;
+    data: TModel;
+  }>;
 }
 
 export interface TypedModelConnectorConfig<TModel> {
@@ -148,15 +157,30 @@ export interface TypeSafeListConfig<
   };
   responseSchema?: TResponseSchema;
   pagination?: PaginationConfig;
-  transform?: TResponseSchema extends z.ZodType<any>
-    ? (response: InferResponseType<TResponseSchema>) => TModel[]
-    : (response: unknown) => TModel[];
+  transform: TResponseSchema extends z.ZodType<any>
+    ? (response: InferResponseType<TResponseSchema>) => Array<{
+        externalId: string;
+        externalUpdatedAt: string | null;
+        data: TModel;
+      }>
+    : (response: unknown) => Array<{
+        externalId: string;
+        externalUpdatedAt: string | null;
+        data: TModel;
+      }>;
 }
 
 export interface ModelConnector<T = any> {
   modelName: string;
   config: ModelConnectorConfig<T>;
-  list?: (params?: any) => Promise<{ items: T[]; nextCursor?: string }>;
+  list?: (params?: any) => Promise<{
+    items: Array<{
+      externalId: string;
+      externalUpdatedAt: string | null;
+      data: T;
+    }>;
+    nextCursor?: string;
+  }>;
   create?: (data: T) => Promise<T>;
   update?: (id: string, data: Partial<T>) => Promise<T>;
   delete?: (id: string) => Promise<void>;
@@ -270,19 +294,18 @@ export class SyncConnectorBuilder<
         });
 
         let data = response.data;
-        let items: any[] = [];
+        let items: Array<{
+          externalId: string;
+          externalUpdatedAt: string | null;
+          data: any;
+        }> = [];
 
         if (config.list!.responseSchema) {
           data = config.list!.responseSchema.parse(data);
         }
 
-        // Apply transform if provided
-        if (config.list!.transform) {
-          items = config.list!.transform(data);
-        } else {
-          // Default behavior: if data is an array, use it; otherwise wrap in array
-          items = Array.isArray(data) ? data : [data];
-        }
+        // Apply required transform into platform object shape
+        items = config.list!.transform(data);
 
         // Extract pagination info based on pagination config
         let nextCursor: string | undefined;
@@ -290,7 +313,7 @@ export class SyncConnectorBuilder<
           config.list!.pagination?.type === "cursor" &&
           config.list!.pagination.cursorField
         ) {
-          nextCursor = data[config.list!.pagination.cursorField];
+          nextCursor = (data as any)[config.list!.pagination.cursorField];
         }
 
         return {
@@ -525,9 +548,17 @@ export class SyncModelConnectorBuilder<T = any> {
     };
     responseSchema?: TSchema;
     pagination?: PaginationConfig;
-    transform?: TSchema extends z.ZodType<any>
-      ? (response: z.infer<TSchema>) => T[]
-      : (response: unknown) => T[];
+    transform: TSchema extends z.ZodType<any>
+      ? (response: z.infer<TSchema>) => Array<{
+          externalId: string;
+          externalUpdatedAt: string | null;
+          data: T;
+        }>
+      : (response: unknown) => Array<{
+          externalId: string;
+          externalUpdatedAt: string | null;
+          data: T;
+        }>;
   }): this {
     this.config.list = config as any;
     return this;
@@ -605,7 +636,11 @@ export class ModelConnectorConfigBuilder<T = any> {
     };
     responseSchema: TSchema;
     pagination?: PaginationConfig;
-    transform: (response: z.infer<TSchema>) => T[];
+    transform: (response: z.infer<TSchema>) => Array<{
+      externalId: string;
+      externalUpdatedAt: string | null;
+      data: T;
+    }>;
   }): this {
     this.config.list = config as any;
     return this;
@@ -1131,7 +1166,11 @@ export function createListConfig<TModel, TResponse>(config: {
   };
   responseSchema: z.ZodType<TResponse>;
   pagination?: PaginationConfig;
-  transform: (response: TResponse) => TModel[];
+  transform: (response: TResponse) => Array<{
+    externalId: string;
+    externalUpdatedAt: string | null;
+    data: TModel;
+  }>;
 }): ListConfig<TModel, TResponse> {
   return config;
 }

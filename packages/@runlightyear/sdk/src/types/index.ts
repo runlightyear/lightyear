@@ -33,8 +33,8 @@ export interface Model<TSchema = unknown, TName extends string = string> {
   schema?: TSchema extends Readonly<any>
     ? TSchema
     : TSchema extends z.ZodType<any>
-      ? TSchema
-      : JSONSchema7;
+    ? TSchema
+    : JSONSchema7;
   matchPattern?: MatchPattern;
 }
 
@@ -201,37 +201,37 @@ type FindModel<Models, Name extends string> = Models extends readonly any[]
   : never;
 
 // Helper to infer a model's data type from a collection and model name literal
-export type InferModelDataFromCollection<C, N extends string> = 
+export type InferModelDataFromCollection<C, N extends string> =
   // If builder preserved a precomputed name->data map, use it first to avoid deep instantiation
   C extends { __modelData?: infer Map extends Record<string, any> }
     ? N extends keyof Map
       ? Map[N]
       : unknown
     : C extends { __models?: infer TypedModels }
-      ? FindModel<TypedModels, N> extends Model<infer S, any>
+    ? FindModel<TypedModels, N> extends Model<infer S, any>
+      ? InferModelData<Model<S, N>>
+      : unknown
+    : C extends { __schemas?: infer Schemas }
+    ? Schemas extends Record<string, any>
+      ? N extends keyof Schemas
+        ? Schemas[N] extends JSONSchema7
+          ? FromSchema<Schemas[N]>
+          : unknown
+        : C extends { models: infer Models }
+        ? FindModel<Models, N> extends Model<infer S, any>
+          ? InferModelData<Model<S, N>>
+          : unknown
+        : unknown
+      : C extends { models: infer Models }
+      ? FindModel<Models, N> extends Model<infer S, any>
         ? InferModelData<Model<S, N>>
         : unknown
-      : C extends { __schemas?: infer Schemas }
-        ? Schemas extends Record<string, any>
-          ? N extends keyof Schemas
-            ? Schemas[N] extends JSONSchema7
-              ? FromSchema<Schemas[N]>
-              : unknown
-            : C extends { models: infer Models }
-              ? FindModel<Models, N> extends Model<infer S, any>
-                ? InferModelData<Model<S, N>>
-                : unknown
-              : unknown
-          : C extends { models: infer Models }
-            ? FindModel<Models, N> extends Model<infer S, any>
-              ? InferModelData<Model<S, N>>
-              : unknown
-            : unknown
-        : C extends { models: infer Models }
-          ? FindModel<Models, N> extends Model<infer S, any>
-            ? InferModelData<Model<S, N>>
-            : unknown
-          : unknown;
+      : unknown
+    : C extends { models: infer Models }
+    ? FindModel<Models, N> extends Model<infer S, any>
+      ? InferModelData<Model<S, N>>
+      : unknown
+    : unknown;
 
 // Concise alias matching the desired API style: Infer<typeof collection, 'modelName'>
 export type Infer<C, N extends string> = InferModelDataFromCollection<C, N>;
