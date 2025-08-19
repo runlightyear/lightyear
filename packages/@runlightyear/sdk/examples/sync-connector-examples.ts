@@ -116,7 +116,7 @@ const syncConnectorWithListAndCreate = createSyncConnector(
           method: "POST",
           data: obj,
         }),
-        responseSchema: z.object({ data: UserSchema }).transform((r) => r.data),
+        responseSchema: z.object({ data: UserSchema }),
         extract: (response) => ({
           externalId: response.id,
           externalUpdatedAt: response.updatedAt,
@@ -184,7 +184,7 @@ const fullCrudSyncConnector = createSyncConnector(apiConnector, userCollection)
           method: "POST",
           data: user,
         }),
-        responseSchema: z.object({ data: UserSchema }).transform((r) => r.data),
+        responseSchema: z.object({ data: UserSchema }),
         extract: (response) => ({
           externalId: response.id,
           externalUpdatedAt: response.updatedAt,
@@ -196,9 +196,8 @@ const fullCrudSyncConnector = createSyncConnector(apiConnector, userCollection)
           method: "PUT",
           data: obj,
         }),
-        responseSchema: z.object({ data: UserSchema }).transform((r) => r.data),
+        responseSchema: z.object({ data: UserSchema }),
         extract: (response) => ({
-          externalId: response.id,
           externalUpdatedAt: response.updatedAt,
         }),
       })

@@ -38,6 +38,10 @@ export interface CreateConfig<T = any> {
     data?: any;
   };
   responseSchema?: z.ZodType<T>;
+  /** Optionally transform the user-provided data before sending the request */
+  transformRequest?: (data: T) => any;
+  /** Optionally transform the raw or validated response into the final model */
+  transform?: (response: any) => T;
   extract?: (item: T) => {
     externalId: string;
     externalUpdatedAt: string | null;
@@ -54,8 +58,12 @@ export interface UpdateConfig<T = any> {
     data?: any;
   };
   responseSchema?: z.ZodType<T>;
+  /** Optionally transform the user-provided partial data before sending the request */
+  transformRequest?: (data: Partial<T>) => any;
+  /** Optionally transform the raw or validated response into the final model */
+  transform?: (response: any) => T;
   extract?: (item: T) => {
-    externalId: string;
+    externalId?: string;
     externalUpdatedAt: string | null;
   };
 }
@@ -294,39 +302,61 @@ export class SyncConnectorBuilder<
 
     if (config.create) {
       connector.create = async (obj: any) => {
+        // Allow optional request transformation
+        const requestData = config.create!.transformRequest
+          ? config.create!.transformRequest(obj)
+          : obj;
+
         // Get request configuration from the function
         const requestConfig = config.create!.request(obj);
 
         const response = await this.restConnector.request({
           method: requestConfig.method || "POST",
           url: requestConfig.endpoint,
-          data: requestConfig.data ?? obj,
+          data: requestConfig.data ?? requestData,
         });
 
         // Validate response if schema provided
         const validated = (config.create as any).responseSchema
           ? (config.create as any).responseSchema.parse(response.data)
           : response.data;
-        return validated as any;
+
+        // Optionally transform response into final model
+        const result = (config.create as any).transform
+          ? (config.create as any).transform(validated)
+          : validated;
+
+        return result as any;
       };
     }
 
     if (config.update) {
       connector.update = async (externalId: string, obj: any) => {
+        // Allow optional request transformation
+        const requestData = config.update!.transformRequest
+          ? config.update!.transformRequest(obj)
+          : obj;
+
         // Get request configuration from the function
         const requestConfig = config.update!.request(externalId, obj);
 
         const response = await this.restConnector.request({
           method: requestConfig.method || "PUT",
           url: requestConfig.endpoint,
-          data: requestConfig.data ?? obj,
+          data: requestConfig.data ?? requestData,
         });
 
         // Validate response if schema provided
         const validated = (config.update as any).responseSchema
           ? (config.update as any).responseSchema.parse(response.data)
           : response.data;
-        return validated as any;
+
+        // Optionally transform response into final model
+        const result = (config.update as any).transform
+          ? (config.update as any).transform(validated)
+          : validated;
+
+        return result as any;
       };
     }
 
@@ -530,7 +560,7 @@ export class SyncModelConnectorBuilder<T = any> {
     };
     responseSchema?: TSchema;
     extract?: (item: T) => {
-      externalId: string;
+      externalId?: string;
       externalUpdatedAt: string | null;
     };
   }): this {
@@ -604,7 +634,7 @@ export class ModelConnectorConfigBuilder<T = any> {
     };
     responseSchema?: TSchema;
     extract?: (item: T) => {
-      externalId: string;
+      externalId?: string;
       externalUpdatedAt: string | null;
     };
   }): this {
@@ -744,7 +774,7 @@ export function createUpdateConfig<TModel>(config: {
   };
   responseSchema?: z.ZodType<TModel>;
   extract?: (item: TModel) => {
-    externalId: string;
+    externalId?: string;
     externalUpdatedAt: string | null;
   };
 }): UpdateConfig<TModel> {
