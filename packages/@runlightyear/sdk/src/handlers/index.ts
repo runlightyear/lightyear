@@ -126,6 +126,29 @@ export const handler: DirectHandler = async (
           if (runData?.runId) {
             setLogContext({ runId: runData.runId });
           }
+          // Also set additional execution context commonly needed by SDK internals
+          try {
+            const integrationName = runData?.integration?.name;
+            const managedUser = runData?.managedUser;
+            const syncId = runData?.context?.syncId;
+            const extraContext: any = {};
+            if (integrationName) extraContext.integrationName = integrationName;
+            if (managedUser?.externalId) {
+              extraContext.managedUserId = managedUser.externalId;
+              extraContext.managedUserExternalId = managedUser.externalId;
+              extraContext.managedUserDisplayName =
+                managedUser.displayName ?? null;
+            }
+            if (syncId) {
+              // Custom key consumed by SyncConnector
+              extraContext.syncId = syncId;
+            }
+            if (Object.keys(extraContext).length > 0) {
+              getLogCapture()?.setContext(extraContext);
+            }
+          } catch (e) {
+            console.debug("Optional context enrichment failed:", e);
+          }
 
           // For run operations, pass the entire event since action data might be at top level
           internalResponse = await handleRun(runData);
