@@ -42,7 +42,7 @@ export interface CreateConfig<T = any> {
   transformRequest?: (data: T) => any;
   /** Optionally transform the raw or validated response into the final model */
   transform?: (response: any) => T;
-  extract?: (item: T) => {
+  extract: (item: T) => {
     externalId: string;
     externalUpdatedAt: string | null;
   };
@@ -62,7 +62,7 @@ export interface UpdateConfig<T = any> {
   transformRequest?: (data: Partial<T>) => any;
   /** Optionally transform the raw or validated response into the final model */
   transform?: (response: any) => T;
-  extract?: (item: T) => {
+  extract: (item: T) => {
     externalId?: string;
     externalUpdatedAt: string | null;
   };
@@ -540,7 +540,7 @@ export class SyncModelConnectorBuilder<T = any> {
       data?: any;
     };
     responseSchema?: TSchema;
-    extract?: (item: T) => {
+    extract: (item: T) => {
       externalId: string;
       externalUpdatedAt: string | null;
     };
@@ -559,7 +559,7 @@ export class SyncModelConnectorBuilder<T = any> {
       data?: any;
     };
     responseSchema?: TSchema;
-    extract?: (item: T) => {
+    extract: (item: T) => {
       externalId?: string;
       externalUpdatedAt: string | null;
     };
@@ -614,7 +614,7 @@ export class ModelConnectorConfigBuilder<T = any> {
       data?: any;
     };
     responseSchema?: TSchema;
-    extract?: (item: T) => {
+    extract: (item: T) => {
       externalId: string;
       externalUpdatedAt: string | null;
     };
@@ -633,7 +633,7 @@ export class ModelConnectorConfigBuilder<T = any> {
       data?: any;
     };
     responseSchema?: TSchema;
-    extract?: (item: T) => {
+    extract: (item: T) => {
       externalId?: string;
       externalUpdatedAt: string | null;
     };
@@ -1109,7 +1109,7 @@ export function createCreateConfig<TModel>(config: {
     data?: any;
   };
   responseSchema?: z.ZodType<TModel>;
-  extract?: (item: TModel) => {
+  extract: (item: TModel) => {
     externalId: string;
     externalUpdatedAt: string | null;
   };
@@ -1128,7 +1128,7 @@ export function createUpdateConfig<TModel>(config: {
     data?: any;
   };
   responseSchema?: z.ZodType<TModel>;
-  extract?: (item: TModel) => {
+  extract: (item: TModel) => {
     externalId?: string;
     externalUpdatedAt: string | null;
   };
