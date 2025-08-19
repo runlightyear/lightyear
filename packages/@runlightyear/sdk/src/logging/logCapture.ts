@@ -318,13 +318,25 @@ class LogCapture {
       `📦 Preparing to upload ${logsToUpload.length} logs`
     );
 
+    // Only send recognized context fields; keep any extra fields internal
+    const cleanContext = {
+      runId: this.currentContext.runId,
+      deployId: this.currentContext.deployId,
+      deliveryId: this.currentContext.deliveryId,
+      subscriptionActivityId: this.currentContext.subscriptionActivityId,
+      authorizerActivityId: this.currentContext.authorizerActivityId,
+    };
+
     const payload: LogUploadPayload = {
-      ...this.currentContext,
+      ...cleanContext,
       logs: logsToUpload,
     };
 
     this.originalConsole.log("📋 Upload payload:", {
-      contextKeys: Object.keys(this.currentContext),
+      contextKeys: Object.keys(cleanContext).filter(
+        (k) =>
+          (cleanContext as any)[k as keyof typeof cleanContext] !== undefined
+      ),
       logCount: payload.logs.length,
       firstLogLevel: payload.logs[0]?.level,
       lastLogLevel: payload.logs[payload.logs.length - 1]?.level,
