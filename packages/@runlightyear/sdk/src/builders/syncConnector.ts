@@ -32,7 +32,7 @@ export interface ListConfig<T = any, R = unknown> {
 }
 
 export interface CreateConfig<T = any> {
-  request: (data: T) => {
+  request: (obj: T) => {
     endpoint: string;
     method?: "POST" | "PUT";
     data?: any;
@@ -47,7 +47,7 @@ export interface CreateConfig<T = any> {
 export interface UpdateConfig<T = any> {
   request: (
     id: string,
-    data: Partial<T>
+    obj: Partial<T>
   ) => {
     endpoint: string;
     method?: "PUT" | "PATCH" | "POST";
@@ -293,14 +293,14 @@ export class SyncConnectorBuilder<
     }
 
     if (config.create) {
-      connector.create = async (data: any) => {
+      connector.create = async (obj: any) => {
         // Get request configuration from the function
-        const requestConfig = config.create!.request(data);
+        const requestConfig = config.create!.request(obj);
 
         const response = await this.restConnector.request({
           method: requestConfig.method || "POST",
           url: requestConfig.endpoint,
-          data: requestConfig.data ?? data,
+          data: requestConfig.data ?? obj,
         });
 
         // Validate response if schema provided
@@ -312,14 +312,14 @@ export class SyncConnectorBuilder<
     }
 
     if (config.update) {
-      connector.update = async (externalId: string, data: any) => {
+      connector.update = async (externalId: string, obj: any) => {
         // Get request configuration from the function
-        const requestConfig = config.update!.request(externalId, data);
+        const requestConfig = config.update!.request(externalId, obj);
 
         const response = await this.restConnector.request({
           method: requestConfig.method || "PUT",
           url: requestConfig.endpoint,
-          data: requestConfig.data ?? data,
+          data: requestConfig.data ?? obj,
         });
 
         // Validate response if schema provided
@@ -504,7 +504,7 @@ export class SyncModelConnectorBuilder<T = any> {
   }
 
   withCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
-    request: (data: T) => {
+    request: (obj: T) => {
       endpoint: string;
       method?: "POST" | "PUT";
       data?: any;
@@ -522,7 +522,7 @@ export class SyncModelConnectorBuilder<T = any> {
   withUpdate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
     request: (
       externalId: string,
-      data: Partial<T>
+      obj: Partial<T>
     ) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
@@ -578,7 +578,7 @@ export class ModelConnectorConfigBuilder<T = any> {
   }
 
   create<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
-    request: (data: T) => {
+    request: (obj: T) => {
       endpoint: string;
       method?: "POST" | "PUT";
       data?: any;
@@ -596,7 +596,7 @@ export class ModelConnectorConfigBuilder<T = any> {
   update<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
     request: (
       externalId: string,
-      data: Partial<T>
+      obj: Partial<T>
     ) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
@@ -692,14 +692,14 @@ export interface CreateSyncConnectorFn<
   ) => SyncConnectorBuilder<TRestConnector, TCollection>;
 }
 
-export const createSyncConnector: CreateSyncConnectorFn<
-  RestConnector,
-  Collection
-> = ((restConnector: any, collection: any) =>
-  new SyncConnectorBuilder(restConnector, collection)) as any;
+export function createSyncConnector<
+  RC extends RestConnector,
+  C extends Collection
+>(restConnector: RC, collection: C): SyncConnectorBuilder<RC, C> {
+  return new SyncConnectorBuilder<RC, C>(restConnector, collection);
+}
 
-(createSyncConnector as any).from = (source: any) =>
-  SyncConnectorBuilder.from(source);
+createSyncConnector.from = (source: any) => SyncConnectorBuilder.from(source);
 
 // Type-safe config factory for better inference
 export function createListConfig<TModel, TResponse>(config: {

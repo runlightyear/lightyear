@@ -111,15 +111,15 @@ const syncConnectorWithListAndCreate = createSyncConnector(
         transform: (response) => response.users,
       })
       .withCreate({
-        request: (user) => ({
+        request: (obj) => ({
           endpoint: "/users",
           method: "POST",
-          data: user,
+          data: obj,
         }),
         responseSchema: z.object({ data: UserSchema }).transform((r) => r.data),
-        extract: (created) => ({
-          externalId: created.id,
-          externalUpdatedAt: created.updatedAt,
+        extract: (response) => ({
+          externalId: response.id,
+          externalUpdatedAt: response.updatedAt,
         }),
       })
   )
@@ -185,21 +185,21 @@ const fullCrudSyncConnector = createSyncConnector(apiConnector, userCollection)
           data: user,
         }),
         responseSchema: z.object({ data: UserSchema }).transform((r) => r.data),
-        extract: (created) => ({
-          externalId: created.id,
-          externalUpdatedAt: created.updatedAt,
+        extract: (response) => ({
+          externalId: response.id,
+          externalUpdatedAt: response.updatedAt,
         }),
       })
       .withUpdate({
-        request: (externalId, data) => ({
+        request: (externalId, obj) => ({
           endpoint: `/users/${externalId}`,
           method: "PUT",
-          data,
+          data: obj,
         }),
         responseSchema: z.object({ data: UserSchema }).transform((r) => r.data),
-        extract: (updated) => ({
-          externalId: updated.id,
-          externalUpdatedAt: updated.updatedAt,
+        extract: (response) => ({
+          externalId: response.id,
+          externalUpdatedAt: response.updatedAt,
         }),
       })
       .withDelete({
@@ -268,7 +268,7 @@ const duplicatedFullCrudSyncConnector = createSyncConnector
   .from(fullCrudSyncConnector)
   .withModelConnector("user", (b) =>
     b.withCreate({
-      request: (data: any) => ({ endpoint: "/users", method: "POST", data }),
+      request: (obj) => ({ endpoint: "/users", method: "POST", data: obj }),
     })
   )
   .build();
