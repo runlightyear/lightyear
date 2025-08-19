@@ -153,7 +153,14 @@ export const handleRun: RunHandler = async (
           effectiveVariables = fetched.variables || effectiveVariables;
           effectiveSecrets = fetched.secrets || effectiveSecrets;
           effectiveWebhook = fetched.webhook || effectiveWebhook;
-          effectiveIntegration = fetched.integration || effectiveIntegration;
+          // Ensure integration title is a string if present
+          if (fetched.integration) {
+            effectiveIntegration = {
+              id: fetched.integration.id,
+              name: fetched.integration.name,
+              title: fetched.integration.title || fetched.integration.name,
+            } as any;
+          }
           effectiveManagedUser = fetched.managedUser || effectiveManagedUser;
           if (effectiveManagedUser?.externalId) {
             // Populate log context to include managed user for subsequent calls
@@ -198,7 +205,19 @@ export const handleRun: RunHandler = async (
       )}`
     );
 
-    await runFunction(runProps);
+    try {
+      await runFunction(runProps);
+    } catch (e) {
+      if (e === "SKIPPED") {
+        console.warn("Run skipped by action");
+        return {
+          success: true,
+          data: { message: "Skipped" },
+          logs: [],
+        };
+      }
+      throw e;
+    }
 
     console.log("✅ Action executed successfully!");
 

@@ -31,17 +31,40 @@ export async function startSync(props: {
   managedUserId?: string;
   fullSyncFrequency?: number;
 }): Promise<any> {
-  const envName = process.env.ENV_NAME || "dev";
-  const response = await makeApiRequest(`/api/v1/envs/${envName}/syncs`, {
-    method: "POST",
-    data: {
-      collectionName: props.collectionName,
-      appName: props.appName ?? null,
-      customAppName: props.customAppName ?? null,
-      managedUserId: props.managedUserId ?? null,
-      fullSyncFrequency: props.fullSyncFrequency,
-    },
+  const envName = getEnvName();
+  const baseUrl = getBaseUrl();
+  const apiKey = getApiKey();
+
+  const url = `${baseUrl}/api/v1/envs/${envName}/syncs`;
+  const body = JSON.stringify({
+    collectionName: props.collectionName,
+    appName: props.appName ?? null,
+    customAppName: props.customAppName ?? null,
+    managedUserId: props.managedUserId ?? null,
+    fullSyncFrequency: props.fullSyncFrequency,
   });
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `apiKey ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body,
+  });
+
+  if (response.status === 423) {
+    console.warn("Another sync is running");
+    throw "SKIPPED";
+  }
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    throw new Error(
+      `API request failed: ${response.status} ${response.statusText} - ${errorText}`
+    );
+  }
+
   return await response.json();
 }
 

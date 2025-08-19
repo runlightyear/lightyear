@@ -152,6 +152,7 @@ export const handler: DirectHandler = async (
 
           // For run operations, pass the entire event since action data might be at top level
           internalResponse = await handleRun(runData);
+          // If action indicated SKIPPED, convert to appropriate success response with 202 later
         } finally {
           // Ensure final log upload before stopping
           if (logCapture && logCapture.getLogCount() > 0) {
@@ -270,7 +271,12 @@ export const handler: DirectHandler = async (
     }
 
     // Convert internal response to Lambda format
-    const statusCode = internalResponse.success ? 200 : 400;
+    // Map "Skipped" to 202 to align with Lightyear behavior
+    const isSkipped =
+      internalResponse.success &&
+      (internalResponse.data?.message === "Skipped" ||
+        internalResponse.data?.status === "SKIPPED");
+    const statusCode = isSkipped ? 202 : internalResponse.success ? 200 : 400;
 
     // For OAuth operations, format response to match lightyear package format
     // CLI expects { authRequestUrl, message, logs } at top level
