@@ -45,6 +45,7 @@ export default async function runAction({
   let handler;
   let status;
   let logs;
+  let isRerun = false;
 
   try {
     handler = runInContext(compiledCode).handler;
@@ -71,41 +72,58 @@ export default async function runAction({
 
     const { logs: logsFromVm } = responseData;
 
-    status =
-      statusCode === 202
-        ? "SKIPPED"
-        : statusCode >= 300
-        ? "FAILED"
-        : "SUCCEEDED";
+    isRerun =
+      responseData?.data?.status === "RERUN" ||
+      responseData?.data?.message === "Rerun" ||
+      responseData?.message === "Rerun";
+
+    if (statusCode === 202 && isRerun) {
+      // Rerun is treated as a success; SDK handler already finished the run
+      status = "SUCCEEDED";
+    } else if (statusCode === 202) {
+      status = "SKIPPED";
+    } else if (statusCode >= 300) {
+      status = "FAILED";
+    } else {
+      status = "SUCCEEDED";
+    }
 
     logs = logsFromVm;
   }
 
-  const response = await fetch(
-    `${baseUrl}/api/v1/envs/${envName}/runs/${runId}`,
-    {
-      method: "PATCH",
-      headers: {
-        Authorization: `apiKey ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status,
-        // logs,
-        endedAt: "now",
-        // deliveryId,
-      }),
-    }
-  );
-
-  if (response.ok) {
-    console.info("Uploaded run result");
-  } else {
-    console.error(
-      "Failed to upload run result",
-      response.status,
-      response.statusText
+  // If handler indicated a rerun, the SDK finished the run with rerun=true.
+  // Avoid overriding that state with a PATCH here.
+  if (!isRerun) {
+    const response = await fetch(
+      `${baseUrl}/api/v1/envs/${envName}/runs/${runId}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `apiKey ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status,
+          // logs,
+          endedAt: "now",
+          // deliveryId,
+        }),
+      }
     );
-    console.error(await response.text());
+
+    if (response.ok) {
+      console.info("Uploaded run result");
+    } else {
+      console.error(
+        "Failed to upload run result",
+        response.status,
+        response.statusText
+      );
+      console.error(await response.text());
+    }
+  } else {
+    console.info(
+      "Rerun requested; skipping CLI status patch to preserve rerun state"
+    );
   }
 }

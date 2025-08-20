@@ -226,9 +226,29 @@ export const handleRun: RunHandler = async (
     } catch (e) {
       if (e === "SKIPPED") {
         console.warn("Run skipped by action");
+        try {
+          const { finishRun } = await import("../platform/run.js");
+          await finishRun({ runId, status: "SKIPPED" });
+        } catch (finishErr) {
+          console.warn("finishRun(SKIPPED) failed:", finishErr);
+        }
         return {
           success: true,
-          data: { message: "Skipped" },
+          data: { message: "Skipped", status: "SKIPPED" },
+          logs: [],
+        };
+      }
+      if (e === "RERUN") {
+        console.info("Rerun requested by action");
+        try {
+          const { finishRun } = await import("../platform/run.js");
+          await finishRun({ runId, status: "SUCCEEDED", rerun: true });
+        } catch (finishErr) {
+          console.warn("finishRun(SUCCEEDED, rerun=true) failed:", finishErr);
+        }
+        return {
+          success: true,
+          data: { message: "Rerun", status: "RERUN" },
           logs: [],
         };
       }
@@ -236,6 +256,13 @@ export const handleRun: RunHandler = async (
     }
 
     console.log("✅ Action executed successfully!");
+
+    try {
+      const { finishRun } = await import("../platform/run.js");
+      await finishRun({ runId, status: "SUCCEEDED" });
+    } catch (finishErr) {
+      console.warn("finishRun(SUCCEEDED) failed:", finishErr);
+    }
 
     return {
       success: true,
@@ -269,6 +296,17 @@ export const handleRun: RunHandler = async (
       error instanceof Error
         ? error.message
         : `Action execution failed: ${String(error)}`;
+
+    // Attempt to finish the run as FAILED if we have a runId
+    try {
+      const runId = payloadOrEvent?.runId;
+      if (runId) {
+        const { finishRun } = await import("../platform/run.js");
+        await finishRun({ runId, status: "FAILED" });
+      }
+    } catch (finishErr) {
+      console.warn("finishRun(FAILED) failed:", finishErr);
+    }
 
     return {
       success: false,

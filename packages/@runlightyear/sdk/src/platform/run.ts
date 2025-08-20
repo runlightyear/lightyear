@@ -20,3 +20,19 @@ export async function getRunFuncProps(runId: string): Promise<RunFuncProps> {
   );
   return (await response.json()) as RunFuncProps;
 }
+
+export interface FinishRunProps {
+  runId: string;
+  status: "SUCCEEDED" | "FAILED" | "SKIPPED";
+  rerun?: boolean;
+}
+
+export async function finishRun(props: FinishRunProps): Promise<void> {
+  const envName = getEnvName();
+  const { runId, status, rerun = false } = props;
+
+  await makeApiRequest(`/api/v1/envs/${envName}/runs/${runId}/finish`, {
+    method: "POST",
+    data: { status, rerun },
+  });
+}

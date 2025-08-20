@@ -289,12 +289,17 @@ export const handler: DirectHandler = async (
     }
 
     // Convert internal response to Lambda format
-    // Map "Skipped" to 202 to align with Lightyear behavior
+    // Map "Skipped" and "Rerun" to 202 to align with Lightyear behavior
     const isSkipped =
       internalResponse.success &&
       (internalResponse.data?.message === "Skipped" ||
         internalResponse.data?.status === "SKIPPED");
-    const statusCode = isSkipped ? 202 : internalResponse.success ? 200 : 400;
+    const isRerun =
+      internalResponse.success &&
+      (internalResponse.data?.message === "Rerun" ||
+        internalResponse.data?.status === "RERUN");
+    const statusCode =
+      isSkipped || isRerun ? 202 : internalResponse.success ? 200 : 400;
 
     // For OAuth operations, format response to match lightyear package format
     // CLI expects { authRequestUrl, message, logs } at top level
