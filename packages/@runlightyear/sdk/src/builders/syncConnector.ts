@@ -2,20 +2,20 @@ import { z } from "zod";
 import type { Collection } from "../types";
 import type { RestConnector } from "../connectors/RestConnector";
 
-export interface PaginationConfig {
-  type: "cursor" | "page" | "offset";
-  pageSize?: number;
-  cursorField?: string;
-  pageField?: string;
-  offsetField?: string;
-  limitField?: string;
-}
+// Removed legacy PaginationConfig (page/offset types no longer supported)
 
 export interface ListParams {
   cursor?: string;
   page?: number;
   offset?: number;
   limit?: number;
+  /** Nested pagination props for ergonomic access (backwards-compatible) */
+  pagination?: {
+    cursor?: string;
+    page?: number;
+    offset?: number;
+    limit?: number;
+  };
   [key: string]: any;
 }
 
@@ -29,7 +29,13 @@ export interface ListConfig<TModel = any, TResponse = unknown> {
     json?: any;
   };
   responseSchema?: z.ZodType<TResponse>;
-  pagination?: PaginationConfig;
+  /**
+   * Pagination: function that extracts the cursor for the next page from the response.
+   * If omitted, a single request is made.
+   */
+  pagination?: (response: any) => {
+    cursor?: string | null;
+  };
   // Force transform to return objects ready for platform ingestion
   transform: (response: TResponse) => Array<{
     externalId: string;
@@ -141,7 +147,9 @@ export interface TypedListConfig<TModel, TResponse> {
     json?: any;
   };
   responseSchema?: z.ZodType<TResponse>;
-  pagination?: PaginationConfig;
+  pagination?: (response: any) => {
+    cursor?: string | null;
+  };
   transform: (response: TResponse) => Array<{
     externalId: string;
     externalUpdatedAt: string | null;
@@ -174,7 +182,7 @@ export interface TypeSafeListConfig<
     json?: any;
   };
   responseSchema?: TResponseSchema;
-  pagination?: PaginationConfig;
+  pagination?: (response: any) => { cursor?: string | null };
   transform: TResponseSchema extends z.ZodType<any>
     ? (response: InferResponseType<TResponseSchema>) => Array<{
         externalId: string;
@@ -302,7 +310,24 @@ export class SyncConnectorBuilder<
     if (config.list) {
       connector.list = async (params?: ListParams) => {
         // Get request configuration from the function
-        const requestConfig = config.list!.request(params || {});
+        const _params: ListParams = params || {};
+        // Ensure nested pagination mirror exists for ergonomics
+        if (!_params.pagination) {
+          _params.pagination = {
+            cursor: _params.cursor,
+            page: _params.page,
+            offset: _params.offset,
+            limit: _params.limit,
+          };
+        } else {
+          // Keep top-level in sync if nested is present
+          _params.cursor = _params.cursor ?? _params.pagination.cursor;
+          _params.page = _params.page ?? _params.pagination.page;
+          _params.offset = _params.offset ?? _params.pagination.offset;
+          _params.limit = _params.limit ?? _params.pagination.limit;
+        }
+
+        const requestConfig = config.list!.request(_params);
 
         const response = await this.restConnector.request({
           method: requestConfig.method || "GET",
@@ -325,13 +350,14 @@ export class SyncConnectorBuilder<
         // Apply required transform into platform object shape
         items = config.list!.transform(data);
 
-        // Extract pagination info based on pagination config
+        // Extract pagination info based on pagination function
         let nextCursor: string | undefined;
-        if (
-          config.list!.pagination?.type === "cursor" &&
-          config.list!.pagination.cursorField
-        ) {
-          nextCursor = (data as any)[config.list!.pagination.cursorField];
+        const pg = config.list!.pagination as
+          | ((response: any) => { cursor?: string | null })
+          | undefined;
+        if (typeof pg === "function") {
+          const res = pg(data);
+          nextCursor = (res?.cursor ?? undefined) || undefined;
         }
 
         return {
@@ -567,7 +593,9 @@ export class SyncModelConnectorBuilder<T = any> {
       json?: any;
     };
     responseSchema?: TSchema;
-    pagination?: PaginationConfig;
+    pagination?: TSchema extends z.ZodType<any>
+      ? (response: z.infer<TSchema>) => { cursor?: string | null }
+      : (response: unknown) => { cursor?: string | null };
     transform: TSchema extends z.ZodType<any>
       ? (response: z.infer<TSchema>) => Array<{
           externalId: string;
@@ -661,7 +689,7 @@ export class ModelConnectorConfigBuilder<T = any> {
       data?: any;
     };
     responseSchema: TSchema;
-    pagination?: PaginationConfig;
+    pagination?: (response: z.infer<TSchema>) => { cursor?: string | null };
     transform: (response: z.infer<TSchema>) => Array<{
       externalId: string;
       externalUpdatedAt: string | null;
@@ -924,19 +952,9 @@ export class SyncConnector<
           const listFn = connector.list;
           if (listFn) {
             const pagination = (connector as any).config?.list?.pagination as
-              | PaginationConfig
+              | ((response: any) => { cursor?: string | null })
               | undefined;
-            let pageNum: number | undefined = undefined;
-            let offsetVal: number | undefined = undefined;
-            let limitVal: number | undefined = pagination?.pageSize;
-
-            if (pagination?.type === "page") {
-              pageNum = pageNum ?? 1;
-            }
-            if (pagination?.type === "offset") {
-              offsetVal = offsetVal ?? 0;
-              limitVal = limitVal ?? 100;
-            }
+            const isCursorViaFunction = typeof pagination === "function";
 
             while (true) {
               if (isTimeLimitExceeded()) {
@@ -946,14 +964,8 @@ export class SyncConnector<
 
               // Build params with pagination + watermarks
               const params: any = {};
-              if (pagination?.type === "cursor") {
+              if (isCursorViaFunction) {
                 params.cursor = cursor;
-              } else if (pagination?.type === "page") {
-                params.page = pageNum;
-                if (limitVal) params.limit = limitVal;
-              } else if (pagination?.type === "offset") {
-                params.offset = offsetVal;
-                if (limitVal) params.limit = limitVal;
               } else {
                 // no pagination config; single request
               }
@@ -1015,12 +1027,8 @@ export class SyncConnector<
               cursor = nextCursor;
 
               // Continue pagination
-              if (pagination?.type === "cursor") {
+              if (isCursorViaFunction) {
                 if (!cursor) break;
-              } else if (pagination?.type === "page") {
-                pageNum = (pageNum || 1) + 1;
-              } else if (pagination?.type === "offset") {
-                offsetVal = (offsetVal || 0) + (limitVal || 0);
               } else {
                 // no pagination; single page
                 break;
@@ -1325,7 +1333,7 @@ export function createListConfig<TModel, TResponse>(config: {
     data?: any;
   };
   responseSchema: z.ZodType<TResponse>;
-  pagination?: PaginationConfig;
+  pagination?: (response: any) => { cursor?: string | null };
   transform: (response: TResponse) => Array<{
     externalId: string;
     externalUpdatedAt: string | null;
@@ -1343,12 +1351,13 @@ export function createCreateConfig<TModel>(config: {
     data?: any;
   };
   responseSchema?: z.ZodType<TModel>;
+  transform?: (response: any) => TModel;
   extract: (item: TModel) => {
     externalId: string;
     externalUpdatedAt: string | null;
   };
 }): CreateConfig<TModel> {
-  return config;
+  return config as CreateConfig<TModel>;
 }
 
 // Type-safe update config factory for better inference
@@ -1362,12 +1371,13 @@ export function createUpdateConfig<TModel>(config: {
     data?: any;
   };
   responseSchema?: z.ZodType<TModel>;
+  transform?: (response: any) => TModel;
   extract: (item: TModel) => {
     externalId?: string;
     externalUpdatedAt: string | null;
   };
 }): UpdateConfig<TModel> {
-  return config;
+  return config as UpdateConfig<TModel>;
 }
 
 // Type-safe delete config factory

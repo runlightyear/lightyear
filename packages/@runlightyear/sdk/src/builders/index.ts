@@ -24,10 +24,18 @@ export { IntegrationBuilder, defineIntegration } from "./integration";
 export { ActionBuilder, defineAction } from "./action";
 
 // OAuth connector builder
-export { OAuthConnectorBuilder, createOAuthConnector, defineOAuthConnector } from "./oauth";
+export {
+  OAuthConnectorBuilder,
+  createOAuthConnector,
+  defineOAuthConnector,
+} from "./oauth";
 
 // REST connector builder
-export { RestConnectorBuilder, createRestConnector, defineRestConnector } from "./restConnector";
+export {
+  RestConnectorBuilder,
+  createRestConnector,
+  defineRestConnector,
+} from "./restConnector";
 
 // Sync connector builder
 export {
@@ -45,7 +53,6 @@ export {
 export type {
   ModelConnector,
   ModelConnectorConfig,
-  PaginationConfig,
   ListConfig,
   ListParams,
   CreateConfig,
@@ -59,7 +66,6 @@ export {
   createListResponseSchema,
   createPaginatedResponseSchema,
   validateModelExists,
-  isValidPaginationType,
   extractNestedData,
   batchItems,
   createModelConfig,

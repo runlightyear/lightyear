@@ -62,15 +62,6 @@ export function validateModelExists(
 }
 
 /**
- * Type guard to check if a value is a valid pagination type
- */
-export function isValidPaginationType(
-  type: string
-): type is "cursor" | "page" | "offset" {
-  return ["cursor", "page", "offset"].includes(type);
-}
-
-/**
  * Helper to extract nested data from a response
  */
 export function extractNestedData(data: any, path: string): any {
@@ -111,14 +102,7 @@ export function createModelConfig<T>() {
       endpoint: string;
       method?: "GET" | "POST";
       responseSchema?: z.ZodType<T>;
-      pagination?: {
-        type: "cursor" | "page" | "offset";
-        pageSize?: number;
-        cursorField?: string;
-        pageField?: string;
-        offsetField?: string;
-        limitField?: string;
-      };
+      pagination?: (response: any) => { cursor?: string | null };
     }) => ({ list: config }),
 
     create: (config: { endpoint: string; method?: "POST" | "PUT" }) => ({

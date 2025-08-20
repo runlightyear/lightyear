@@ -112,13 +112,15 @@ const contactModelConnector = createModelConnector<Contact>(
         },
       }),
       responseSchema: contactListResponseSchema,
-      pagination: {
-        type: "page",
-        pageSize: 20,
-      },
+      pagination: ((response: ContactListResponse) => ({
+        cursor: undefined,
+      })) as any,
       transform: (response) => {
-        // Transform API response to model format
-        return response.contacts;
+        return response.contacts.map((c) => ({
+          externalId: c.id,
+          externalUpdatedAt: c.createdAt,
+          data: c,
+        }));
       },
     })
   )
@@ -132,11 +134,10 @@ async function useContactModelConnector() {
       limit: 20,
     });
 
-    // TypeScript knows items is Contact[]
-    items.forEach((contact) => {
-      console.log(`Contact: ${contact.name} - ${contact.email}`);
-      if (contact.phone) {
-        console.log(`Phone: ${contact.phone}`);
+    items.forEach(({ data }) => {
+      console.log(`Contact: ${data.name} - ${data.email}`);
+      if (data.phone) {
+        console.log(`Phone: ${data.phone}`);
       }
     });
   }
@@ -216,17 +217,20 @@ const userModelConnector = createModelConnector<User>(
       }),
       responseSchema: userListResponseSchema,
       transform: (response) => {
-        // Transform from API format to model format
         return response.users.map((apiUser) => ({
-          id: apiUser.user_id,
-          username: apiUser.user_name,
-          email: apiUser.email_address,
-          firstName: apiUser.first_name,
-          lastName: apiUser.last_name,
-          role: apiUser.role,
-          isActive: apiUser.is_active,
-          createdAt: apiUser.created_at,
-          updatedAt: apiUser.updated_at,
+          externalId: apiUser.user_id,
+          externalUpdatedAt: apiUser.updated_at,
+          data: {
+            id: apiUser.user_id,
+            username: apiUser.user_name,
+            email: apiUser.email_address,
+            firstName: apiUser.first_name,
+            lastName: apiUser.last_name,
+            role: apiUser.role,
+            isActive: apiUser.is_active,
+            createdAt: apiUser.created_at,
+            updatedAt: apiUser.updated_at,
+          },
         }));
       },
     })
@@ -258,6 +262,10 @@ const userModelConnector = createModelConnector<User>(
         createdAt: response.created_at,
         updatedAt: response.updated_at,
       }),
+      extract: (item) => ({
+        externalId: item.id,
+        externalUpdatedAt: item.updatedAt,
+      }),
     })
   )
   .build();
@@ -268,10 +276,10 @@ async function useUserModelConnector() {
   if (userModelConnector.list) {
     const { items } = await userModelConnector.list({ page: 1 });
 
-    items.forEach((user) => {
-      console.log(`User: ${user.username} (${user.role})`);
-      console.log(`Name: ${user.firstName} ${user.lastName}`);
-      console.log(`Active: ${user.isActive}`);
+    items.forEach(({ data }) => {
+      console.log(`User: ${data.username} (${data.role})`);
+      console.log(`Name: ${data.firstName} ${data.lastName}`);
+      console.log(`Active: ${data.isActive}`);
     });
   }
 
@@ -378,25 +386,25 @@ const productModelConnector = createModelConnector<Product>(
         },
       }),
       responseSchema: productListResponseSchema,
-      pagination: {
-        type: "page",
-        pageSize: 100,
-        pageField: "page",
-      },
+      pagination: (_r) => ({ cursor: undefined }),
       transform: (response) => {
         return response.products.map((apiProduct) => ({
-          id: apiProduct.product_id,
-          sku: apiProduct.sku,
-          name: apiProduct.product_name,
-          description: apiProduct.product_description,
-          price: apiProduct.price_cents / 100, // Convert from cents
-          currency: apiProduct.currency_code,
-          inventory: apiProduct.stock_quantity,
-          category: apiProduct.category_name,
-          tags: apiProduct.tags,
-          isActive: apiProduct.is_active,
-          createdAt: apiProduct.created_at,
-          updatedAt: apiProduct.updated_at,
+          externalId: apiProduct.product_id,
+          externalUpdatedAt: apiProduct.updated_at,
+          data: {
+            id: apiProduct.product_id,
+            sku: apiProduct.sku,
+            name: apiProduct.product_name,
+            description: apiProduct.product_description,
+            price: apiProduct.price_cents / 100, // Convert from cents
+            currency: apiProduct.currency_code,
+            inventory: apiProduct.stock_quantity,
+            category: apiProduct.category_name,
+            tags: apiProduct.tags,
+            isActive: apiProduct.is_active,
+            createdAt: apiProduct.created_at,
+            updatedAt: apiProduct.updated_at,
+          },
         }));
       },
     })
@@ -431,6 +439,10 @@ const productModelConnector = createModelConnector<Product>(
         isActive: response.is_active,
         createdAt: response.created_at,
         updatedAt: response.updated_at,
+      }),
+      extract: (item) => ({
+        externalId: item.id,
+        externalUpdatedAt: item.updatedAt,
       }),
     })
   )
@@ -467,6 +479,9 @@ const productModelConnector = createModelConnector<Product>(
         isActive: response.is_active,
         createdAt: response.created_at,
         updatedAt: response.updated_at,
+      }),
+      extract: (item) => ({
+        externalUpdatedAt: item.updatedAt,
       }),
     })
   )
@@ -532,11 +547,10 @@ async function useProductModelConnector() {
       limit: 50,
     });
 
-    items.forEach((product) => {
-      console.log(`Product: ${product.name} (${product.sku})`);
-      console.log(`Price: $${product.price} ${product.currency}`);
-      console.log(`Inventory: ${product.inventory} units`);
-      console.log(`Tags: ${product.tags.join(", ")}`);
+    items.forEach(({ data }) => {
+      console.log(`Product: ${data.name} (${data.sku})`);
+      console.log(`Price: $${data.price} ${data.currency}`);
+      console.log(`Inventory: ${data.inventory} units`);
     });
   }
 

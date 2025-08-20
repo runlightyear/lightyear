@@ -5,6 +5,7 @@ This document explains the type safety features available in sync connectors, pa
 ## Overview
 
 Sync connectors now provide full type safety for transform functions, ensuring that:
+
 1. The transform function receives the full API response, typed with the response schema
 2. The transform must return an array of objects that match the collection's model schema
 3. TypeScript will catch type mismatches at compile time
@@ -21,12 +22,14 @@ import { createListConfig } from "@runlightyear/sdk";
 
 // Define your API response schema
 const apiListResponseSchema = z.object({
-  customers: z.array(z.object({
-    customer_id: z.string(),
-    full_name: z.string(),
-    email_address: z.string(),
-    is_active: z.boolean(),
-  })),
+  customers: z.array(
+    z.object({
+      customer_id: z.string(),
+      full_name: z.string(),
+      email_address: z.string(),
+      is_active: z.boolean(),
+    })
+  ),
   total: z.number(),
   page: z.number(),
 });
@@ -57,7 +60,7 @@ const listConfig = createListConfig<Customer, ApiListResponse>({
   transform: (response) => {
     // You have access to the entire response structure
     console.log(`Total customers: ${response.total}`);
-    
+
     // Map the customers array to your model format
     return response.customers.map((apiCustomer) => ({
       id: apiCustomer.customer_id,
@@ -136,6 +139,7 @@ const syncConnector = createSyncConnector(restConnector, collection)
 ### Compile-Time Error Detection
 
 TypeScript will catch errors if:
+
 - You try to access properties that don't exist on the API response
 - The transform function doesn't return the correct model type
 - Required properties are missing from the transformed object
@@ -144,6 +148,7 @@ TypeScript will catch errors if:
 ### IntelliSense Support
 
 Your IDE will provide:
+
 - Auto-completion for API response properties in the transform function
 - Type hints for all properties
 - Error highlighting for type mismatches
@@ -196,25 +201,24 @@ const badConfig2 = createListConfig<Customer, ApiListResponse>({
 ## Common Patterns
 
 ### Cursor-Based Pagination
+
 ```typescript
 const cursorListConfig = createListConfig<Item, CursorResponse>({
   request: (params) => ({
     endpoint: "/items",
     params: {
-      cursor: params.cursor,
+      cursor: params.pagination?.cursor,
       limit: params.limit || 50,
     },
   }),
   responseSchema: cursorResponseSchema,
-  pagination: {
-    type: "cursor",
-    cursorField: "nextCursor",
-  },
+  pagination: (response) => ({ cursor: response.nextCursor }),
   transform: (response) => response.items,
 });
 ```
 
-### Page-Based Pagination
+### Page-Based Pagination (map provider paging to cursor)
+
 ```typescript
 const pageListConfig = createListConfig<Item, PagedResponse>({
   request: (params) => ({
@@ -225,16 +229,16 @@ const pageListConfig = createListConfig<Item, PagedResponse>({
     },
   }),
   responseSchema: pagedResponseSchema,
-  pagination: {
-    type: "page",
-    pageField: "page",
-    limitField: "per_page",
-  },
+  // Convert provider paging to a synthetic cursor: stop when hasMore is false
+  pagination: (response) => ({
+    cursor: response.hasMore ? String(response.page + 1) : undefined,
+  }),
   transform: (response) => response.data,
 });
 ```
 
-### Offset-Based Pagination
+### Offset-Based Pagination (map to cursor)
+
 ```typescript
 const offsetListConfig = createListConfig<Item, OffsetResponse>({
   request: (params) => ({
@@ -245,36 +249,42 @@ const offsetListConfig = createListConfig<Item, OffsetResponse>({
     },
   }),
   responseSchema: offsetResponseSchema,
-  pagination: {
-    type: "offset",
-    offsetField: "offset",
-    limitField: "limit",
-  },
+  // Convert offset scheme to a synthetic cursor by encoding next offset
+  pagination: (response) => ({
+    cursor: response.results.length
+      ? String((response.offset ?? 0) + (response.limit ?? 100))
+      : undefined,
+  }),
   transform: (response) => response.results,
 });
 ```
 
 ### Wrapped Responses
+
 ```typescript
 const wrappedResponseSchema = z.object({
   success: z.boolean(),
   result: z.array(itemSchema),
-  metadata: z.object({ /* ... */ }),
+  metadata: z.object({
+    /* ... */
+  }),
 });
 
 // Transform extracts items from result field
-transform: (response) => response.result
+transform: (response) => response.result;
 ```
 
 ### Simple Array Responses
+
 ```typescript
 const arrayResponseSchema = z.array(itemSchema);
 
 // Transform can add computed properties
-transform: (items) => items.map(item => ({
-  ...item,
-  computed: calculateValue(item),
-}))
+transform: (items) =>
+  items.map((item) => ({
+    ...item,
+    computed: calculateValue(item),
+  }));
 ```
 
 ## Dynamic Request Creation
@@ -282,6 +292,7 @@ transform: (items) => items.map(item => ({
 All request configurations are now functions that receive the appropriate data and return the request configuration. This enables dynamic request creation based on runtime data:
 
 ### List Requests
+
 ```typescript
 const listConfig = {
   list: {
@@ -300,6 +311,7 @@ const listConfig = {
 ```
 
 ### Create Requests
+
 ```typescript
 const createConfig = {
   create: {
@@ -318,6 +330,7 @@ const createConfig = {
 ```
 
 ### Update Requests
+
 ```typescript
 const updateConfig = {
   update: {
@@ -332,6 +345,7 @@ const updateConfig = {
 ```
 
 ### Delete Requests
+
 ```typescript
 const deleteConfig = {
   delete: {
@@ -344,6 +358,7 @@ const deleteConfig = {
 ```
 
 ### Bulk Operations
+
 ```typescript
 const bulkConfig = {
   bulk: {
@@ -385,6 +400,7 @@ If you have existing sync connectors without type safety:
 4. Fix any TypeScript errors that appear
 
 Before:
+
 ```typescript
 .with("customer", {
   list: {
@@ -398,6 +414,7 @@ Before:
 ```
 
 After:
+
 ```typescript
 .with("customer", {
   list: createListConfig<Customer, ApiListResponse>({

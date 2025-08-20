@@ -31,7 +31,7 @@ export class ModelConnectorBuilder<T = any> {
     this.model = model;
   }
 
-  list(config: ListConfig<T>): this {
+  list(config: ListConfig<T, any>): this {
     this.config.list = config;
     return this;
   }
@@ -65,13 +65,29 @@ export class ModelConnectorBuilder<T = any> {
     // Add list implementation
     if (this.config.list) {
       connector.list = async (params?: ListParams) => {
-        const requestConfig = this.config.list!.request(params || {});
+        const _params: ListParams = params || {};
+        if (!_params.pagination) {
+          _params.pagination = {
+            cursor: _params.cursor,
+            page: _params.page,
+            offset: _params.offset,
+            limit: _params.limit,
+          };
+        } else {
+          _params.cursor = _params.cursor ?? _params.pagination.cursor;
+          _params.page = _params.page ?? _params.pagination.page;
+          _params.offset = _params.offset ?? _params.pagination.offset;
+          _params.limit = _params.limit ?? _params.pagination.limit;
+        }
+
+        const requestConfig = this.config.list!.request(_params);
 
         const response = await this.restConnector.request({
           method: requestConfig.method || "GET",
           url: requestConfig.endpoint,
           params: requestConfig.params,
-          data: requestConfig.data,
+          // prefer json if provided; otherwise fall back to data
+          json: (requestConfig as any).json ?? requestConfig.data,
         });
 
         let data = response.data;
@@ -88,11 +104,12 @@ export class ModelConnectorBuilder<T = any> {
         items = this.config.list!.transform(data);
 
         let nextCursor: string | undefined;
-        if (
-          this.config.list!.pagination?.type === "cursor" &&
-          this.config.list!.pagination.cursorField
-        ) {
-          nextCursor = (data as any)[this.config.list!.pagination.cursorField];
+        const pg = this.config.list!.pagination as
+          | ((response: any) => { cursor?: string | null })
+          | undefined;
+        if (typeof pg === "function") {
+          const res = pg(data);
+          nextCursor = (res?.cursor ?? undefined) || undefined;
         }
 
         return {

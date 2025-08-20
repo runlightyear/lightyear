@@ -169,8 +169,41 @@ export const httpRequest: HttpRequest = async (props) => {
         finalHeaders["Content-Type"] = "application/json";
       }
 
+      // Append query params to URL instead of sending a separate `params` field
+      const { params, url, ...restForProxy } =
+        restWithoutPayload as unknown as {
+          url: string;
+          params?: Record<string, unknown>;
+          [key: string]: any;
+        };
+
+      let urlWithQuery = url;
+      if (params && Object.keys(params).length > 0) {
+        try {
+          const u = new URL(urlWithQuery);
+          for (const [key, value] of Object.entries(params)) {
+            if (value === undefined || value === null) continue;
+            u.searchParams.append(key, String(value));
+          }
+          urlWithQuery = u.toString();
+        } catch {
+          // Fallback for relative URLs (shouldn't happen with RestConnector.buildUrl)
+          const qs = Object.entries(params)
+            .filter(([, v]) => v !== undefined && v !== null)
+            .map(
+              ([k, v]) =>
+                `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`
+            )
+            .join("&");
+          urlWithQuery = qs
+            ? `${urlWithQuery}${urlWithQuery.includes("?") ? "&" : "?"}${qs}`
+            : urlWithQuery;
+        }
+      }
+
       const requestBody = {
-        ...restWithoutPayload,
+        ...restForProxy,
+        url: urlWithQuery,
         headers: finalHeaders,
         body: finalBody,
         runId,
