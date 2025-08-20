@@ -328,7 +328,7 @@ export async function confirmChangeBatch(props: {
   changes: Array<{
     changeId: string;
     externalId: string;
-    externalUpdatedAt: string | null;
+    externalUpdatedAt?: string | null;
   }>;
   async?: boolean;
 }): Promise<void> {

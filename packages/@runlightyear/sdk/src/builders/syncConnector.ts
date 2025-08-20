@@ -1132,7 +1132,6 @@ export class SyncConnector<
               const changesToConfirm = delta.changes.map((c: any) => ({
                 changeId: c.changeId,
                 externalId: String(c.externalId),
-                externalUpdatedAt: null,
               }));
               await confirmChangeBatch({
                 syncId,
@@ -1226,14 +1225,12 @@ export class SyncConnector<
                 const confirmations: Array<{
                   changeId: string;
                   externalId: string;
-                  externalUpdatedAt: string | null;
                 }> = [];
                 for (const change of delta.changes) {
                   await connector.delete(change.externalId);
                   confirmations.push({
                     changeId: change.changeId,
                     externalId: String(change.externalId),
-                    externalUpdatedAt: null,
                   });
                 }
                 await confirmChangeBatch({
