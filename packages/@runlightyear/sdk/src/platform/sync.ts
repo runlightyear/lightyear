@@ -30,6 +30,7 @@ export async function startSync(props: {
   customAppName?: string | null;
   managedUserId?: string;
   fullSyncFrequency?: number;
+  runId?: string;
 }): Promise<any> {
   const envName = getEnvName();
   const baseUrl = getBaseUrl();
@@ -42,6 +43,7 @@ export async function startSync(props: {
     customAppName: props.customAppName ?? null,
     managedUserId: props.managedUserId ?? null,
     fullSyncFrequency: props.fullSyncFrequency,
+    runId: props.runId ?? null,
   });
 
   try {
@@ -59,6 +61,7 @@ export async function startSync(props: {
       customAppName: props.customAppName ?? null,
       hasManagedUserId: !!props.managedUserId,
       fullSyncFrequency: props.fullSyncFrequency ?? null,
+      runId: props.runId ?? null,
     });
   } catch {}
 
@@ -72,7 +75,18 @@ export async function startSync(props: {
   });
 
   if (response.status === 423) {
-    console.warn("Another sync is running");
+    console.warn("Another sync is running (423 Locked) — skipping");
+    throw "SKIPPED";
+  }
+
+  if (response.status === 429) {
+    const errorText = await response.text().catch(() => "");
+    let reason = "Too many requests";
+    try {
+      const parsed = JSON.parse(errorText);
+      if (parsed?.message) reason = parsed.message;
+    } catch {}
+    console.warn(`Rate limited (429): ${reason} — skipping`);
     throw "SKIPPED";
   }
 

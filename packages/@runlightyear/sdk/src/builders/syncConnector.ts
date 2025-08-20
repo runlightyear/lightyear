@@ -766,6 +766,7 @@ export class SyncConnector<
     const app: string | undefined = (ctx as any)?.appName ?? undefined;
     const customApp: string | undefined =
       (ctx as any)?.customAppName ?? undefined;
+    const runId: string | undefined = (ctx as any)?.runId ?? undefined;
 
     // If syncId is not provided in context, start a new sync via API
     if (!syncId) {
@@ -780,6 +781,7 @@ export class SyncConnector<
         appName: app ?? null,
         customAppName: customApp ?? null,
         managedUserId,
+        runId,
       });
       console.info(
         `Started sync ${sync?.id} (${
