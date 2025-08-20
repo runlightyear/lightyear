@@ -210,7 +210,7 @@ const fullCrudSyncConnector = createSyncConnector(apiConnector, userCollection)
         request: (user) => ({
           endpoint: "/users",
           method: "POST",
-          data: user,
+          json: user,
         }),
         responseSchema: z.object({ data: ZUser }),
         extract: (response) => ({
@@ -222,7 +222,7 @@ const fullCrudSyncConnector = createSyncConnector(apiConnector, userCollection)
         request: (externalId, obj) => ({
           endpoint: `/users/${externalId}`,
           method: "PUT",
-          data: obj,
+          json: obj,
         }),
         responseSchema: z.object({ data: ZUser }),
         extract: (response) => ({
@@ -295,7 +295,7 @@ const duplicatedFullCrudSyncConnector = createSyncConnector
   .from(fullCrudSyncConnector)
   .withModelConnector("user", (b) =>
     b.withCreate({
-      request: (obj) => ({ endpoint: "/users", method: "POST", data: obj }),
+      request: (obj) => ({ endpoint: "/users", method: "POST", json: obj }),
       responseSchema: ZUser,
       extract: (res) => ({
         externalId: res.id,
@@ -349,7 +349,7 @@ const taskSync = createSyncConnector(rest, taskCollection)
         transform: (r) => r.items, // missing mapping from taskId -> externalId and wrapping as data
       })
       .withCreate({
-        request: (obj) => ({ endpoint: "/tasks", method: "POST", data: obj }),
+        request: (obj) => ({ endpoint: "/tasks", method: "POST", json: obj }),
         responseSchema: z.object({
           id: z.string(),
           updatedAt: z.string().nullable(),
@@ -361,7 +361,7 @@ const taskSync = createSyncConnector(rest, taskCollection)
         request: (id, obj) => ({
           endpoint: `/tasks/${id}`,
           method: "PUT",
-          data: obj,
+          json: obj,
         }),
         responseSchema: z.object({
           id: z.string(),

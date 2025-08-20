@@ -12,7 +12,7 @@ import {
 
 /**
  * Model Connector Examples
- * 
+ *
  * These examples show how to create model connectors independently from sync connectors.
  * Model connectors allow you to connect a single model to a REST API endpoint.
  */
@@ -22,9 +22,7 @@ import {
  */
 
 // First create a collection
-const basicCollection = defineCollection("tasks")
-  .withTitle("Tasks")
-  .deploy();
+const basicCollection = defineCollection("tasks").withTitle("Tasks").deploy();
 
 // Define a simple model that belongs to the collection
 const basicModel = defineModel(basicCollection, "task")
@@ -46,8 +44,10 @@ const basicRestConnector = createRestConnector()
   .build();
 
 // Create a basic model connector
-const basicModelConnector = createModelConnector(basicRestConnector, basicModel)
-  .build();
+const basicModelConnector = createModelConnector(
+  basicRestConnector,
+  basicModel
+).build();
 
 // Usage example
 async function useBasicModelConnector() {
@@ -162,9 +162,7 @@ const userSchema = z.object({
 type User = z.infer<typeof userSchema>;
 
 // Create user collection
-const userCollection = defineCollection("users")
-  .withTitle("Users")
-  .deploy();
+const userCollection = defineCollection("users").withTitle("Users").deploy();
 
 const userModel = defineModel(userCollection, "user")
   .withTitle("User")
@@ -238,7 +236,7 @@ const userModelConnector = createModelConnector<User>(
       request: (data) => ({
         endpoint: "/users",
         method: "POST",
-        data: {
+        json: {
           // Transform to API format
           user_name: data.username,
           email_address: data.email,
@@ -269,7 +267,7 @@ async function useUserModelConnector() {
   // List users
   if (userModelConnector.list) {
     const { items } = await userModelConnector.list({ page: 1 });
-    
+
     items.forEach((user) => {
       console.log(`User: ${user.username} (${user.role})`);
       console.log(`Name: ${user.firstName} ${user.lastName}`);
@@ -408,7 +406,7 @@ const productModelConnector = createModelConnector<Product>(
       request: (data) => ({
         endpoint: "/products",
         method: "POST",
-        data: {
+        json: {
           sku: data.sku,
           product_name: data.name,
           product_description: data.description,
@@ -441,7 +439,7 @@ const productModelConnector = createModelConnector<Product>(
       request: (id, data) => ({
         endpoint: `/products/${id}`,
         method: "PATCH",
-        data: {
+        json: {
           // Only send fields that are being updated
           ...(data.name && { product_name: data.name }),
           ...(data.description && { product_description: data.description }),
@@ -485,7 +483,7 @@ const productModelConnector = createModelConnector<Product>(
       request: (items) => ({
         endpoint: "/products/bulk",
         method: "POST",
-        data: {
+        json: {
           products: items.map((item) => ({
             sku: item.sku,
             product_name: item.name,
@@ -505,7 +503,7 @@ const productModelConnector = createModelConnector<Product>(
       request: (items) => ({
         endpoint: "/products/bulk-update",
         method: "PATCH",
-        data: {
+        json: {
           updates: items.map((item) => ({
             product_id: item.id,
             data: item.data,
@@ -518,7 +516,7 @@ const productModelConnector = createModelConnector<Product>(
       request: (ids) => ({
         endpoint: "/products/bulk-delete",
         method: "POST",
-        data: { product_ids: ids },
+        json: { product_ids: ids },
       }),
       batchSize: 100,
     },

@@ -24,7 +24,9 @@ export interface ListConfig<TModel = any, TResponse = unknown> {
     endpoint: string;
     method?: "GET" | "POST";
     params?: Record<string, any>;
+    /** @deprecated Use `json` for JSON payloads */
     data?: any;
+    json?: any;
   };
   responseSchema?: z.ZodType<TResponse>;
   pagination?: PaginationConfig;
@@ -40,7 +42,9 @@ export interface CreateConfig<T = any> {
   request: (obj: T) => {
     endpoint: string;
     method?: "POST" | "PUT";
+    /** @deprecated Use `json` for JSON payloads */
     data?: any;
+    json?: any;
   };
   responseSchema?: z.ZodType<T>;
   /** Optionally transform the user-provided data before sending the request */
@@ -60,7 +64,9 @@ export interface UpdateConfig<T = any> {
   ) => {
     endpoint: string;
     method?: "PUT" | "PATCH" | "POST";
+    /** @deprecated Use `json` for JSON payloads */
     data?: any;
+    json?: any;
   };
   responseSchema?: z.ZodType<T>;
   /** Optionally transform the user-provided partial data before sending the request */
@@ -77,7 +83,9 @@ export interface DeleteConfig {
   request: (id: string) => {
     endpoint: string;
     method?: "DELETE" | "POST";
+    /** @deprecated Use `json` for JSON payloads */
     data?: any;
+    json?: any;
   };
 }
 
@@ -86,7 +94,9 @@ export interface BulkConfig<T = any> {
     request: (items: T[]) => {
       endpoint: string;
       method?: "POST" | "PUT";
+      /** @deprecated Use `json` for JSON payloads */
       data?: any;
+      json?: any;
     };
     batchSize?: number;
   };
@@ -94,7 +104,9 @@ export interface BulkConfig<T = any> {
     request: (items: Array<{ id: string; data: Partial<T> }>) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
+      /** @deprecated Use `json` for JSON payloads */
       data?: any;
+      json?: any;
     };
     batchSize?: number;
   };
@@ -102,7 +114,9 @@ export interface BulkConfig<T = any> {
     request: (ids: string[]) => {
       endpoint: string;
       method?: "DELETE" | "POST";
+      /** @deprecated Use `json` for JSON payloads */
       data?: any;
+      json?: any;
     };
     batchSize?: number;
   };
@@ -122,7 +136,9 @@ export interface TypedListConfig<TModel, TResponse> {
     endpoint: string;
     method?: "GET" | "POST";
     params?: Record<string, any>;
+    /** @deprecated Use `json` for JSON payloads */
     data?: any;
+    json?: any;
   };
   responseSchema?: z.ZodType<TResponse>;
   pagination?: PaginationConfig;
@@ -153,7 +169,9 @@ export interface TypeSafeListConfig<
     endpoint: string;
     method?: "GET" | "POST";
     params?: Record<string, any>;
+    /** @deprecated Use `json` for JSON payloads */
     data?: any;
+    json?: any;
   };
   responseSchema?: TResponseSchema;
   pagination?: PaginationConfig;
@@ -290,7 +308,7 @@ export class SyncConnectorBuilder<
           method: requestConfig.method || "GET",
           url: requestConfig.endpoint,
           params: requestConfig.params,
-          data: requestConfig.data,
+          json: requestConfig.json ?? requestConfig.data,
         });
 
         let data = response.data;
@@ -336,7 +354,7 @@ export class SyncConnectorBuilder<
         const response = await this.restConnector.request({
           method: requestConfig.method || "POST",
           url: requestConfig.endpoint,
-          data: requestConfig.data ?? requestData,
+          json: requestConfig.json ?? requestConfig.data ?? requestData,
         });
 
         // Validate response if schema provided
@@ -366,7 +384,7 @@ export class SyncConnectorBuilder<
         const response = await this.restConnector.request({
           method: requestConfig.method || "PUT",
           url: requestConfig.endpoint,
-          data: requestConfig.data ?? requestData,
+          json: requestConfig.json ?? requestConfig.data ?? requestData,
         });
 
         // Validate response if schema provided
@@ -391,7 +409,7 @@ export class SyncConnectorBuilder<
         await this.restConnector.request({
           method: requestConfig.method || "DELETE",
           url: requestConfig.endpoint,
-          data: requestConfig.data,
+          json: requestConfig.json ?? requestConfig.data,
         });
       };
     }
@@ -408,7 +426,7 @@ export class SyncConnectorBuilder<
           const response = await this.restConnector.request({
             method: requestConfig.method || "POST",
             url: requestConfig.endpoint,
-            data: requestConfig.data || batch,
+            json: requestConfig.json ?? requestConfig.data ?? batch,
           });
           results.push(
             ...(Array.isArray(response.data) ? response.data : [response.data])
@@ -433,7 +451,7 @@ export class SyncConnectorBuilder<
           const response = await this.restConnector.request({
             method: requestConfig.method || "PUT",
             url: requestConfig.endpoint,
-            data: requestConfig.data || batch,
+            json: requestConfig.json ?? requestConfig.data ?? batch,
           });
           results.push(
             ...(Array.isArray(response.data) ? response.data : [response.data])
@@ -455,7 +473,7 @@ export class SyncConnectorBuilder<
           await this.restConnector.request({
             method: requestConfig.method || "DELETE",
             url: requestConfig.endpoint,
-            data: requestConfig.data || batch,
+            json: requestConfig.json ?? requestConfig.data ?? batch,
           });
         }
       };
@@ -544,7 +562,9 @@ export class SyncModelConnectorBuilder<T = any> {
       endpoint: string;
       method?: "GET" | "POST";
       params?: Record<string, any>;
+      /** @deprecated Use `json` for JSON payloads */
       data?: any;
+      json?: any;
     };
     responseSchema?: TSchema;
     pagination?: PaginationConfig;
@@ -568,7 +588,9 @@ export class SyncModelConnectorBuilder<T = any> {
     request: (obj: T) => {
       endpoint: string;
       method?: "POST" | "PUT";
+      /** @deprecated Use `json` for JSON payloads */
       data?: any;
+      json?: any;
     };
     responseSchema?: TSchema;
     extract: (
@@ -589,7 +611,9 @@ export class SyncModelConnectorBuilder<T = any> {
     ) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
+      /** @deprecated Use `json` for JSON payloads */
       data?: any;
+      json?: any;
     };
     responseSchema?: TSchema;
     extract: (
@@ -607,7 +631,9 @@ export class SyncModelConnectorBuilder<T = any> {
     request: (externalId: string) => {
       endpoint: string;
       method?: "DELETE" | "POST";
+      /** @deprecated Use `json` for JSON payloads */
       data?: any;
+      json?: any;
     };
   }): this {
     this.config.delete = config;
@@ -865,7 +891,7 @@ export class SyncConnector<
           currentDirection !== "PUSH"
         ) {
           await updateSync({ syncId, currentDirection: "PULL" });
-
+          console.info(`PULL phase started for model ${modelName}`);
           // Paginate using the configured list
           const listFn = connector.list;
           if (listFn) {
@@ -909,8 +935,18 @@ export class SyncConnector<
               params.syncType = syncType;
 
               const { items, nextCursor } = await listFn(params);
+              console.info(
+                `Fetched ${
+                  items?.length ?? 0
+                } items for model ${modelName} (nextCursor=${
+                  nextCursor ?? "none"
+                })`
+              );
 
               if (!items || items.length === 0) {
+                console.info(
+                  `No more items for model ${modelName}; ending pull page`
+                );
                 break; // page/offset end or no data
               }
 
@@ -971,6 +1007,7 @@ export class SyncConnector<
           requestedDirection === "bidirectional"
         ) {
           await updateSync({ syncId, currentDirection: "PUSH" });
+          console.info(`PUSH phase started for model ${modelName}`);
 
           while (true) {
             if (isTimeLimitExceeded()) {
@@ -983,10 +1020,18 @@ export class SyncConnector<
               syncId,
               modelName,
             });
+            console.info(
+              `Delta received for model ${modelName}: operation=${
+                (delta as any).operation
+              } count=${(delta as any).changes?.length ?? 0}`
+            );
 
             if (!delta.changes || delta.changes.length === 0) break;
 
             if (connector.bulkCreate && delta.operation === "CREATE") {
+              console.info(
+                `Creating ${delta.changes.length} items for model ${modelName} (bulk)`
+              );
               const created = await connector.bulkCreate(
                 delta.changes.map((c: any) => c.data)
               );
@@ -1013,7 +1058,13 @@ export class SyncConnector<
                 changes: changesToConfirm,
                 async: true,
               });
+              console.info(
+                `Confirmed ${changesToConfirm.length} CREATE changes for model ${modelName}`
+              );
             } else if (connector.bulkUpdate && delta.operation === "UPDATE") {
+              console.info(
+                `Updating ${delta.changes.length} items for model ${modelName} (bulk)`
+              );
               const payload = delta.changes.map((c: any) => ({
                 id: c.externalId,
                 data: c.data,
@@ -1040,7 +1091,13 @@ export class SyncConnector<
                 changes: changesToConfirm,
                 async: true,
               });
+              console.info(
+                `Confirmed ${changesToConfirm.length} UPDATE changes for model ${modelName}`
+              );
             } else if (connector.bulkDelete && delta.operation === "DELETE") {
+              console.info(
+                `Deleting ${delta.changes.length} items for model ${modelName} (bulk)`
+              );
               await connector.bulkDelete(
                 delta.changes.map((c: any) => c.externalId)
               );
@@ -1054,9 +1111,15 @@ export class SyncConnector<
                 changes: changesToConfirm,
                 async: true,
               });
+              console.info(
+                `Confirmed ${changesToConfirm.length} DELETE changes for model ${modelName}`
+              );
             } else {
               // Fallback to non-bulk
               if (delta.operation === "CREATE" && connector.create) {
+                console.info(
+                  `Creating ${delta.changes.length} items for model ${modelName} (non-bulk)`
+                );
                 const confirmations: Array<{
                   changeId: string;
                   externalId: string;
@@ -1086,7 +1149,13 @@ export class SyncConnector<
                   changes: confirmations,
                   async: true,
                 });
+                console.info(
+                  `Confirmed ${confirmations.length} CREATE changes for model ${modelName}`
+                );
               } else if (delta.operation === "UPDATE" && connector.update) {
+                console.info(
+                  `Updating ${delta.changes.length} items for model ${modelName} (non-bulk)`
+                );
                 const confirmations: Array<{
                   changeId: string;
                   externalId: string;
@@ -1119,7 +1188,13 @@ export class SyncConnector<
                   changes: confirmations,
                   async: true,
                 });
+                console.info(
+                  `Confirmed ${confirmations.length} UPDATE changes for model ${modelName}`
+                );
               } else if (delta.operation === "DELETE" && connector.delete) {
+                console.info(
+                  `Deleting ${delta.changes.length} items for model ${modelName} (non-bulk)`
+                );
                 const confirmations: Array<{
                   changeId: string;
                   externalId: string;
@@ -1138,6 +1213,9 @@ export class SyncConnector<
                   changes: confirmations,
                   async: true,
                 });
+                console.info(
+                  `Confirmed ${confirmations.length} DELETE changes for model ${modelName}`
+                );
               } else {
                 // No applicable operation configured; nothing to push
                 break;
@@ -1154,7 +1232,7 @@ export class SyncConnector<
       hadError = true;
       errorMessage = e instanceof Error ? e.message : String(e);
       unrecoverableError = isUnrecoverableSyncError(e);
-      console.warn(`Sync encountered an error:`, e);
+      console.error(`Sync encountered an error:`, e);
     }
 
     // Finish the sync (use error body only if we encountered failures)

@@ -377,7 +377,8 @@ export abstract class OAuthConnector {
    */
   async request(props: HttpProxyRequestProps): Promise<HttpProxyResponse> {
     console.debug("in OAuthConnector.request");
-    const { method, url, params, headers, data, body, redactKeys } = props;
+    const { method, url, params, headers, data, body, redactKeys, json } =
+      props as any;
 
     const proxyProps = {
       method,
@@ -385,7 +386,10 @@ export abstract class OAuthConnector {
       headers: {
         ...headers,
       },
-      body: data ? JSON.stringify(data) : body,
+      body:
+        body ??
+        (json !== undefined ? JSON.stringify(json) : undefined) ??
+        (data ? JSON.stringify(data) : undefined),
       redactKeys,
     };
 

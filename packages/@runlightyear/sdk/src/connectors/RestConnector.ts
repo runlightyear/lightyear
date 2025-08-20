@@ -88,12 +88,14 @@ export class RestConnector {
       url,
       params,
       headers,
+      /** @deprecated prefer `json` */
       data,
       body,
+      json,
       redactKeys,
       maxRetries,
       async: asyncRequest,
-    } = props;
+    } = props as HttpProxyRequestProps & { json?: unknown };
 
     if (!url) {
       throw new Error("URL is required for REST connector requests");
@@ -107,7 +109,8 @@ export class RestConnector {
         ...this.getDefaultHeaders(),
         ...headers,
       },
-      data,
+      // Prefer explicit body; also pass `json` for the http layer to set headers
+      json: json ?? data,
       body,
       redactKeys,
       maxRetries,
@@ -139,6 +142,7 @@ export class RestConnector {
   async post(props: {
     url: string;
     data?: object;
+    json?: unknown;
     body?: string;
     params?: Record<string, any>;
     headers?: Record<string, string>;
@@ -157,6 +161,7 @@ export class RestConnector {
   async put(props: {
     url: string;
     data?: object;
+    json?: unknown;
     body?: string;
     params?: Record<string, any>;
     headers?: Record<string, string>;
@@ -175,6 +180,7 @@ export class RestConnector {
   async patch(props: {
     url: string;
     data?: object;
+    json?: unknown;
     body?: string;
     params?: Record<string, any>;
     headers?: Record<string, string>;

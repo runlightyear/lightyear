@@ -17,8 +17,12 @@ export interface HttpProxyRequestProps {
   url: string;
   params?: Record<string, any>;
   headers?: HttpProxyRequestHeaders;
+  /**
+   * @deprecated Use `json` for JSON payloads or `body` for raw string bodies.
+   */
   data?: object;
   body?: string;
+  json?: unknown;
   redactKeys?: string[];
   maxRetries?: number;
   async?: boolean;
@@ -129,8 +133,46 @@ export const httpRequest: HttpRequest = async (props) => {
       // Use the same proxy endpoint as the lightyear package
       const proxyUrl = `${baseUrl}/api/v1/envs/${envName}/http-request`;
 
+      // Normalize json/data/body for proxy: prefer explicit body, then json, then data
+      const {
+        headers: providedHeaders,
+        body: providedBody,
+        json: providedJson,
+        data: providedData,
+        ...restWithoutPayload
+      } = rest as unknown as {
+        headers?: Record<string, string>;
+        body?: string;
+        json?: unknown;
+        data?: unknown;
+        [key: string]: any;
+      };
+
+      let finalBody: string | undefined = providedBody;
+      if (finalBody == null && providedJson !== undefined) {
+        finalBody = JSON.stringify(providedJson);
+      } else if (finalBody == null && providedData !== undefined) {
+        // Back-compat: treat legacy `data` like json
+        finalBody = JSON.stringify(providedData);
+      }
+
+      const finalHeaders: Record<string, string> = {
+        ...(providedHeaders || {}),
+      };
+      // If we are sending JSON, ensure content-type is set
+      if (
+        finalBody !== undefined &&
+        !Object.keys(finalHeaders).some(
+          (h) => h.toLowerCase() === "content-type"
+        )
+      ) {
+        finalHeaders["Content-Type"] = "application/json";
+      }
+
       const requestBody = {
-        ...rest,
+        ...restWithoutPayload,
+        headers: finalHeaders,
+        body: finalBody,
         runId,
       };
 
@@ -188,6 +230,13 @@ export const httpRequest: HttpRequest = async (props) => {
         await exponentialBackoffWithJitter(backoffCount);
         continue;
       } else if (proxyResponse.status < 200 || proxyResponse.status >= 300) {
+        // Log as error so callers see failure in console and can fail the sync
+        console.error("HTTP proxy error:", {
+          status: proxyResponse.status,
+          statusText: proxyResponse.statusText,
+          headers: proxyResponse.headers,
+          data: proxyResponse.data,
+        });
         throw new HttpProxyResponseError(proxyResponse);
       } else {
         // Redact secrets in logs
