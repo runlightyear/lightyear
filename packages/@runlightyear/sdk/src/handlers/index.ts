@@ -133,6 +133,24 @@ export const handler: DirectHandler = async (
             const syncId = runData?.context?.syncId;
             const extraContext: any = {};
             if (integrationName) extraContext.integrationName = integrationName;
+            try {
+              const appInfo = (runData as any)?.integration?.app;
+              if (appInfo?.type === "builtin" && appInfo?.name) {
+                extraContext.appName = appInfo.name;
+              } else if (appInfo?.type === "custom" && appInfo?.name) {
+                extraContext.customAppName = appInfo.name;
+              }
+              // Fallback: derive app/customApp from auths keys if present
+              const authKeys = runData?.auths ? Object.keys(runData.auths) : [];
+              if (
+                !extraContext.appName &&
+                !extraContext.customAppName &&
+                authKeys.length === 1
+              ) {
+                // Prefer treating single auth as custom app name
+                extraContext.customAppName = authKeys[0];
+              }
+            } catch {}
             if (managedUser?.externalId) {
               extraContext.managedUserId = managedUser.externalId;
               extraContext.managedUserExternalId = managedUser.externalId;

@@ -162,19 +162,35 @@ export const handleRun: RunHandler = async (
             } as any;
           }
           effectiveManagedUser = fetched.managedUser || effectiveManagedUser;
-          if (effectiveManagedUser?.externalId) {
-            // Populate log context to include managed user for subsequent calls
-            try {
-              const { getLogCapture } = await import("../logging/index.js");
-              getLogCapture()?.setContext({
-                managedUserId: effectiveManagedUser.externalId,
-                managedUserExternalId: effectiveManagedUser.externalId,
-                managedUserDisplayName:
-                  effectiveManagedUser.displayName ?? null,
-                integrationName: effectiveIntegration?.name,
-              } as any);
-            } catch {}
-          }
+          // Populate execution/log context with managed user, integration and app/customApp
+          try {
+            const { getLogCapture } = await import("../logging/index.js");
+            const ctx: any = {
+              integrationName: effectiveIntegration?.name,
+            };
+            if (effectiveManagedUser?.externalId) {
+              ctx.managedUserId = effectiveManagedUser.externalId;
+              ctx.managedUserExternalId = effectiveManagedUser.externalId;
+              ctx.managedUserDisplayName =
+                effectiveManagedUser.displayName ?? null;
+            }
+            const appInfo: any = (effectiveIntegration as any)?.app;
+            if (appInfo?.type === "builtin" && appInfo?.name) {
+              ctx.appName = appInfo.name;
+            } else if (appInfo?.type === "custom" && appInfo?.name) {
+              ctx.customAppName = appInfo.name;
+            }
+            // Fallback: if no app/customApp yet and exactly one auth, consider it custom app
+            if (!ctx.appName && !ctx.customAppName) {
+              const authKeys = Object.keys(effectiveAuths || {});
+              if (authKeys.length === 1) {
+                ctx.customAppName = authKeys[0];
+              }
+            }
+            if (Object.keys(ctx).length > 0) {
+              getLogCapture()?.setContext(ctx);
+            }
+          } catch {}
         }
       }
     } catch (e) {

@@ -751,6 +751,7 @@ export class SyncConnector<
       confirmChangeBatch,
       pauseSync,
       startSync,
+      finishSync,
     } = await import("../platform/sync.js");
     const { getCurrentContext, getLogCapture } = await import(
       "../logging/index.js"
@@ -814,55 +815,160 @@ export class SyncConnector<
       if (idx >= 0) modelsToSync = modelsToSync.slice(idx);
     }
 
-    for (const modelName of modelsToSync) {
-      const connector = this.modelConnectors.get(modelName);
-      if (!connector) continue; // Skip missing connectors
+    let hadError = false;
+    let errorMessage: string | undefined = undefined;
+    let unrecoverableError = false;
 
-      await updateSync({ syncId, currentModelName: modelName });
-
-      // Load latest sync state before starting model
-      let state = await getSync({ syncId });
-      const requestedDirection: "pull" | "push" | "bidirectional" =
-        (state.requestedDirection as any) || "bidirectional";
-      let currentDirection: "PULL" | "PUSH" | null =
-        state.currentDirection ?? null;
-
-      // Read model watermarks
-      let cursor: string | undefined =
-        state.lastBatch?.modelName === modelName
-          ? state.lastBatch?.cursor
-          : undefined;
-      let lastExternalId: string | undefined =
-        state.modelStatuses?.[modelName]?.lastExternalId ?? undefined;
-      let lastExternalUpdatedAt: string | undefined =
-        state.modelStatuses?.[modelName]?.lastExternalUpdatedAt ?? undefined;
-      const syncType: "FULL" | "INCREMENTAL" = state.type || "FULL";
-
-      // PULL phase
+    const isUnrecoverableSyncError = (err: any): boolean => {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/API request failed:\s*(401|403|5\d{2})\b/i.test(msg)) return true;
       if (
-        (requestedDirection === "pull" ||
-          requestedDirection === "bidirectional") &&
-        currentDirection !== "PUSH"
-      ) {
-        await updateSync({ syncId, currentDirection: "PULL" });
+        /(Failed to fetch|fetch failed|ENOTFOUND|ECONN|ETIMEDOUT|NetworkError)/i.test(
+          msg
+        )
+      )
+        return true;
+      return false;
+    };
 
-        // Paginate using the configured list
-        const listFn = connector.list;
-        if (listFn) {
-          const pagination = (connector as any).config?.list?.pagination as
-            | PaginationConfig
-            | undefined;
-          let pageNum: number | undefined = undefined;
-          let offsetVal: number | undefined = undefined;
-          let limitVal: number | undefined = pagination?.pageSize;
+    try {
+      for (const modelName of modelsToSync) {
+        const connector = this.modelConnectors.get(modelName);
+        if (!connector) continue; // Skip missing connectors
 
-          if (pagination?.type === "page") {
-            pageNum = pageNum ?? 1;
+        await updateSync({ syncId, currentModelName: modelName });
+
+        // Load latest sync state before starting model
+        let state = await getSync({ syncId });
+        const requestedDirection: "pull" | "push" | "bidirectional" =
+          (state.requestedDirection as any) || "bidirectional";
+        let currentDirection: "PULL" | "PUSH" | null =
+          state.currentDirection ?? null;
+
+        // Read model watermarks
+        let cursor: string | undefined =
+          state.lastBatch?.modelName === modelName
+            ? state.lastBatch?.cursor
+            : undefined;
+        let lastExternalId: string | undefined =
+          state.modelStatuses?.[modelName]?.lastExternalId ?? undefined;
+        let lastExternalUpdatedAt: string | undefined =
+          state.modelStatuses?.[modelName]?.lastExternalUpdatedAt ?? undefined;
+        const syncType: "FULL" | "INCREMENTAL" = state.type || "FULL";
+
+        // PULL phase
+        if (
+          (requestedDirection === "pull" ||
+            requestedDirection === "bidirectional") &&
+          currentDirection !== "PUSH"
+        ) {
+          await updateSync({ syncId, currentDirection: "PULL" });
+
+          // Paginate using the configured list
+          const listFn = connector.list;
+          if (listFn) {
+            const pagination = (connector as any).config?.list?.pagination as
+              | PaginationConfig
+              | undefined;
+            let pageNum: number | undefined = undefined;
+            let offsetVal: number | undefined = undefined;
+            let limitVal: number | undefined = pagination?.pageSize;
+
+            if (pagination?.type === "page") {
+              pageNum = pageNum ?? 1;
+            }
+            if (pagination?.type === "offset") {
+              offsetVal = offsetVal ?? 0;
+              limitVal = limitVal ?? 100;
+            }
+
+            while (true) {
+              if (isTimeLimitExceeded()) {
+                await pauseSync(syncId);
+                throw "RERUN";
+              }
+
+              // Build params with pagination + watermarks
+              const params: any = {};
+              if (pagination?.type === "cursor") {
+                params.cursor = cursor;
+              } else if (pagination?.type === "page") {
+                params.page = pageNum;
+                if (limitVal) params.limit = limitVal;
+              } else if (pagination?.type === "offset") {
+                params.offset = offsetVal;
+                if (limitVal) params.limit = limitVal;
+              } else {
+                // no pagination config; single request
+              }
+              if (lastExternalId) params.lastExternalId = lastExternalId;
+              if (lastExternalUpdatedAt)
+                params.lastExternalUpdatedAt = lastExternalUpdatedAt;
+              params.syncType = syncType;
+
+              const { items, nextCursor } = await listFn(params);
+
+              if (!items || items.length === 0) {
+                break; // page/offset end or no data
+              }
+
+              // Items are already in platform-ready shape from transform
+              const objects = items.map((it: any) => ({
+                externalId: String(it.externalId),
+                externalUpdatedAt: it.externalUpdatedAt
+                  ? String(it.externalUpdatedAt)
+                  : null,
+                data: it.data,
+              }));
+
+              console.info(
+                `Upserting ${
+                  objects.length
+                } objects for model ${modelName} (cursor=${
+                  nextCursor ?? "none"
+                })`
+              );
+              await upsertObjectBatch({
+                collectionName,
+                syncId,
+                modelName,
+                app,
+                customApp,
+                objects,
+                cursor: nextCursor,
+                async: true,
+              });
+              console.info(
+                `Queued ${objects.length} upserts for model ${modelName}`
+              );
+
+              // advance watermarks
+              const last = objects[objects.length - 1];
+              lastExternalId = last.externalId;
+              lastExternalUpdatedAt = last.externalUpdatedAt || undefined;
+              cursor = nextCursor;
+
+              // Continue pagination
+              if (pagination?.type === "cursor") {
+                if (!cursor) break;
+              } else if (pagination?.type === "page") {
+                pageNum = (pageNum || 1) + 1;
+              } else if (pagination?.type === "offset") {
+                offsetVal = (offsetVal || 0) + (limitVal || 0);
+              } else {
+                // no pagination; single page
+                break;
+              }
+            }
           }
-          if (pagination?.type === "offset") {
-            offsetVal = offsetVal ?? 0;
-            limitVal = limitVal ?? 100;
-          }
+        }
+
+        // PUSH phase
+        if (
+          requestedDirection === "push" ||
+          requestedDirection === "bidirectional"
+        ) {
+          await updateSync({ syncId, currentDirection: "PUSH" });
 
           while (true) {
             if (isTimeLimitExceeded()) {
@@ -870,252 +976,204 @@ export class SyncConnector<
               throw "RERUN";
             }
 
-            // Build params with pagination + watermarks
-            const params: any = {};
-            if (pagination?.type === "cursor") {
-              params.cursor = cursor;
-            } else if (pagination?.type === "page") {
-              params.page = pageNum;
-              if (limitVal) params.limit = limitVal;
-            } else if (pagination?.type === "offset") {
-              params.offset = offsetVal;
-              if (limitVal) params.limit = limitVal;
-            } else {
-              // no pagination config; single request
-            }
-            if (lastExternalId) params.lastExternalId = lastExternalId;
-            if (lastExternalUpdatedAt)
-              params.lastExternalUpdatedAt = lastExternalUpdatedAt;
-            params.syncType = syncType;
-
-            const { items, nextCursor } = await listFn(params);
-
-            if (!items || items.length === 0) {
-              break; // page/offset end or no data
-            }
-
-            // Items are already in platform-ready shape from transform
-            const objects = items.map((it: any) => ({
-              externalId: String(it.externalId),
-              externalUpdatedAt: it.externalUpdatedAt
-                ? String(it.externalUpdatedAt)
-                : null,
-              data: it.data,
-            }));
-
-            await upsertObjectBatch({
+            const delta = await retrieveDelta({
               collectionName,
               syncId,
               modelName,
-              app,
-              customApp,
-              objects,
-              cursor: nextCursor,
-              async: true,
             });
 
-            // advance watermarks
-            const last = objects[objects.length - 1];
-            lastExternalId = last.externalId;
-            lastExternalUpdatedAt = last.externalUpdatedAt || undefined;
-            cursor = nextCursor;
+            if (!delta.changes || delta.changes.length === 0) break;
 
-            // Continue pagination
-            if (pagination?.type === "cursor") {
-              if (!cursor) break;
-            } else if (pagination?.type === "page") {
-              pageNum = (pageNum || 1) + 1;
-            } else if (pagination?.type === "offset") {
-              offsetVal = (offsetVal || 0) + (limitVal || 0);
-            } else {
-              // no pagination; single page
-              break;
-            }
-          }
-        }
-      }
-
-      // PUSH phase
-      if (
-        requestedDirection === "push" ||
-        requestedDirection === "bidirectional"
-      ) {
-        await updateSync({ syncId, currentDirection: "PUSH" });
-
-        while (true) {
-          if (isTimeLimitExceeded()) {
-            await pauseSync(syncId);
-            throw "RERUN";
-          }
-
-          const delta = await retrieveDelta({
-            collectionName,
-            syncId,
-            modelName,
-          });
-
-          if (!delta.changes || delta.changes.length === 0) break;
-
-          if (connector.bulkCreate && delta.operation === "CREATE") {
-            const created = await connector.bulkCreate(
-              delta.changes.map((c: any) => c.data)
-            );
-            const changesToConfirm = created.map((item: any, i: number) => {
-              const change = delta.changes[i];
-              const externalId = (
-                connector.config.create?.extract
-                  ? connector.config.create.extract(item)
-                  : {
-                      externalId: (item.id ?? item.externalId) as string,
-                      externalUpdatedAt: (item.updatedAt ?? null) as any,
-                    }
-              ) as any;
-              return {
-                changeId: change.changeId,
-                externalId: String(
-                  externalId.externalId ?? externalId.id ?? item.id
-                ),
-                externalUpdatedAt: externalId.externalUpdatedAt ?? null,
-              };
-            });
-            await confirmChangeBatch({
-              syncId,
-              changes: changesToConfirm,
-              async: true,
-            });
-          } else if (connector.bulkUpdate && delta.operation === "UPDATE") {
-            const payload = delta.changes.map((c: any) => ({
-              id: c.externalId,
-              data: c.data,
-            }));
-            const updated = await connector.bulkUpdate(payload);
-            const changesToConfirm = updated.map((item: any, i: number) => {
-              const change = delta.changes[i];
-              const extracted = (
-                connector.config.update?.extract
-                  ? connector.config.update.extract(item)
-                  : {
-                      externalId: change.externalId,
-                      externalUpdatedAt: (item.updatedAt ?? null) as any,
-                    }
-              ) as any;
-              return {
-                changeId: change.changeId,
-                externalId: String(extracted.externalId ?? change.externalId),
-                externalUpdatedAt: extracted.externalUpdatedAt ?? null,
-              };
-            });
-            await confirmChangeBatch({
-              syncId,
-              changes: changesToConfirm,
-              async: true,
-            });
-          } else if (connector.bulkDelete && delta.operation === "DELETE") {
-            await connector.bulkDelete(
-              delta.changes.map((c: any) => c.externalId)
-            );
-            const changesToConfirm = delta.changes.map((c: any) => ({
-              changeId: c.changeId,
-              externalId: String(c.externalId),
-              externalUpdatedAt: null,
-            }));
-            await confirmChangeBatch({
-              syncId,
-              changes: changesToConfirm,
-              async: true,
-            });
-          } else {
-            // Fallback to non-bulk
-            if (delta.operation === "CREATE" && connector.create) {
-              const confirmations: Array<{
-                changeId: string;
-                externalId: string;
-                externalUpdatedAt: string | null;
-              }> = [];
-              for (const change of delta.changes) {
-                const created = await connector.create(change.data);
-                const extracted = (
+            if (connector.bulkCreate && delta.operation === "CREATE") {
+              const created = await connector.bulkCreate(
+                delta.changes.map((c: any) => c.data)
+              );
+              const changesToConfirm = created.map((item: any, i: number) => {
+                const change = delta.changes[i];
+                const externalId = (
                   connector.config.create?.extract
-                    ? connector.config.create.extract(created)
+                    ? connector.config.create.extract(item)
                     : {
-                        externalId: (created as any).id as string,
-                        externalUpdatedAt: ((created as any).updatedAt ??
-                          null) as any,
+                        externalId: (item.id ?? item.externalId) as string,
+                        externalUpdatedAt: (item.updatedAt ?? null) as any,
                       }
                 ) as any;
-                confirmations.push({
+                return {
                   changeId: change.changeId,
                   externalId: String(
-                    extracted.externalId ?? (created as any).id
+                    externalId.externalId ?? externalId.id ?? item.id
                   ),
-                  externalUpdatedAt: extracted.externalUpdatedAt ?? null,
-                });
-              }
+                  externalUpdatedAt: externalId.externalUpdatedAt ?? null,
+                };
+              });
               await confirmChangeBatch({
                 syncId,
-                changes: confirmations,
+                changes: changesToConfirm,
                 async: true,
               });
-            } else if (delta.operation === "UPDATE" && connector.update) {
-              const confirmations: Array<{
-                changeId: string;
-                externalId: string;
-                externalUpdatedAt: string | null;
-              }> = [];
-              for (const change of delta.changes) {
-                const updated = await connector.update(
-                  change.externalId,
-                  change.data
-                );
+            } else if (connector.bulkUpdate && delta.operation === "UPDATE") {
+              const payload = delta.changes.map((c: any) => ({
+                id: c.externalId,
+                data: c.data,
+              }));
+              const updated = await connector.bulkUpdate(payload);
+              const changesToConfirm = updated.map((item: any, i: number) => {
+                const change = delta.changes[i];
                 const extracted = (
                   connector.config.update?.extract
-                    ? connector.config.update.extract(updated)
+                    ? connector.config.update.extract(item)
                     : {
                         externalId: change.externalId,
-                        externalUpdatedAt: ((updated as any).updatedAt ??
-                          null) as any,
+                        externalUpdatedAt: (item.updatedAt ?? null) as any,
                       }
                 ) as any;
-                confirmations.push({
+                return {
                   changeId: change.changeId,
                   externalId: String(extracted.externalId ?? change.externalId),
                   externalUpdatedAt: extracted.externalUpdatedAt ?? null,
-                });
-              }
+                };
+              });
               await confirmChangeBatch({
                 syncId,
-                changes: confirmations,
+                changes: changesToConfirm,
                 async: true,
               });
-            } else if (delta.operation === "DELETE" && connector.delete) {
-              const confirmations: Array<{
-                changeId: string;
-                externalId: string;
-                externalUpdatedAt: string | null;
-              }> = [];
-              for (const change of delta.changes) {
-                await connector.delete(change.externalId);
-                confirmations.push({
-                  changeId: change.changeId,
-                  externalId: String(change.externalId),
-                  externalUpdatedAt: null,
-                });
-              }
+            } else if (connector.bulkDelete && delta.operation === "DELETE") {
+              await connector.bulkDelete(
+                delta.changes.map((c: any) => c.externalId)
+              );
+              const changesToConfirm = delta.changes.map((c: any) => ({
+                changeId: c.changeId,
+                externalId: String(c.externalId),
+                externalUpdatedAt: null,
+              }));
               await confirmChangeBatch({
                 syncId,
-                changes: confirmations,
+                changes: changesToConfirm,
                 async: true,
               });
             } else {
-              // No applicable operation configured; nothing to push
-              break;
+              // Fallback to non-bulk
+              if (delta.operation === "CREATE" && connector.create) {
+                const confirmations: Array<{
+                  changeId: string;
+                  externalId: string;
+                  externalUpdatedAt: string | null;
+                }> = [];
+                for (const change of delta.changes) {
+                  const created = await connector.create(change.data);
+                  const extracted = (
+                    connector.config.create?.extract
+                      ? connector.config.create.extract(created)
+                      : {
+                          externalId: (created as any).id as string,
+                          externalUpdatedAt: ((created as any).updatedAt ??
+                            null) as any,
+                        }
+                  ) as any;
+                  confirmations.push({
+                    changeId: change.changeId,
+                    externalId: String(
+                      extracted.externalId ?? (created as any).id
+                    ),
+                    externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+                  });
+                }
+                await confirmChangeBatch({
+                  syncId,
+                  changes: confirmations,
+                  async: true,
+                });
+              } else if (delta.operation === "UPDATE" && connector.update) {
+                const confirmations: Array<{
+                  changeId: string;
+                  externalId: string;
+                  externalUpdatedAt: string | null;
+                }> = [];
+                for (const change of delta.changes) {
+                  const updated = await connector.update(
+                    change.externalId,
+                    change.data
+                  );
+                  const extracted = (
+                    connector.config.update?.extract
+                      ? connector.config.update.extract(updated)
+                      : {
+                          externalId: change.externalId,
+                          externalUpdatedAt: ((updated as any).updatedAt ??
+                            null) as any,
+                        }
+                  ) as any;
+                  confirmations.push({
+                    changeId: change.changeId,
+                    externalId: String(
+                      extracted.externalId ?? change.externalId
+                    ),
+                    externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+                  });
+                }
+                await confirmChangeBatch({
+                  syncId,
+                  changes: confirmations,
+                  async: true,
+                });
+              } else if (delta.operation === "DELETE" && connector.delete) {
+                const confirmations: Array<{
+                  changeId: string;
+                  externalId: string;
+                  externalUpdatedAt: string | null;
+                }> = [];
+                for (const change of delta.changes) {
+                  await connector.delete(change.externalId);
+                  confirmations.push({
+                    changeId: change.changeId,
+                    externalId: String(change.externalId),
+                    externalUpdatedAt: null,
+                  });
+                }
+                await confirmChangeBatch({
+                  syncId,
+                  changes: confirmations,
+                  async: true,
+                });
+              } else {
+                // No applicable operation configured; nothing to push
+                break;
+              }
             }
           }
         }
-      }
 
-      // Clear direction after model finishes
-      await updateSync({ syncId, currentDirection: null });
+        // Clear direction after model finishes
+        await updateSync({ syncId, currentDirection: null });
+      }
+    } catch (e: any) {
+      if (e === "RERUN") throw e;
+      hadError = true;
+      errorMessage = e instanceof Error ? e.message : String(e);
+      unrecoverableError = isUnrecoverableSyncError(e);
+      console.warn(`Sync encountered an error:`, e);
+    }
+
+    // Finish the sync (use error body only if we encountered failures)
+    try {
+      console.info(
+        `Finishing sync ${syncId}${hadError ? " (with error)" : ""} force=${
+          hadError && unrecoverableError
+        }`
+      );
+      if (hadError) {
+        await finishSync(syncId, {
+          error: errorMessage,
+          force: unrecoverableError,
+        });
+      } else {
+        await finishSync(syncId);
+      }
+      console.info(`Finished sync ${syncId}`);
+    } catch (e) {
+      console.warn(`Failed to finish sync ${syncId}:`, e);
+      // Do not force unless unrecoverable; we already included force above
     }
   }
 }

@@ -44,6 +44,24 @@ export async function startSync(props: {
     fullSyncFrequency: props.fullSyncFrequency,
   });
 
+  try {
+    console.info(
+      `startSync → env=${envName} collection=${props.collectionName} app=${
+        props.appName ?? "none"
+      } customApp=${props.customAppName ?? "none"} managedUser=${
+        props.managedUserId ?? "none"
+      } fullFrequency=${props.fullSyncFrequency ?? "default"}`
+    );
+    // Preview payload keys only; avoid logging full body
+    console.debug("startSync payload keys:", {
+      collectionName: props.collectionName,
+      appName: props.appName ?? null,
+      customAppName: props.customAppName ?? null,
+      hasManagedUserId: !!props.managedUserId,
+      fullSyncFrequency: props.fullSyncFrequency ?? null,
+    });
+  } catch {}
+
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -65,7 +83,15 @@ export async function startSync(props: {
     );
   }
 
-  return await response.json();
+  const json = await response.json();
+  try {
+    console.info(
+      `startSync ✓ created sync id=${json?.id ?? "unknown"} type=${
+        json?.type ?? "unknown"
+      }`
+    );
+  } catch {}
+  return json;
 }
 
 export async function getSync(props: { syncId: string }): Promise<any> {
@@ -106,11 +132,55 @@ export async function pauseSync(syncId: string): Promise<void> {
   });
 }
 
-export async function finishSync(syncId: string): Promise<void> {
-  const envName = process.env.ENV_NAME || "dev";
-  await makeApiRequest(`/api/v1/envs/${envName}/syncs/${syncId}/finish`, {
+export async function finishSync(
+  syncId: string,
+  options?: { error?: string; force?: boolean }
+): Promise<void> {
+  const envName = getEnvName();
+  const baseUrl = getBaseUrl();
+  const apiKey = getApiKey();
+
+  const url = `${baseUrl}/api/v1/envs/${envName}/syncs/${syncId}/finish`;
+  const bodyObj: any = {};
+  if (options?.error) bodyObj.error = options.error;
+  if (typeof options?.force === "boolean") bodyObj.force = options.force;
+
+  try {
+    console.info(
+      `finishSync → env=${envName} sync=${syncId} error=${
+        options?.error ? "yes" : "no"
+      } force=${options?.force ?? false}`
+    );
+  } catch {}
+
+  const hasBody = Object.keys(bodyObj).length > 0;
+  const headers: Record<string, string> = {
+    Authorization: `apiKey ${apiKey}`,
+  };
+  if (hasBody) headers["Content-Type"] = "application/json";
+
+  const response = await fetch(url, {
     method: "POST",
+    headers,
+    body: hasBody ? JSON.stringify(bodyObj) : undefined,
   });
+
+  const text = await response.text().catch(() => "");
+  if (!response.ok) {
+    console.warn(
+      `finishSync ✗ failed status=${response.status} ${response.statusText} body=${text}`
+    );
+    throw new Error(
+      `API request failed: ${response.status} ${response.statusText} - ${text}`
+    );
+  }
+
+  try {
+    const json = text ? JSON.parse(text) : {};
+    console.info(`finishSync ✓ response message=${json?.message ?? "(none)"}`);
+  } catch {
+    console.info("finishSync ✓ (no JSON body)");
+  }
 }
 
 export async function upsertObjectBatch(props: {
@@ -130,6 +200,26 @@ export async function upsertObjectBatch(props: {
   async?: boolean;
 }): Promise<void> {
   const envName = process.env.ENV_NAME || "dev";
+  try {
+    const count = props.objects?.length ?? 0;
+    const preview = (props.objects || [])
+      .slice(0, Math.min(3, count))
+      .map((o) => ({
+        externalId: o.externalId,
+        externalUpdatedAt: o.externalUpdatedAt,
+        dataKeys: Object.keys(o.data || {}),
+      }));
+    console.info(
+      `upsertObjectBatch → env=${envName} collection=${
+        props.collectionName
+      } model=${props.modelName} sync=${props.syncId} app=${
+        props.app
+      } customApp=${props.customApp} count=${count} cursor=${
+        props.cursor ?? "none"
+      } async=${props.async ?? false} overwrite=${props.overwrite ?? false}`
+    );
+    console.debug("upsertObjectBatch preview:", preview);
+  } catch {}
   await makeApiRequest(
     `/api/v1/envs/${envName}/collections/${props.collectionName}/models/${props.modelName}/objects/upsert/batch`,
     {
@@ -145,6 +235,11 @@ export async function upsertObjectBatch(props: {
       },
     }
   );
+  try {
+    console.info(
+      `upsertObjectBatch ✓ submitted ${props.objects.length} objects for model=${props.modelName}`
+    );
+  } catch {}
 }
 
 export async function retrieveDelta<T = any>(props: {
