@@ -461,12 +461,54 @@ async function postDeploymentData(
     const startTime = Date.now();
     console.log(`⏰ Starting HTTP request at: ${new Date().toISOString()}`);
 
-    // Make the ACTUAL HTTP request using fetch
-    const response = await fetch(url, {
-      method: "POST",
-      headers: requestHeaders,
-      body: requestBody,
-    });
+    // Make the ACTUAL HTTP request using fetch with retries for transient errors
+    const maxAttempts = 5; // total attempts including first
+    let attempt = 1;
+    let response: Response | null = null;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      try {
+        response = await fetch(url, {
+          method: "POST",
+          headers: requestHeaders,
+          body: requestBody,
+        });
+
+        if (!response.ok) {
+          const retriable =
+            response.status === 429 ||
+            (response.status >= 500 && response.status < 600);
+          if (retriable && attempt < maxAttempts) {
+            const waitMs =
+              Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
+            console.warn(
+              `Transient deploy API error ${response.status}. Retrying in ${(
+                waitMs / 1000
+              ).toFixed(2)}s (attempt ${attempt}/${maxAttempts})`
+            );
+            await new Promise((r) => setTimeout(r, waitMs));
+            attempt += 1;
+            continue;
+          }
+        }
+        break;
+      } catch (err: any) {
+        const isNetworkError = err && !("status" in (err as any));
+        if (isNetworkError && attempt < maxAttempts) {
+          const waitMs =
+            Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
+          console.warn(
+            `Network error calling deploy API. Retrying in ${(
+              waitMs / 1000
+            ).toFixed(2)}s (attempt ${attempt}/${maxAttempts})`
+          );
+          await new Promise((r) => setTimeout(r, waitMs));
+          attempt += 1;
+          continue;
+        }
+        throw err;
+      }
+    }
 
     const endTime = Date.now();
     const duration = endTime - startTime;

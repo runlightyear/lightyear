@@ -395,37 +395,75 @@ class LogCapture {
 
     try {
       this.originalConsole.log("⏰ Making HTTP request...");
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `apiKey ${this.config.apiKey}`,
-          "User-Agent": "@runlightyear/sdk",
-          "X-SDK-Version": "0.1.0",
-        },
-        body,
-      });
+      const maxAttempts = 5; // total attempts including first
+      let attempt = 1;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `apiKey ${this.config.apiKey}`,
+              "User-Agent": "@runlightyear/sdk",
+              "X-SDK-Version": "0.1.0",
+            },
+            body,
+          });
 
-      this.originalConsole.log("📈 HTTP Response:", {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-      });
+          this.originalConsole.log("📈 HTTP Response:", {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok,
+          });
 
-      if (!response.ok) {
-        const errorText = await response
-          .text()
-          .catch(() => "Unable to read response");
-        this.originalConsole.log("📄 Error response body:", errorText);
-        throw new Error(
-          `Log upload failed: ${response.status} ${response.statusText}`
-        );
+          if (!response.ok) {
+            const retriable =
+              response.status === 429 ||
+              (response.status >= 500 && response.status < 600);
+            if (retriable && attempt < maxAttempts) {
+              const waitMs =
+                Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
+              this.originalConsole.warn(
+                `Log upload transient error ${response.status}. Retrying in ${(
+                  waitMs / 1000
+                ).toFixed(2)}s (attempt ${attempt}/${maxAttempts})`
+              );
+              await new Promise((r) => setTimeout(r, waitMs));
+              attempt += 1;
+              continue;
+            }
+            const errorText = await response
+              .text()
+              .catch(() => "Unable to read response");
+            this.originalConsole.log("📄 Error response body:", errorText);
+            throw new Error(
+              `Log upload failed: ${response.status} ${response.statusText}`
+            );
+          }
+
+          const responseText = await response
+            .text()
+            .catch(() => "Unable to read response");
+          this.originalConsole.log("📄 Success response body:", responseText);
+          break;
+        } catch (err: any) {
+          const isNetworkError = err && !("status" in (err as any));
+          if (isNetworkError && attempt < maxAttempts) {
+            const waitMs =
+              Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
+            this.originalConsole.warn(
+              `Log upload network error. Retrying in ${(waitMs / 1000).toFixed(
+                2
+              )}s (attempt ${attempt}/${maxAttempts})`
+            );
+            await new Promise((r) => setTimeout(r, waitMs));
+            attempt += 1;
+            continue;
+          }
+          throw err;
+        }
       }
-
-      const responseText = await response
-        .text()
-        .catch(() => "Unable to read response");
-      this.originalConsole.log("📄 Success response body:", responseText);
     } catch (error) {
       this.originalConsole.error("🔥 HTTP Request failed:", error);
       throw error;

@@ -111,16 +111,56 @@ export async function makeApiRequest(
 
   console.debug(`Making API request: ${method} ${url}`);
 
-  const response = await fetch(url, requestOptions);
+  // Exponential backoff on transient errors (5xx, 429) and network failures
+  const maxAttempts = 5; // total attempts including the first
+  let attempt = 1;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      const response = await fetch(url, requestOptions);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `API request failed: ${response.status} ${response.statusText} - ${errorText}`
-    );
+      if (!response.ok) {
+        const status = response.status;
+        const isRetriable = status === 429 || (status >= 500 && status < 600);
+        const errorText = await response.text().catch(() => "");
+
+        if (isRetriable && attempt < maxAttempts) {
+          const waitMs =
+            Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
+          console.warn(
+            `Transient API error (${status}). Retrying in ${(
+              waitMs / 1000
+            ).toFixed(2)}s (attempt ${attempt}/${maxAttempts})`
+          );
+          await new Promise((r) => setTimeout(r, waitMs));
+          attempt += 1;
+          continue;
+        }
+
+        throw new Error(
+          `API request failed: ${response.status} ${response.statusText} - ${errorText}`
+        );
+      }
+
+      return response;
+    } catch (err: any) {
+      // Network-level errors (e.g., DNS, timeouts)
+      const isNetworkError = err && !("status" in (err as any));
+      if (isNetworkError && attempt < maxAttempts) {
+        const waitMs =
+          Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
+        console.warn(
+          `Network error calling API. Retrying in ${(waitMs / 1000).toFixed(
+            2
+          )}s (attempt ${attempt}/${maxAttempts})`
+        );
+        await new Promise((r) => setTimeout(r, waitMs));
+        attempt += 1;
+        continue;
+      }
+      throw err;
+    }
   }
-
-  return response;
 }
 
 /**

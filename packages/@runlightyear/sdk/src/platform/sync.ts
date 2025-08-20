@@ -65,47 +65,86 @@ export async function startSync(props: {
     });
   } catch {}
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `apiKey ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body,
-  });
-
-  if (response.status === 423) {
-    console.warn("Another sync is running (423 Locked) — skipping");
-    throw "SKIPPED";
-  }
-
-  if (response.status === 429) {
-    const errorText = await response.text().catch(() => "");
-    let reason = "Too many requests";
+  const maxAttempts = 5; // total attempts including the first
+  let attempt = 1;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
     try {
-      const parsed = JSON.parse(errorText);
-      if (parsed?.message) reason = parsed.message;
-    } catch {}
-    console.warn(`Rate limited (429): ${reason} — skipping`);
-    throw "SKIPPED";
-  }
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `apiKey ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body,
+      });
 
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "");
-    throw new Error(
-      `API request failed: ${response.status} ${response.statusText} - ${errorText}`
-    );
-  }
+      if (response.status === 423) {
+        console.warn("Another sync is running (423 Locked) — skipping");
+        throw "SKIPPED";
+      }
 
-  const json = await response.json();
-  try {
-    console.info(
-      `startSync ✓ created sync id=${json?.id ?? "unknown"} type=${
-        json?.type ?? "unknown"
-      }`
-    );
-  } catch {}
-  return json;
+      if (response.status === 429) {
+        const errorText = await response.text().catch(() => "");
+        let reason = "Too many requests";
+        try {
+          const parsed = JSON.parse(errorText);
+          if (parsed?.message) reason = parsed.message;
+        } catch {}
+        console.warn(`Rate limited (429): ${reason} — skipping`);
+        throw "SKIPPED";
+      }
+
+      if (
+        response.status >= 500 &&
+        response.status < 600 &&
+        attempt < maxAttempts
+      ) {
+        const waitMs =
+          Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
+        console.warn(
+          `startSync transient error ${response.status}. Retrying in ${(
+            waitMs / 1000
+          ).toFixed(2)}s (attempt ${attempt}/${maxAttempts})`
+        );
+        await new Promise((r) => setTimeout(r, waitMs));
+        attempt += 1;
+        continue;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "");
+        throw new Error(
+          `API request failed: ${response.status} ${response.statusText} - ${errorText}`
+        );
+      }
+
+      const json = await response.json();
+      try {
+        console.info(
+          `startSync ✓ created sync id=${json?.id ?? "unknown"} type=${
+            json?.type ?? "unknown"
+          }`
+        );
+      } catch {}
+      return json;
+    } catch (err: any) {
+      const isNetworkError = err && !("status" in (err as any));
+      if (isNetworkError && attempt < maxAttempts) {
+        const waitMs =
+          Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
+        console.warn(
+          `startSync network error. Retrying in ${(waitMs / 1000).toFixed(
+            2
+          )}s (attempt ${attempt}/${maxAttempts})`
+        );
+        await new Promise((r) => setTimeout(r, waitMs));
+        attempt += 1;
+        continue;
+      }
+      throw err;
+    }
+  }
 }
 
 export async function getSync(props: { syncId: string }): Promise<any> {
@@ -151,10 +190,7 @@ export async function finishSync(
   options?: { error?: string; force?: boolean }
 ): Promise<void> {
   const envName = getEnvName();
-  const baseUrl = getBaseUrl();
-  const apiKey = getApiKey();
-
-  const url = `${baseUrl}/api/v1/envs/${envName}/syncs/${syncId}/finish`;
+  const url = `/api/v1/envs/${envName}/syncs/${syncId}/finish`;
   const bodyObj: any = {};
   if (options?.error) bodyObj.error = options.error;
   if (typeof options?.force === "boolean") bodyObj.force = options.force;
@@ -168,27 +204,12 @@ export async function finishSync(
   } catch {}
 
   const hasBody = Object.keys(bodyObj).length > 0;
-  const headers: Record<string, string> = {
-    Authorization: `apiKey ${apiKey}`,
-  };
-  if (hasBody) headers["Content-Type"] = "application/json";
-
-  const response = await fetch(url, {
+  const response = await makeApiRequest(url, {
     method: "POST",
-    headers,
-    body: hasBody ? JSON.stringify(bodyObj) : undefined,
+    data: hasBody ? bodyObj : undefined,
   });
 
   const text = await response.text().catch(() => "");
-  if (!response.ok) {
-    console.warn(
-      `finishSync ✗ failed status=${response.status} ${response.statusText} body=${text}`
-    );
-    throw new Error(
-      `API request failed: ${response.status} ${response.statusText} - ${text}`
-    );
-  }
-
   try {
     const json = text ? JSON.parse(text) : {};
     console.info(`finishSync ✓ response message=${json?.message ?? "(none)"}`);
@@ -290,34 +311,64 @@ export async function retrieveDelta<T = any>(props: {
 
   let retryNumber = 0;
   while (retryNumber < MAX_RETRIES) {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `apiKey ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        syncId: props.syncId,
-        modelName: props.modelName,
-        limit: props.limit,
-      }),
-    });
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `apiKey ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          syncId: props.syncId,
+          modelName: props.modelName,
+          limit: props.limit,
+        }),
+      });
 
-    if (response.status === 423) {
+      if (response.status === 423) {
+        retryNumber += 1;
+        const waitTime =
+          Math.pow(2, retryNumber) * 1000 + Math.floor(Math.random() * 5000);
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+        continue;
+      }
+
+      if (
+        response.status === 429 ||
+        (response.status >= 500 && response.status < 600)
+      ) {
+        retryNumber += 1;
+        if (retryNumber >= MAX_RETRIES) {
+          const errorText = await response.text().catch(() => "");
+          throw new Error(
+            `API request failed: ${response.status} ${response.statusText} - ${errorText}`
+          );
+        }
+        const waitTime =
+          Math.pow(2, retryNumber) * 1000 + Math.floor(Math.random() * 5000);
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+        continue;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `API request failed: ${response.status} ${response.statusText} - ${errorText}`
+        );
+      }
+
+      return (await response.json()) as any;
+    } catch (err: any) {
+      // network error
       retryNumber += 1;
-      const waitTime = Math.pow(2, retryNumber) * 1000;
+      if (retryNumber >= MAX_RETRIES) {
+        throw err;
+      }
+      const waitTime =
+        Math.pow(2, retryNumber) * 1000 + Math.floor(Math.random() * 5000);
       await new Promise((resolve) => setTimeout(resolve, waitTime));
       continue;
     }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `API request failed: ${response.status} ${response.statusText} - ${errorText}`
-      );
-    }
-
-    return (await response.json()) as any;
   }
 
   throw new Error(`Delta timed out after ${MAX_RETRIES} retries`);
