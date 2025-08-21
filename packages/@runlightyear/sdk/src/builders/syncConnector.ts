@@ -1290,6 +1290,12 @@ export class SyncConnector<
       console.info(`Finished sync ${syncId}`);
     } catch (e) {
       console.warn(`Failed to finish sync ${syncId}:`, e);
+      // Treat inability to finish the sync as a run-level failure
+      hadError = true;
+      errorMessage =
+        (e instanceof Error ? e.message : String(e)) ||
+        errorMessage ||
+        "Failed to finish sync";
       // Do not force unless unrecoverable; we already included force above
     }
 
