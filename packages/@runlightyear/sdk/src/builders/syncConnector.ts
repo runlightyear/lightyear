@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Collection } from "../types";
+import type { Collection, InferModelDataFromCollection } from "../types";
 import type { RestConnector } from "../connectors/RestConnector";
 import {
   getModels,
@@ -32,6 +32,10 @@ export interface ListParams {
   };
   [key: string]: any;
 }
+
+// Prevents TypeScript from inferring a type parameter from a usage site.
+// Useful when we want inference to come solely from another argument (e.g., a literal model name).
+type NoInfer<T> = [T][T extends any ? 0 : never];
 
 export interface ListConfig<TModel = any, TResponse = unknown> {
   request: (params: ListParams) => {
@@ -243,6 +247,35 @@ type InferModelType<C extends Collection, M extends string> = C extends {
     : any
   : any;
 
+// Force distribution over union types
+type DistributiveInferModelType<C extends Collection, M> = M extends string
+  ? InferModelType<C, M>
+  : never;
+
+// Distributive conditional type to handle model type extraction
+type DistributeModelType<C extends Collection, M> = M extends any
+  ? InferModelType<C, M>
+  : never;
+
+// Helper to extract the exact type for a specific model name
+type ExtractSpecificModelType<
+  C extends Collection,
+  M extends string
+> = C extends { __modelData?: infer Data }
+  ? Data extends Record<string, any>
+    ? M extends keyof Data
+      ? Data[M]
+      : never
+    : never
+  : never;
+
+// Create a mapped type for model connectors
+type ModelConnectorMap<C extends Collection> = {
+  [K in ExtractModels<C>]: (
+    builder: SyncModelConnectorBuilder<InferModelType<C, K>>
+  ) => SyncModelConnectorBuilder<any>;
+};
+
 export class SyncConnectorBuilder<
   TRestConnector extends RestConnector = RestConnector,
   TCollection extends Collection = Collection
@@ -301,9 +334,9 @@ export class SyncConnectorBuilder<
     return builder;
   }
 
-  with<M extends ExtractModels<TCollection>>(
+  with<const M extends ExtractModels<TCollection>>(
     modelName: M,
-    config: ModelConnectorConfig<InferModelType<TCollection, M>>
+    config: ModelConnectorConfig<InferModelType<TCollection, NoInfer<M>>>
   ): this {
     const model = this.collection.models.find((m) => m.name === modelName);
 
@@ -523,11 +556,13 @@ export class SyncConnectorBuilder<
     return this;
   }
 
-  withModelConnector<M extends ExtractModels<TCollection>>(
+  withModelConnector<const M extends ExtractModels<TCollection>>(
     modelName: M,
     configBuilder: (
-      builder: SyncModelConnectorBuilder<InferModelType<TCollection, M>>
-    ) => SyncModelConnectorBuilder<InferModelType<TCollection, M>>
+      builder: SyncModelConnectorBuilder<
+        InferModelDataFromCollection<TCollection, M>
+      >
+    ) => SyncModelConnectorBuilder<InferModelDataFromCollection<TCollection, M>>
   ): this {
     const model = this.collection.models.find((m) => m.name === modelName);
 
@@ -541,12 +576,12 @@ export class SyncConnectorBuilder<
     }
 
     const builder = new SyncModelConnectorBuilder<
-      InferModelType<TCollection, M>
+      InferModelDataFromCollection<TCollection, M>
     >();
     const configuredBuilder = configBuilder(builder);
     const config = configuredBuilder.build();
 
-    // Reduce type computation depth by casting here; the builder itself remains strongly typed
+    // Reduce type computation depth by casting here
     return this.with(modelName, config as ModelConnectorConfig<any>);
   }
 
@@ -635,6 +670,12 @@ export class SyncModelConnectorBuilder<T = any> {
       json?: any;
     };
     responseSchema?: TSchema;
+    /** Optionally transform the user-provided data before sending the request */
+    transformRequest?: (data: T) => any;
+    /** Optionally transform the raw or validated response into the final model */
+    transform?: TSchema extends z.ZodType<any>
+      ? (response: z.infer<TSchema>) => T
+      : (response: unknown) => T;
     extract: (
       item: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
     ) => {
@@ -658,6 +699,12 @@ export class SyncModelConnectorBuilder<T = any> {
       json?: any;
     };
     responseSchema?: TSchema;
+    /** Optionally transform the user-provided partial data before sending the request */
+    transformRequest?: (data: Partial<T>) => any;
+    /** Optionally transform the raw or validated response into the final model */
+    transform?: TSchema extends z.ZodType<any>
+      ? (response: z.infer<TSchema>) => T
+      : (response: unknown) => T;
     extract: (
       item: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
     ) => {
