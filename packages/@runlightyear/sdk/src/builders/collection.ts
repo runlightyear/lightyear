@@ -27,6 +27,21 @@ type ModelNameToDataMap<TModels> = UnionToIntersection<
     : {}
 >;
 
+// Helper type: filter models by a list of names (preserve tuple order)
+type FilterModelsByNames<
+  TModels extends readonly Model<any, any>[],
+  TNames extends readonly string[]
+> = TModels extends readonly [infer H, ...infer R]
+  ? H extends Model<any, infer N extends string>
+    ? N extends TNames[number]
+      ? readonly [
+          H,
+          ...FilterModelsByNames<Extract<R, readonly Model<any, any>[]>, TNames>
+        ]
+      : FilterModelsByNames<Extract<R, readonly Model<any, any>[]>, TNames>
+    : FilterModelsByNames<Extract<R, readonly Model<any, any>[]>, TNames>
+  : readonly [];
+
 // Type for the getModel method with proper overloads
 interface TypedCollectionMethods<TModels> {
   getModel<K extends keyof ModelsToMap<TModels> & string>(
@@ -62,6 +77,32 @@ export class CollectionBuilder<
   withTitle(title: string): CollectionBuilder<TModels, TSchemas> {
     this.title = title;
     return this as any;
+  }
+
+  /**
+   * Limit the models in this collection to a provided subset of names.
+   * - Type-safe: only existing model names are allowed
+   * - Returns a new builder instance with narrowed model tuple and schema map
+   */
+  withOnlyModels<
+    TNames extends readonly (TModels[number] extends Model<
+      any,
+      infer N extends string
+    >
+      ? N
+      : never)[]
+  >(
+    ...names: TNames
+  ): CollectionBuilder<
+    FilterModelsByNames<TModels, TNames>,
+    Pick<TSchemas, TNames[number]>
+  > {
+    const nameSet = new Set(names as readonly string[]);
+    const filtered = this.models.filter((m) => nameSet.has(m.name));
+    const builder = new CollectionBuilder(this.name);
+    if (this.title) builder.withTitle(this.title);
+    builder.withModels(filtered as any);
+    return builder as any;
   }
 
   /**
