@@ -13,6 +13,7 @@ import {
   finishSync,
 } from "../platform/sync";
 import { getCurrentContext, getLogCapture } from "../logging";
+import { isTemporaryHttpError } from "../utils/httpErrors";
 import { isTimeLimitExceeded, resetTimeLimit } from "../utils/time";
 
 // Removed legacy PaginationConfig (page/offset types no longer supported)
@@ -872,42 +873,21 @@ export class SyncConnector<
     let unrecoverableError = false;
 
     const isUnrecoverableSyncError = (err: any): boolean => {
-      // Prefer structured status from proxied HTTP errors
-      const status: number | undefined =
-        err && typeof err === "object" && (err as any).response
-          ? (err as any).response.status
-          : undefined;
-      if (typeof status === "number") {
-        // Treat 4xx (except 408/429) and all 5xx as unrecoverable for this run
-        if (status === 408 || status === 429) return false;
-        if ((status >= 400 && status < 500) || status >= 500) return true;
-      }
-
-      const msg = err instanceof Error ? err.message : String(err);
-      // Fallback: parse common error message patterns
-      if (/HttpProxyResponseError:\s*(\d{3})\b/i.test(msg)) {
-        const m = msg.match(/HttpProxyResponseError:\s*(\d{3})\b/i);
-        const code = m ? parseInt(m[1], 10) : undefined;
-        if (
-          code &&
-          code !== 408 &&
-          code !== 429 &&
-          (code >= 400 || code >= 500)
+      let status: number | undefined = undefined;
+      if (err && typeof err === "object") {
+        if (typeof (err as any).status === "number") {
+          status = (err as any).status as number;
+        } else if (
+          (err as any).response &&
+          typeof (err as any).response.status === "number"
         ) {
-          return true;
+          status = (err as any).response.status as number;
         }
       }
-      if (/API request failed:\s*(4\d{2}|5\d{2})\b/i.test(msg)) {
-        const m = msg.match(/API request failed:\s*(\d{3})\b/i);
-        const code = m ? parseInt(m[1], 10) : undefined;
-        if (code && code !== 408 && code !== 429) return true;
+      if (typeof status === "number") {
+        return !isTemporaryHttpError(status);
       }
-      if (
-        /(Failed to fetch|fetch failed|ENOTFOUND|ECONN|ETIMEDOUT|NetworkError)/i.test(
-          msg
-        )
-      )
-        return true;
+      // No status available: treat as temporary
       return false;
     };
 

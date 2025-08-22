@@ -97,15 +97,17 @@ export async function makeApiRequest(
   }
 
   const url = `${baseUrl}${uri}`;
+  const headers: Record<string, string> = {
+    Authorization: `apiKey ${apiKey}`,
+  };
+
   const requestOptions: RequestInit = {
     method,
-    headers: {
-      Authorization: `apiKey ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers,
   };
 
   if (data && method !== "GET") {
+    headers["Content-Type"] = "application/json";
     requestOptions.body = JSON.stringify(data);
   }
 
@@ -139,15 +141,18 @@ export async function makeApiRequest(
           continue;
         }
 
-        throw new Error(
+        const err = new Error(
           `API request failed: ${response.status} ${response.statusText} - ${errorText}`
-        );
+        ) as Error & { status?: number };
+        err.status = status;
+        throw err;
       }
 
       return response;
     } catch (err: any) {
       // Network-level errors (e.g., DNS, timeouts)
-      const isNetworkError = err && !("status" in (err as any));
+      const isNetworkError =
+        typeof err === "object" && err !== null && !("status" in (err as any));
       if (isNetworkError && attempt < maxAttempts) {
         const waitMs =
           Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
