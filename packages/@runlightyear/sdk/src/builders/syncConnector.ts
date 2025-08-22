@@ -1258,6 +1258,12 @@ export class SyncConnector<
       }
     } catch (e: any) {
       if (e === "RERUN") throw e;
+      if (e === "SKIPPED") {
+        console.warn(
+          "Sync start was skipped by server policy; exiting cleanly"
+        );
+        return;
+      }
       hadError = true;
       errorMessage = e instanceof Error ? e.message : String(e);
       unrecoverableError = isUnrecoverableSyncError(e);

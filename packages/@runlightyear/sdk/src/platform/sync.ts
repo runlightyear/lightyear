@@ -129,7 +129,8 @@ export async function startSync(props: {
       } catch {}
       return json;
     } catch (err: any) {
-      const isNetworkError = err && !("status" in (err as any));
+      const isNetworkError =
+        typeof err === "object" && err !== null && !("status" in (err as any));
       if (isNetworkError && attempt < maxAttempts) {
         const waitMs =
           Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
