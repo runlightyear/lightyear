@@ -19,3 +19,6 @@ export * from "./http";
 
 // Logging exports (for log capture and upload)
 export * from "./logging";
+
+// Built-in collections
+export * from "./collections/crm";
