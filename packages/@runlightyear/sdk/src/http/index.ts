@@ -1,4 +1,5 @@
 import { getCurrentContext } from "../logging";
+import { categorizeHttpStatus } from "../utils";
 
 /**
  * @public
@@ -224,10 +225,9 @@ export const httpRequest: HttpRequest = async (props) => {
       if (!response.ok) {
         const errorText = await response.text();
 
-        // Only retry on 429 or 5xx errors from the proxy. Do NOT retry on 4xx
-        // like 422 (e.g., Invalid URL) since these are not transient.
+        // Decide retry based on categorization utility
         const isRetriableHttpStatus =
-          response.status === 429 || response.status >= 500;
+          categorizeHttpStatus(response.status) === "temporary";
 
         if (isRetriableHttpStatus) {
           backoffCount += 1;
@@ -255,7 +255,7 @@ export const httpRequest: HttpRequest = async (props) => {
 
       const proxyResponse = (await response.json()) as HttpProxyResponse;
 
-      if (proxyResponse.status === 429) {
+      if (categorizeHttpStatus(proxyResponse.status) === "temporary") {
         backoffCount += 1;
         if (backoffCount > maxBackoffs) {
           throw new HttpProxyResponseError(proxyResponse);

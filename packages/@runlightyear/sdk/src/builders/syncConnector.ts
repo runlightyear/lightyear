@@ -1,6 +1,19 @@
 import { z } from "zod";
 import type { Collection } from "../types";
 import type { RestConnector } from "../connectors/RestConnector";
+import {
+  getModels,
+  getSync,
+  updateSync,
+  upsertObjectBatch,
+  retrieveDelta,
+  confirmChangeBatch,
+  pauseSync,
+  startSync,
+  finishSync,
+} from "../platform/sync";
+import { getCurrentContext, getLogCapture } from "../logging";
+import { isTimeLimitExceeded, resetTimeLimit } from "../utils/time";
 
 // Removed legacy PaginationConfig (page/offset types no longer supported)
 
@@ -796,23 +809,6 @@ export class SyncConnector<
 
   async sync(): Promise<void> {
     // High-level orchestration per sync-requirements
-    const {
-      getModels,
-      getSync,
-      updateSync,
-      upsertObjectBatch,
-      retrieveDelta,
-      confirmChangeBatch,
-      pauseSync,
-      startSync,
-      finishSync,
-    } = await import("../platform/sync.js");
-    const { getCurrentContext, getLogCapture } = await import(
-      "../logging/index.js"
-    );
-    const { isTimeLimitExceeded, resetTimeLimit } = await import(
-      "../utils/time.js"
-    );
 
     const ctx = getCurrentContext();
     let syncId: string | undefined = (ctx as any)?.syncId;

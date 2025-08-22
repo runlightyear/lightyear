@@ -6,6 +6,7 @@
  * - 409 Conflict (often indicates transient resource contention)
  * - 425 Too Early
  * - 429 Too Many Requests
+ * - 423 Locked (used for delta locking)
  * - 5xx Server Errors (500..599)
  *
  * Permanent errors should not be retried without changing the request:
@@ -28,6 +29,7 @@ export function categorizeHttpStatus(
   if (status === 409) return "temporary"; // Conflict (often transient)
   if (status === 425) return "temporary"; // Too Early
   if (status === 429) return "temporary"; // Too Many Requests (rate limit)
+  if (status === 423) return "temporary"; // Locked (transient lock)
 
   // Everything else in 4xx is permanent
   if (status >= 400 && status <= 499) return "permanent";

@@ -111,7 +111,7 @@ export async function makeApiRequest(
 
   console.debug(`Making API request: ${method} ${url}`);
 
-  // Exponential backoff on transient errors (5xx, 429) and network failures
+  // Exponential backoff on transient errors and network failures
   const maxAttempts = 5; // total attempts including the first
   let attempt = 1;
   // eslint-disable-next-line no-constant-condition
@@ -121,7 +121,9 @@ export async function makeApiRequest(
 
       if (!response.ok) {
         const status = response.status;
-        const isRetriable = status === 429 || (status >= 500 && status < 600);
+        // Use categorizer to decide retry policy
+        const { categorizeHttpStatus } = await import("./httpErrors.js");
+        const isRetriable = categorizeHttpStatus(status) === "temporary";
         const errorText = await response.text().catch(() => "");
 
         if (isRetriable && attempt < maxAttempts) {
