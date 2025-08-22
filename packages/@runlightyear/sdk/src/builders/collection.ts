@@ -19,11 +19,15 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   ? I
   : never;
 
+// Helper to map a single model to its data mapping
+type SingleModelToDataMap<M> = M extends Model<infer S, infer N extends string>
+  ? { [K in N]: import("../types").InferModelData<Model<S, N>> }
+  : {};
+
+// Distribute over union of models and combine with intersection
 type ModelNameToDataMap<TModels> = UnionToIntersection<
   TModels extends readonly any[]
-    ? TModels[number] extends Model<infer S, infer N extends string>
-      ? { [K in N]: import("../types").InferModelData<Model<S, N>> }
-      : {}
+    ? SingleModelToDataMap<TModels[number]>
     : {}
 >;
 

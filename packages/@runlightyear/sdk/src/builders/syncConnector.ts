@@ -253,7 +253,7 @@ type DistributiveInferModelType<C extends Collection, M> = M extends string
   : never;
 
 // Distributive conditional type to handle model type extraction
-type DistributeModelType<C extends Collection, M> = M extends any
+type DistributeModelType<C extends Collection, M> = M extends string
   ? InferModelType<C, M>
   : never;
 
