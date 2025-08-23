@@ -148,6 +148,15 @@ export async function retrieveDelta<ModelObjectData>(
 
   while (retryNumber < MAX_RETRIES) {
     try {
+      try {
+        console.debug(
+          `retrieveDelta(base) → env=${envName} collection=${collectionName} model=${
+            modelName ?? "(all)"
+          } sync=${syncId} limit=${limit ?? "none"} attempt=${
+            retryNumber + 1
+          }/${MAX_RETRIES}`
+        );
+      } catch {}
       const response = await baseRequest({
         method: "POST",
         uri: `/api/v1/envs/${envName}/collections/${collectionName}/delta`,
@@ -159,6 +168,14 @@ export async function retrieveDelta<ModelObjectData>(
       });
 
       const json = await response.json();
+      try {
+        const count = Array.isArray(json?.changes) ? json.changes.length : 0;
+        console.info(
+          `retrieveDelta(base) ✓ operation=${
+            json?.operation ?? "(unknown)"
+          } count=${count} (sync=${syncId}, model=${modelName ?? "(all)"})`
+        );
+      } catch {}
       return {
         operation: json.operation,
         changes: json.changes,
@@ -167,21 +184,37 @@ export async function retrieveDelta<ModelObjectData>(
       if (error instanceof BaseRequestError) {
         if (error.response.status === 423) {
           retryNumber += 1;
-          console.info(
-            `Delta locked while previous changes are processed, retrying (${retryNumber})`
-          );
+          try {
+            console.info(
+              `Delta locked (423). Waiting before retry ${retryNumber}/${MAX_RETRIES} (sync=${syncId}, model=${
+                modelName ?? "(all)"
+              })`
+            );
+          } catch {}
 
           // Add exponential backoff with jitter
           const baseWaitTime = Math.pow(2, retryNumber) * 1000; // Exponential backoff
           // const jitter = Math.floor(Math.random() * 5000); // Add up to 5 seconds of jitter
           // const waitTime = baseWaitTime + jitter;
           const waitTime = baseWaitTime;
-          console.info(`Waiting ${waitTime / 1000} seconds before retry...`);
+          try {
+            console.info(
+              `Waiting ${(waitTime / 1000).toFixed(2)} seconds before retry...`
+            );
+          } catch {}
           await new Promise((resolve) => setTimeout(resolve, waitTime));
 
           continue;
         }
       }
+      try {
+        console.warn(
+          `retrieveDelta(base) error on attempt ${
+            retryNumber + 1
+          }/${MAX_RETRIES} (sync=${syncId}, model=${modelName ?? "(all)"}):`,
+          error
+        );
+      } catch {}
       throw error;
     }
   }

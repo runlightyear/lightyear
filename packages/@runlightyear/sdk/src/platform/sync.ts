@@ -313,6 +313,15 @@ export async function retrieveDelta<T = any>(props: {
   let retryNumber = 0;
   while (retryNumber < MAX_RETRIES) {
     try {
+      try {
+        console.debug(
+          `retrieveDelta → env=${envName} collection=${
+            props.collectionName
+          } model=${props.modelName} sync=${props.syncId} limit=${
+            props.limit ?? "none"
+          } attempt=${retryNumber + 1}/${MAX_RETRIES}`
+        );
+      } catch {}
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -330,6 +339,15 @@ export async function retrieveDelta<T = any>(props: {
         retryNumber += 1;
         const waitTime =
           Math.pow(2, retryNumber) * 1000 + Math.floor(Math.random() * 5000);
+        try {
+          console.info(
+            `Delta locked (423). Waiting ${(waitTime / 1000).toFixed(
+              2
+            )}s before retry ${retryNumber}/${MAX_RETRIES} (sync=${
+              props.syncId
+            }, model=${props.modelName})`
+          );
+        } catch {}
         await new Promise((resolve) => setTimeout(resolve, waitTime));
         continue;
       }
@@ -347,6 +365,15 @@ export async function retrieveDelta<T = any>(props: {
         }
         const waitTime =
           Math.pow(2, retryNumber) * 1000 + Math.floor(Math.random() * 5000);
+        try {
+          console.warn(
+            `Transient error ${response.status} on retrieveDelta. Waiting ${(
+              waitTime / 1000
+            ).toFixed(2)}s before retry ${retryNumber}/${MAX_RETRIES} (sync=${
+              props.syncId
+            }, model=${props.modelName})`
+          );
+        } catch {}
         await new Promise((resolve) => setTimeout(resolve, waitTime));
         continue;
       }
@@ -358,15 +385,42 @@ export async function retrieveDelta<T = any>(props: {
         );
       }
 
-      return (await response.json()) as any;
+      const payload = (await response.json()) as any;
+      try {
+        const count = Array.isArray(payload?.changes)
+          ? payload.changes.length
+          : 0;
+        console.info(
+          `retrieveDelta ✓ operation=${
+            payload?.operation ?? "(unknown)"
+          } count=${count} (sync=${props.syncId}, model=${props.modelName})`
+        );
+      } catch {}
+      return payload;
     } catch (err: any) {
       // network error
       retryNumber += 1;
       if (retryNumber >= MAX_RETRIES) {
+        const finalMessage =
+          err instanceof Error ? err.message : String(err ?? "unknown error");
+        try {
+          console.error(
+            `retrieveDelta ✗ exhausted retries (${MAX_RETRIES}). Last error: ${finalMessage} (sync=${props.syncId}, model=${props.modelName})`
+          );
+        } catch {}
         throw err;
       }
       const waitTime =
         Math.pow(2, retryNumber) * 1000 + Math.floor(Math.random() * 5000);
+      try {
+        console.warn(
+          `retrieveDelta network error. Waiting ${(waitTime / 1000).toFixed(
+            2
+          )}s before retry ${retryNumber}/${MAX_RETRIES} (sync=${
+            props.syncId
+          }, model=${props.modelName})`
+        );
+      } catch {}
       await new Promise((resolve) => setTimeout(resolve, waitTime));
       continue;
     }
