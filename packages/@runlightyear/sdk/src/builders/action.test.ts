@@ -110,6 +110,53 @@ describe("ActionBuilder", () => {
       expect(action.secrets![0].name).toBe("token");
     });
 
+    it("should overwrite variables with withVariables", () => {
+      const action = defineAction("overwrite-vars")
+        .addVariable("v1", { title: "Old Var" })
+        .withVariables([
+          { name: "v2", title: "New Var 2", required: true },
+          { name: "v3", title: "New Var 3", required: false },
+        ])
+        .deploy();
+
+      expect(action.variables).toHaveLength(2);
+      expect(action.variables![0].name).toBe("v2");
+      expect(action.variables![1].name).toBe("v3");
+      expect(action.variables!.some((v) => v.name === "v1")).toBe(false);
+    });
+
+    it("should overwrite secrets with withSecrets", () => {
+      const action = defineAction("overwrite-secrets")
+        .addSecret("s1", { title: "Old Secret" })
+        .withSecrets([
+          { name: "s2", title: "New Secret 2", required: true },
+          { name: "s3", title: "New Secret 3", required: false },
+        ])
+        .deploy();
+
+      expect(action.secrets).toHaveLength(2);
+      expect(action.secrets![0].name).toBe("s2");
+      expect(action.secrets![1].name).toBe("s3");
+      expect(action.secrets!.some((s) => s.name === "s1")).toBe(false);
+    });
+
+    it("should accept string array in withVariables and withSecrets", () => {
+      const action = defineAction("string-array-forms")
+        .withVariables(["firstName", "lastName", "email"])
+        .withSecrets(["apiKey", "webhookSecret"])
+        .deploy();
+
+      expect(action.variables).toEqual([
+        { name: "firstName" },
+        { name: "lastName" },
+        { name: "email" },
+      ]);
+      expect(action.secrets).toEqual([
+        { name: "apiKey" },
+        { name: "webhookSecret" },
+      ]);
+    });
+
     it("should not include empty variables/secrets arrays", () => {
       const action = defineAction("simple-action")
         .withTitle("Simple Action")

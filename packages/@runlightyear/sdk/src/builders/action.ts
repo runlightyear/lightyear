@@ -74,6 +74,19 @@ export class ActionBuilder {
     return this;
   }
 
+  /**
+   * Overwrite variables with the provided array (does not append).
+   */
+  withVariables(variables: AppVariable[]): this;
+  withVariables(variables: string[]): this;
+  withVariables(variables: Array<AppVariable | string>): this {
+    // copy to avoid external mutation side-effects
+    this.variables = variables.map((v) =>
+      typeof v === "string" ? { name: v } : { ...v }
+    );
+    return this;
+  }
+
   addSecret(
     name: string,
     options?: {
@@ -93,6 +106,19 @@ export class ActionBuilder {
 
   addSecrets(secrets: AppSecret[]): this {
     this.secrets.push(...secrets);
+    return this;
+  }
+
+  /**
+   * Overwrite secrets with the provided array (does not append).
+   */
+  withSecrets(secrets: AppSecret[]): this;
+  withSecrets(secrets: string[]): this;
+  withSecrets(secrets: Array<AppSecret | string>): this {
+    // copy to avoid external mutation side-effects
+    this.secrets = secrets.map((s) =>
+      typeof s === "string" ? { name: s } : { ...s }
+    );
     return this;
   }
 
