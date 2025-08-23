@@ -314,7 +314,8 @@ export class ActionBuilder<
       description: this.description,
       variables: this.variables.length > 0 
         ? this.variables.map(v => ({
-            name: v.name,
+            // Add "?" suffix for optional variables (when required is false)
+            name: v.required ? v.name : `${v.name}?`,
             title: v.title,
             description: v.description,
             defaultValue: v.defaultValue,
@@ -323,7 +324,8 @@ export class ActionBuilder<
         : undefined,
       secrets: this.secrets.length > 0
         ? this.secrets.map(s => ({
-            name: s.name,
+            // Add "?" suffix for optional secrets (when required is false)
+            name: s.required ? s.name : `${s.name}?`,
             title: s.title,
             description: s.description,
             required: s.required,
