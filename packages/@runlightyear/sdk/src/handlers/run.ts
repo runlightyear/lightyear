@@ -143,11 +143,16 @@ export const handleRun: RunHandler = async (
     let effectiveWebhook = webhook || null;
     let effectiveIntegration = integration || null;
     let effectiveManagedUser = managedUser || null;
+    
+    console.log("📊 Initial variables from payload:", variables);
+    console.log("📊 Initial effective variables:", effectiveVariables);
 
     try {
       if (!effectiveManagedUser && runId) {
+        console.log("🔄 Fetching run function props from API...");
         const { getRunFuncProps } = await import("../platform/run.js");
         const fetched = await getRunFuncProps(runId);
+        console.log("📥 Fetched run props:", JSON.stringify(fetched, null, 2));
         if (fetched) {
           effectiveAuths = fetched.auths || effectiveAuths;
           effectiveVariables = fetched.variables || effectiveVariables;
@@ -198,12 +203,32 @@ export const handleRun: RunHandler = async (
     }
 
     // Execute the action function with the provided data
+    // First, we need to clean up variable and secret names by removing "?" suffix
+    // This is because the backend sends variables with "?" suffix for optional ones,
+    // but our type system expects clean names without the suffix
+    const cleanedVariables: Record<string, string | null> = {};
+    if (effectiveVariables) {
+      for (const [key, value] of Object.entries(effectiveVariables)) {
+        // Remove "?" suffix if present
+        const cleanKey = key.endsWith('?') ? key.slice(0, -1) : key;
+        cleanedVariables[cleanKey] = value;
+      }
+    }
+    
+    const cleanedSecrets: Record<string, string | null> = {};
+    if (effectiveSecrets) {
+      for (const [key, value] of Object.entries(effectiveSecrets)) {
+        const cleanKey = key.endsWith('?') ? key.slice(0, -1) : key;
+        cleanedSecrets[cleanKey] = value;
+      }
+    }
+    
     const runProps = {
       data: data || null,
       context: context || null,
       auths: effectiveAuths,
-      variables: effectiveVariables,
-      secrets: effectiveSecrets,
+      variables: cleanedVariables,
+      secrets: cleanedSecrets,
       webhook: effectiveWebhook,
       integration: effectiveIntegration,
       managedUser: effectiveManagedUser,
