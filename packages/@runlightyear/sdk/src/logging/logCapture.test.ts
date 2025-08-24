@@ -184,7 +184,7 @@ describe("LogCapture", () => {
           method: "POST",
           headers: expect.objectContaining({
             "Content-Type": "application/json",
-            Authorization: "apiKey test-key",
+            Authorization: "Bearer test-key",
           }),
           body: expect.stringContaining("test-run-123"),
         })

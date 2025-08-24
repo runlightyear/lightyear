@@ -11,7 +11,7 @@ export default async function getSubscribeList() {
     {
       method: "GET",
       headers: {
-        Authorization: `apiKey ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
     }

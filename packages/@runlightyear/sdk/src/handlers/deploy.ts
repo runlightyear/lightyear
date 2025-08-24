@@ -433,7 +433,7 @@ async function postDeploymentData(
       "Content-Type": "application/json",
       "User-Agent": "@runlightyear/sdk",
       Accept: "application/json",
-      Authorization: `apiKey ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       "X-SDK-Version": "0.1.0",
       "X-Environment": envName,
       "X-Request-ID": `req_${Date.now()}_${Math.random()
@@ -444,7 +444,7 @@ async function postDeploymentData(
     Object.entries(requestHeaders).forEach(([key, value]) => {
       // Redact the Authorization header for security
       const displayValue =
-        key === "Authorization" ? "apiKey [REDACTED]" : value;
+        key === "Authorization" ? "Bearer [REDACTED]" : value;
       console.log(`   ${key}: ${displayValue}`);
     });
 

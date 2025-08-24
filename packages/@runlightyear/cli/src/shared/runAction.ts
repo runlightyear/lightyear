@@ -27,7 +27,7 @@ export default async function runAction({
     {
       method: "PATCH",
       headers: {
-        Authorization: `apiKey ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -99,7 +99,7 @@ export default async function runAction({
       {
         method: "PATCH",
         headers: {
-          Authorization: `apiKey ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

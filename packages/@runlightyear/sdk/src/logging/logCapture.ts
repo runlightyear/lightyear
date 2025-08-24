@@ -404,7 +404,7 @@ class LogCapture {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `apiKey ${this.config.apiKey}`,
+              Authorization: `Bearer ${this.config.apiKey}`,
               "User-Agent": "@runlightyear/sdk",
               "X-SDK-Version": "0.1.0",
             },

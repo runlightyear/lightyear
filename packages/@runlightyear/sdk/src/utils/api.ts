@@ -98,7 +98,7 @@ export async function makeApiRequest(
 
   const url = `${baseUrl}${uri}`;
   const headers: Record<string, string> = {
-    Authorization: `apiKey ${apiKey}`,
+    Authorization: `Bearer ${apiKey}`,
   };
 
   const requestOptions: RequestInit = {

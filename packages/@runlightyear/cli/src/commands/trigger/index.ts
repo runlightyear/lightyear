@@ -60,7 +60,7 @@ async function getManagedUsers(): Promise<
       `${baseUrl}/api/v1/envs/${envName}/managed-users`,
       {
         headers: {
-          Authorization: `apiKey ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
         },
       }
     );
@@ -92,7 +92,7 @@ async function triggerAction(
       {
         method: "POST",
         headers: {
-          Authorization: `apiKey ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

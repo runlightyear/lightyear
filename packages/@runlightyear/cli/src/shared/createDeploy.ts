@@ -22,7 +22,7 @@ export default async function createDeploy(
     response = await fetch(`${baseUrl}/api/v1/envs/${envName}/deploys`, {
       method: "POST",
       headers: {
-        Authorization: `apiKey ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

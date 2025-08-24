@@ -14,7 +14,7 @@ export default async function requestDeploy(envName: string) {
     {
       method: "POST",
       headers: {
-        Authorization: `apiKey ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/gzip",
       },
       body: tgz,

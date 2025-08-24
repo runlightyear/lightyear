@@ -13,7 +13,7 @@ export default async function getPusher(credentials: PusherCredentials) {
       endpoint: `${baseUrl}/api/v1/pusher/auth`,
       transport: "ajax",
       headers: {
-        Authorization: `apiKey ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       params: {
         member_id: crypto.randomUUID(),

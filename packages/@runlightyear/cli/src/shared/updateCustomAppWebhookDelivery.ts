@@ -37,7 +37,7 @@ export async function updateCustomAppWebhookDelivery(
     response = await fetch(url, {
       method: "PATCH",
       headers: {
-        Authorization: `apiKey ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

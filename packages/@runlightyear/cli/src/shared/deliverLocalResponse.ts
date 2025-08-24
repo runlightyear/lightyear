@@ -18,7 +18,7 @@ export async function deliverLocalResponse(props: DeliverAuthRequestUrlProps) {
     {
       method: "PATCH",
       headers: {
-        Authorization: `apiKey ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
