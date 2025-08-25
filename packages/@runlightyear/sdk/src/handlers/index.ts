@@ -21,6 +21,7 @@ import {
   getLogCapture,
   stopLogCapture,
   LogEntry,
+  getRunCancellationPromise,
 } from "../logging";
 
 /**
@@ -169,7 +170,26 @@ export const handler: DirectHandler = async (
           }
 
           // For run operations, pass the entire event since action data might be at top level
-          internalResponse = await handleRun(runData);
+          // Race execution with cancellation (triggered when log upload gets 410)
+          const runPromise = handleRun(runData);
+          const canceledTag = { __canceled: true } as const;
+          const cancelPromise = getRunCancellationPromise().then(
+            () => canceledTag
+          );
+          const raceResult = (await Promise.race([
+            runPromise,
+            cancelPromise,
+          ])) as InternalResponse | typeof canceledTag;
+          if ((raceResult as any).__canceled) {
+            console.warn("🛑 Run canceled by platform; returning early.");
+            internalResponse = {
+              success: false,
+              error: "Run canceled",
+              logs: [],
+            };
+          } else {
+            internalResponse = raceResult as InternalResponse;
+          }
           // If action indicated SKIPPED, convert to appropriate success response with 202 later
         } finally {
           // Ensure final log upload before stopping

@@ -7,6 +7,9 @@ export {
   clearLogContext,
   stopLogCapture,
   getCurrentContext,
+  onRunCanceled,
+  getRunCancellationPromise,
+  isRunCanceled,
 } from "./logCapture";
 export type {
   LogEntry,

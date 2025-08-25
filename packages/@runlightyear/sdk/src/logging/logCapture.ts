@@ -22,6 +22,63 @@ interface LogCaptureConfig {
   apiKey?: string;
 }
 
+class RunCanceledError extends Error {
+  constructor(message: string = "Run canceled") {
+    super(message);
+    this.name = "RunCanceledError";
+  }
+}
+
+let runCanceled = false;
+let runCancelListeners: Array<() => void> = [];
+
+function notifyRunCanceledInternal(): void {
+  if (runCanceled) return;
+  runCanceled = true;
+  try {
+    // Notify listeners synchronously
+    for (const listener of runCancelListeners) {
+      try {
+        listener();
+      } catch {
+        // ignore individual listener errors
+      }
+    }
+  } finally {
+    runCancelListeners = [];
+  }
+}
+
+export function onRunCanceled(listener: () => void): () => void {
+  if (runCanceled) {
+    // Already canceled, invoke immediately
+    try {
+      listener();
+    } catch {}
+    return () => {};
+  }
+  runCancelListeners.push(listener);
+  return () => {
+    runCancelListeners = runCancelListeners.filter((l) => l !== listener);
+  };
+}
+
+export function getRunCancellationPromise(): Promise<void> {
+  if (runCanceled) return Promise.resolve();
+  return new Promise<void>((resolve) => {
+    onRunCanceled(() => resolve());
+  });
+}
+
+export function isRunCanceled(): boolean {
+  return runCanceled;
+}
+
+export function resetRunCancellation(): void {
+  runCanceled = false;
+  runCancelListeners = [];
+}
+
 class LogCapture {
   private logs: LogEntry[] = [];
   private uploadTimer: NodeJS.Timeout | null = null;
@@ -271,7 +328,7 @@ class LogCapture {
    */
   private startPeriodicUpload(): void {
     this.uploadTimer = setInterval(() => {
-      if (this.logs.length > 0) {
+      if (this.logs.length > 0 && !isRunCanceled()) {
         this.originalConsole.log(
           `⏰ Periodic upload check: ${this.logs.length} logs pending`
         );
@@ -284,6 +341,13 @@ class LogCapture {
    * Upload logs to the API
    */
   private async uploadLogs(): Promise<void> {
+    if (isRunCanceled()) {
+      this.originalConsole.log(
+        "⏹️ Run canceled; skipping log upload and clearing buffer"
+      );
+      this.logs = [];
+      return;
+    }
     this.originalConsole.log("📤 Upload attempt started...");
     this.originalConsole.log("📊 Current state:", {
       pendingLogs: this.logs.length,
@@ -347,7 +411,15 @@ class LogCapture {
       await this.sendLogsToAPI(payload);
       this.originalConsole.log("✅ Logs uploaded successfully!");
     } catch (error) {
-      // If upload fails, put logs back (but don't let them accumulate indefinitely)
+      if (error instanceof RunCanceledError) {
+        // Do not requeue logs; the server will no longer accept them for this run
+        this.originalConsole.warn(
+          "🛑 Detected run cancellation during log upload (410)."
+        );
+        this.logs = [];
+        return;
+      }
+      // If upload fails otherwise, put logs back (but don't let them accumulate indefinitely)
       this.logs = [...logsToUpload.slice(-100), ...this.logs];
 
       // Use original console to avoid infinite recursion
@@ -418,6 +490,16 @@ class LogCapture {
           });
 
           if (!response.ok) {
+            if (response.status === 410) {
+              this.originalConsole.warn(
+                "🚫 Log endpoint returned 410 Gone — run was canceled by the server."
+              );
+              // Signal cancellation to the rest of the system
+              notifyRunCanceledInternal();
+              // Clear buffer; further uploads will be rejected
+              this.logs = [];
+              throw new RunCanceledError();
+            }
             const retriable =
               response.status === 429 ||
               (response.status >= 500 && response.status < 600);
@@ -448,6 +530,10 @@ class LogCapture {
           this.originalConsole.log("📄 Success response body:", responseText);
           break;
         } catch (err: any) {
+          if (err instanceof RunCanceledError) {
+            // Do not retry cancellations
+            throw err;
+          }
           const isNetworkError = err && !("status" in (err as any));
           if (isNetworkError && attempt < maxAttempts) {
             const waitMs =
@@ -502,6 +588,9 @@ export function initializeLogCapture(config?: LogCaptureConfig): LogCapture {
   if (globalLogCapture) {
     globalLogCapture.stopCapture();
   }
+
+  // Reset cancellation state for a new operation
+  resetRunCancellation();
 
   globalLogCapture = new LogCapture(config);
   globalLogCapture.startCapture();
