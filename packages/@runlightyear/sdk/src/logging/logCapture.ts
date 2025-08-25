@@ -31,11 +31,16 @@ class RunCanceledError extends Error {
 
 let runCanceled = false;
 let runCancelListeners: Array<() => void> = [];
+let runAbortController: AbortController | null = null;
 
 function notifyRunCanceledInternal(): void {
   if (runCanceled) return;
   runCanceled = true;
   try {
+    // Abort any in-flight requests
+    try {
+      runAbortController?.abort();
+    } catch {}
     // Notify listeners synchronously
     for (const listener of runCancelListeners) {
       try {
@@ -77,6 +82,32 @@ export function isRunCanceled(): boolean {
 export function resetRunCancellation(): void {
   runCanceled = false;
   runCancelListeners = [];
+  try {
+    // Guard for environments without AbortController
+    // @ts-ignore
+    if (typeof AbortController !== "undefined") {
+      runAbortController = new AbortController();
+    } else {
+      runAbortController = null;
+    }
+  } catch {
+    runAbortController = null;
+  }
+}
+
+export const RUN_CANCELED_ERROR_CODE = "RUN_CANCELED" as const;
+
+export function getRunAbortSignal(): AbortSignal {
+  if (!runAbortController) {
+    try {
+      // @ts-ignore
+      if (typeof AbortController !== "undefined") {
+        runAbortController = new AbortController();
+      }
+    } catch {}
+  }
+  // If AbortController is not available, return undefined at runtime (typed as AbortSignal)
+  return runAbortController?.signal ?? (undefined as unknown as AbortSignal);
 }
 
 class LogCapture {
@@ -480,6 +511,7 @@ class LogCapture {
               "User-Agent": "@runlightyear/sdk",
               "X-SDK-Version": "0.1.0",
             },
+            signal: getRunAbortSignal(),
             body,
           });
 

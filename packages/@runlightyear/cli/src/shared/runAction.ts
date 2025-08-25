@@ -4,6 +4,7 @@ import runInContext from "./runInContext";
 import { prepareConsole } from "../logging";
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
+import { terminal } from "terminal-kit";
 
 export interface RunActionProps {
   actionName: string;
@@ -77,9 +78,16 @@ export default async function runAction({
       responseData?.data?.message === "Rerun" ||
       responseData?.message === "Rerun";
 
+    const isCanceled =
+      responseData?.data?.status === "CANCELED" ||
+      responseData?.message === "Run canceled" ||
+      responseData?.error === "Run canceled";
+
     if (statusCode === 202 && isRerun) {
       // Rerun is treated as a success; SDK handler already finished the run
       status = "SUCCEEDED";
+    } else if (isCanceled) {
+      status = "CANCELED";
     } else if (statusCode === 202) {
       status = "SKIPPED";
     } else if (statusCode >= 300) {
@@ -89,6 +97,12 @@ export default async function runAction({
     }
 
     logs = logsFromVm;
+
+    if (isCanceled) {
+      // Do not attempt to patch a canceled run; backend rejects updates for canceled runs
+      terminal.yellow("Run was canceled by the platform.\n");
+      return;
+    }
   }
 
   // If handler indicated a rerun, the SDK finished the run with rerun=true.

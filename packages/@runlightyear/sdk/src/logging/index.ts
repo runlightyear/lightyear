@@ -10,6 +10,7 @@ export {
   onRunCanceled,
   getRunCancellationPromise,
   isRunCanceled,
+  getRunAbortSignal,
 } from "./logCapture";
 export type {
   LogEntry,

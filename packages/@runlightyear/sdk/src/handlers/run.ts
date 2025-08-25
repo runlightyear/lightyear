@@ -143,7 +143,7 @@ export const handleRun: RunHandler = async (
     let effectiveWebhook = webhook || null;
     let effectiveIntegration = integration || null;
     let effectiveManagedUser = managedUser || null;
-    
+
     console.log("📊 Initial variables from payload:", variables);
     console.log("📊 Initial effective variables:", effectiveVariables);
 
@@ -210,19 +210,19 @@ export const handleRun: RunHandler = async (
     if (effectiveVariables) {
       for (const [key, value] of Object.entries(effectiveVariables)) {
         // Remove "?" suffix if present
-        const cleanKey = key.endsWith('?') ? key.slice(0, -1) : key;
+        const cleanKey = key.endsWith("?") ? key.slice(0, -1) : key;
         cleanedVariables[cleanKey] = value;
       }
     }
-    
+
     const cleanedSecrets: Record<string, string | null> = {};
     if (effectiveSecrets) {
       for (const [key, value] of Object.entries(effectiveSecrets)) {
-        const cleanKey = key.endsWith('?') ? key.slice(0, -1) : key;
+        const cleanKey = key.endsWith("?") ? key.slice(0, -1) : key;
         cleanedSecrets[cleanKey] = value;
       }
     }
-    
+
     const runProps = {
       data: data || null,
       context: context || null,
@@ -277,6 +277,18 @@ export const handleRun: RunHandler = async (
           logs: [],
         };
       }
+      // If run was canceled, surface a clean message and skip finishRun
+      try {
+        const { isRunCanceled } = await import("../logging/index.js");
+        if (isRunCanceled()) {
+          console.warn("Run canceled during execution");
+          return {
+            success: true,
+            data: { message: "Run canceled", status: "CANCELED" },
+            logs: [],
+          };
+        }
+      } catch {}
       throw e;
     }
 
@@ -317,15 +329,23 @@ export const handleRun: RunHandler = async (
       console.error(`   String representation: ${String(error)}`);
     }
 
-    const errorMessage =
+    let errorMessage =
       error instanceof Error
         ? error.message
         : `Action execution failed: ${String(error)}`;
+    try {
+      const { isRunCanceled } = await import("../logging/index.js");
+      if (isRunCanceled()) {
+        errorMessage = "Run canceled";
+      }
+    } catch {}
 
     // Attempt to finish the run as FAILED if we have a runId
     try {
       const runId = payloadOrEvent?.runId;
-      if (runId) {
+      // Do not finish as FAILED if canceled
+      const { isRunCanceled } = await import("../logging/index.js");
+      if (runId && !isRunCanceled()) {
         const { finishRun } = await import("../platform/run.js");
         await finishRun({ runId, status: "FAILED" });
       }
@@ -334,12 +354,16 @@ export const handleRun: RunHandler = async (
     }
 
     return {
-      success: false,
-      error: errorMessage,
+      success: errorMessage === "Run canceled" ? true : false,
+      error: errorMessage === "Run canceled" ? undefined : errorMessage,
       data: {
         actionName: payloadOrEvent?.actionName || "unknown",
         runId: payloadOrEvent?.runId || "unknown",
-        failedAt: new Date().toISOString(),
+        failedAt:
+          errorMessage === "Run canceled"
+            ? undefined
+            : new Date().toISOString(),
+        status: errorMessage === "Run canceled" ? "CANCELED" : undefined,
         errorType:
           error instanceof Error ? error.constructor.name : typeof error,
         errorName: error instanceof Error ? error.name : "Unknown",

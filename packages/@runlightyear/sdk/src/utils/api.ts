@@ -106,6 +106,12 @@ export async function makeApiRequest(
     headers,
   };
 
+  // Tie all requests to the run's abort signal so we can stop immediately on cancellation
+  try {
+    const { getRunAbortSignal } = await import("../logging/index.js");
+    (requestOptions as any).signal = getRunAbortSignal();
+  } catch {}
+
   if (data && method !== "GET") {
     headers["Content-Type"] = "application/json";
     requestOptions.body = JSON.stringify(data);
@@ -153,6 +159,18 @@ export async function makeApiRequest(
       // Network-level errors (e.g., DNS, timeouts)
       const isNetworkError =
         typeof err === "object" && err !== null && !("status" in (err as any));
+      // Do not retry if the run was canceled/aborted
+      try {
+        const { isRunCanceled } = await import("../logging/index.js");
+        if (
+          (typeof err?.name === "string" && err.name === "AbortError") ||
+          isRunCanceled()
+        ) {
+          const canceled: any = new Error("RUN_CANCELED");
+          canceled.code = "RUN_CANCELED";
+          throw canceled;
+        }
+      } catch {}
       if (isNetworkError && attempt < maxAttempts) {
         const waitMs =
           Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);

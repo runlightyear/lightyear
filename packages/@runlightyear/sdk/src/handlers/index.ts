@@ -183,8 +183,8 @@ export const handler: DirectHandler = async (
           if ((raceResult as any).__canceled) {
             console.warn("🛑 Run canceled by platform; returning early.");
             internalResponse = {
-              success: false,
-              error: "Run canceled",
+              success: true,
+              data: { message: "Run canceled", status: "CANCELED" },
               logs: [],
             };
           } else {
@@ -381,7 +381,22 @@ export const handler: DirectHandler = async (
       statusCode,
       body: JSON.stringify(internalResponse),
     };
-  } catch (error) {
+  } catch (error: any) {
+    // If cancellation bubbled to the top, return a clean canceled response
+    try {
+      const { isRunCanceled } = await import("../logging/index.js");
+      if (isRunCanceled()) {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            success: true,
+            data: { message: "Run canceled", status: "CANCELED" },
+            logs: [],
+          }),
+        };
+      }
+    } catch {}
+
     console.error("Handler error:", error);
 
     const errorResponse: InternalResponse = {
