@@ -7,17 +7,21 @@ import {
 /**
  * Function to extract custom data from OAuth token response
  */
-export type ExtraDataExtractor = (response: Record<string, any>) => Record<string, any> | undefined;
+export type ExtraDataExtractor = (
+  response: Record<string, any>
+) => Record<string, any> | undefined;
 
 /**
  * Function to calculate token expiration time
  */
-export type ExpiresAtCalculator = (response: Record<string, any>) => string | undefined;
+export type ExpiresAtCalculator = (
+  response: Record<string, any>
+) => string | undefined;
 
 /**
  * OAuth Connector Builder Configuration
  */
-export interface OAuthConnectorBuilderConfig {
+export interface OAuthConnectorBuilderConfig<Avail extends string = string> {
   name: string;
   authRequestUrlBase: string;
   accessTokenUrl: string;
@@ -25,7 +29,8 @@ export interface OAuthConnectorBuilderConfig {
   additionalAuthParams?: Record<string, string>;
   additionalTokenParams?: Record<string, string>;
   customHeaders?: Record<string, string>;
-  scopes?: string[];
+  scopes?: Avail[];
+  availableScopes?: Avail[];
   scopeConnector?: string;
   extraDataExtractor?: ExtraDataExtractor;
   expiresAtCalculator?: ExpiresAtCalculator;
@@ -34,22 +39,24 @@ export interface OAuthConnectorBuilderConfig {
 /**
  * OAuth Connector Builder - fluent API for creating OAuth connectors
  */
-export class OAuthConnectorBuilder {
-  private config: Partial<OAuthConnectorBuilderConfig> = {};
+export class OAuthConnectorBuilder<Avail extends string = string> {
+  private config: Partial<OAuthConnectorBuilderConfig<Avail>> = {};
 
   constructor(name?: string) {
     if (name) {
       this.config.name = name;
     }
-    this.config.scopes = [];
+    this.config.scopes = [] as Avail[];
     this.config.scopeConnector = " "; // Default to space separator
   }
 
   /**
    * Copy-constructor: create a builder from an existing OAuthConnectorBuilder
    */
-  static from(source: OAuthConnectorBuilder): OAuthConnectorBuilder {
-    const builder = new OAuthConnectorBuilder((source as any).config.name);
+  static from<A extends string = string>(
+    source: OAuthConnectorBuilder<A>
+  ): OAuthConnectorBuilder<A> {
+    const builder = new OAuthConnectorBuilder<A>((source as any).config.name);
     (builder as any).config = JSON.parse(
       JSON.stringify((source as any).config)
     );
@@ -116,20 +123,33 @@ export class OAuthConnectorBuilder {
   /**
    * Set scopes for the authorization request
    */
-  withScope(scopes: string[]): this {
-    this.config.scopes = [...scopes];
+  withScope(scopes: ReadonlyArray<Avail>): this {
+    this.config.scopes = [...scopes] as Avail[];
     return this;
+  }
+
+  /**
+   * Define the full set of available scopes that this connector supports
+   */
+  withAvailableScope<T extends readonly string[]>(
+    scopes: T
+  ): OAuthConnectorBuilder<T[number]> {
+    const unique = Array.from(new Set(scopes as readonly string[]));
+    (
+      this as unknown as OAuthConnectorBuilder<T[number]>
+    ).config.availableScopes = unique as unknown as T[number][];
+    return this as unknown as OAuthConnectorBuilder<T[number]>;
   }
 
   /**
    * Add one or more scopes to the authorization request
    */
-  addScope(scope: string | string[]): this {
+  addScope(scope: Avail | ReadonlyArray<Avail>): this {
     if (!this.config.scopes) {
-      this.config.scopes = [];
+      this.config.scopes = [] as Avail[];
     }
 
-    const scopesToAdd = Array.isArray(scope) ? scope : [scope];
+    const scopesToAdd = (Array.isArray(scope) ? scope : [scope]) as Avail[];
 
     for (const s of scopesToAdd) {
       if (!this.config.scopes.includes(s)) {
@@ -203,6 +223,10 @@ export class OAuthConnectorBuilder {
           return config.refreshTokenUrl || config.accessTokenUrl!;
         }
 
+        getAvailableScopes(): string[] {
+          return (config.availableScopes as string[] | undefined) ?? [];
+        }
+
         getAuthRequestUrlParams(): Record<string, string> {
           const baseParams = super.getAuthRequestUrlParams();
           const params = {
@@ -234,14 +258,18 @@ export class OAuthConnectorBuilder {
           };
         }
 
-        protected extractExtraData(data: Record<string, any>): Record<string, any> | undefined {
+        protected extractExtraData(
+          data: Record<string, any>
+        ): Record<string, any> | undefined {
           if (config.extraDataExtractor) {
             return config.extraDataExtractor(data);
           }
           return undefined;
         }
 
-        protected calculateExpiresAt(data: Record<string, any>): string | undefined {
+        protected calculateExpiresAt(
+          data: Record<string, any>
+        ): string | undefined {
           if (config.expiresAtCalculator) {
             return config.expiresAtCalculator(data);
           }
@@ -258,19 +286,24 @@ export class OAuthConnectorBuilder {
  * Factory function for creating an OAuth connector builder
  */
 export interface CreateOAuthConnectorFn {
-  (): OAuthConnectorBuilder;
-  from: (source: OAuthConnectorBuilder) => OAuthConnectorBuilder;
+  <A extends string = string>(): OAuthConnectorBuilder<A>;
+  from: <A extends string = string>(
+    source: OAuthConnectorBuilder<A>
+  ) => OAuthConnectorBuilder<A>;
 }
 
 export const createOAuthConnector: CreateOAuthConnectorFn = (() =>
   new OAuthConnectorBuilder()) as unknown as CreateOAuthConnectorFn;
 
-createOAuthConnector.from = (source: OAuthConnectorBuilder) =>
-  OAuthConnectorBuilder.from(source);
+createOAuthConnector.from = <A extends string = string>(
+  source: OAuthConnectorBuilder<A>
+) => OAuthConnectorBuilder.from(source);
 
 /**
  * @deprecated Use createOAuthConnector instead
  */
-export function defineOAuthConnector(name: string): OAuthConnectorBuilder {
-  return new OAuthConnectorBuilder(name);
+export function defineOAuthConnector(
+  name: string
+): OAuthConnectorBuilder<string> {
+  return new OAuthConnectorBuilder<string>(name);
 }

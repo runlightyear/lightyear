@@ -107,6 +107,13 @@ export abstract class OAuthConnector {
   }
 
   /**
+   * Return the set of available scopes supported by this connector (if any)
+   */
+  getAvailableScopes(): string[] {
+    return [];
+  }
+
+  /**
    * Validate that client credentials are available for operations that need them
    */
   private validateClientCredentials(): void {
@@ -282,7 +289,9 @@ export abstract class OAuthConnector {
    * @param data - The parsed JSON response from the OAuth token endpoint
    * @returns An object containing the fields to store in extraData, or undefined
    */
-  protected extractExtraData(data: Record<string, any>): Record<string, any> | undefined {
+  protected extractExtraData(
+    data: Record<string, any>
+  ): Record<string, any> | undefined {
     return undefined;
   }
 

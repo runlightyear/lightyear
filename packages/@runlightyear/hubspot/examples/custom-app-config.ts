@@ -8,10 +8,22 @@ import {
 import {
   defineHubSpotCustomApp,
   createHubSpotSyncConnector,
+  createHubSpotOAuthConnector,
 } from "../src";
+import { HUBSPOT_SCOPES } from "../src/types/HubSpotScope";
 
-// Example 1: Custom OAuth scopes
+// Example 1: Default HubSpot OAuth connector (preconfigured)
+const hubspotOAuthConnector = createHubSpotOAuthConnector().withScope([
+  "crm.objects.companies.read",
+  "crm.objects.contacts.read",
+  "crm.objects.deals.read",
+  "crm.objects.owners.read",
+  "oauth",
+]);
+
+// Example 1b: Custom OAuth scopes (type-safe) using the generic builder
 const hubspotOAuthConnectorWithCustomScopes = createOAuthConnector()
+  .withAvailableScope(HUBSPOT_SCOPES)
   .withAuthUrl("https://app.hubspot.com/oauth/authorize")
   .withTokenUrl("https://api.hubapi.com/oauth/v1/token")
   .withScope([
@@ -23,7 +35,7 @@ const hubspotOAuthConnectorWithCustomScopes = createOAuthConnector()
     "oauth",
     // Add additional scopes
     "content",
-    "forms",
+    // "forms2", // ❌ Uncomment to see a compile-time error: not in HUBSPOT_SCOPES
     "tickets",
   ])
   .build();
@@ -45,7 +57,7 @@ const hubspotRestConnectorApiKey = createRestConnector()
 // Note: You can override the default OAuth connector if needed
 const hubspotCustomApp = defineHubSpotCustomApp()
   .withTitle("HubSpot Custom") // Override the default title
-  .withOAuthConnector(hubspotOAuthConnectorWithCustomScopes) // Override default OAuth
+  .withOAuthConnector(hubspotOAuthConnector) // Use convenience OAuth connector
   .addVariable("portalId", { required: true }) // Additional variable
   .addVariable("region", { required: false }) // EU or US
   .addSecret("webhookSecret", { required: false })
@@ -71,7 +83,7 @@ defineIntegration("hubspot-custom-config")
       .withRun(async ({ variables }) => {
         const region = variables.region || "US";
         console.log(`Syncing from ${region} region`);
-        
+
         // You could create different connectors based on region
         if (region === "EU") {
           await hubspotSyncConnector.sync();
@@ -81,12 +93,12 @@ defineIntegration("hubspot-custom-config")
             .withBaseUrl("https://api.hubapi.com/crm/v3")
             .addHeader("Authorization", "Bearer {{ auth.accessToken }}")
             .build();
-            
+
           const usSyncConnector = createHubSpotSyncConnector(
             usConnector,
             crmCollection
           ).build();
-          
+
           await usSyncConnector.sync();
         }
       })
@@ -97,7 +109,7 @@ defineIntegration("hubspot-custom-config")
       .withRun(async ({ variables }) => {
         const portalId = variables.portalId;
         console.log(`Working with portal: ${portalId}`);
-        
+
         // Use portal ID in API calls
         const response = await hubspotRestConnectorEU.get({
           url: `objects/contacts`,
@@ -106,7 +118,7 @@ defineIntegration("hubspot-custom-config")
             // Some endpoints might use portalId
           },
         });
-        
+
         console.log("Contacts:", response.data);
       })
       .deploy()

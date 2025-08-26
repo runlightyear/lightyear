@@ -1,9 +1,11 @@
 import { createOAuthConnector } from "@runlightyear/sdk";
+import { HUBSPOT_SCOPES } from "../types/HubSpotScope";
 
 export function createHubSpotOAuthConnector() {
   return createOAuthConnector()
     .withAuthUrl("https://app.hubspot.com/oauth/authorize")
     .withTokenUrl("https://api.hubapi.com/oauth/v1/token")
+    .withAvailableScope(HUBSPOT_SCOPES)
     .withScope([
       "crm.objects.companies.read",
       "crm.objects.companies.write",
