@@ -65,16 +65,8 @@ export class SalesforceOAuth extends OAuthConnector {
     };
   }
 
-  processRequestAccessTokenResponse(props: {
-    status: number;
-    statusText: string;
-    headers: Record<string, string>;
-    text: string;
-  }): AuthData {
-    return {
-      ...super.processRequestAccessTokenResponse(props),
-      expiresAt: dayjsUtc().add(1, "hour").format(),
-    };
+  protected calculateExpiresAt(data: Record<string, any>): string | undefined {
+    return dayjsUtc().add(1, "hour").format();
   }
 
   processRefreshAccessTokenResponse(props: {

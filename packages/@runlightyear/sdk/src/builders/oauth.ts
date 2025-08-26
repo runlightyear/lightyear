@@ -10,6 +10,11 @@ import {
 export type ExtraDataExtractor = (response: Record<string, any>) => Record<string, any> | undefined;
 
 /**
+ * Function to calculate token expiration time
+ */
+export type ExpiresAtCalculator = (response: Record<string, any>) => string | undefined;
+
+/**
  * OAuth Connector Builder Configuration
  */
 export interface OAuthConnectorBuilderConfig {
@@ -23,6 +28,7 @@ export interface OAuthConnectorBuilderConfig {
   scopes?: string[];
   scopeConnector?: string;
   extraDataExtractor?: ExtraDataExtractor;
+  expiresAtCalculator?: ExpiresAtCalculator;
 }
 
 /**
@@ -154,6 +160,15 @@ export class OAuthConnectorBuilder {
   }
 
   /**
+   * Set a function to calculate the token expiration time
+   * @param calculator Function that receives the OAuth response and returns an ISO date string
+   */
+  withExpiresAt(calculator: ExpiresAtCalculator): this {
+    this.config.expiresAtCalculator = calculator;
+    return this;
+  }
+
+  /**
    * Build and return a factory function to create instances of the OAuth connector
    */
   build(): (props: OAuthConnectorProps) => OAuthConnector {
@@ -224,6 +239,13 @@ export class OAuthConnectorBuilder {
             return config.extraDataExtractor(data);
           }
           return undefined;
+        }
+
+        protected calculateExpiresAt(data: Record<string, any>): string | undefined {
+          if (config.expiresAtCalculator) {
+            return config.expiresAtCalculator(data);
+          }
+          return super.calculateExpiresAt(data);
         }
       }
 

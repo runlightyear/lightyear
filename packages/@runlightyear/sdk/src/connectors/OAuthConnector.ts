@@ -286,6 +286,21 @@ export abstract class OAuthConnector {
     return undefined;
   }
 
+  /**
+   * Calculate the expiration time for the access token
+   * Override this method to customize expiration calculation based on the response
+   * @param data - The parsed JSON response from the OAuth token endpoint
+   * @returns ISO string of expiration date/time, or undefined if no expiration
+   */
+  protected calculateExpiresAt(data: Record<string, any>): string | undefined {
+    const expiresIn = data["expires_in"];
+    if (expiresIn) {
+      const expiryDate = new Date(Date.now() + parseInt(expiresIn) * 1000);
+      return expiryDate.toISOString();
+    }
+    return undefined;
+  }
+
   processRequestAccessTokenResponse(
     props: OAuthConnectorProcessRequestAccessTokenProps
   ): AuthData {
@@ -305,13 +320,7 @@ export abstract class OAuthConnector {
     const accessToken = data["access_token"];
     const refreshToken = data["refresh_token"];
 
-    const expiresIn = data["expires_in"];
-    let expiresAt: string | undefined;
-    if (expiresIn) {
-      const expiryDate = new Date(Date.now() + parseInt(expiresIn) * 1000);
-      expiresAt = expiryDate.toISOString();
-    }
-
+    const expiresAt = this.calculateExpiresAt(data);
     const extraData = this.extractExtraData(data);
 
     return {
