@@ -11,6 +11,7 @@ export {
   getRunCancellationPromise,
   isRunCanceled,
   getRunAbortSignal,
+  addLogRedactionSecrets,
 } from "./logCapture";
 export type {
   LogEntry,

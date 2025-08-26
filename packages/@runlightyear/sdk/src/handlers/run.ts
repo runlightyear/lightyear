@@ -23,6 +23,7 @@ interface RunPayload {
 
 // Use the same global declaration as in ActionBuilder
 import type { RunFunc } from "../types";
+import { addLogRedactionSecrets } from "../logging";
 
 declare global {
   var actionIndex: { [name: string]: RunFunc };
@@ -152,6 +153,25 @@ export const handleRun: RunHandler = async (
         console.log("🔄 Fetching run function props from API...");
         const { getRunFuncProps } = await import("../platform/run.js");
         const fetched = await getRunFuncProps(runId);
+        // Register secrets for log redaction before logging fetched props
+        const secretsToAdd: Array<string | null> = [];
+        if (fetched?.auths) {
+          for (const auth of Object.values(
+            fetched.auths as Record<string, any>
+          )) {
+            if (auth && typeof auth === "object") {
+              secretsToAdd.push(auth.accessToken || null);
+              secretsToAdd.push(auth.refreshToken || null);
+              secretsToAdd.push(auth.apiKey || null);
+              secretsToAdd.push(auth.password || null);
+            }
+          }
+        }
+        if (fetched?.secrets) {
+          secretsToAdd.push(...Object.values(fetched.secrets));
+        }
+        // Add once so future logs are masked
+        addLogRedactionSecrets(secretsToAdd);
         console.log("📥 Fetched run props:", JSON.stringify(fetched, null, 2));
         if (fetched) {
           effectiveAuths = fetched.auths || effectiveAuths;

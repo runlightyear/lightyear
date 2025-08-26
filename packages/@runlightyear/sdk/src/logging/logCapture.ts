@@ -122,6 +122,7 @@ class LogCapture {
   };
   private config: Required<LogCaptureConfig>;
   private isCapturing = false;
+  private secrets: Set<string> = new Set();
   private currentContext: {
     runId?: string;
     deployId?: string;
@@ -190,6 +191,36 @@ class LogCapture {
         this.config.uploadIntervalMs +
         "ms)"
     );
+  }
+
+  /**
+   * Add secrets to redact from subsequent logs
+   */
+  addSecrets(secrets: Array<string | null>): void {
+    for (const s of secrets) {
+      if (typeof s === "string" && s.length > 0) {
+        this.secrets.add(s);
+      }
+    }
+  }
+
+  /**
+   * Redact all known secrets from a given string
+   */
+  private redact(text: string): string {
+    if (!text || this.secrets.size === 0) return text;
+    let result = text;
+    for (const secret of this.secrets) {
+      try {
+        if (!secret) continue;
+        const mask = `*****${secret.slice(-3)}`;
+        // Simple replace; if secret appears multiple times, replace all
+        result = result.split(secret).join(mask);
+      } catch {
+        // ignore any unexpected errors during redaction
+      }
+    }
+    return result;
   }
 
   /**
@@ -299,30 +330,32 @@ class LogCapture {
     originalMethod: (...args: any[]) => void
   ) {
     return (...args: any[]) => {
-      // Call original console method first
-      originalMethod(...args);
-
-      // Capture the log
-      if (this.isCapturing) {
-        const message = args
-          .map((arg) => {
-            if (typeof arg === "string") {
-              return arg;
-            } else if (typeof arg === "object") {
-              try {
-                return JSON.stringify(arg, null, 2);
-              } catch {
-                return String(arg);
-              }
-            } else {
+      const rawMessage = args
+        .map((arg) => {
+          if (typeof arg === "string") {
+            return arg;
+          } else if (typeof arg === "object") {
+            try {
+              return JSON.stringify(arg, null, 2);
+            } catch {
               return String(arg);
             }
-          })
-          .join(" ");
+          } else {
+            return String(arg);
+          }
+        })
+        .join(" ");
 
+      const redactedMessage = this.redact(rawMessage);
+
+      // Print redacted message to original console
+      originalMethod(redactedMessage);
+
+      // Capture the redacted log
+      if (this.isCapturing) {
         this.addLog({
           level,
-          message,
+          message: redactedMessage,
           timestamp: new Date().toISOString(),
           position: this.logs.length,
         });
@@ -688,3 +721,15 @@ export function stopLogCapture(): void {
 
 export { LogCapture };
 export type { LogEntry, LogUploadPayload, LogCaptureConfig };
+
+/**
+ * Add secrets to redact in subsequent logs (no-op if capture not started).
+ */
+export function addLogRedactionSecrets(secrets: Array<string | null>): void {
+  try {
+    if (!globalLogCapture) return;
+    (globalLogCapture as any).addSecrets?.(secrets);
+  } catch {
+    // ignore
+  }
+}
