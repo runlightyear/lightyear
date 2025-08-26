@@ -59,20 +59,21 @@ export class SalesforceOAuth extends OAuthConnector {
     return "https://login.salesforce.com/services/oauth2/token";
   }
 
+  protected extractExtraData(data: Record<string, any>): Record<string, any> | undefined {
+    return {
+      instanceUrl: data["instance_url"],
+    };
+  }
+
   processRequestAccessTokenResponse(props: {
     status: number;
     statusText: string;
     headers: Record<string, string>;
     text: string;
   }): AuthData {
-    const data = JSON.parse(props.text);
-
     return {
       ...super.processRequestAccessTokenResponse(props),
       expiresAt: dayjsUtc().add(1, "hour").format(),
-      extraData: {
-        instanceUrl: data["instance_url"],
-      },
     };
   }
 

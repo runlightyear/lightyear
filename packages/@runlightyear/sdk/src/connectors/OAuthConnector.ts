@@ -276,6 +276,16 @@ export abstract class OAuthConnector {
     return ["access_token", "refresh_token"];
   }
 
+  /**
+   * Extract custom fields from the OAuth token response to store in extraData
+   * Override this method to specify which fields from the response should be stored
+   * @param data - The parsed JSON response from the OAuth token endpoint
+   * @returns An object containing the fields to store in extraData, or undefined
+   */
+  protected extractExtraData(data: Record<string, any>): Record<string, any> | undefined {
+    return undefined;
+  }
+
   processRequestAccessTokenResponse(
     props: OAuthConnectorProcessRequestAccessTokenProps
   ): AuthData {
@@ -302,6 +312,8 @@ export abstract class OAuthConnector {
       expiresAt = expiryDate.toISOString();
     }
 
+    const extraData = this.extractExtraData(data);
+
     return {
       appName,
       customAppName,
@@ -314,6 +326,7 @@ export abstract class OAuthConnector {
       apiKey: null,
       username: null,
       password: null,
+      ...(extraData ? { extraData } : {}),
     };
   }
 

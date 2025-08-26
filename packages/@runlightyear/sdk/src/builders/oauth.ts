@@ -5,6 +5,11 @@ import {
 } from "../connectors/OAuthConnector";
 
 /**
+ * Function to extract custom data from OAuth token response
+ */
+export type ExtraDataExtractor = (response: Record<string, any>) => Record<string, any> | undefined;
+
+/**
  * OAuth Connector Builder Configuration
  */
 export interface OAuthConnectorBuilderConfig {
@@ -17,6 +22,7 @@ export interface OAuthConnectorBuilderConfig {
   customHeaders?: Record<string, string>;
   scopes?: string[];
   scopeConnector?: string;
+  extraDataExtractor?: ExtraDataExtractor;
 }
 
 /**
@@ -138,6 +144,16 @@ export class OAuthConnectorBuilder {
   }
 
   /**
+   * Set a function to extract custom data from the OAuth token response
+   * The extracted data will be stored in the auth's extraData field
+   * @param extractor Function that receives the OAuth response and returns data to store
+   */
+  withExtraData(extractor: ExtraDataExtractor): this {
+    this.config.extraDataExtractor = extractor;
+    return this;
+  }
+
+  /**
    * Build and return a factory function to create instances of the OAuth connector
    */
   build(): (props: OAuthConnectorProps) => OAuthConnector {
@@ -201,6 +217,13 @@ export class OAuthConnectorBuilder {
             ...baseHeaders,
             ...config.customHeaders,
           };
+        }
+
+        protected extractExtraData(data: Record<string, any>): Record<string, any> | undefined {
+          if (config.extraDataExtractor) {
+            return config.extraDataExtractor(data);
+          }
+          return undefined;
         }
       }
 
