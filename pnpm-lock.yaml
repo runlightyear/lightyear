@@ -239,6 +239,12 @@ importers:
       '@runlightyear/lightyear':
         specifier: '*'
         version: link:../lightyear
+      '@runlightyear/sdk':
+        specifier: '*'
+        version: link:../sdk
+      zod:
+        specifier: ^4.0.17
+        version: 4.0.17
     devDependencies:
       '@microsoft/api-extractor':
         specifier: ^7.38.5
