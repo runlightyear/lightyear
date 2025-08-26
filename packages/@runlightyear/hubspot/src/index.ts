@@ -8,6 +8,7 @@ export type { HubSpotOAuthProps } from "./HubSpotOAuth";
 export { HubSpotAppWebhook } from "./HubSpotAppWebhook";
 
 // New SDK exports
+export { defineHubSpotCustomApp } from "./connectors/app";
 export { createHubSpotOAuthConnector } from "./connectors/oauth";
 export { createHubSpotRestConnector } from "./connectors/rest";
 export { createHubSpotSyncConnector } from "./connectors/sync";
