@@ -23,14 +23,7 @@ export interface ListParams {
   page?: number;
   offset?: number;
   limit?: number;
-  /** Nested pagination props for ergonomic access (backwards-compatible) */
-  pagination?: {
-    cursor?: string;
-    page?: number;
-    offset?: number;
-    limit?: number;
-  };
-  [key: string]: any;
+  syncType: "FULL" | "INCREMENTAL";
 }
 
 // Prevents TypeScript from inferring a type parameter from a usage site.
@@ -48,11 +41,21 @@ export interface ListConfig<TModel = any, TResponse = unknown> {
   };
   responseSchema?: z.ZodType<TResponse>;
   /**
-   * Pagination: function that extracts the cursor for the next page from the response.
+   * Pagination: function that extracts pagination state from the response.
    * If omitted, a single request is made.
    */
-  pagination?: (response: any) => {
+  pagination?: (args: {
+    response: any;
+    cursor?: string;
+    page?: number;
+    offset?: number;
+    limit?: number;
+    syncType: "FULL" | "INCREMENTAL";
+  }) => {
     cursor?: string | null;
+    page?: number | null;
+    offset?: number | null;
+    hasMore: boolean;
   };
   // Force transform to return objects ready for platform ingestion
   transform: (response: TResponse) => Array<{
@@ -165,8 +168,18 @@ export interface TypedListConfig<TModel, TResponse> {
     json?: any;
   };
   responseSchema?: z.ZodType<TResponse>;
-  pagination?: (response: any) => {
+  pagination?: (args: {
+    response: any;
+    cursor?: string;
+    page?: number;
+    offset?: number;
+    limit?: number;
+    syncType: "FULL" | "INCREMENTAL";
+  }) => {
     cursor?: string | null;
+    page?: number | null;
+    offset?: number | null;
+    hasMore: boolean;
   };
   transform: (response: TResponse) => Array<{
     externalId: string;
@@ -200,7 +213,19 @@ export interface TypeSafeListConfig<
     json?: any;
   };
   responseSchema?: TResponseSchema;
-  pagination?: (response: any) => { cursor?: string | null };
+  pagination?: (args: {
+    response: any;
+    cursor?: string;
+    page?: number;
+    offset?: number;
+    limit?: number;
+    syncType: "FULL" | "INCREMENTAL";
+  }) => {
+    cursor?: string | null;
+    page?: number | null;
+    offset?: number | null;
+    hasMore: boolean;
+  };
   transform: TResponseSchema extends z.ZodType<any>
     ? (response: InferResponseType<TResponseSchema>) => Array<{
         externalId: string;
@@ -217,13 +242,18 @@ export interface TypeSafeListConfig<
 export interface ModelConnector<T = any> {
   modelName: string;
   config: ModelConnectorConfig<T>;
-  list?: (params?: any) => Promise<{
+  list?: (params: ListParams) => Promise<{
     items: Array<{
       externalId: string;
       externalUpdatedAt: string | null;
       data: T;
     }>;
-    nextCursor?: string;
+    pagination: {
+      cursor?: string;
+      page?: number;
+      offset?: number;
+      hasMore: boolean;
+    };
   }>;
   create?: (data: T) => Promise<T>;
   update?: (id: string, data: Partial<T>) => Promise<T>;
@@ -355,25 +385,9 @@ export class SyncConnectorBuilder<
     };
 
     if (config.list) {
-      connector.list = async (params?: ListParams) => {
-        // Get request configuration from the function
-        const _params: ListParams = params || {};
-        // Ensure nested pagination mirror exists for ergonomics
-        if (!_params.pagination) {
-          _params.pagination = {
-            cursor: _params.cursor,
-            page: _params.page,
-            offset: _params.offset,
-            limit: _params.limit,
-          };
-        } else {
-          // Keep top-level in sync if nested is present
-          _params.cursor = _params.cursor ?? _params.pagination.cursor;
-          _params.page = _params.page ?? _params.pagination.page;
-          _params.offset = _params.offset ?? _params.pagination.offset;
-          _params.limit = _params.limit ?? _params.pagination.limit;
-        }
-
+      connector.list = async (params: ListParams) => {
+        // Build request from provided params (no nested pagination)
+        const _params: ListParams = params || ({} as any);
         const requestConfig = config.list!.request(_params);
 
         const response = await this.restConnector.request({
@@ -397,19 +411,48 @@ export class SyncConnectorBuilder<
         // Apply required transform into platform object shape
         items = config.list!.transform(data);
 
-        // Extract pagination info based on pagination function
-        let nextCursor: string | undefined;
+        // Extract pagination info
         const pg = config.list!.pagination as
-          | ((response: any) => { cursor?: string | null })
+          | ((args: {
+              response: any;
+              cursor?: string;
+              page?: number;
+              offset?: number;
+              limit?: number;
+              syncType: "FULL" | "INCREMENTAL";
+            }) => {
+              cursor?: string | null;
+              page?: number | null;
+              offset?: number | null;
+              hasMore: boolean;
+            })
           | undefined;
-        if (typeof pg === "function") {
-          const res = pg(data);
-          nextCursor = (res?.cursor ?? undefined) || undefined;
-        }
+        const res =
+          typeof pg === "function"
+            ? pg({
+                response: data,
+                cursor: _params.cursor,
+                page: _params.page,
+                offset: _params.offset,
+                limit: _params.limit,
+                syncType: _params.syncType,
+              })
+            : undefined;
+        const pagination = {
+          cursor: res?.cursor ?? undefined,
+          page: res?.page ?? undefined,
+          offset: res?.offset ?? undefined,
+          hasMore: res?.hasMore ?? false,
+        } as {
+          cursor?: string;
+          page?: number;
+          offset?: number;
+          hasMore: boolean;
+        };
 
         return {
           items,
-          nextCursor,
+          pagination,
         };
       };
     }
@@ -643,8 +686,32 @@ export class SyncModelConnectorBuilder<T = any> {
     };
     responseSchema?: TSchema;
     pagination?: TSchema extends z.ZodType<any>
-      ? (response: z.infer<TSchema>) => { cursor?: string | null }
-      : (response: unknown) => { cursor?: string | null };
+      ? (args: {
+          response: z.infer<TSchema>;
+          cursor?: string;
+          page?: number;
+          offset?: number;
+          limit?: number;
+          syncType: "FULL" | "INCREMENTAL";
+        }) => {
+          cursor?: string | null;
+          page?: number | null;
+          offset?: number | null;
+          hasMore: boolean;
+        }
+      : (args: {
+          response: unknown;
+          cursor?: string;
+          page?: number;
+          offset?: number;
+          limit?: number;
+          syncType: "FULL" | "INCREMENTAL";
+        }) => {
+          cursor?: string | null;
+          page?: number | null;
+          offset?: number | null;
+          hasMore: boolean;
+        };
     transform: TSchema extends z.ZodType<any>
       ? (response: z.infer<TSchema>) => Array<{
           externalId: string;
@@ -750,7 +817,12 @@ export class ModelConnectorConfigBuilder<T = any> {
       data?: any;
     };
     responseSchema: TSchema;
-    pagination?: (response: z.infer<TSchema>) => { cursor?: string | null };
+    pagination?: (response: z.infer<TSchema>) => {
+      cursor?: string | null;
+      page?: number | null;
+      offset?: number | null;
+      hasMore: boolean;
+    };
     transform: (response: z.infer<TSchema>) => Array<{
       externalId: string;
       externalUpdatedAt: string | null;
@@ -974,12 +1046,8 @@ export class SyncConnector<
           // Paginate using the configured list
           const listFn = connector.list;
           if (listFn) {
-            const pagination = (connector as any).config?.list?.pagination as
-              | ((response: any) => { cursor?: string | null })
-              | undefined;
-            const isCursorViaFunction = typeof pagination === "function";
-
-            while (true) {
+            let hasMore: boolean = true;
+            while (hasMore) {
               if (isTimeLimitExceeded()) {
                 await pauseSync(syncId);
                 throw "RERUN";
@@ -987,30 +1055,31 @@ export class SyncConnector<
 
               // Build params with pagination + watermarks
               const params: any = {};
-              if (isCursorViaFunction) {
-                params.cursor = cursor;
-              } else {
-                // no pagination config; single request
-              }
+              if (cursor) params.cursor = cursor;
+              if (typeof state.page === "number") params.page = state.page;
+              if (typeof state.offset === "number")
+                params.offset = state.offset;
               if (lastExternalId) params.lastExternalId = lastExternalId;
               if (lastExternalUpdatedAt)
                 params.lastExternalUpdatedAt = lastExternalUpdatedAt;
               params.syncType = syncType;
 
-              const { items, nextCursor } = await listFn(params);
+              const { items, pagination } = await listFn(params);
               console.info(
                 `Fetched ${
                   items?.length ?? 0
-                } items for model ${modelName} (nextCursor=${
-                  nextCursor ?? "none"
-                })`
+                } items for model ${modelName} (cursor=${
+                  pagination?.cursor ?? "none"
+                } page=${pagination?.page ?? "-"} offset=${
+                  pagination?.offset ?? "-"
+                } hasMore=${pagination?.hasMore ?? false})`
               );
 
               if (!items || items.length === 0) {
                 console.info(
                   `No more items for model ${modelName}; ending pull page`
                 );
-                break; // page/offset end or no data
+                break; // no data
               }
 
               // Items are already in platform-ready shape from transform
@@ -1026,7 +1095,7 @@ export class SyncConnector<
                 `Upserting ${
                   objects.length
                 } objects for model ${modelName} (cursor=${
-                  nextCursor ?? "none"
+                  pagination?.cursor ?? "none"
                 })`
               );
               await upsertObjectBatch({
@@ -1036,7 +1105,7 @@ export class SyncConnector<
                 app,
                 customApp,
                 objects,
-                cursor: nextCursor,
+                cursor: pagination?.cursor,
                 async: true,
               });
               console.info(
@@ -1047,15 +1116,12 @@ export class SyncConnector<
               const last = objects[objects.length - 1];
               lastExternalId = last.externalId;
               lastExternalUpdatedAt = last.externalUpdatedAt || undefined;
-              cursor = nextCursor;
-
-              // Continue pagination
-              if (isCursorViaFunction) {
-                if (!cursor) break;
-              } else {
-                // no pagination; single page
-                break;
-              }
+              cursor = pagination?.cursor;
+              if (typeof pagination?.page === "number")
+                state.page = pagination.page;
+              if (typeof pagination?.offset === "number")
+                state.offset = pagination.offset;
+              hasMore = !!pagination?.hasMore;
             }
           }
         }
@@ -1368,7 +1434,12 @@ export function createListConfig<TModel, TResponse>(config: {
     data?: any;
   };
   responseSchema: z.ZodType<TResponse>;
-  pagination?: (response: any) => { cursor?: string | null };
+  pagination?: (response: any) => {
+    cursor?: string | null;
+    page?: number | null;
+    offset?: number | null;
+    hasMore: boolean;
+  };
   transform: (response: TResponse) => Array<{
     externalId: string;
     externalUpdatedAt: string | null;

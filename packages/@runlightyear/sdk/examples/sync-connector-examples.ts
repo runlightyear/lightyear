@@ -99,7 +99,11 @@ async function demonstrateListTypeInference() {
   const userConnector = syncConnectorWithList.getModelConnector("user");
 
   if (userConnector?.list) {
-    const result = await userConnector.list({ page: 1, limit: 10 });
+    const result = await userConnector.list({
+      page: 1,
+      limit: 10,
+      syncType: "FULL",
+    });
     // result.items is Array<{ externalId, externalUpdatedAt, data: User }>
     result.items.forEach(({ data }) => {
       console.log(data.name);
@@ -166,7 +170,7 @@ async function demonstrateListAndCreateTypeInference() {
   }
 
   if (userConnector?.list) {
-    const users = await userConnector.list({ page: 1 });
+    const users = await userConnector.list({ page: 1, syncType: "FULL" });
     users.items.forEach(({ data }) => {
       console.log(`${data.name} - ${data.email}`);
     });
@@ -186,12 +190,15 @@ const fullCrudSyncConnector = createSyncConnector(apiConnector, userCollection)
           params: {
             page: params.page || 1,
             limit: params.limit || 20,
-            sortBy: params.sortBy || "createdAt",
-            sortOrder: params.sortOrder || "desc",
           },
         }),
         responseSchema: UserListResponseSchema,
-        pagination: (response) => ({ cursor: response.nextPage }),
+        pagination: (args) => ({
+          cursor: args.response.nextPage ?? null,
+          page: null,
+          offset: null,
+          hasMore: !!args.response.nextPage,
+        }),
         transform: (response) =>
           response.users.map((u) => ({
             externalId: u.id,
@@ -257,10 +264,7 @@ async function demonstrateFullCrudTypeInference() {
 
     // LIST - TypeScript infers User[] for items
     if (userConnector.list) {
-      const userList = await userConnector.list({
-        sortBy: "name",
-        sortOrder: "asc",
-      } as any);
+      const userList = await userConnector.list({ page: 1, syncType: "FULL" });
 
       userList.items.forEach(({ data }) => {
         // All user properties are type-safe
@@ -287,7 +291,7 @@ const cursorStyleSyncConnector = createSyncConnector(
         endpoint: "/users",
         method: "GET",
         params: {
-          cursor: props.pagination?.cursor,
+          cursor: props.cursor,
         },
       }),
       responseSchema: UserListResponseSchema,
@@ -300,7 +304,12 @@ const cursorStyleSyncConnector = createSyncConnector(
             email: u.email,
           },
         })),
-      pagination: (response) => ({ cursor: response.nextPage }),
+      pagination: (args) => ({
+        cursor: args.response.nextPage ?? null,
+        page: null,
+        offset: null,
+        hasMore: !!args.response.nextPage,
+      }),
     })
   )
   .build();
@@ -308,7 +317,7 @@ const cursorStyleSyncConnector = createSyncConnector(
 async function demonstrateFunctionPagination() {
   const userConnector = cursorStyleSyncConnector.getModelConnector("user");
   if (userConnector?.list) {
-    const first = await userConnector.list({});
+    const first = await userConnector.list({ syncType: "FULL" });
     first.items.forEach(({ data }) => {
       console.log(`${data.name} - ${data.email}`);
     });

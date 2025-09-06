@@ -112,8 +112,11 @@ const contactModelConnector = createModelConnector<Contact>(
         },
       }),
       responseSchema: contactListResponseSchema,
-      pagination: ((response: ContactListResponse) => ({
+      pagination: (({ response }: { response: ContactListResponse }) => ({
         cursor: undefined,
+        page: null,
+        offset: null,
+        hasMore: false,
       })) as any,
       transform: (response) => {
         return response.contacts.map((c) => ({
@@ -129,10 +132,11 @@ const contactModelConnector = createModelConnector<Contact>(
 // Usage example showing type inference
 async function useContactModelConnector() {
   if (contactModelConnector.list) {
-    const { items, nextCursor } = await contactModelConnector.list({
+    const { items, pagination } = await contactModelConnector.list({
       page: 1,
       limit: 20,
-    });
+      syncType: "FULL",
+    } as any);
 
     items.forEach(({ data }) => {
       console.log(`Contact: ${data.name} - ${data.email}`);
@@ -386,7 +390,12 @@ const productModelConnector = createModelConnector<Product>(
         },
       }),
       responseSchema: productListResponseSchema,
-      pagination: (_r) => ({ cursor: undefined }),
+      pagination: ({ response: _r }) => ({
+        cursor: undefined,
+        page: null,
+        offset: null,
+        hasMore: false,
+      }),
       transform: (response) => {
         return response.products.map((apiProduct) => ({
           externalId: apiProduct.product_id,
@@ -545,7 +554,8 @@ async function useProductModelConnector() {
     const { items } = await productModelConnector.list({
       page: 1,
       limit: 50,
-    });
+      syncType: "FULL",
+    } as any);
 
     items.forEach(({ data }) => {
       console.log(`Product: ${data.name} (${data.sku})`);

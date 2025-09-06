@@ -64,22 +64,8 @@ export class ModelConnectorBuilder<T = any> {
 
     // Add list implementation
     if (this.config.list) {
-      connector.list = async (params?: ListParams) => {
-        const _params: ListParams = params || {};
-        if (!_params.pagination) {
-          _params.pagination = {
-            cursor: _params.cursor,
-            page: _params.page,
-            offset: _params.offset,
-            limit: _params.limit,
-          };
-        } else {
-          _params.cursor = _params.cursor ?? _params.pagination.cursor;
-          _params.page = _params.page ?? _params.pagination.page;
-          _params.offset = _params.offset ?? _params.pagination.offset;
-          _params.limit = _params.limit ?? _params.pagination.limit;
-        }
-
+      connector.list = async (params: ListParams) => {
+        const _params: ListParams = params || ({} as any);
         const requestConfig = this.config.list!.request(_params);
 
         const response = await this.restConnector.request({
@@ -103,18 +89,47 @@ export class ModelConnectorBuilder<T = any> {
 
         items = this.config.list!.transform(data);
 
-        let nextCursor: string | undefined;
         const pg = this.config.list!.pagination as
-          | ((response: any) => { cursor?: string | null })
+          | ((args: {
+              response: any;
+              cursor?: string;
+              page?: number;
+              offset?: number;
+              limit?: number;
+              syncType: "FULL" | "INCREMENTAL";
+            }) => {
+              cursor?: string | null;
+              page?: number | null;
+              offset?: number | null;
+              hasMore: boolean;
+            })
           | undefined;
-        if (typeof pg === "function") {
-          const res = pg(data);
-          nextCursor = (res?.cursor ?? undefined) || undefined;
-        }
+        const res =
+          typeof pg === "function"
+            ? pg({
+                response: data,
+                cursor: _params.cursor,
+                page: _params.page,
+                offset: _params.offset,
+                limit: _params.limit,
+                syncType: _params.syncType,
+              })
+            : undefined;
+        const pagination = {
+          cursor: res?.cursor ?? undefined,
+          page: res?.page ?? undefined,
+          offset: res?.offset ?? undefined,
+          hasMore: res?.hasMore ?? false,
+        } as {
+          cursor?: string;
+          page?: number;
+          offset?: number;
+          hasMore: boolean;
+        };
 
         return {
           items,
-          nextCursor,
+          pagination,
         };
       };
     }

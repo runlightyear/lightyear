@@ -207,12 +207,17 @@ const cursorListConfig = createListConfig<Item, CursorResponse>({
   request: (params) => ({
     endpoint: "/items",
     params: {
-      cursor: params.pagination?.cursor,
+      cursor: params.cursor,
       limit: params.limit || 50,
     },
   }),
   responseSchema: cursorResponseSchema,
-  pagination: (response) => ({ cursor: response.nextCursor }),
+  pagination: ({ response }) => ({
+    cursor: response.nextCursor ?? null,
+    page: null,
+    offset: null,
+    hasMore: !!response.nextCursor,
+  }),
   transform: (response) => response.items,
 });
 ```
@@ -230,8 +235,11 @@ const pageListConfig = createListConfig<Item, PagedResponse>({
   }),
   responseSchema: pagedResponseSchema,
   // Convert provider paging to a synthetic cursor: stop when hasMore is false
-  pagination: (response) => ({
-    cursor: response.hasMore ? String(response.page + 1) : undefined,
+  pagination: ({ response }) => ({
+    cursor: response.hasMore ? String(response.page + 1) : null,
+    page: response.hasMore ? response.page + 1 : null,
+    offset: null,
+    hasMore: !!response.hasMore,
   }),
   transform: (response) => response.data,
 });
@@ -250,10 +258,15 @@ const offsetListConfig = createListConfig<Item, OffsetResponse>({
   }),
   responseSchema: offsetResponseSchema,
   // Convert offset scheme to a synthetic cursor by encoding next offset
-  pagination: (response) => ({
+  pagination: ({ response }) => ({
     cursor: response.results.length
       ? String((response.offset ?? 0) + (response.limit ?? 100))
-      : undefined,
+      : null,
+    page: null,
+    offset: response.results.length
+      ? (response.offset ?? 0) + (response.limit ?? 100)
+      : null,
+    hasMore: response.results.length > 0,
   }),
   transform: (response) => response.results,
 });
