@@ -1106,6 +1106,14 @@ export class SyncConnector<
                 customApp,
                 objects,
                 cursor: pagination?.cursor,
+                page:
+                  typeof pagination?.page === "number"
+                    ? pagination.page
+                    : undefined,
+                offset:
+                  typeof pagination?.offset === "number"
+                    ? pagination.offset
+                    : undefined,
                 async: true,
               });
               console.info(

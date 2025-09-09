@@ -232,6 +232,8 @@ export async function upsertObjectBatch(props: {
     data: Record<string, unknown>;
   }>;
   cursor?: string;
+  page?: number;
+  offset?: number;
   overwrite?: boolean;
   async?: boolean;
 }): Promise<void> {
@@ -252,7 +254,9 @@ export async function upsertObjectBatch(props: {
         props.app
       } customApp=${props.customApp} count=${count} cursor=${
         props.cursor ?? "none"
-      } async=${props.async ?? false} overwrite=${props.overwrite ?? false}`
+      } page=${props.page ?? "none"} offset=${props.offset ?? "none"} async=${
+        props.async ?? false
+      } overwrite=${props.overwrite ?? false}`
     );
     console.debug("upsertObjectBatch preview:", preview);
   } catch {}
@@ -268,6 +272,8 @@ export async function upsertObjectBatch(props: {
         overwrite: props.overwrite,
         async: props.async,
         cursor: props.cursor,
+        page: props.page,
+        offset: props.offset,
       },
     }
   );
