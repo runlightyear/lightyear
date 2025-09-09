@@ -22,6 +22,7 @@ import handleRefreshAccessToken from "./handleRefreshAccessToken";
 import { handleRefreshSubscription } from "./handleRefreshSubscription";
 import { handleReceiveCustomAppWebhook } from "./handleReceiveCustomAppWebhook";
 import { trigger as triggerCommand } from "../trigger";
+import getQueuedRuns from "../../shared/getQueuedRuns";
 
 export const dev = new Command("dev");
 
@@ -85,6 +86,31 @@ dev
       "localReceiveCustomAppWebhookTriggered",
       handleReceiveCustomAppWebhook
     );
+
+    // On startup, fetch any queued runs and enqueue them oldest-first
+    try {
+      terminal("\nChecking for queued runs...\n");
+      const queued = await getQueuedRuns();
+      if (queued.length > 0) {
+        terminal(`Found ${queued.length} queued run(s). Adding to queue...\n`);
+        for (const item of queued) {
+          pushOperation({
+            operation: "run",
+            params: {
+              actionName: item.actionName,
+              runId: item.id,
+              data: item.data,
+              deliveryId: item.deliveryId,
+            },
+          });
+        }
+      } else {
+        terminal("No queued runs found.\n");
+      }
+    } catch (e) {
+      terminal.red("Failed to enqueue queued runs on startup\n");
+      console.debug(e);
+    }
 
     nodemon({
       ignoreRoot: [".git"],
