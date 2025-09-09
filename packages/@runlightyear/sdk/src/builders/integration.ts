@@ -7,6 +7,7 @@ import { registerIntegration } from "../registry";
 export class IntegrationBuilder {
   private name: string;
   private title?: string;
+  private description?: string;
   private app?: Integration["app"];
   private collections: Record<string, Collection> = {};
   private actions: Record<string, Action> = {};
@@ -27,6 +28,11 @@ export class IntegrationBuilder {
         ? (source as any).title
         : source.title;
     if (title) builder.withTitle(title);
+    const description =
+      source instanceof IntegrationBuilder
+        ? (source as any).description
+        : (source as any).description;
+    if (description) builder.withDescription(description);
     const app =
       source instanceof IntegrationBuilder ? (source as any).app : source.app;
     if (app) {
@@ -52,6 +58,11 @@ export class IntegrationBuilder {
 
   withTitle(title: string): this {
     this.title = title;
+    return this;
+  }
+
+  withDescription(description: string): this {
+    this.description = description;
     return this;
   }
 
@@ -154,6 +165,7 @@ export class IntegrationBuilder {
     const integration: Integration = {
       name: this.name,
       title: this.title,
+      description: this.description,
       app: this.app,
       collections: this.collections,
       actions: this.actions,

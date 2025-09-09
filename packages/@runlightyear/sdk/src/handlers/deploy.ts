@@ -211,6 +211,7 @@ function transformRegistryToDeploymentSchema(
         const integrationProps: IntegrationProps = {
           name: integration.name || "unnamed-integration",
           title: integration.title || integration.name || "Unnamed Integration",
+          description: integration.description,
         };
 
         // Handle app vs customApp based on integration.app.type

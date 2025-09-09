@@ -90,6 +90,7 @@ export interface CustomApp {
 export interface Integration {
   name: string;
   title?: string;
+  description?: string;
   app: {
     type: "builtin" | "custom";
     name: string;
