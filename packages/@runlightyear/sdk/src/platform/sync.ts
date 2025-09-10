@@ -31,10 +31,23 @@ export async function startSync(props: {
   managedUserId?: string;
   fullSyncFrequency?: number;
   runId?: string;
+  type?: "FULL" | "INCREMENTAL";
+  timeout?: number;
 }): Promise<any> {
   const envName = getEnvName();
   const baseUrl = getBaseUrl();
   const apiKey = getApiKey();
+
+  if (
+    typeof props.fullSyncFrequency !== "undefined" &&
+    props.fullSyncFrequency !== null &&
+    typeof props.type !== "undefined" &&
+    props.type !== null
+  ) {
+    throw new Error(
+      "type and fullSyncFrequency are mutually exclusive; supply only one"
+    );
+  }
 
   const url = `${baseUrl}/api/v1/envs/${envName}/syncs`;
   const body = JSON.stringify({
@@ -44,6 +57,8 @@ export async function startSync(props: {
     managedUserId: props.managedUserId ?? null,
     fullSyncFrequency: props.fullSyncFrequency,
     runId: props.runId ?? null,
+    type: props.type,
+    timeout: props.timeout,
   });
 
   try {
@@ -52,7 +67,9 @@ export async function startSync(props: {
         props.appName ?? "none"
       } customApp=${props.customAppName ?? "none"} managedUser=${
         props.managedUserId ?? "none"
-      } fullFrequency=${props.fullSyncFrequency ?? "default"}`
+      } fullFrequency=${props.fullSyncFrequency ?? "default"} type=${
+        props.type ?? "auto"
+      } timeout=${props.timeout ?? "default"}`
     );
     // Preview payload keys only; avoid logging full body
     console.debug("startSync payload keys:", {
@@ -62,6 +79,8 @@ export async function startSync(props: {
       hasManagedUserId: !!props.managedUserId,
       fullSyncFrequency: props.fullSyncFrequency ?? null,
       runId: props.runId ?? null,
+      type: props.type ?? null,
+      timeout: props.timeout ?? null,
     });
   } catch {}
 

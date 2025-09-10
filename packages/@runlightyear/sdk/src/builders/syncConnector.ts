@@ -927,7 +927,7 @@ export class SyncConnector<
       | undefined;
   }
 
-  async sync(): Promise<void> {
+  async sync(type?: "FULL" | "INCREMENTAL"): Promise<void> {
     // High-level orchestration per sync-requirements
 
     const ctx = getCurrentContext();
@@ -952,6 +952,7 @@ export class SyncConnector<
         customAppName: customApp ?? null,
         managedUserId,
         runId,
+        type,
       });
       console.info(
         `Started sync ${sync?.id} (${

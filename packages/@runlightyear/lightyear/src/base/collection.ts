@@ -228,6 +228,8 @@ export interface StartSyncProps {
   appName: string | null;
   customAppName: string | null;
   fullSyncFrequency?: number;
+  type?: "FULL" | "INCREMENTAL";
+  timeout?: number;
 }
 
 export async function startSync(props: StartSyncProps) {
@@ -237,7 +239,20 @@ export async function startSync(props: StartSyncProps) {
     customAppName,
     managedUserId,
     fullSyncFrequency,
+    type,
+    timeout,
   } = props;
+
+  if (
+    typeof fullSyncFrequency !== "undefined" &&
+    fullSyncFrequency !== null &&
+    typeof type !== "undefined" &&
+    type !== null
+  ) {
+    throw new Error(
+      "type and fullSyncFrequency are mutually exclusive; supply only one"
+    );
+  }
 
   const envName = getEnvName();
 
@@ -254,6 +269,8 @@ export async function startSync(props: StartSyncProps) {
         managedUserId,
         fullSyncFrequency,
         runId,
+        type,
+        timeout,
       },
     });
 
