@@ -274,7 +274,25 @@ export async function startSync(props: StartSyncProps) {
       },
     });
 
-    return await response.json();
+    const json = await response.json();
+    try {
+      const initialModel = json?.currentModel?.name ?? "none";
+      const initialCursor = json?.lastBatch?.cursor ?? json?.cursor ?? null;
+      const initialPage =
+        typeof json?.page === "number"
+          ? json.page
+          : json?.lastBatch?.page ?? null;
+      const initialOffset =
+        typeof json?.offset === "number"
+          ? json.offset
+          : json?.lastBatch?.offset ?? null;
+      console.info(
+        `startSync(base) state → currentModel=${initialModel} cursor=${
+          initialCursor ?? "none"
+        } page=${initialPage ?? "none"} offset=${initialOffset ?? "none"}`
+      );
+    } catch {}
+    return json;
   } catch (error) {
     if (error instanceof BaseRequestError) {
       if (error.response.status === 423) {

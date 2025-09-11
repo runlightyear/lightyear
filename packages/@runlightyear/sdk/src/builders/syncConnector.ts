@@ -980,6 +980,30 @@ export class SyncConnector<
     let modelsToSync = orderedModels.map((m: any) => m.name);
 
     const sync = await getSync({ syncId });
+    console.log("sync", sync);
+    // Log current model and pagination state at the moment the sync starts/resumes
+    try {
+      const currentModel = sync?.currentModel?.name ?? "none";
+      const modelStatus =
+        (sync as any)?.modelStatuses?.[
+          (sync as any)?.currentModel?.name as any
+        ] ?? undefined;
+      const initialCursor =
+        modelStatus?.cursor ?? (sync as any)?.lastBatch?.cursor ?? null;
+      const initialPage =
+        (typeof modelStatus?.page === "number" ? modelStatus.page : null) ??
+        (typeof (sync as any)?.page === "number" ? (sync as any).page : null);
+      const initialOffset =
+        (typeof modelStatus?.offset === "number" ? modelStatus.offset : null) ??
+        (typeof (sync as any)?.offset === "number"
+          ? (sync as any).offset
+          : null);
+      console.info(
+        `Sync start state → collection=${collectionName} sync=${syncId} currentModel=${currentModel} cursor=${
+          initialCursor ?? "none"
+        } page=${initialPage ?? "none"} offset=${initialOffset ?? "none"}`
+      );
+    } catch {}
 
     const currentModelName: string | undefined =
       sync.currentModel?.name ?? undefined;
@@ -1026,15 +1050,33 @@ export class SyncConnector<
           state.currentDirection ?? null;
 
         // Read model watermarks
-        let cursor: string | undefined =
-          state.lastBatch?.modelName === modelName
-            ? state.lastBatch?.cursor
-            : undefined;
+        let cursor: string | undefined;
+        if (
+          state.lastBatch?.modelName === modelName &&
+          state.lastBatch?.cursor
+        ) {
+          cursor = state.lastBatch.cursor;
+        } else if (state.modelStatuses?.[modelName]?.cursor) {
+          cursor = state.modelStatuses[modelName].cursor;
+        }
         let lastExternalId: string | undefined =
           state.modelStatuses?.[modelName]?.lastExternalId ?? undefined;
         let lastExternalUpdatedAt: string | undefined =
           state.modelStatuses?.[modelName]?.lastExternalUpdatedAt ?? undefined;
         const syncType: "FULL" | "INCREMENTAL" = state.type || "FULL";
+        // Determine page/offset using model-specific status when available
+        let page: number | undefined =
+          typeof state.modelStatuses?.[modelName]?.page === "number"
+            ? state.modelStatuses[modelName].page
+            : typeof state.page === "number"
+            ? state.page
+            : undefined;
+        let offset: number | undefined =
+          typeof state.modelStatuses?.[modelName]?.offset === "number"
+            ? state.modelStatuses[modelName].offset
+            : typeof state.offset === "number"
+            ? state.offset
+            : undefined;
 
         // PULL phase
         if (
@@ -1057,9 +1099,8 @@ export class SyncConnector<
               // Build params with pagination + watermarks
               const params: any = {};
               if (cursor) params.cursor = cursor;
-              if (typeof state.page === "number") params.page = state.page;
-              if (typeof state.offset === "number")
-                params.offset = state.offset;
+              if (typeof page === "number") params.page = page;
+              if (typeof offset === "number") params.offset = offset;
               if (lastExternalId) params.lastExternalId = lastExternalId;
               if (lastExternalUpdatedAt)
                 params.lastExternalUpdatedAt = lastExternalUpdatedAt;
@@ -1126,10 +1167,9 @@ export class SyncConnector<
               lastExternalId = last.externalId;
               lastExternalUpdatedAt = last.externalUpdatedAt || undefined;
               cursor = pagination?.cursor;
-              if (typeof pagination?.page === "number")
-                state.page = pagination.page;
+              if (typeof pagination?.page === "number") page = pagination.page;
               if (typeof pagination?.offset === "number")
-                state.offset = pagination.offset;
+                offset = pagination.offset;
               hasMore = !!pagination?.hasMore;
             }
           }
