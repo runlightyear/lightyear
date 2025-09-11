@@ -1015,6 +1015,7 @@ export class SyncConnector<
     let hadError = false;
     let errorMessage: string | undefined = undefined;
     let unrecoverableError = false;
+    let canceledByServer = false; // 409 Conflict → sync canceled: log but don't fail run
 
     const isUnrecoverableSyncError = (err: any): boolean => {
       let status: number | undefined = undefined;
@@ -1406,41 +1407,71 @@ export class SyncConnector<
         );
         return;
       }
-      hadError = true;
-      errorMessage = e instanceof Error ? e.message : String(e);
-      unrecoverableError = isUnrecoverableSyncError(e);
-      console.error(`Sync encountered an error:`, e);
+      // Detect HTTP status if present on error
+      let status: number | undefined = undefined;
+      if (e && typeof e === "object") {
+        if (typeof (e as any).status === "number") {
+          status = (e as any).status as number;
+        } else if (
+          (e as any).response &&
+          typeof (e as any).response.status === "number"
+        ) {
+          status = (e as any).response.status as number;
+        }
+      }
+
+      // Treat 409 as a canceled sync: log error and finish gracefully without failing run
+      if (status === 409) {
+        canceledByServer = true;
+        hadError = true; // preserve finishSync(error) semantics and logs
+        errorMessage = e instanceof Error ? e.message : String(e);
+        unrecoverableError = isUnrecoverableSyncError(e);
+        console.error(`Sync encountered an error:`, e);
+      } else {
+        hadError = true;
+        errorMessage = e instanceof Error ? e.message : String(e);
+        unrecoverableError = isUnrecoverableSyncError(e);
+        console.error(`Sync encountered an error:`, e);
+      }
     }
 
-    // Finish the sync (use error body only if we encountered failures)
-    try {
-      console.info(
-        `Finishing sync ${syncId}${hadError ? " (with error)" : ""} force=${
-          hadError && unrecoverableError
-        }`
-      );
-      if (hadError) {
-        try {
-          await finishSync(syncId, {
-            error: errorMessage,
-            force: true,
-          });
-        } catch (finishErr: any) {
-          console.warn(`finishSync(force=true) failed:`, finishErr);
+    // Finish the sync unless the server has already canceled it (409)
+    if (canceledByServer) {
+      try {
+        console.info(
+          `Sync ${syncId} was canceled by server; skipping finishSync`
+        );
+      } catch {}
+    } else {
+      try {
+        console.info(
+          `Finishing sync ${syncId}${hadError ? " (with error)" : ""} force=${
+            hadError && unrecoverableError
+          }`
+        );
+        if (hadError) {
+          try {
+            await finishSync(syncId, {
+              error: errorMessage,
+              force: true,
+            });
+          } catch (finishErr: any) {
+            console.warn(`finishSync(force=true) failed:`, finishErr);
+          }
+        } else {
+          await finishSync(syncId);
         }
-      } else {
-        await finishSync(syncId);
+        console.info(`Finished sync ${syncId}`);
+      } catch (e) {
+        console.warn(`Failed to finish sync ${syncId}:`, e);
+        // Treat inability to finish the sync as a run-level failure
+        hadError = true;
+        errorMessage =
+          (e instanceof Error ? e.message : String(e)) ||
+          errorMessage ||
+          "Failed to finish sync";
+        // Do not force unless unrecoverable; we already included force above
       }
-      console.info(`Finished sync ${syncId}`);
-    } catch (e) {
-      console.warn(`Failed to finish sync ${syncId}:`, e);
-      // Treat inability to finish the sync as a run-level failure
-      hadError = true;
-      errorMessage =
-        (e instanceof Error ? e.message : String(e)) ||
-        errorMessage ||
-        "Failed to finish sync";
-      // Do not force unless unrecoverable; we already included force above
     }
 
     // If the sync had errors, propagate failure to the caller so the run fails
