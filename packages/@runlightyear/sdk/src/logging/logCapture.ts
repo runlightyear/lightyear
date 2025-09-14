@@ -533,7 +533,6 @@ class LogCapture {
       this.originalConsole.log("⏰ Making HTTP request...");
       const maxAttempts = 5; // total attempts including first
       let attempt = 1;
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         try {
           const response = await fetch(url, {

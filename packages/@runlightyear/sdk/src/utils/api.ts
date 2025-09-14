@@ -122,7 +122,6 @@ export async function makeApiRequest(
   // Exponential backoff on transient errors and network failures
   const maxAttempts = 5; // total attempts including the first
   let attempt = 1;
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
       const response = await fetch(url, requestOptions);

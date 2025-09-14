@@ -466,7 +466,6 @@ async function postDeploymentData(
     const maxAttempts = 5; // total attempts including first
     let attempt = 1;
     let response: Response | null = null;
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       try {
         response = await fetch(url, {
