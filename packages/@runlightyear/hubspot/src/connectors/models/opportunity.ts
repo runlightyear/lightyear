@@ -13,14 +13,20 @@ const HubSpotDealSchema = z.object({
     hs_object_id: z.string(),
     createdate: z.string(),
   }),
-  associations: z.object({
-    companies: z.object({
-      results: z.array(z.object({
-        id: z.string(),
-        type: z.string(),
-      })),
-    }).optional(),
-  }).optional(),
+  associations: z
+    .object({
+      companies: z
+        .object({
+          results: z.array(
+            z.object({
+              id: z.string(),
+              type: z.string(),
+            })
+          ),
+        })
+        .optional(),
+    })
+    .optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
   archived: z.boolean(),
@@ -28,15 +34,21 @@ const HubSpotDealSchema = z.object({
 
 const HubSpotDealListResponseSchema = z.object({
   results: z.array(HubSpotDealSchema),
-  paging: z.object({
-    next: z.object({
-      after: z.string(),
-      link: z.string(),
-    }).optional(),
-  }).optional(),
+  paging: z
+    .object({
+      next: z
+        .object({
+          after: z.string(),
+          link: z.string(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
-export const opportunityModelConnector = (modelConnector: SyncModelConnectorBuilder<any>) =>
+export const opportunityModelConnector = (
+  modelConnector: SyncModelConnectorBuilder<any>
+) =>
   modelConnector
     .withList({
       request: (props) => ({
@@ -56,10 +68,11 @@ export const opportunityModelConnector = (modelConnector: SyncModelConnectorBuil
         },
       }),
       responseSchema: HubSpotDealListResponseSchema,
-      pagination: (response) => ({
+      pagination: ({ response }) => ({
         cursor: response.paging?.next?.after,
+        hasMore: !!response.paging?.next?.after,
       }),
-      transform: (response) => 
+      transform: (response) =>
         response.results.map((result) => ({
           externalId: result.id,
           externalUpdatedAt: result.updatedAt,
@@ -68,12 +81,14 @@ export const opportunityModelConnector = (modelConnector: SyncModelConnectorBuil
             amount: result.properties.amount,
             closeDate: result.properties.closedate,
             stage: result.properties.dealstage,
-            accountId: result.associations?.companies?.results?.find(
-              (assoc) => assoc.type === "deal_to_company"
-            )?.id || null,
-            ownerId: result.properties.hubspot_owner_id === ""
-              ? null
-              : result.properties.hubspot_owner_id,
+            accountId:
+              result.associations?.companies?.results?.find(
+                (assoc) => assoc.type === "deal_to_company"
+              )?.id || null,
+            ownerId:
+              result.properties.hubspot_owner_id === ""
+                ? null
+                : result.properties.hubspot_owner_id,
           },
         })),
     })
@@ -89,19 +104,21 @@ export const opportunityModelConnector = (modelConnector: SyncModelConnectorBuil
             dealstage: obj.stage,
             hubspot_owner_id: obj.ownerId,
           },
-          associations: obj.accountId ? [
-            {
-              to: {
-                id: obj.accountId,
-              },
-              types: [
+          associations: obj.accountId
+            ? [
                 {
-                  associationCategory: "HUBSPOT_DEFINED",
-                  associationTypeId: 341, // deal_to_company
+                  to: {
+                    id: obj.accountId,
+                  },
+                  types: [
+                    {
+                      associationCategory: "HUBSPOT_DEFINED",
+                      associationTypeId: 341, // deal_to_company
+                    },
+                  ],
                 },
-              ],
-            },
-          ] : [],
+              ]
+            : [],
         },
       }),
       responseSchema: z.object({

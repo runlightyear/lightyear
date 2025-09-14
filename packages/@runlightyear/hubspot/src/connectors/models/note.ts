@@ -17,15 +17,21 @@ const HubSpotNoteSchema = z.object({
 
 const HubSpotNoteListResponseSchema = z.object({
   results: z.array(HubSpotNoteSchema),
-  paging: z.object({
-    next: z.object({
-      after: z.string(),
-      link: z.string(),
-    }).optional(),
-  }).optional(),
+  paging: z
+    .object({
+      next: z
+        .object({
+          after: z.string(),
+          link: z.string(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
-export const noteModelConnector = (modelConnector: SyncModelConnectorBuilder<any>) =>
+export const noteModelConnector = (
+  modelConnector: SyncModelConnectorBuilder<any>
+) =>
   modelConnector
     .withList({
       request: (props) => ({
@@ -34,17 +40,15 @@ export const noteModelConnector = (modelConnector: SyncModelConnectorBuilder<any
         params: {
           limit: 100,
           after: props.cursor,
-          properties: [
-            "hs_note_body",
-            "hs_timestamp",
-          ].join(","),
+          properties: ["hs_note_body", "hs_timestamp"].join(","),
         },
       }),
       responseSchema: HubSpotNoteListResponseSchema,
-      pagination: (response) => ({
+      pagination: ({ response }) => ({
+        hasMore: !!response.paging?.next?.after,
         cursor: response.paging?.next?.after,
       }),
-      transform: (response) => 
+      transform: (response) =>
         response.results.map((result) => ({
           externalId: result.id,
           externalUpdatedAt: result.updatedAt,

@@ -19,15 +19,21 @@ const HubSpotMeetingSchema = z.object({
 
 const HubSpotMeetingListResponseSchema = z.object({
   results: z.array(HubSpotMeetingSchema),
-  paging: z.object({
-    next: z.object({
-      after: z.string(),
-      link: z.string(),
-    }).optional(),
-  }).optional(),
+  paging: z
+    .object({
+      next: z
+        .object({
+          after: z.string(),
+          link: z.string(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
-export const meetingModelConnector = (modelConnector: SyncModelConnectorBuilder<any>) =>
+export const meetingModelConnector = (
+  modelConnector: SyncModelConnectorBuilder<any>
+) =>
   modelConnector
     .withList({
       request: (props) => ({
@@ -45,10 +51,11 @@ export const meetingModelConnector = (modelConnector: SyncModelConnectorBuilder<
         },
       }),
       responseSchema: HubSpotMeetingListResponseSchema,
-      pagination: (response) => ({
+      pagination: ({ response }) => ({
         cursor: response.paging?.next?.after,
+        hasMore: !!response.paging?.next?.after,
       }),
-      transform: (response) => 
+      transform: (response) =>
         response.results.map((result) => ({
           externalId: result.id,
           externalUpdatedAt: result.updatedAt,

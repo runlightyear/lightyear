@@ -28,15 +28,21 @@ const HubSpotCompanySchema = z.object({
 
 const HubSpotCompanyListResponseSchema = z.object({
   results: z.array(HubSpotCompanySchema),
-  paging: z.object({
-    next: z.object({
-      after: z.string(),
-      link: z.string(),
-    }).optional(),
-  }).optional(),
+  paging: z
+    .object({
+      next: z
+        .object({
+          after: z.string(),
+          link: z.string(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
-export const accountModelConnector = (modelConnector: SyncModelConnectorBuilder<any>) =>
+export const accountModelConnector = (
+  modelConnector: SyncModelConnectorBuilder<any>
+) =>
   modelConnector
     .withList({
       request: (props) => ({
@@ -62,10 +68,11 @@ export const accountModelConnector = (modelConnector: SyncModelConnectorBuilder<
         },
       }),
       responseSchema: HubSpotCompanyListResponseSchema,
-      pagination: (response) => ({
+      pagination: ({ response }) => ({
         cursor: response.paging?.next?.after,
+        hasMore: !!response.paging?.next?.after,
       }),
-      transform: (response) => 
+      transform: (response) =>
         response.results.map((result) => ({
           externalId: result.id,
           externalUpdatedAt: result.updatedAt,
@@ -83,9 +90,10 @@ export const accountModelConnector = (modelConnector: SyncModelConnectorBuilder<
             },
             industry: result.properties.industry,
             numberOfEmployees: result.properties.numberofemployees,
-            ownerId: result.properties.hubspot_owner_id === "" 
-              ? null 
-              : result.properties.hubspot_owner_id,
+            ownerId:
+              result.properties.hubspot_owner_id === ""
+                ? null
+                : result.properties.hubspot_owner_id,
           },
         })),
     })

@@ -28,15 +28,21 @@ const HubSpotContactSchema = z.object({
 
 const HubSpotContactListResponseSchema = z.object({
   results: z.array(HubSpotContactSchema),
-  paging: z.object({
-    next: z.object({
-      after: z.string(),
-      link: z.string(),
-    }).optional(),
-  }).optional(),
+  paging: z
+    .object({
+      next: z
+        .object({
+          after: z.string(),
+          link: z.string(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
-export const contactModelConnector = (modelConnector: SyncModelConnectorBuilder<any>) =>
+export const contactModelConnector = (
+  modelConnector: SyncModelConnectorBuilder<any>
+) =>
   modelConnector
     .withList({
       request: (props) => ({
@@ -63,10 +69,11 @@ export const contactModelConnector = (modelConnector: SyncModelConnectorBuilder<
         },
       }),
       responseSchema: HubSpotContactListResponseSchema,
-      pagination: (response) => ({
+      pagination: ({ response }) => ({
         cursor: response.paging?.next?.after,
+        hasMore: !!response.paging?.next?.after,
       }),
-      transform: (response) => 
+      transform: (response) =>
         response.results.map((result) => ({
           externalId: result.id,
           externalUpdatedAt: result.updatedAt,
@@ -84,12 +91,14 @@ export const contactModelConnector = (modelConnector: SyncModelConnectorBuilder<
               postalCode: result.properties.zip,
               country: result.properties.country,
             },
-            accountId: result.properties.associatedcompanyid === ""
-              ? null
-              : result.properties.associatedcompanyid,
-            ownerId: result.properties.hubspot_owner_id === ""
-              ? null
-              : result.properties.hubspot_owner_id,
+            accountId:
+              result.properties.associatedcompanyid === ""
+                ? null
+                : result.properties.associatedcompanyid,
+            ownerId:
+              result.properties.hubspot_owner_id === ""
+                ? null
+                : result.properties.hubspot_owner_id,
           },
         })),
     })
