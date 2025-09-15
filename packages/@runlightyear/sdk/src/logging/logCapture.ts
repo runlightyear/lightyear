@@ -152,7 +152,11 @@ class LogCapture {
         process.env.LIGHTYEAR_BASE_URL ||
         "https://app.runlightyear.com",
       environment: config.environment || process.env.LIGHTYEAR_ENV || "dev",
-      apiKey: config.apiKey || process.env.LIGHTYEAR_API_KEY || "",
+      apiKey:
+        config.apiKey ||
+        process.env.LIGHTYEAR_API_KEY ||
+        process.env.API_KEY ||
+        "",
     };
   }
 
