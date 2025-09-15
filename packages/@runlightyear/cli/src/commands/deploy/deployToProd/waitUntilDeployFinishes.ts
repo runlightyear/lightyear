@@ -4,6 +4,7 @@ import fetchDeploy from "./fetchDeploy";
 import { terminal } from "terminal-kit";
 import { logDisplayLevel } from "../../../shared/setLogDisplayLevel";
 import throttle from "lodash/throttle";
+import { program } from "commander";
 
 export type Log = {
   id: string;
@@ -35,33 +36,56 @@ export default async function waitUntilDeployFinishes(deployId: string) {
       deployId
     )) as GetDeployDetailResponseBody;
 
-    const { status, logs } = deploy;
+    const status = deploy.status;
+    const logsArray: Log[] = Array.isArray((deploy as any).logs)
+      ? ((deploy as any).logs as Log[])
+      : [];
 
-    const newLogs = logs.slice(lineOutputCounter);
+    const newLogs = logsArray.slice(lineOutputCounter);
 
-    const logOutput =
-      newLogs
-        .filter((log) =>
-          logDisplayLevel === "DEBUG" ? true : log.level !== "DEBUG"
-        )
-        .map(
-          (log) =>
-            "\x1b[35m" +
-            "Server: " +
-            "\x1b[0m" +
-            `[${log.level}]: ${log.message}`
-        )
-        .join("\n") + "\n";
-    terminal(logOutput);
+    if (newLogs.length > 0) {
+      const logOutput =
+        newLogs
+          .filter((log) =>
+            logDisplayLevel === "DEBUG" ? true : log.level !== "DEBUG"
+          )
+          .map(
+            (log) =>
+              "\x1b[35m" +
+              "Server: " +
+              "\x1b[0m" +
+              `[${log.level}]: ${log.message}`
+          )
+          .join("\n") + "\n";
+      terminal(logOutput);
+    }
 
-    lineOutputCounter = newLogs.length;
+    lineOutputCounter = logsArray.length;
 
     if (status === "SUCCEEDED") {
       terminal.green("Deploy succeeded! 🚀\n");
-      process.exit(0);
+      try {
+        subscription.unbind("deployUpdated", throttledHandleUpdate);
+      } catch {}
+      try {
+        pusher.unsubscribe(channel);
+      } catch {}
+      try {
+        pusher.disconnect();
+      } catch {}
+      return;
     } else if (status === "FAILED") {
       terminal.red("Deploy failed 💥\n");
-      process.exit(1);
+      try {
+        subscription.unbind("deployUpdated", throttledHandleUpdate);
+      } catch {}
+      try {
+        pusher.unsubscribe(channel);
+      } catch {}
+      try {
+        pusher.disconnect();
+      } catch {}
+      program.error("Deploy failed", { exitCode: 1 });
     }
   };
 
