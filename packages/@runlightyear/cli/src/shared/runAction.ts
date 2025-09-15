@@ -4,6 +4,7 @@ import runInContext from "./runInContext";
 import { prepareConsole } from "../logging";
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
+import { terminal } from "terminal-kit";
 
 export interface RunActionProps {
   actionName: string;
@@ -27,7 +28,7 @@ export default async function runAction({
     {
       method: "PATCH",
       headers: {
-        Authorization: `apiKey ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -45,6 +46,7 @@ export default async function runAction({
   let handler;
   let status;
   let logs;
+  let isRerun = false;
 
   try {
     handler = runInContext(compiledCode).handler;
@@ -71,41 +73,71 @@ export default async function runAction({
 
     const { logs: logsFromVm } = responseData;
 
-    status =
-      statusCode === 202
-        ? "SKIPPED"
-        : statusCode >= 300
-        ? "FAILED"
-        : "SUCCEEDED";
+    isRerun =
+      responseData?.data?.status === "RERUN" ||
+      responseData?.data?.message === "Rerun" ||
+      responseData?.message === "Rerun";
+
+    const isCanceled =
+      responseData?.data?.status === "CANCELED" ||
+      responseData?.message === "Run canceled" ||
+      responseData?.error === "Run canceled";
+
+    if (statusCode === 202 && isRerun) {
+      // Rerun is treated as a success; SDK handler already finished the run
+      status = "SUCCEEDED";
+    } else if (isCanceled) {
+      status = "CANCELED";
+    } else if (statusCode === 202) {
+      status = "SKIPPED";
+    } else if (statusCode >= 300) {
+      status = "FAILED";
+    } else {
+      status = "SUCCEEDED";
+    }
 
     logs = logsFromVm;
+
+    if (isCanceled) {
+      // Do not attempt to patch a canceled run; backend rejects updates for canceled runs
+      terminal.yellow("Run was canceled by the platform.\n");
+      return;
+    }
   }
 
-  const response = await fetch(
-    `${baseUrl}/api/v1/envs/${envName}/runs/${runId}`,
-    {
-      method: "PATCH",
-      headers: {
-        Authorization: `apiKey ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        status,
-        // logs,
-        endedAt: "now",
-        // deliveryId,
-      }),
-    }
-  );
-
-  if (response.ok) {
-    console.info("Uploaded run result");
-  } else {
-    console.error(
-      "Failed to upload run result",
-      response.status,
-      response.statusText
+  // If handler indicated a rerun, the SDK finished the run with rerun=true.
+  // Avoid overriding that state with a PATCH here.
+  if (!isRerun) {
+    const response = await fetch(
+      `${baseUrl}/api/v1/envs/${envName}/runs/${runId}`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status,
+          // logs,
+          endedAt: "now",
+          // deliveryId,
+        }),
+      }
     );
-    console.error(await response.text());
+
+    if (response.ok) {
+      console.info("Uploaded run result");
+    } else {
+      console.error(
+        "Failed to upload run result",
+        response.status,
+        response.statusText
+      );
+      console.error(await response.text());
+    }
+  } else {
+    console.info(
+      "Rerun requested; skipping CLI status patch to preserve rerun state"
+    );
   }
 }

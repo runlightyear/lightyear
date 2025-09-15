@@ -22,7 +22,7 @@ export default async function createDeploy(
     response = await fetch(`${baseUrl}/api/v1/envs/${envName}/deploys`, {
       method: "POST",
       headers: {
-        Authorization: `apiKey ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -54,7 +54,7 @@ export default async function createDeploy(
       response.status,
       response.statusText
     );
-    console.error(await response.json());
+    console.error(json); // Fixed: use the already-parsed json instead of reading body again
     throw new Error("Failed to create deploy");
   }
 }

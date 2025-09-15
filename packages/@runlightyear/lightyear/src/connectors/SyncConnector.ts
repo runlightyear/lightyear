@@ -41,6 +41,25 @@ export abstract class SyncConnector extends RestConnector {
       "currentModelName in CollectionSynchronizer",
       currentModelName
     );
+    try {
+      const initialCursor =
+        sync?.lastBatch?.cursor ?? (sync as any)?.cursor ?? null;
+      const initialPage =
+        typeof (sync as any)?.page === "number"
+          ? (sync as any).page
+          : sync?.lastBatch?.page ?? null;
+      const initialOffset =
+        typeof (sync as any)?.offset === "number"
+          ? (sync as any).offset
+          : sync?.lastBatch?.offset ?? null;
+      console.info(
+        `Sync start state → collection=${
+          this.collectionName
+        } sync=${syncId} currentModel=${currentModelName ?? "none"} cursor=${
+          initialCursor ?? "none"
+        } page=${initialPage ?? "none"} offset=${initialOffset ?? "none"}`
+      );
+    } catch {}
 
     if (currentModelName) {
       // slice modelsToSync to only include the currentModelName and subsequent models

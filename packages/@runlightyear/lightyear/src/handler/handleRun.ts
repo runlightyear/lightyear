@@ -4,6 +4,7 @@ import { finishRun, getRunFuncProps } from "../base/run";
 import { BaseRequestError } from "../base/BaseRequestError";
 import { HttpProxyResponseError } from "../base/http";
 import { getEnvName } from "../util/getEnvName";
+import { setContext } from "../base/context";
 
 export interface HandleRunProps {
   actionName: string | undefined;
@@ -38,6 +39,14 @@ export async function handleRun({
   // const { auths, variables, secrets, webhook } = actionData;
   const { auths, variables, secrets, webhook, integration, managedUser } =
     runFuncProps;
+
+  // Ensure integration and managed user are available in global context for proxy requests
+  setContext({
+    integrationName: integration?.name,
+    managedUserId: managedUser?.id,
+    managedUserExternalId: managedUser?.externalId,
+    managedUserDisplayName: managedUser?.displayName ?? null,
+  });
 
   try {
     console.info(`Running action ${actionName}`);

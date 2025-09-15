@@ -10,7 +10,7 @@ export default async function fetchDeploy(envName: string, deployId: string) {
     {
       method: "GET",
       headers: {
-        Authorization: `apiKey ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
     }
   );

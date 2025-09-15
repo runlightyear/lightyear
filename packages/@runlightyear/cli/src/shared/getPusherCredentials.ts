@@ -19,7 +19,7 @@ export default async function getPusherCredentials(): Promise<PusherCredentials>
 
   const response = await fetch(`${baseUrl}/api/v1/realtime/credentials`, {
     headers: {
-      Authorization: `apiKey ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
     },
   });
 

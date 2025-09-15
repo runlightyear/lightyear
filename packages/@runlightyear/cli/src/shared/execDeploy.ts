@@ -38,6 +38,7 @@ export default async function execDeploy(props: ExecDeployProps) {
 
   const handlerResult = await handler({
     operation: "deploy",
+    deployId,
     logDisplayLevel,
   });
 

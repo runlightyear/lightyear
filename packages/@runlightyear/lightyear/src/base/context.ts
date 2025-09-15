@@ -4,6 +4,12 @@ export interface Context {
   webhookName?: string;
   runId?: string;
   syncId?: string;
+  // The integration we are executing within
+  integrationName?: string;
+  // Managed user we are running on behalf of
+  managedUserId?: string;
+  managedUserExternalId?: string;
+  managedUserDisplayName?: string | null;
 }
 
 export let context: Context = {};

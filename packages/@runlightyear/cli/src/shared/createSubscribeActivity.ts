@@ -19,7 +19,7 @@ export default async function createSubscribeActivity(
     {
       method: "POST",
       headers: {
-        Authorization: `apiKey ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
