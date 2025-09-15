@@ -18,7 +18,9 @@ const HubSpotOwnerListResponseSchema = z.object({
   results: z.array(HubSpotOwnerSchema),
 });
 
-export const userModelConnector = (modelConnector: SyncModelConnectorBuilder<any>) =>
+export const userModelConnector = (
+  modelConnector: SyncModelConnectorBuilder<any>
+) =>
   modelConnector.withList({
     request: (props) => ({
       endpoint: "/owners",
