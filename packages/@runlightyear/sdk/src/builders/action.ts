@@ -22,7 +22,10 @@ if (typeof globalThis !== "undefined") {
 }
 
 // Type helpers for extracting variable/secret configurations
-type VariableConfig<Name extends string = string, Required extends boolean = boolean> = {
+type VariableConfig<
+  Name extends string = string,
+  Required extends boolean = boolean
+> = {
   name: Name;
   title?: string;
   description?: string;
@@ -30,7 +33,10 @@ type VariableConfig<Name extends string = string, Required extends boolean = boo
   required: Required;
 };
 
-type SecretConfig<Name extends string = string, Required extends boolean = boolean> = {
+type SecretConfig<
+  Name extends string = string,
+  Required extends boolean = boolean
+> = {
   name: Name;
   title?: string;
   description?: string;
@@ -38,18 +44,25 @@ type SecretConfig<Name extends string = string, Required extends boolean = boole
 };
 
 // Extract types from variable/secret arrays
-type ExtractVariableNames<T extends readonly VariableConfig[]> = T[number]["name"];
+type ExtractVariableNames<T extends readonly VariableConfig[]> =
+  T[number]["name"];
 type ExtractSecretNames<T extends readonly SecretConfig[]> = T[number]["name"];
 
 // Create typed variable/secret objects based on required status
 type TypedVariables<T extends readonly VariableConfig[]> = {
-  [K in ExtractVariableNames<T>]: Extract<T[number], { name: K }>["required"] extends true
+  [K in ExtractVariableNames<T>]: Extract<
+    T[number],
+    { name: K }
+  >["required"] extends true
     ? string
     : string | null;
 };
 
 type TypedSecrets<T extends readonly SecretConfig[]> = {
-  [K in ExtractSecretNames<T>]: Extract<T[number], { name: K }>["required"] extends true
+  [K in ExtractSecretNames<T>]: Extract<
+    T[number],
+    { name: K }
+  >["required"] extends true
     ? string
     : string | null;
 };
@@ -124,10 +137,7 @@ export class ActionBuilder<
       defaultValue?: string;
       required?: Required;
     }
-  ): ActionBuilder<
-    [...V, VariableConfig<Name, Required>],
-    S
-  > {
+  ): ActionBuilder<[...V, VariableConfig<Name, Required>], S> {
     const newVariable: VariableConfig<Name, Required> = {
       name,
       title: options?.title,
@@ -139,7 +149,10 @@ export class ActionBuilder<
     const newBuilder = Object.create(Object.getPrototypeOf(this));
     return Object.assign(newBuilder, {
       ...this,
-      variables: [...this.variables, newVariable] as [...V, VariableConfig<Name, Required>],
+      variables: [...this.variables, newVariable] as [
+        ...V,
+        VariableConfig<Name, Required>
+      ],
     });
   }
 
@@ -167,7 +180,7 @@ export class ActionBuilder<
     const newBuilder = Object.create(Object.getPrototypeOf(this));
     const mappedVars = variables.map((v): VariableConfig => {
       if (typeof v === "string") {
-        return { name: v, required: false };
+        return { name: v } as unknown as VariableConfig;
       }
       return {
         name: v.name,
@@ -190,10 +203,7 @@ export class ActionBuilder<
       description?: string;
       required?: Required;
     }
-  ): ActionBuilder<
-    V,
-    [...S, SecretConfig<Name, Required>]
-  > {
+  ): ActionBuilder<V, [...S, SecretConfig<Name, Required>]> {
     const newSecret: SecretConfig<Name, Required> = {
       name,
       title: options?.title,
@@ -204,7 +214,10 @@ export class ActionBuilder<
     const newBuilder = Object.create(Object.getPrototypeOf(this));
     return Object.assign(newBuilder, {
       ...this,
-      secrets: [...this.secrets, newSecret] as [...S, SecretConfig<Name, Required>],
+      secrets: [...this.secrets, newSecret] as [
+        ...S,
+        SecretConfig<Name, Required>
+      ],
     });
   }
 
@@ -232,7 +245,7 @@ export class ActionBuilder<
     const newBuilder = Object.create(Object.getPrototypeOf(this));
     const mappedSecrets = secrets.map((s): SecretConfig => {
       if (typeof s === "string") {
-        return { name: s, required: false };
+        return { name: s } as unknown as SecretConfig;
       }
       return {
         name: s.name,
@@ -258,9 +271,10 @@ export class ActionBuilder<
   /**
    * Create a builder from an existing action or builder (copy constructor pattern).
    */
-  static from<V extends readonly VariableConfig[], S extends readonly SecretConfig[]>(
-    source: Action | ActionBuilder<V, S>
-  ): ActionBuilder<V, S> {
+  static from<
+    V extends readonly VariableConfig[],
+    S extends readonly SecretConfig[]
+  >(source: Action | ActionBuilder<V, S>): ActionBuilder<V, S> {
     if (source instanceof ActionBuilder) {
       const builder = new ActionBuilder<V, S>(source.name);
       builder.title = source.title;
@@ -312,25 +326,32 @@ export class ActionBuilder<
       name: this.name,
       title: this.title,
       description: this.description,
-      variables: this.variables.length > 0 
-        ? this.variables.map(v => ({
-            // Add "?" suffix for optional variables (when required is false)
-            name: v.required ? v.name : `${v.name}?`,
-            title: v.title,
-            description: v.description,
-            defaultValue: v.defaultValue,
-            required: v.required,
-          } as AppVariable))
-        : undefined,
-      secrets: this.secrets.length > 0
-        ? this.secrets.map(s => ({
-            // Add "?" suffix for optional secrets (when required is false)
-            name: s.required ? s.name : `${s.name}?`,
-            title: s.title,
-            description: s.description,
-            required: s.required,
-          } as AppSecret))
-        : undefined,
+      variables:
+        this.variables.length > 0
+          ? this.variables.map((v) => {
+              const variable: AppVariable = { name: v.name } as AppVariable;
+              if (v.title !== undefined) variable.title = v.title;
+              if (v.description !== undefined)
+                variable.description = v.description;
+              if (v.defaultValue !== undefined)
+                variable.defaultValue = v.defaultValue;
+              if (v.required !== undefined)
+                variable.required = v.required as boolean;
+              return variable;
+            })
+          : undefined,
+      secrets:
+        this.secrets.length > 0
+          ? this.secrets.map((s) => {
+              const secret: AppSecret = { name: s.name } as AppSecret;
+              if (s.title !== undefined) secret.title = s.title;
+              if (s.description !== undefined)
+                secret.description = s.description;
+              if (s.required !== undefined)
+                secret.required = s.required as boolean;
+              return secret;
+            })
+          : undefined,
       run: this.runFunction as any, // Cast needed due to type variance
     };
 
@@ -368,6 +389,7 @@ export const defineAction: DefineActionFn = ((name: string) =>
 defineAction.from = (source: Action | ActionBuilder<any, any>) =>
   ActionBuilder.from(source) as ActionBuilder<any, any>;
 
-defineAction.fromAction = (action: Action) => ActionBuilder.from(action) as ActionBuilder<any, any>;
+defineAction.fromAction = (action: Action) =>
+  ActionBuilder.from(action) as ActionBuilder<any, any>;
 
 // Export type-safe types - these are now defined above, not re-exported

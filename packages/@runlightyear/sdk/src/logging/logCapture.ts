@@ -588,10 +588,23 @@ class LogCapture {
             );
           }
 
-          const responseText = await response
-            .text()
-            .catch(() => "Unable to read response");
-          this.originalConsole.log("📄 Success response body:", responseText);
+          try {
+            const textFn = (response as any)?.text;
+            if (typeof textFn === "function") {
+              const responseText = await textFn
+                .call(response)
+                .catch(() => "Unable to read response");
+              this.originalConsole.log(
+                "📄 Success response body:",
+                responseText
+              );
+            } else {
+              // Some test environments stub fetch without a text() method
+              this.originalConsole.log(
+                "📄 Success response body: <unavailable>"
+              );
+            }
+          } catch {}
           break;
         } catch (err: any) {
           if (err instanceof RunCanceledError) {

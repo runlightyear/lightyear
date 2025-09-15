@@ -26,9 +26,7 @@ type SingleModelToDataMap<M> = M extends Model<infer S, infer N extends string>
 
 // Distribute over union of models and combine with intersection
 type ModelNameToDataMap<TModels> = UnionToIntersection<
-  TModels extends readonly any[]
-    ? SingleModelToDataMap<TModels[number]>
-    : {}
+  TModels extends readonly any[] ? SingleModelToDataMap<TModels[number]> : {}
 >;
 
 // Helper type: filter models by a list of names (preserve tuple order)
@@ -156,13 +154,8 @@ export class CollectionBuilder<
     readonly [...TModels, Model<S, N>],
     TSchemas & { [K in N]: S }
   > {
-    // If a schema is provided, validate that it's a JSON Schema (not Zod), and sanity-check it
+    // If a schema is provided, allow Zod and JSON Schema. Only sanity-check JSON Schema objects.
     const providedSchema = options?.schema as unknown;
-    if (isZodSchema(providedSchema)) {
-      throw new Error(
-        `Model "${name}": Zod schemas are not supported. Please provide a JSON Schema (draft-07).`
-      );
-    }
     if (
       providedSchema &&
       typeof providedSchema === "object" &&
