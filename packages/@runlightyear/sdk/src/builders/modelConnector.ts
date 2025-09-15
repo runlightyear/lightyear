@@ -64,8 +64,8 @@ export class ModelConnectorBuilder<T = any> {
 
     // Add list implementation
     if (this.config.list) {
-      connector.list = async (params: ListParams) => {
-        const _params: ListParams = params || ({} as any);
+      connector.list = async (params?: ListParams) => {
+        const _params: ListParams = params || ({ syncType: "FULL" } as any);
         const requestConfig = this.config.list!.request(_params);
 
         const response = await this.restConnector.request({
@@ -77,17 +77,17 @@ export class ModelConnectorBuilder<T = any> {
         });
 
         let data = response.data;
-        let items: Array<{
-          externalId: string;
-          externalUpdatedAt: string | null;
-          data: T;
-        }>;
+        let items: any[] = [];
 
         if (this.config.list!.responseSchema) {
           data = this.config.list!.responseSchema.parse(data);
         }
 
-        items = this.config.list!.transform(data);
+        if (this.config.list!.transform) {
+          items = (this.config.list as any).transform(data);
+        } else {
+          items = data as any[];
+        }
 
         const pg = this.config.list!.pagination as
           | ((args: {
