@@ -12,6 +12,11 @@ export type { SalesforceProps } from "./Salesforce";
 export { SalesforceOAuth } from "./SalesforceOAuth";
 export type { SalesforceOAuthProps } from "./SalesforceOAuth";
 
+export { createSalesforceOAuthConnector } from "./connectors/oauth";
+export { createSalesforceRestConnector } from "./connectors/rest";
+export { defineSalesforceCustomApp } from "./connectors/app";
+export { createSalesforceSyncConnector } from "./connectors/sync";
+
 /* Describe */
 export type {
   DescribeObjectProps,
