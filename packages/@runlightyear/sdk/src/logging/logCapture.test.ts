@@ -168,6 +168,7 @@ describe("LogCapture", () => {
         uploadIntervalMs: 100,
         apiKey: "test-key",
         environment: "test",
+        baseUrl: "https://app.runlightyear.com",
       });
 
       logCapture.startCapture();

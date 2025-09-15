@@ -149,9 +149,14 @@ class LogCapture {
       maxLogsPerBatch: config.maxLogsPerBatch || 1000,
       baseUrl:
         config.baseUrl ||
+        process.env.BASE_URL ||
         process.env.LIGHTYEAR_BASE_URL ||
         "https://app.runlightyear.com",
-      environment: config.environment || process.env.LIGHTYEAR_ENV || "dev",
+      environment:
+        config.environment ||
+        process.env.ENV_NAME ||
+        process.env.LIGHTYEAR_ENV ||
+        "dev",
       apiKey:
         config.apiKey ||
         process.env.LIGHTYEAR_API_KEY ||
