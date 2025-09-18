@@ -30,6 +30,12 @@ export interface ListParams {
 // Useful when we want inference to come solely from another argument (e.g., a literal model name).
 type NoInfer<T> = [T][T extends any ? 0 : never];
 
+export type SyncObject<TModel> = {
+  externalId: string | number;
+  externalUpdatedAt?: string | number | null;
+  data: TModel;
+};
+
 export interface ListConfig<TModel = any, TResponse = unknown> {
   request: (params: ListParams) => {
     endpoint: string;
@@ -57,8 +63,8 @@ export interface ListConfig<TModel = any, TResponse = unknown> {
     offset?: number | null;
     hasMore: boolean;
   };
-  // Optional transform to map raw response to an array of models
-  transform?: (response: TResponse) => Array<TModel>;
+  // Optional transform to map raw response to an array of sync-ready objects
+  transform?: (response: TResponse) => Array<SyncObject<TModel>>;
 }
 
 export interface CreateConfig<T = any> {
@@ -177,7 +183,7 @@ export interface TypedListConfig<TModel, TResponse> {
     offset?: number | null;
     hasMore: boolean;
   };
-  transform?: (response: TResponse) => Array<TModel>;
+  transform?: (response: TResponse) => Array<SyncObject<TModel>>;
 }
 
 export interface TypedModelConnectorConfig<TModel> {
@@ -219,15 +225,15 @@ export interface TypeSafeListConfig<
     hasMore: boolean;
   };
   transform?: TResponseSchema extends z.ZodType<any>
-    ? (response: InferResponseType<TResponseSchema>) => Array<TModel>
-    : (response: unknown) => Array<TModel>;
+    ? (response: InferResponseType<TResponseSchema>) => Array<SyncObject<TModel>>
+    : (response: unknown) => Array<SyncObject<TModel>>;
 }
 
 export interface ModelConnector<T = any> {
   modelName: string;
   config: ModelConnectorConfig<T>;
   list?: (params?: ListParams) => Promise<{
-    items: Array<T>;
+    items: Array<SyncObject<T>>;
     pagination: {
       cursor?: string;
       page?: number;
@@ -380,7 +386,7 @@ export class SyncConnectorBuilder<
         const response = await this.restConnector.request(listReq);
 
         let data = response.data;
-        let items: Array<any> = [];
+        let items: Array<SyncObject<any>> = [];
 
         if (config.list!.responseSchema) {
           data = config.list!.responseSchema.parse(data);
@@ -389,7 +395,7 @@ export class SyncConnectorBuilder<
         // Apply required transform into platform object shape
         items = config.list!.transform
           ? config.list!.transform(data)
-          : (data as any[]);
+          : (data as Array<SyncObject<any>>);
 
         // Extract pagination info
         const pg = config.list!.pagination as
@@ -693,8 +699,8 @@ export class SyncModelConnectorBuilder<T = any> {
           hasMore: boolean;
         };
     transform?: TSchema extends z.ZodType<any>
-      ? (response: z.infer<TSchema>) => Array<T>
-      : (response: unknown) => Array<T>;
+      ? (response: z.infer<TSchema>) => Array<SyncObject<T>>
+      : (response: unknown) => Array<SyncObject<T>>;
   }): this {
     this.config.list = config as any;
     return this;
@@ -795,7 +801,7 @@ export class ModelConnectorConfigBuilder<T = any> {
       offset?: number | null;
       hasMore: boolean;
     };
-    transform?: (response: z.infer<TSchema>) => Array<T>;
+    transform?: (response: z.infer<TSchema>) => Array<SyncObject<T>>;
   }): this {
     this.config.list = config as any;
     return this;
@@ -1109,7 +1115,7 @@ export class SyncConnector<
               }
 
               // Items are already in platform-ready shape from transform
-              const objects = items.map((it: any) => ({
+              const objects = items.map((it) => ({
                 externalId: String(it.externalId),
                 externalUpdatedAt: it.externalUpdatedAt
                   ? String(it.externalUpdatedAt)
@@ -1503,7 +1509,7 @@ export function createListConfig<TModel, TResponse>(config: {
     offset?: number | null;
     hasMore: boolean;
   };
-  transform?: (response: TResponse) => Array<TModel>;
+  transform?: (response: TResponse) => Array<SyncObject<TModel>>;
 }): ListConfig<TModel, TResponse> {
   return config;
 }

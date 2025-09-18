@@ -9,6 +9,7 @@ import type {
   BulkConfig,
   ListParams,
   ModelConnector as ModelConnectorInterface,
+  SyncObject,
 } from "./syncConnector";
 
 /**
@@ -77,16 +78,16 @@ export class ModelConnectorBuilder<T = any> {
         });
 
         let data = response.data;
-        let items: any[] = [];
+        let items: Array<SyncObject<T>> = [];
 
         if (this.config.list!.responseSchema) {
           data = this.config.list!.responseSchema.parse(data);
         }
 
         if (this.config.list!.transform) {
-          items = (this.config.list as any).transform(data);
+          items = this.config.list!.transform(data);
         } else {
-          items = data as any[];
+          items = data as Array<SyncObject<T>>;
         }
 
         const pg = this.config.list!.pagination as
