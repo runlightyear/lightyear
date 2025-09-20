@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { z } from "zod";
+import type { ListFilterArgs } from "./syncConnector";
 import { createSyncConnector, SyncConnectorBuilder } from "./syncConnector";
 import { defineCollection } from "./collection";
 import { createRestConnector } from "./restConnector";
@@ -260,6 +261,69 @@ describe("SyncConnector", () => {
       expect(result?.items).toEqual([
         { id: "1", name: "User 1", email: "user1@example.com" },
         { id: "2", name: "User 2", email: "user2@example.com" },
+      ]);
+    });
+
+    it("should filter list items when a filter function is provided", async () => {
+      const mockResponse = {
+        data: [
+          { id: "1", updatedAt: "2024-01-01T00:00:00.000Z" },
+          { id: "2", updatedAt: "2024-01-03T00:00:00.000Z" },
+        ],
+      };
+
+      (mockRestConnector.request as any).mockResolvedValue(mockResponse);
+
+      const filterFn = vi.fn<(args: ListFilterArgs<any>) => boolean>(
+        ({ obj, lastExternalId, lastExternalUpdatedAt, syncType }) => {
+          expect(obj).toEqual(
+            expect.objectContaining({
+              externalId: expect.any(String),
+              externalUpdatedAt: expect.any(String),
+              data: expect.objectContaining({
+                id: expect.any(String),
+                updatedAt: expect.any(String),
+              }),
+            })
+          );
+          expect(syncType).toBe("INCREMENTAL");
+          expect(lastExternalId).toBe("1");
+          expect(lastExternalUpdatedAt).toBe("2024-01-01T00:00:00.000Z");
+          return obj.externalId !== "1";
+        }
+      );
+
+      const syncConnector = createSyncConnector(mockRestConnector, collection)
+        .with("user", {
+          list: {
+            request: () => ({
+              endpoint: "/users",
+            }),
+            transform: (response: any[]) =>
+              response.map((item) => ({
+                externalId: item.id,
+                externalUpdatedAt: item.updatedAt,
+                data: item,
+              })),
+            filter: filterFn,
+          },
+        })
+        .build();
+
+      const userConnector = syncConnector.getModelConnector("user");
+      const result = await userConnector?.list?.({
+        syncType: "INCREMENTAL",
+        lastExternalId: "1",
+        lastExternalUpdatedAt: "2024-01-01T00:00:00.000Z",
+      });
+
+      expect(filterFn).toHaveBeenCalledTimes(2);
+      expect(result?.items).toEqual([
+        {
+          externalId: "2",
+          externalUpdatedAt: "2024-01-03T00:00:00.000Z",
+          data: { id: "2", updatedAt: "2024-01-03T00:00:00.000Z" },
+        },
       ]);
     });
 

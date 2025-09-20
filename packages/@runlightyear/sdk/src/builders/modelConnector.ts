@@ -90,6 +90,17 @@ export class ModelConnectorBuilder<T = any> {
           items = data as Array<SyncObject<T>>;
         }
 
+        if (this.config.list!.filter) {
+          items = items.filter((obj) =>
+            this.config.list!.filter!({
+              obj,
+              lastExternalId: _params.lastExternalId,
+              lastExternalUpdatedAt: _params.lastExternalUpdatedAt,
+              syncType: _params.syncType,
+            })
+          );
+        }
+
         const pg = this.config.list!.pagination as
           | ((args: {
               response: any;
@@ -97,6 +108,8 @@ export class ModelConnectorBuilder<T = any> {
               page?: number;
               offset?: number;
               limit?: number;
+              lastExternalId?: string;
+              lastExternalUpdatedAt?: string;
               syncType: "FULL" | "INCREMENTAL";
             }) => {
               cursor?: string | null;
@@ -113,6 +126,8 @@ export class ModelConnectorBuilder<T = any> {
                 page: _params.page,
                 offset: _params.offset,
                 limit: _params.limit,
+                lastExternalId: _params.lastExternalId,
+                lastExternalUpdatedAt: _params.lastExternalUpdatedAt,
                 syncType: _params.syncType,
               })
             : undefined;
