@@ -23,6 +23,8 @@ export interface ListParams {
   page?: number;
   offset?: number;
   limit?: number;
+  lastExternalId?: string;
+  lastExternalUpdatedAt?: string;
   syncType: "FULL" | "INCREMENTAL";
 }
 
@@ -31,10 +33,17 @@ export interface ListParams {
 type NoInfer<T> = [T][T extends any ? 0 : never];
 
 export type SyncObject<TModel> = {
-  externalId: string | number;
-  externalUpdatedAt?: string | number | null;
+  externalId: string;
+  externalUpdatedAt: string | null;
   data: TModel;
 };
+
+export interface ListFilterArgs<TModel = any> {
+  obj: SyncObject<TModel>;
+  lastExternalId?: string;
+  lastExternalUpdatedAt?: string;
+  syncType: "FULL" | "INCREMENTAL";
+}
 
 export interface ListConfig<TModel = any, TResponse = unknown> {
   request: (params: ListParams) => {
@@ -56,6 +65,8 @@ export interface ListConfig<TModel = any, TResponse = unknown> {
     page?: number;
     offset?: number;
     limit?: number;
+    lastExternalId?: string;
+    lastExternalUpdatedAt?: string;
     syncType: "FULL" | "INCREMENTAL";
   }) => {
     cursor?: string | null;
@@ -65,6 +76,7 @@ export interface ListConfig<TModel = any, TResponse = unknown> {
   };
   // Optional transform to map raw response to an array of sync-ready objects
   transform?: (response: TResponse) => Array<SyncObject<TModel>>;
+  filter?: (args: ListFilterArgs<TModel>) => boolean;
 }
 
 export interface CreateConfig<T = any> {
@@ -184,6 +196,7 @@ export interface TypedListConfig<TModel, TResponse> {
     hasMore: boolean;
   };
   transform?: (response: TResponse) => Array<SyncObject<TModel>>;
+  filter?: (args: ListFilterArgs<TModel>) => boolean;
 }
 
 export interface TypedModelConnectorConfig<TModel> {
@@ -227,6 +240,7 @@ export interface TypeSafeListConfig<
   transform?: TResponseSchema extends z.ZodType<any>
     ? (response: InferResponseType<TResponseSchema>) => Array<SyncObject<TModel>>
     : (response: unknown) => Array<SyncObject<TModel>>;
+  filter?: (args: ListFilterArgs<TModel>) => boolean;
 }
 
 export interface ModelConnector<T = any> {
@@ -397,6 +411,17 @@ export class SyncConnectorBuilder<
           ? config.list!.transform(data)
           : (data as Array<SyncObject<any>>);
 
+        if (config.list!.filter) {
+          items = items.filter((obj) =>
+            config.list!.filter!({
+              obj,
+              lastExternalId: _params.lastExternalId,
+              lastExternalUpdatedAt: _params.lastExternalUpdatedAt,
+              syncType: _params.syncType,
+            })
+          );
+        }
+
         // Extract pagination info
         const pg = config.list!.pagination as
           | ((args: {
@@ -405,6 +430,8 @@ export class SyncConnectorBuilder<
               page?: number;
               offset?: number;
               limit?: number;
+              lastExternalId?: string;
+              lastExternalUpdatedAt?: string;
               syncType: "FULL" | "INCREMENTAL";
             }) => {
               cursor?: string | null;
@@ -421,6 +448,8 @@ export class SyncConnectorBuilder<
                 page: _params.page,
                 offset: _params.offset,
                 limit: _params.limit,
+                lastExternalId: _params.lastExternalId,
+                lastExternalUpdatedAt: _params.lastExternalUpdatedAt,
                 syncType: _params.syncType,
               })
             : undefined;
@@ -701,6 +730,7 @@ export class SyncModelConnectorBuilder<T = any> {
     transform?: TSchema extends z.ZodType<any>
       ? (response: z.infer<TSchema>) => Array<SyncObject<T>>
       : (response: unknown) => Array<SyncObject<T>>;
+    filter?: (args: ListFilterArgs<T>) => boolean;
   }): this {
     this.config.list = config as any;
     return this;
@@ -802,6 +832,7 @@ export class ModelConnectorConfigBuilder<T = any> {
       hasMore: boolean;
     };
     transform?: (response: z.infer<TSchema>) => Array<SyncObject<T>>;
+    filter?: (args: ListFilterArgs<T>) => boolean;
   }): this {
     this.config.list = config as any;
     return this;
