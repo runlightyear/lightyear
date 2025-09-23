@@ -403,6 +403,44 @@ const bulkConfig = {
 };
 ```
 
+When working with sync push changes you can opt into the change-aware helper,
+which receives the full change (including `changeId`) and extracts the
+confirmation payload from the API response:
+
+```typescript
+builder.withBulkCreate({
+  request: (changes) => ({
+    endpoint: "/objects/contacts/batch/create",
+    method: "POST",
+  json: {
+      inputs: changes.map((change) => ({
+        objectWriteTraceId: change.changeId,
+        properties: {
+          firstname: change.obj.firstName,
+          lastname: change.obj.lastName,
+          email: change.obj.email,
+        },
+      })),
+    },
+  }),
+  responseSchema: z.object({
+    results: z.array(
+      z.object({
+        objectWriteTraceId: z.string(),
+        id: z.string(),
+        updatedAt: z.string(),
+      })
+    ),
+  }),
+  extract: (response) =>
+    response.results.map((result) => ({
+      changeId: result.objectWriteTraceId,
+      externalId: result.id,
+      externalUpdatedAt: result.updatedAt,
+    })),
+});
+```
+
 ## Migration Guide
 
 If you have existing sync connectors without type safety:

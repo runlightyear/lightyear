@@ -38,6 +38,27 @@ export type SyncObject<TModel> = {
   data: TModel;
 };
 
+export interface BulkCreateChange<TModel = any> {
+  changeId: string;
+  data: TModel;
+  obj: TModel;
+  [key: string]: any;
+}
+
+export interface BulkCreateConfirmation {
+  changeId: string;
+  externalId: string;
+  externalUpdatedAt: string | null;
+}
+
+type BulkCreateRequestItems<TModel> =
+  | Array<TModel>
+  | Array<BulkCreateChange<TModel>>;
+
+type BulkCreateResponseItems<TModel> =
+  | Array<TModel>
+  | Array<BulkCreateConfirmation>;
+
 export interface ListFilterArgs<TModel = any> {
   obj: SyncObject<TModel>;
   lastExternalId?: string;
@@ -132,13 +153,22 @@ export interface DeleteConfig {
 
 export interface BulkConfig<T = any> {
   create?: {
-    request: (items: T[]) => {
+    request: (items: BulkCreateRequestItems<T>) => {
       endpoint: string;
       method?: "POST" | "PUT";
       /** @deprecated Use `json` for JSON payloads */
       data?: any;
       json?: any;
     };
+    responseSchema?: z.ZodType<any>;
+    /**
+     * Extract confirmations from the response. When provided, the SDK will
+     * expect the bulk create handler to return objects containing the
+     * originating changeId and newly created identifiers.
+     */
+    extract?: (response: any) => Array<BulkCreateConfirmation>;
+    /** When set to "changes", the SDK will pass delta change objects */
+    payloadType?: "items" | "changes";
     batchSize?: number;
   };
   update?: {
@@ -260,7 +290,9 @@ export interface ModelConnector<T = any> {
   create?: (data: T) => Promise<T>;
   update?: (id: string, data: Partial<T>) => Promise<T>;
   delete?: (id: string) => Promise<void>;
-  bulkCreate?: (items: T[]) => Promise<T[]>;
+  bulkCreate?: (
+    items: BulkCreateRequestItems<T>
+  ) => Promise<BulkCreateResponseItems<T>>;
   bulkUpdate?: (items: Array<{ id: string; data: Partial<T> }>) => Promise<T[]>;
   bulkDelete?: (ids: string[]) => Promise<void>;
 }
@@ -550,23 +582,58 @@ export class SyncConnectorBuilder<
     if (config.bulk?.create) {
       connector.bulkCreate = async (items: any[]) => {
         const batchSize = config.bulk!.create!.batchSize || 100;
-        const results: any[] = [];
+        const aggregatedResponses: any[] = [];
+        const confirmations: BulkCreateConfirmation[] = [];
+        const isChangePayload = config.bulk!.create!.payloadType === "changes";
 
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
-          const requestConfig = config.bulk!.create!.request(batch);
+          const formattedBatch = isChangePayload
+            ? batch.map((item: any) => {
+                const payload =
+                  item.data ?? item.obj ?? item.payload ?? item;
+                return {
+                  ...item,
+                  data: payload,
+                  obj: item.obj ?? payload,
+                };
+              })
+            : batch;
+          const requestConfig = config.bulk!.create!.request(formattedBatch);
 
           const response = await this.restConnector.request({
             method: requestConfig.method || "POST",
             url: requestConfig.endpoint,
-            data: requestConfig.json ?? requestConfig.data ?? batch,
+            data:
+              requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
-          results.push(
-            ...(Array.isArray(response.data) ? response.data : [response.data])
+
+          let responseData = response.data;
+          if (config.bulk!.create!.responseSchema) {
+            responseData = config.bulk!.create!.responseSchema.parse(responseData);
+          }
+
+          if (config.bulk!.create!.extract) {
+            const extracted = config.bulk!.create!.extract(responseData) ?? [];
+            confirmations.push(
+              ...extracted.map((result) => ({
+                changeId: String(result.changeId),
+                externalId: String(result.externalId),
+                externalUpdatedAt:
+                  result.externalUpdatedAt === undefined ||
+                  result.externalUpdatedAt === null
+                    ? null
+                    : String(result.externalUpdatedAt),
+              }))
+            );
+          }
+
+          aggregatedResponses.push(
+            ...(Array.isArray(responseData) ? responseData : [responseData])
           );
         }
 
-        return results;
+        return config.bulk!.create!.extract ? confirmations : aggregatedResponses;
       };
     }
 
@@ -806,6 +873,28 @@ export class SyncModelConnectorBuilder<T = any> {
     return this;
   }
 
+  withBulkCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BulkCreateChange<T>>) => {
+      endpoint: string;
+      method?: "POST" | "PUT";
+      /** @deprecated Use `json` for JSON payloads */
+      data?: any;
+      json?: any;
+    };
+    responseSchema?: TSchema;
+    extract: (
+      response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
+    ) => Array<BulkCreateConfirmation>;
+    batchSize?: number;
+  }): this {
+    if (!this.config.bulk) this.config.bulk = {};
+    this.config.bulk.create = {
+      ...config,
+      payloadType: "changes",
+    } as unknown as BulkConfig<T>["create"];
+    return this;
+  }
+
   withBulk(config: BulkConfig<T>): this {
     this.config.bulk = config;
     return this;
@@ -887,6 +976,26 @@ export class ModelConnectorConfigBuilder<T = any> {
     };
   }): this {
     this.config.delete = config;
+    return this;
+  }
+
+  bulkCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BulkCreateChange<T>>) => {
+      endpoint: string;
+      method?: "POST" | "PUT";
+      data?: any;
+    };
+    responseSchema?: TSchema;
+    extract: (
+      response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
+    ) => Array<BulkCreateConfirmation>;
+    batchSize?: number;
+  }): this {
+    if (!this.config.bulk) this.config.bulk = {};
+    this.config.bulk.create = {
+      ...config,
+      payloadType: "changes",
+    } as unknown as BulkConfig<T>["create"];
     return this;
   }
 
@@ -1229,27 +1338,88 @@ export class SyncConnector<
               console.info(
                 `Creating ${delta.changes.length} items for model ${modelName} (bulk)`
               );
-              const created = await connector.bulkCreate(
-                delta.changes.map((c: any) => c.data)
-              );
-              const changesToConfirm = created.map((item: any, i: number) => {
-                const change = delta.changes[i];
-                const externalId = (
-                  connector.config.create?.extract
-                    ? connector.config.create.extract(item)
-                    : {
-                        externalId: (item.id ?? item.externalId) as string,
-                        externalUpdatedAt: (item.updatedAt ?? null) as any,
-                      }
-                ) as any;
-                return {
-                  changeId: change.changeId,
-                  externalId: String(
-                    externalId.externalId ?? externalId.id ?? item.id
-                  ),
-                  externalUpdatedAt: externalId.externalUpdatedAt ?? null,
-                };
-              });
+              const payloadType =
+                connector.config.bulk?.create?.payloadType ??
+                (connector.config.bulk?.create?.extract ? "changes" : "items");
+              const bulkInput =
+                payloadType === "changes"
+                  ? delta.changes.map((change: any) => {
+                      const payload =
+                        change.data ?? change.obj ?? change.payload ?? null;
+                      return {
+                        ...change,
+                        data: payload,
+                        obj: change.obj ?? payload,
+                      };
+                    })
+                  : delta.changes.map((c: any) => c.data);
+
+              const created = await connector.bulkCreate(bulkInput as any);
+
+              let changesToConfirm: Array<{
+                changeId: string;
+                externalId: string;
+                externalUpdatedAt: string | null;
+              }> = [];
+
+              const looksLikeConfirmations =
+                Array.isArray(created) &&
+                created.every(
+                  (item: any) =>
+                    item &&
+                    typeof item === "object" &&
+                    "changeId" in item &&
+                    ("externalId" in item || "externalUpdatedAt" in item)
+                );
+
+              if (looksLikeConfirmations) {
+                const changeById = new Map(
+                  delta.changes.map((change: any) => [change.changeId, change])
+                );
+                changesToConfirm = (created as any).map((item: any) => {
+                  const change = changeById.get(String(item.changeId));
+                  const externalIdCandidate =
+                    item.externalId ??
+                    change?.externalId ??
+                    change?.data?.id ??
+                    change?.data?.externalId;
+                  if (externalIdCandidate === undefined || externalIdCandidate === null) {
+                    throw new Error(
+                      `Bulk create extract did not provide externalId for change ${item.changeId}`
+                    );
+                  }
+                  return {
+                    changeId: String(item.changeId),
+                    externalId: String(externalIdCandidate),
+                    externalUpdatedAt:
+                      item.externalUpdatedAt === undefined ||
+                      item.externalUpdatedAt === null
+                        ? null
+                        : String(item.externalUpdatedAt),
+                  };
+                });
+              } else {
+                const createdArray = Array.isArray(created) ? created : [];
+                changesToConfirm = createdArray.map((item: any, i: number) => {
+                  const change = delta.changes[i];
+                  const externalId = (
+                    connector.config.create?.extract
+                      ? connector.config.create.extract(item)
+                      : {
+                          externalId: (item.id ?? item.externalId) as string,
+                          externalUpdatedAt: (item.updatedAt ?? null) as any,
+                        }
+                  ) as any;
+                  return {
+                    changeId: change.changeId,
+                    externalId: String(
+                      externalId.externalId ?? externalId.id ?? item.id
+                    ),
+                    externalUpdatedAt: externalId.externalUpdatedAt ?? null,
+                  };
+                });
+              }
+
               try {
                 console.debug(
                   `Confirming ${changesToConfirm.length} CREATE (bulk) changes for model ${modelName}:`,

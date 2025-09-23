@@ -9,6 +9,7 @@ import type {
   BulkConfig,
   ListParams,
   ModelConnector as ModelConnectorInterface,
+  BulkCreateConfirmation,
   SyncObject,
 } from "./syncConnector";
 
@@ -207,25 +208,64 @@ export class ModelConnectorBuilder<T = any> {
 
     // Add bulk implementations
     if (this.config.bulk?.create) {
-      connector.bulkCreate = async (items: T[]) => {
+      connector.bulkCreate = async (items: any[]) => {
         const batchSize = this.config.bulk!.create!.batchSize || 100;
-        const results: T[] = [];
+        const aggregatedResponses: any[] = [];
+        const confirmations: BulkCreateConfirmation[] = [];
+        const isChangePayload = this.config.bulk!.create!.payloadType === "changes";
 
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
-          const requestConfig = this.config.bulk!.create!.request(batch);
+          const formattedBatch = isChangePayload
+            ? batch.map((item: any) => {
+                const payload =
+                  item.data ?? item.obj ?? item.payload ?? item;
+                return {
+                  ...item,
+                  data: payload,
+                  obj: item.obj ?? payload,
+                };
+              })
+            : batch;
+          const requestConfig = this.config.bulk!.create!.request(formattedBatch);
 
           const response = await this.restConnector.request({
             method: requestConfig.method || "POST",
             url: requestConfig.endpoint,
-            data: requestConfig.data || batch,
+            data:
+              requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
-          results.push(
-            ...(Array.isArray(response.data) ? response.data : [response.data])
+
+          let responseData = response.data;
+          if (this.config.bulk!.create!.responseSchema) {
+            responseData = this.config.bulk!.create!.responseSchema!.parse(
+              responseData
+            );
+          }
+
+          if (this.config.bulk!.create!.extract) {
+            const extracted = this.config.bulk!.create!.extract(responseData);
+            confirmations.push(
+              ...(extracted ?? []).map((item) => ({
+                changeId: String(item.changeId),
+                externalId: String(item.externalId),
+                externalUpdatedAt:
+                  item.externalUpdatedAt === undefined ||
+                  item.externalUpdatedAt === null
+                    ? null
+                    : String(item.externalUpdatedAt),
+              }))
+            );
+          }
+
+          aggregatedResponses.push(
+            ...(Array.isArray(responseData) ? responseData : [responseData])
           );
         }
 
-        return results;
+        return this.config.bulk!.create!.extract
+          ? confirmations
+          : aggregatedResponses;
       };
     }
 
