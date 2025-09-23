@@ -27,7 +27,7 @@ import {
 
 export interface OperationQueueDeployItem {
   operation: "deploy";
-  params: undefined;
+  params: { environment?: string } | undefined;
 }
 
 export interface OperationQueueRunItem {
@@ -117,7 +117,7 @@ async function processOperations() {
 
     try {
       if (item.operation === "deploy") {
-        await execDeployAndSubscribe();
+        await execDeployAndSubscribe(item.params?.environment);
       } else if (item.operation === "run") {
         await runAction(item.params);
       } else if (item.operation === "resubscribe") {

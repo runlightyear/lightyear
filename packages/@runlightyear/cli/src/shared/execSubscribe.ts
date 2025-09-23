@@ -8,14 +8,16 @@ export interface ExecSubscribeProps {
   webhookName: string;
   compiledCode: Buffer;
   deployId: string;
+  environment?: string;
 }
 
 export default async function execSubscribe(props: ExecSubscribeProps) {
-  const { webhookName, compiledCode, deployId } = props;
+  const { webhookName, compiledCode, deployId, environment } = props;
 
   const activityId = await createSubscribeActivity({
     webhookName,
     deployId,
+    environment,
   });
 
   await updateSubscribeResult({
@@ -24,6 +26,7 @@ export default async function execSubscribe(props: ExecSubscribeProps) {
     startedAt: "now",
     status: "RUNNING",
     deployId,
+    environment,
   });
 
   const handler = runInContext(compiledCode).handler;
@@ -32,6 +35,7 @@ export default async function execSubscribe(props: ExecSubscribeProps) {
     operation: "subscribe",
     webhookName,
     logDisplayLevel,
+    environment,
   });
 
   prepareConsole();
@@ -53,6 +57,7 @@ export default async function execSubscribe(props: ExecSubscribeProps) {
     logs,
     unsubscribeProps,
     deployId,
+    environment,
   });
 
   return status;

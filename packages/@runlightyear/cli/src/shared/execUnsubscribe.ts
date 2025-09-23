@@ -8,16 +8,18 @@ import createUnsubscribeActivity from "./createUnsubscribeActivity";
 export interface ExecUnsubscribeProps {
   webhookName: string;
   removed: boolean;
+  environment?: string;
 }
 
 export default async function execUnsubscribe(props: ExecUnsubscribeProps) {
-  const { webhookName, removed } = props;
+  const { webhookName, removed, environment } = props;
 
   console.debug("Unsubscribing", webhookName);
 
   const activityId = await createUnsubscribeActivity({
     webhookName,
     removed,
+    environment,
   });
 
   await updateUnsubscribeResult({
@@ -26,9 +28,13 @@ export default async function execUnsubscribe(props: ExecUnsubscribeProps) {
     status: "RUNNING",
     removed,
     subscriptionActivityId: activityId,
+    environment,
   });
 
-  const compiledCode = await getPreviouslyDeployedCode({ webhookName });
+  const compiledCode = await getPreviouslyDeployedCode({
+    webhookName,
+    environment,
+  });
 
   console.debug("Back from getPreviouslyDeployedCode");
 
@@ -49,6 +55,7 @@ export default async function execUnsubscribe(props: ExecUnsubscribeProps) {
     webhookName,
     // removed: true,
     logDisplayLevel,
+    environment,
   });
 
   prepareConsole();
@@ -68,5 +75,6 @@ export default async function execUnsubscribe(props: ExecUnsubscribeProps) {
     logs,
     removed,
     subscriptionActivityId: activityId,
+    environment,
   });
 }

@@ -2,13 +2,14 @@ import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
 export interface GetPreviouslyDeployedCodeProps {
   webhookName: string;
+  environment?: string;
 }
 
 export default async function getPreviouslyDeployedCode(
   props: GetPreviouslyDeployedCodeProps
 ): Promise<Buffer | null> {
   const baseUrl = getBaseUrl();
-  const envName = getEnvName();
+  const envName = props.environment ?? getEnvName();
   const apiKey = getApiKey();
 
   const { webhookName } = props;

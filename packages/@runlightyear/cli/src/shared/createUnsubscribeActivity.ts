@@ -3,15 +3,16 @@ import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 export interface CreateUnsubscribeActivityProps {
   webhookName: string;
   removed: boolean;
+  environment?: string;
 }
 
 export default async function createUnsubscribeActivity(
   props: CreateUnsubscribeActivityProps
 ) {
-  const { webhookName, removed } = props;
+  const { webhookName, removed, environment } = props;
 
   const baseUrl = getBaseUrl();
-  const envName = getEnvName();
+  const envName = environment ?? getEnvName();
   const apiKey = getApiKey();
 
   const activityResponse = await fetch(

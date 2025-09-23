@@ -5,14 +5,15 @@ import updateDeploy from "./updateDeploy";
 export interface ExecSubscribeAfterDeployProps {
   deployId: string;
   compiledCode: Buffer;
+  environment?: string;
 }
 
 export default async function execSubscribeAfterDeploy(
   props: ExecSubscribeAfterDeployProps
 ) {
-  const { deployId, compiledCode } = props;
+  const { deployId, compiledCode, environment } = props;
 
-  const subscribeList = await getSubscribeList();
+  const subscribeList = await getSubscribeList(environment);
 
   for (const webhookName of [
     ...subscribeList.created,
@@ -25,9 +26,15 @@ export default async function execSubscribeAfterDeploy(
     await updateDeploy({
       deployId,
       logs: [`[DEBUG]: ${message}`],
+      environment,
     });
 
-    const status = await execSubscribe({ webhookName, compiledCode, deployId });
+    const status = await execSubscribe({
+      webhookName,
+      compiledCode,
+      deployId,
+      environment,
+    });
 
     if (status === "SUCCEEDED") {
       message = `Subscribe for ${webhookName} succeeded`;
@@ -35,6 +42,7 @@ export default async function execSubscribeAfterDeploy(
       await updateDeploy({
         deployId,
         logs: [`[INFO]: ${message}`],
+        environment,
       });
     } else {
       message = `Subscribe for ${webhookName} failed`;
@@ -42,6 +50,7 @@ export default async function execSubscribeAfterDeploy(
       await updateDeploy({
         deployId,
         logs: [`[ERROR]: ${message}`],
+        environment,
       });
     }
   }
@@ -55,6 +64,7 @@ export default async function execSubscribeAfterDeploy(
     await updateDeploy({
       deployId,
       logs: [`[INFO]: ${message}`],
+      environment,
     });
   }
 }

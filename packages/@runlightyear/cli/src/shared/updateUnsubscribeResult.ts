@@ -8,6 +8,7 @@ export interface UpdateUnsubscribeResultProps {
   status: string;
   logs?: any;
   removed: boolean;
+  environment?: string;
 }
 
 export default async function updateUnsubscribeResult(
@@ -21,10 +22,11 @@ export default async function updateUnsubscribeResult(
     status,
     logs,
     removed,
+    environment,
   } = props;
 
   const baseUrl = getBaseUrl();
-  const envName = getEnvName();
+  const envName = environment ?? getEnvName();
   const apiKey = getApiKey();
 
   const activityResponse = await fetch(

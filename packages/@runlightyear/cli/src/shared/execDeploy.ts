@@ -9,10 +9,11 @@ import { prepareConsole } from "../logging";
 export interface ExecDeployProps {
   deployId: string;
   compiledCode: Buffer;
+  environment?: string;
 }
 
 export default async function execDeploy(props: ExecDeployProps) {
-  const { deployId, compiledCode } = props;
+  const { deployId, compiledCode, environment } = props;
 
   let handler;
   let getDeployList;
@@ -40,6 +41,7 @@ export default async function execDeploy(props: ExecDeployProps) {
     operation: "deploy",
     deployId,
     logDisplayLevel,
+    environment,
   });
 
   prepareConsole();
@@ -52,6 +54,7 @@ export default async function execDeploy(props: ExecDeployProps) {
   await updateDeploy({
     deployId,
     logs,
+    environment,
   });
 
   return handlerResult;

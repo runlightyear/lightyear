@@ -10,7 +10,6 @@ interface TriggerPreferences {
   lastAction?: string;
   lastManagedUser?: string;
   triggerForAllManagedUsers?: boolean;
-  environment?: string;
 }
 
 const PREF_KEY = "lightyear-trigger-preferences";
@@ -18,6 +17,8 @@ const PREF_KEY = "lightyear-trigger-preferences";
 export async function runInteractiveTrigger(
   envOverride?: string
 ): Promise<void> {
+  const environment = envOverride ?? "dev";
+
   const pkg = readPackage();
   const compiledCode = getCompiledCode(pkg.main);
 
@@ -64,22 +65,7 @@ export async function runInteractiveTrigger(
     initial: prefs.lastAction ? actions.indexOf(prefs.lastAction) : 0,
   });
 
-  const environment = envOverride ?? prefs.environment ?? "dev";
-
-  const envChoices = [
-    { name: "dev", message: "dev" },
-    { name: "prod", message: "prod" },
-  ];
-
-  const { selectedEnv } = await prompt<{ selectedEnv: string }>({
-    type: "select",
-    name: "selectedEnv",
-    message: "Select environment:",
-    choices: envChoices,
-    initial: envChoices.findIndex((choice) => choice.name === environment) || 0,
-  });
-
-  const managedUsers = await getManagedUsers(selectedEnv);
+  const managedUsers = await getManagedUsers(environment);
   let managedUserId: string | undefined;
   let triggerForAllManagedUsers = false;
 
@@ -124,30 +110,29 @@ export async function runInteractiveTrigger(
     lastAction: selectedAction,
     lastManagedUser: managedUserId,
     triggerForAllManagedUsers,
-    environment: selectedEnv,
   });
 
   terminal.cyan(
-    `\nTriggering action: ${selectedAction} (env: ${selectedEnv})\n`
+    `\nTriggering action: ${selectedAction} (env: ${environment})\n`
   );
 
   if (triggerForAllManagedUsers && managedUsers.length > 0) {
     terminal(
-      `Triggering for all ${managedUsers.length} managed users in ${selectedEnv}...\n`
+      `Triggering for all ${managedUsers.length} managed users in ${environment}...\n`
     );
 
     const { success, error } = await triggerAction(selectedAction, {
       managedUserId: "ALL",
-      environment: selectedEnv,
+      environment,
     });
 
     if (success) {
       terminal.green(
-        `\n✓ Action triggered successfully for all managed users in ${selectedEnv}\n`
+        `\n✓ Action triggered successfully for all managed users in ${environment}\n`
       );
     } else {
       terminal.red(
-        `\n✗ Failed to trigger action for all managed users in ${selectedEnv}: ${error}\n`
+        `\n✗ Failed to trigger action for all managed users in ${environment}: ${error}\n`
       );
     }
   } else {
@@ -155,17 +140,17 @@ export async function runInteractiveTrigger(
       const user = managedUsers.find((u) => u.id === managedUserId);
       invariant(user, "Managed user not found");
       terminal(
-        `Triggering for ${user.displayName} (${user.externalId}) in ${selectedEnv}...\n`
+        `Triggering for ${user.displayName} (${user.externalId}) in ${environment}...\n`
       );
     }
 
     const { success, error } = await triggerAction(selectedAction, {
       managedUserId,
-      environment: selectedEnv,
+      environment,
     });
 
     if (success) {
-      terminal.green(`\n✓ Action triggered successfully in ${selectedEnv}\n`);
+      terminal.green(`\n✓ Action triggered successfully in ${environment}\n`);
     } else {
       terminal.red(`\n✗ Failed to trigger action: ${error}\n`);
     }

@@ -1,9 +1,9 @@
 import { terminal } from "terminal-kit";
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 
-export default async function getUnsubscribeList() {
+export default async function getUnsubscribeList(environment?: string) {
   const baseUrl = getBaseUrl();
-  const envName = getEnvName();
+  const envName = environment ?? getEnvName();
   const apiKey = getApiKey();
 
   const response = await fetch(

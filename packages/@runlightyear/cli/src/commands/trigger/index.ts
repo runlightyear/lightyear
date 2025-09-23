@@ -37,8 +37,10 @@ trigger
       env,
     } = options;
 
+    const environment = env ?? "dev";
+
     if (interactive) {
-      await runInteractiveTrigger(env);
+      await runInteractiveTrigger(environment);
       return;
     }
 
@@ -56,19 +58,17 @@ trigger
       return;
     }
 
-    const payload: TriggerPayload = {};
-    if (env) payload.environment = env;
-    let scopeDescription = env ? ` in env '${env}'` : "";
+    const payload: TriggerPayload = { environment };
+    const scopeParts: string[] = [`env '${environment}'`];
 
     if (allManagedUsers) {
       payload.managedUserId = "ALL";
-      scopeDescription += scopeDescription ? "" : "";
-      scopeDescription += " for all managed users";
+      scopeParts.push("all managed users");
     } else if (managedUserId) {
       payload.managedUserId = managedUserId;
-      scopeDescription += ` for managed user '${managedUserId}'`;
+      scopeParts.push(`managed user '${managedUserId}'`);
     } else if (managedUserExternalId) {
-      const managedUsers = await getManagedUsers(env);
+      const managedUsers = await getManagedUsers(environment);
       const user = managedUsers.find(
         (u) => u.externalId === String(managedUserExternalId)
       );
@@ -86,7 +86,7 @@ trigger
       terminal.gray(
         `Resolved managed user external id '${managedUserExternalId}' to managed user id '${user.id}'.\n`
       );
-      scopeDescription += ` for managed user '${user.id}' (${user.externalId})`;
+      scopeParts.push(`managed user '${user.id}' (${user.externalId})`);
     }
 
     if (!payload.managedUserId) {
@@ -96,6 +96,9 @@ trigger
       process.exitCode = 1;
       return;
     }
+
+    const scopeDescription =
+      scopeParts.length > 0 ? ` for ${scopeParts.join(" and ")}` : "";
 
     terminal.cyan(
       `\nTriggering action '${resolvedAction}'${scopeDescription}...\n`
