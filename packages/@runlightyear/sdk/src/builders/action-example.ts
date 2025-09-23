@@ -72,8 +72,8 @@ const dataProcessor = defineAction("processData")
     }
   });
 
-// Example 3: Using withVariables/withSecrets for bulk configuration
-const bulkConfigAction = defineAction("bulkConfig")
+// Example 3: Using withVariables/withSecrets for batch configuration
+const batchConfigAction = defineAction("batchConfig")
   .withVariables([
     { name: "host", required: true },
     { name: "port", required: false, defaultValue: "443" },
@@ -130,7 +130,7 @@ const simpleAction = defineAction("simple")
 export const actions = [
   sendNotification.deploy(),
   dataProcessor.deploy(),
-  bulkConfigAction.deploy(),
+  batchConfigAction.deploy(),
   extendedApiAction.deploy(),
   simpleAction.deploy(),
 ];

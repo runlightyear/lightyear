@@ -432,7 +432,7 @@ describe("SyncConnector", () => {
       });
     });
 
-    it("should perform bulk create operation", async () => {
+    it("should perform batch create operation", async () => {
       const newUsers = [
         { name: "User 1", email: "user1@example.com" },
         { name: "User 2", email: "user2@example.com" },
@@ -447,10 +447,10 @@ describe("SyncConnector", () => {
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
-          bulkCreate: {
+          batchCreate: {
             payloadType: "items",
             request: (items) => ({
-              endpoint: "/users/bulk",
+              endpoint: "/users/batch",
               method: "POST",
               data: items,
             }),
@@ -460,14 +460,14 @@ describe("SyncConnector", () => {
         .build();
 
       const userConnector = syncConnector.getModelConnector("user");
-      const result = await userConnector?.bulkCreate?.(newUsers);
+      const result = await userConnector?.batchCreate?.(newUsers);
 
       // Should be called twice due to batch size of 2
       expect(mockRestConnector.request).toHaveBeenCalledTimes(2);
       expect(result).toHaveLength(6); // 3 items returned twice
     });
 
-    it("should support bulk create change payloads with extraction", async () => {
+    it("should support batch create change payloads with extraction", async () => {
       const changes = [
         {
           changeId: "change-1",
@@ -508,7 +508,7 @@ describe("SyncConnector", () => {
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .withModelConnector("user", (builder) =>
-          builder.withBulkCreate({
+          builder.withBatchCreate({
             request: (incomingChanges) => {
               expect(incomingChanges).toEqual(
                 changes.map((change) => ({
@@ -551,7 +551,7 @@ describe("SyncConnector", () => {
         .build();
 
       const userConnector = syncConnector.getModelConnector("user");
-      const confirmations = await userConnector?.bulkCreate?.(changes);
+      const confirmations = await userConnector?.batchCreate?.(changes);
 
       expect(mockRestConnector.request).toHaveBeenCalledTimes(1);
       expect(mockRestConnector.request).toHaveBeenCalledWith({
@@ -593,7 +593,7 @@ describe("SyncConnector", () => {
       ]);
     });
 
-    it("should support bulk update change payloads with extraction", async () => {
+    it("should support batch update change payloads with extraction", async () => {
       const changes = [
         {
           changeId: "change-1",
@@ -636,7 +636,7 @@ describe("SyncConnector", () => {
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .withModelConnector("user", (builder) =>
-          builder.withBulkUpdate({
+          builder.withBatchUpdate({
             request: (incomingChanges) => {
               expect(incomingChanges).toEqual(
                 changes.map((change) => ({
@@ -682,7 +682,7 @@ describe("SyncConnector", () => {
         .build();
 
       const userConnector = syncConnector.getModelConnector("user");
-      const confirmations = await userConnector?.bulkUpdate?.(
+      const confirmations = await userConnector?.batchUpdate?.(
         changes as any
       );
 
@@ -727,7 +727,7 @@ describe("SyncConnector", () => {
       ]);
     });
 
-    it("should support bulk delete change payloads", async () => {
+    it("should support batch delete change payloads", async () => {
       const changes = [
         { changeId: "change-1", externalId: "201" },
         { changeId: "change-2", externalId: "202" },
@@ -737,7 +737,7 @@ describe("SyncConnector", () => {
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .withModelConnector("user", (builder) =>
-          builder.withBulkDelete({
+          builder.withBatchDelete({
             request: (incomingChanges) => {
               expect(incomingChanges).toEqual(
                 changes.map((change) => ({
@@ -761,7 +761,7 @@ describe("SyncConnector", () => {
         .build();
 
       const userConnector = syncConnector.getModelConnector("user");
-      const confirmations = await userConnector?.bulkDelete?.(changes as any);
+      const confirmations = await userConnector?.batchDelete?.(changes as any);
 
       expect(mockRestConnector.request).toHaveBeenCalledWith({
         method: "POST",
@@ -892,7 +892,7 @@ describe("SyncConnector", () => {
       vi.restoreAllMocks();
     });
 
-    it("prefers bulk create when both create and bulk create are configured", async () => {
+    it("prefers batch create when both create and batch create are configured", async () => {
       process.env.NODE_ENV = "development";
 
       const setContextMock = vi.fn();
@@ -981,7 +981,7 @@ describe("SyncConnector", () => {
         ],
       };
 
-      const bulkRequestSpy = vi.fn((incomingChanges: any[]) => ({
+      const batchRequestSpy = vi.fn((incomingChanges: any[]) => ({
         endpoint: "/objects/contacts/batch/create",
         method: "POST",
         json: {
@@ -1019,8 +1019,8 @@ describe("SyncConnector", () => {
                 externalUpdatedAt: null,
               }),
             })
-            .withBulkCreate({
-              request: bulkRequestSpy,
+            .withBatchCreate({
+              request: batchRequestSpy,
               responseSchema: z.object({
                 results: z.array(
                   z.object({
@@ -1044,8 +1044,8 @@ describe("SyncConnector", () => {
       await syncConnector.sync("FULL");
 
       expect(createRequestSpy).not.toHaveBeenCalled();
-      expect(bulkRequestSpy).toHaveBeenCalledTimes(1);
-      expect(bulkRequestSpy.mock.calls[0][0]).toEqual(
+      expect(batchRequestSpy).toHaveBeenCalledTimes(1);
+      expect(batchRequestSpy.mock.calls[0][0]).toEqual(
         changes.map((change) => ({
           ...change,
           obj: change.data,
@@ -1099,7 +1099,7 @@ describe("SyncConnector", () => {
       expect(platformSync.finishSync).toHaveBeenCalledWith("sync-123");
     });
 
-    it("prefers bulk update when both update and bulk update are configured", async () => {
+    it("prefers batch update when both update and batch update are configured", async () => {
       process.env.NODE_ENV = "development";
 
       const setContextMock = vi.fn();
@@ -1190,7 +1190,7 @@ describe("SyncConnector", () => {
         ],
       };
 
-      const bulkRequestSpy = vi.fn((incomingChanges: any[]) => ({
+      const batchRequestSpy = vi.fn((incomingChanges: any[]) => ({
         endpoint: "/objects/contacts/batch/update",
         method: "POST",
         json: {
@@ -1208,7 +1208,7 @@ describe("SyncConnector", () => {
 
       (mockRestConnector.request as any).mockImplementation(async (requestConfig: any) => {
         if (requestConfig?.url === "/objects/contacts/batch/update") {
-          expect(bulkRequestSpy).toHaveBeenCalled();
+          expect(batchRequestSpy).toHaveBeenCalled();
           return { data: responsePayload };
         }
         return { data: {} };
@@ -1216,8 +1216,8 @@ describe("SyncConnector", () => {
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .withModelConnector("user", (builder) =>
-          builder.withBulkUpdate({
-            request: bulkRequestSpy,
+          builder.withBatchUpdate({
+            request: batchRequestSpy,
             responseSchema: z.object({
               results: z.array(
                 z.object({
@@ -1239,8 +1239,8 @@ describe("SyncConnector", () => {
 
       await syncConnector.sync("FULL");
 
-      expect(bulkRequestSpy).toHaveBeenCalledTimes(1);
-      expect(bulkRequestSpy.mock.calls[0][0]).toEqual(
+      expect(batchRequestSpy).toHaveBeenCalledTimes(1);
+      expect(batchRequestSpy.mock.calls[0][0]).toEqual(
         changes.map((change) => ({
           ...change,
           id: change.externalId,
@@ -1269,7 +1269,7 @@ describe("SyncConnector", () => {
       expect(platformSync.finishSync).toHaveBeenCalledWith("sync-456");
     });
 
-    it("prefers bulk delete when both delete and bulk delete are configured", async () => {
+    it("prefers batch delete when both delete and batch delete are configured", async () => {
       process.env.NODE_ENV = "development";
 
       const setContextMock = vi.fn();
@@ -1335,7 +1335,7 @@ describe("SyncConnector", () => {
         { name: "user" },
       ] as any);
 
-      const bulkRequestSpy = vi.fn((incomingChanges: any[]) => ({
+      const batchRequestSpy = vi.fn((incomingChanges: any[]) => ({
         endpoint: "/objects/contacts/batch/delete",
         method: "POST",
         json: {
@@ -1355,16 +1355,16 @@ describe("SyncConnector", () => {
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .withModelConnector("user", (builder) =>
-          builder.withBulkDelete({
-            request: bulkRequestSpy,
+          builder.withBatchDelete({
+            request: batchRequestSpy,
           })
         )
         .build();
 
       await syncConnector.sync("FULL");
 
-      expect(bulkRequestSpy).toHaveBeenCalledTimes(1);
-      expect(bulkRequestSpy.mock.calls[0][0]).toEqual(
+      expect(batchRequestSpy).toHaveBeenCalledTimes(1);
+      expect(batchRequestSpy.mock.calls[0][0]).toEqual(
         changes.map((change) => ({
           ...change,
           id: change.externalId,

@@ -373,11 +373,11 @@ const deleteConfig = {
 ### Bulk Operations
 
 ```typescript
-const bulkConfig = {
-  bulk: {
+const batchConfig = {
+  batch: {
     create: {
       request: (items: Customer[]) => ({
-        endpoint: "/api/customers/bulk",
+      endpoint: "/api/customers/batch",
         method: "POST",
         data: { customers: items },
       }),
@@ -385,7 +385,7 @@ const bulkConfig = {
     },
     update: {
       request: (items: Array<{ id: string; data: Partial<Customer> }>) => ({
-        endpoint: "/api/customers/bulk-update",
+      endpoint: "/api/customers/batch-update",
         method: "PATCH",
         data: { updates: items },
       }),
@@ -393,7 +393,7 @@ const bulkConfig = {
     },
     delete: {
       request: (ids: string[]) => ({
-        endpoint: "/api/customers/bulk-delete",
+      endpoint: "/api/customers/batch-delete",
         method: "POST",
         data: { ids },
       }),
@@ -408,7 +408,7 @@ which receives the full change (including `changeId`) and extracts the
 confirmation payload from the API response:
 
 ```typescript
-builder.withBulkCreate({
+builder.withBatchCreate({
   request: (changes) => ({
     endpoint: "/objects/contacts/batch/create",
     method: "POST",
@@ -440,7 +440,7 @@ builder.withBulkCreate({
     })),
 });
 
-builder.withBulkUpdate({
+builder.withBatchUpdate({
   request: (changes) => ({
     endpoint: "/objects/contacts/batch/update",
     method: "POST",
@@ -473,7 +473,7 @@ builder.withBulkUpdate({
     })),
 });
 
-builder.withBulkDelete({
+builder.withBatchDelete({
   request: (changes) => ({
     endpoint: "/objects/contacts/batch/delete",
     method: "POST",

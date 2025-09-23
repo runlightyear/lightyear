@@ -502,10 +502,10 @@ const productModelConnector = createModelConnector<Product>(
       }),
     })
   )
-  .bulkCreate({
+  .batchCreate({
     payloadType: "items",
     request: (items) => ({
-      endpoint: "/products/bulk",
+      endpoint: "/products/batch",
       method: "POST",
       json: {
         products: items.map((item) => ({
@@ -523,10 +523,10 @@ const productModelConnector = createModelConnector<Product>(
     }),
     batchSize: 50,
   })
-  .bulkUpdate({
+  .batchUpdate({
     payloadType: "items",
     request: (items) => ({
-      endpoint: "/products/bulk-update",
+      endpoint: "/products/batch-update",
       method: "PATCH",
       json: {
         updates: items.map((item) => ({
@@ -537,10 +537,10 @@ const productModelConnector = createModelConnector<Product>(
     }),
     batchSize: 50,
   })
-  .bulkDelete({
+  .batchDelete({
     payloadType: "ids",
     request: (ids) => ({
-      endpoint: "/products/bulk-delete",
+      endpoint: "/products/batch-delete",
       method: "POST",
       json: { product_ids: ids },
     }),
@@ -597,7 +597,7 @@ async function useProductModelConnector() {
   }
 
   // Bulk operations
-  if (productModelConnector.bulkCreate) {
+  if (productModelConnector.batchCreate) {
     const products: Product[] = [
       {
         id: "temp1",
@@ -629,8 +629,8 @@ async function useProductModelConnector() {
       },
     ];
 
-    const createdProducts = await productModelConnector.bulkCreate(products);
-    console.log(`Created ${createdProducts.length} products in bulk`);
+    const createdProducts = await productModelConnector.batchCreate(products);
+    console.log(`Created ${createdProducts.length} products in batch`);
   }
 
   // Delete a product
@@ -640,9 +640,9 @@ async function useProductModelConnector() {
   }
 
   // Bulk delete
-  if (productModelConnector.bulkDelete) {
-    await productModelConnector.bulkDelete(["prod-789", "prod-012"]);
-    console.log("Products deleted in bulk");
+  if (productModelConnector.batchDelete) {
+    await productModelConnector.batchDelete(["prod-789", "prod-012"]);
+    console.log("Products deleted in batch");
   }
 }
 

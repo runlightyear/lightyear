@@ -38,7 +38,7 @@ export type SyncObject<TModel> = {
   data: TModel;
 };
 
-export interface BulkCreateChange<TModel = any> {
+export interface BatchCreateChange<TModel = any> {
   changeId: string;
   data: TModel;
   obj: TModel;
@@ -46,7 +46,7 @@ export interface BulkCreateChange<TModel = any> {
   [key: string]: any;
 }
 
-export interface BulkUpdateChange<TModel = any> {
+export interface BatchUpdateChange<TModel = any> {
   changeId: string;
   externalId: string;
   data: Partial<TModel>;
@@ -55,36 +55,36 @@ export interface BulkUpdateChange<TModel = any> {
   [key: string]: any;
 }
 
-export interface BulkDeleteChange {
+export interface BatchDeleteChange {
   changeId: string;
   externalId: string;
   id?: string;
   [key: string]: any;
 }
 
-export interface BulkConfirmation {
+export interface BatchConfirmation {
   changeId: string;
   externalId: string;
   externalUpdatedAt?: string | null;
 }
 
-export type BulkCreateRequestItems<TModel> =
+export type BatchCreateRequestItems<TModel> =
   | Array<TModel>
-  | Array<BulkCreateChange<TModel>>;
+  | Array<BatchCreateChange<TModel>>;
 
-type BulkCreateResponseItems<TModel> =
+type BatchCreateResponseItems<TModel> =
   | Array<TModel>
-  | Array<BulkConfirmation>;
+  | Array<BatchConfirmation>;
 
-export type BulkUpdateRequestItems<TModel> = Array<BulkUpdateChange<TModel>>;
+export type BatchUpdateRequestItems<TModel> = Array<BatchUpdateChange<TModel>>;
 
-type BulkUpdateResponseItems<TModel> =
+type BatchUpdateResponseItems<TModel> =
   | Array<TModel>
-  | Array<BulkConfirmation>;
+  | Array<BatchConfirmation>;
 
-export type BulkDeleteRequestItems = Array<BulkDeleteChange>;
+export type BatchDeleteRequestItems = Array<BatchDeleteChange>;
 
-type BulkDeleteResponseItems = Array<BulkConfirmation>;
+type BatchDeleteResponseItems = Array<BatchConfirmation>;
 
 export interface ListFilterArgs<TModel = any> {
   obj: SyncObject<TModel>;
@@ -178,8 +178,8 @@ export interface DeleteConfig {
   };
 }
 
-export interface BulkCreateOperationConfig<T = any> {
-  request: (items: BulkCreateRequestItems<T>) => {
+export interface BatchCreateOperationConfig<T = any> {
+  request: (items: BatchCreateRequestItems<T>) => {
     endpoint: string;
     method?: "POST" | "PUT";
     /** @deprecated Use `json` for JSON payloads */
@@ -187,13 +187,13 @@ export interface BulkCreateOperationConfig<T = any> {
     json?: any;
   };
   responseSchema?: z.ZodType<any>;
-  extract?: (response: any) => Array<BulkConfirmation>;
+  extract?: (response: any) => Array<BatchConfirmation>;
   payloadType?: "items" | "changes";
   batchSize?: number;
 }
 
-export interface BulkUpdateOperationConfig<T = any> {
-  request: (items: BulkUpdateRequestItems<T>) => {
+export interface BatchUpdateOperationConfig<T = any> {
+  request: (items: BatchUpdateRequestItems<T>) => {
     endpoint: string;
     method?: "PUT" | "PATCH" | "POST";
     /** @deprecated Use `json` for JSON payloads */
@@ -201,13 +201,13 @@ export interface BulkUpdateOperationConfig<T = any> {
     json?: any;
   };
   responseSchema?: z.ZodType<any>;
-  extract?: (response: any) => Array<BulkConfirmation>;
+  extract?: (response: any) => Array<BatchConfirmation>;
   payloadType?: "items" | "changes";
   batchSize?: number;
 }
 
-export interface BulkDeleteOperationConfig {
-  request: (items: BulkDeleteRequestItems) => {
+export interface BatchDeleteOperationConfig {
+  request: (items: BatchDeleteRequestItems) => {
     endpoint: string;
     method?: "DELETE" | "POST";
     /** @deprecated Use `json` for JSON payloads */
@@ -215,7 +215,7 @@ export interface BulkDeleteOperationConfig {
     json?: any;
   };
   responseSchema?: z.ZodType<any>;
-  extract?: (response: any) => Array<BulkConfirmation>;
+  extract?: (response: any) => Array<BatchConfirmation>;
   payloadType?: "ids" | "changes";
   batchSize?: number;
 }
@@ -225,9 +225,9 @@ export interface ModelConnectorConfig<T = any> {
   create?: CreateConfig<T>;
   update?: UpdateConfig<T>;
   delete?: DeleteConfig;
-  bulkCreate?: BulkCreateOperationConfig<T>;
-  bulkUpdate?: BulkUpdateOperationConfig<T>;
-  bulkDelete?: BulkDeleteOperationConfig;
+  batchCreate?: BatchCreateOperationConfig<T>;
+  batchUpdate?: BatchUpdateOperationConfig<T>;
+  batchDelete?: BatchDeleteOperationConfig;
 }
 
 // Type-safe config builder interfaces
@@ -263,9 +263,9 @@ export interface TypedModelConnectorConfig<TModel> {
   create?: CreateConfig<TModel>;
   update?: UpdateConfig<TModel>;
   delete?: DeleteConfig;
-  bulkCreate?: BulkCreateOperationConfig<TModel>;
-  bulkUpdate?: BulkUpdateOperationConfig<TModel>;
-  bulkDelete?: BulkDeleteOperationConfig;
+  batchCreate?: BatchCreateOperationConfig<TModel>;
+  batchUpdate?: BatchUpdateOperationConfig<TModel>;
+  batchDelete?: BatchDeleteOperationConfig;
 }
 
 // Helper type to infer response type from schema
@@ -321,13 +321,13 @@ export interface ModelConnector<T = any> {
   create?: (data: T) => Promise<T>;
   update?: (id: string, data: Partial<T>) => Promise<T>;
   delete?: (id: string) => Promise<void>;
-  bulkCreate?: (
-    items: BulkCreateRequestItems<T>
-  ) => Promise<BulkCreateResponseItems<T>>;
-  bulkUpdate?: (
-    items: BulkUpdateRequestItems<T>
-  ) => Promise<BulkUpdateResponseItems<T>>;
-  bulkDelete?: (items: BulkDeleteRequestItems) => Promise<BulkDeleteResponseItems>;
+  batchCreate?: (
+    items: BatchCreateRequestItems<T>
+  ) => Promise<BatchCreateResponseItems<T>>;
+  batchUpdate?: (
+    items: BatchUpdateRequestItems<T>
+  ) => Promise<BatchUpdateResponseItems<T>>;
+  batchDelete?: (items: BatchDeleteRequestItems) => Promise<BatchDeleteResponseItems>;
 }
 
 type ExtractModels<T> = T extends { __modelData?: infer Map }
@@ -409,9 +409,9 @@ export class SyncConnectorBuilder<
           if (cfg.create) bb.create(cfg.create);
           if (cfg.update) bb.update(cfg.update);
           if (cfg.delete) bb.delete(cfg.delete);
-          if (cfg.bulkCreate) bb.bulkCreate(cfg.bulkCreate as any);
-          if (cfg.bulkUpdate) bb.bulkUpdate(cfg.bulkUpdate as any);
-          if (cfg.bulkDelete) bb.bulkDelete(cfg.bulkDelete as any);
+          if (cfg.batchCreate) bb.batchCreate(cfg.batchCreate as any);
+          if (cfg.batchUpdate) bb.batchUpdate(cfg.batchUpdate as any);
+          if (cfg.batchDelete) bb.batchDelete(cfg.batchDelete as any);
           return bb;
         });
       });
@@ -614,12 +614,12 @@ export class SyncConnectorBuilder<
       };
     }
 
-    if (config.bulkCreate) {
-      connector.bulkCreate = async (items: any[]) => {
-        const batchSize = config.bulkCreate!.batchSize || 100;
+    if (config.batchCreate) {
+      connector.batchCreate = async (items: any[]) => {
+        const batchSize = config.batchCreate!.batchSize || 100;
         const aggregatedResponses: any[] = [];
-        const confirmations: BulkConfirmation[] = [];
-        const isChangePayload = config.bulkCreate!.payloadType === "changes";
+        const confirmations: BatchConfirmation[] = [];
+        const isChangePayload = config.batchCreate!.payloadType === "changes";
 
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
@@ -634,7 +634,7 @@ export class SyncConnectorBuilder<
                 };
               })
             : batch;
-          const requestConfig = config.bulkCreate!.request(formattedBatch);
+          const requestConfig = config.batchCreate!.request(formattedBatch);
 
           const response = await this.restConnector.request({
             method: requestConfig.method || "POST",
@@ -644,12 +644,12 @@ export class SyncConnectorBuilder<
           });
 
           let responseData = response.data;
-          if (config.bulkCreate!.responseSchema) {
-            responseData = config.bulkCreate!.responseSchema.parse(responseData);
+          if (config.batchCreate!.responseSchema) {
+            responseData = config.batchCreate!.responseSchema.parse(responseData);
           }
 
-          if (config.bulkCreate!.extract) {
-            const extracted = config.bulkCreate!.extract(responseData) ?? [];
+          if (config.batchCreate!.extract) {
+            const extracted = config.batchCreate!.extract(responseData) ?? [];
             confirmations.push(
               ...extracted.map((result) => ({
                 changeId: String(result.changeId),
@@ -668,26 +668,26 @@ export class SyncConnectorBuilder<
           );
         }
 
-        return config.bulkCreate!.extract ? confirmations : aggregatedResponses;
+        return config.batchCreate!.extract ? confirmations : aggregatedResponses;
       };
     }
 
-    if (config.bulkUpdate) {
-      connector.bulkUpdate = async (
-        items: BulkUpdateRequestItems<any>
+    if (config.batchUpdate) {
+      connector.batchUpdate = async (
+        items: BatchUpdateRequestItems<any>
       ) => {
-        const batchSize = config.bulkUpdate!.batchSize || 100;
+        const batchSize = config.batchUpdate!.batchSize || 100;
         const aggregatedResponses: any[] = [];
-        const confirmations: BulkConfirmation[] = [];
+        const confirmations: BatchConfirmation[] = [];
         const payloadType =
-          config.bulkUpdate!.payloadType ??
-          (config.bulkUpdate!.extract ? "changes" : "items");
+          config.batchUpdate!.payloadType ??
+          (config.batchUpdate!.extract ? "changes" : "items");
 
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
           const formattedBatch =
             payloadType === "changes"
-              ? batch.map((item: BulkUpdateChange<any>) => {
+              ? batch.map((item: BatchUpdateChange<any>) => {
                   const payload = item.data ?? item.obj ?? {};
                   const externalId = String(item.externalId ?? item.id);
                   return {
@@ -700,7 +700,7 @@ export class SyncConnectorBuilder<
                 })
               : batch;
           const requestConfig =
-            config.bulkUpdate!.request(formattedBatch as any);
+            config.batchUpdate!.request(formattedBatch as any);
 
           const response = await this.restConnector.request({
             method: requestConfig.method || "PUT",
@@ -709,14 +709,14 @@ export class SyncConnectorBuilder<
               requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
           let responseData = response.data;
-          if (config.bulkUpdate!.responseSchema) {
-            responseData = config.bulkUpdate!.responseSchema!.parse(
+          if (config.batchUpdate!.responseSchema) {
+            responseData = config.batchUpdate!.responseSchema!.parse(
               responseData
             );
           }
 
-          if (config.bulkUpdate!.extract) {
-            const extracted = config.bulkUpdate!.extract!(responseData) ?? [];
+          if (config.batchUpdate!.extract) {
+            const extracted = config.batchUpdate!.extract!(responseData) ?? [];
             confirmations.push(
               ...extracted.map((result) => ({
                 changeId: String(result.changeId),
@@ -735,27 +735,27 @@ export class SyncConnectorBuilder<
           );
         }
 
-        return config.bulkUpdate!.extract
+        return config.batchUpdate!.extract
           ? confirmations
           : aggregatedResponses;
       };
     }
 
-    if (config.bulkDelete) {
-      connector.bulkDelete = async (
-        items: BulkDeleteRequestItems
+    if (config.batchDelete) {
+      connector.batchDelete = async (
+        items: BatchDeleteRequestItems
       ) => {
-        const batchSize = config.bulkDelete!.batchSize || 100;
-        const confirmations: BulkConfirmation[] = [];
+        const batchSize = config.batchDelete!.batchSize || 100;
+        const confirmations: BatchConfirmation[] = [];
         const payloadType =
-          config.bulkDelete!.payloadType ??
-          (config.bulkDelete!.extract ? "changes" : "ids");
+          config.batchDelete!.payloadType ??
+          (config.batchDelete!.extract ? "changes" : "ids");
 
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
           const formattedBatch =
             payloadType === "changes"
-              ? batch.map((item: BulkDeleteChange) => {
+              ? batch.map((item: BatchDeleteChange) => {
                   const externalId = String(item.externalId ?? item.id);
                   return {
                     ...item,
@@ -764,7 +764,7 @@ export class SyncConnectorBuilder<
                   };
                 })
               : batch;
-          const requestConfig = config.bulkDelete!.request(formattedBatch as any);
+          const requestConfig = config.batchDelete!.request(formattedBatch as any);
 
           const response = await this.restConnector.request({
             method: requestConfig.method || "DELETE",
@@ -773,14 +773,14 @@ export class SyncConnectorBuilder<
               requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
 
-          if (config.bulkDelete!.extract) {
+          if (config.batchDelete!.extract) {
             let responseData = response.data;
-            if (config.bulkDelete!.responseSchema) {
-              responseData = config.bulkDelete!.responseSchema!.parse(
+            if (config.batchDelete!.responseSchema) {
+              responseData = config.batchDelete!.responseSchema!.parse(
                 responseData
               );
             }
-            const extracted = config.bulkDelete!.extract!(responseData) ?? [];
+            const extracted = config.batchDelete!.extract!(responseData) ?? [];
             confirmations.push(
               ...extracted.map((result) => ({
                 changeId: String(result.changeId),
@@ -993,8 +993,8 @@ export class SyncModelConnectorBuilder<T = any> {
     return this;
   }
 
-  withBulkCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
-    request: (changes: Array<BulkCreateChange<T>>) => {
+  withBatchCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BatchCreateChange<T>>) => {
       endpoint: string;
       method?: "POST" | "PUT";
       /** @deprecated Use `json` for JSON payloads */
@@ -1004,19 +1004,19 @@ export class SyncModelConnectorBuilder<T = any> {
     responseSchema?: TSchema;
     extract?: (
       response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
-    ) => Array<BulkConfirmation>;
+    ) => Array<BatchConfirmation>;
     batchSize?: number;
     payloadType?: "items" | "changes";
   }): this {
-    this.config.bulkCreate = {
+    this.config.batchCreate = {
       ...config,
       payloadType: config.payloadType ?? "changes",
-    } as unknown as BulkCreateOperationConfig<T>;
+    } as unknown as BatchCreateOperationConfig<T>;
     return this;
   }
 
-  withBulkUpdate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
-    request: (changes: Array<BulkUpdateChange<T>>) => {
+  withBatchUpdate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BatchUpdateChange<T>>) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
       /** @deprecated Use `json` for JSON payloads */
@@ -1026,19 +1026,19 @@ export class SyncModelConnectorBuilder<T = any> {
     responseSchema?: TSchema;
     extract?: (
       response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
-    ) => Array<BulkConfirmation>;
+    ) => Array<BatchConfirmation>;
     batchSize?: number;
     payloadType?: "items" | "changes";
   }): this {
-    this.config.bulkUpdate = {
+    this.config.batchUpdate = {
       ...config,
       payloadType: config.payloadType ?? "changes",
-    } as unknown as BulkUpdateOperationConfig<T>;
+    } as unknown as BatchUpdateOperationConfig<T>;
     return this;
   }
 
-  withBulkDelete<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
-    request: (changes: Array<BulkDeleteChange>) => {
+  withBatchDelete<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BatchDeleteChange>) => {
       endpoint: string;
       method?: "DELETE" | "POST";
       /** @deprecated Use `json` for JSON payloads */
@@ -1048,14 +1048,14 @@ export class SyncModelConnectorBuilder<T = any> {
     responseSchema?: TSchema;
     extract?: (
       response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
-    ) => Array<BulkConfirmation>;
+    ) => Array<BatchConfirmation>;
     batchSize?: number;
     payloadType?: "ids" | "changes";
   }): this {
-    this.config.bulkDelete = {
+    this.config.batchDelete = {
       ...config,
       payloadType: config.payloadType ?? "changes",
-    } as unknown as BulkDeleteOperationConfig;
+    } as unknown as BatchDeleteOperationConfig;
     return this;
   }
 
@@ -1138,16 +1138,16 @@ export class ModelConnectorConfigBuilder<T = any> {
     return this;
   }
 
-  bulkCreate(config: BulkCreateOperationConfig<T>): this {
-    this.config.bulkCreate = {
+  batchCreate(config: BatchCreateOperationConfig<T>): this {
+    this.config.batchCreate = {
       ...config,
       payloadType: config.payloadType ?? "changes",
-    } as BulkCreateOperationConfig<T>;
+    } as BatchCreateOperationConfig<T>;
     return this;
   }
 
-  withBulkCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
-    request: (changes: Array<BulkCreateChange<T>>) => {
+  withBatchCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BatchCreateChange<T>>) => {
       endpoint: string;
       method?: "POST" | "PUT";
       data?: any;
@@ -1156,23 +1156,23 @@ export class ModelConnectorConfigBuilder<T = any> {
     responseSchema?: TSchema;
     extract?: (
       response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
-    ) => Array<BulkConfirmation>;
+    ) => Array<BatchConfirmation>;
     batchSize?: number;
     payloadType?: "items" | "changes";
   }): this {
-    return this.bulkCreate(config as unknown as BulkCreateOperationConfig<T>);
+    return this.batchCreate(config as unknown as BatchCreateOperationConfig<T>);
   }
 
-  bulkUpdate(config: BulkUpdateOperationConfig<T>): this {
-    this.config.bulkUpdate = {
+  batchUpdate(config: BatchUpdateOperationConfig<T>): this {
+    this.config.batchUpdate = {
       ...config,
       payloadType: config.payloadType ?? "changes",
-    } as BulkUpdateOperationConfig<T>;
+    } as BatchUpdateOperationConfig<T>;
     return this;
   }
 
-  withBulkUpdate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
-    request: (changes: Array<BulkUpdateChange<T>>) => {
+  withBatchUpdate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BatchUpdateChange<T>>) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
       data?: any;
@@ -1181,23 +1181,23 @@ export class ModelConnectorConfigBuilder<T = any> {
     responseSchema?: TSchema;
     extract?: (
       response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
-    ) => Array<BulkConfirmation>;
+    ) => Array<BatchConfirmation>;
     batchSize?: number;
     payloadType?: "items" | "changes";
   }): this {
-    return this.bulkUpdate(config as unknown as BulkUpdateOperationConfig<T>);
+    return this.batchUpdate(config as unknown as BatchUpdateOperationConfig<T>);
   }
 
-  bulkDelete(config: BulkDeleteOperationConfig): this {
-    this.config.bulkDelete = {
+  batchDelete(config: BatchDeleteOperationConfig): this {
+    this.config.batchDelete = {
       ...config,
       payloadType: config.payloadType ?? "changes",
-    } as BulkDeleteOperationConfig;
+    } as BatchDeleteOperationConfig;
     return this;
   }
 
-  withBulkDelete<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
-    request: (changes: Array<BulkDeleteChange>) => {
+  withBatchDelete<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BatchDeleteChange>) => {
       endpoint: string;
       method?: "DELETE" | "POST";
       data?: any;
@@ -1206,11 +1206,11 @@ export class ModelConnectorConfigBuilder<T = any> {
     responseSchema?: TSchema;
     extract?: (
       response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
-    ) => Array<BulkConfirmation>;
+    ) => Array<BatchConfirmation>;
     batchSize?: number;
     payloadType?: "ids" | "changes";
   }): this {
-    return this.bulkDelete(config as unknown as BulkDeleteOperationConfig);
+    return this.batchDelete(config as unknown as BatchDeleteOperationConfig);
   }
 
   build(): ModelConnectorConfig<T> {
@@ -1543,14 +1543,14 @@ export class SyncConnector<
 
             if (!delta.changes || delta.changes.length === 0) break;
 
-            if (connector.bulkCreate && delta.operation === "CREATE") {
+            if (connector.batchCreate && delta.operation === "CREATE") {
               console.info(
-                `Creating ${delta.changes.length} items for model ${modelName} (bulk)`
+                `Creating ${delta.changes.length} items for model ${modelName} (batch)`
               );
               const payloadType =
-                connector.config.bulkCreate?.payloadType ??
-                (connector.config.bulkCreate?.extract ? "changes" : "items");
-              const bulkInput =
+                connector.config.batchCreate?.payloadType ??
+                (connector.config.batchCreate?.extract ? "changes" : "items");
+              const batchInput =
                 payloadType === "changes"
                   ? delta.changes.map((change: any) => {
                       const payload =
@@ -1563,7 +1563,7 @@ export class SyncConnector<
                     })
                   : delta.changes.map((c: any) => c.data);
 
-              const created = await connector.bulkCreate(bulkInput as any);
+              const created = await connector.batchCreate(batchInput as any);
 
               let changesToConfirm: Array<{
                 changeId: string;
@@ -1595,7 +1595,7 @@ export class SyncConnector<
                     change?.data?.externalId;
                   if (externalIdCandidate === undefined || externalIdCandidate === null) {
                     throw new Error(
-                      `Bulk create extract did not provide externalId for change ${item.changeId}`
+                      `Batch create extract did not provide externalId for change ${item.changeId}`
                     );
                   }
                   return {
@@ -1632,7 +1632,7 @@ export class SyncConnector<
 
               try {
                 console.debug(
-                  `Confirming ${changesToConfirm.length} CREATE (bulk) changes for model ${modelName}:`,
+                `Confirming ${changesToConfirm.length} CREATE (batch) changes for model ${modelName}:`,
                   changesToConfirm.map((c) => ({
                     changeId: c.changeId,
                     externalId: c.externalId,
@@ -1648,14 +1648,14 @@ export class SyncConnector<
               console.info(
                 `Confirmed ${changesToConfirm.length} CREATE changes for model ${modelName}`
               );
-            } else if (connector.bulkUpdate && delta.operation === "UPDATE") {
+            } else if (connector.batchUpdate && delta.operation === "UPDATE") {
               console.info(
-                `Updating ${delta.changes.length} items for model ${modelName} (bulk)`
+                `Updating ${delta.changes.length} items for model ${modelName} (batch)`
               );
               const payloadType =
-                connector.config.bulkUpdate?.payloadType ??
-                (connector.config.bulkUpdate?.extract ? "changes" : "items");
-              const bulkInput =
+                connector.config.batchUpdate?.payloadType ??
+                (connector.config.batchUpdate?.extract ? "changes" : "items");
+              const batchInput =
                 payloadType === "changes"
                   ? delta.changes.map((change: any) => {
                       const payload =
@@ -1667,13 +1667,13 @@ export class SyncConnector<
                         id: change.id ?? externalId,
                         data: payload,
                         obj: change.obj ?? payload,
-                      } as BulkUpdateChange<any>;
+                      } as BatchUpdateChange<any>;
                     })
                   : delta.changes.map((c: any) => ({
                       id: c.externalId,
                       data: c.data,
                     }));
-              const updated = await connector.bulkUpdate(bulkInput as any);
+              const updated = await connector.batchUpdate(batchInput as any);
 
               let changesToConfirm: Array<{
                 changeId: string;
@@ -1705,7 +1705,7 @@ export class SyncConnector<
                     change?.data?.externalId;
                   if (externalIdCandidate === undefined || externalIdCandidate === null) {
                     throw new Error(
-                      `Bulk update extract did not provide externalId for change ${item.changeId}`
+                      `Batch update extract did not provide externalId for change ${item.changeId}`
                     );
                   }
                   return {
@@ -1740,7 +1740,7 @@ export class SyncConnector<
 
               try {
                 console.debug(
-                  `Confirming ${changesToConfirm.length} UPDATE (bulk) changes for model ${modelName}:`,
+                `Confirming ${changesToConfirm.length} UPDATE (batch) changes for model ${modelName}:`,
                   changesToConfirm.map((c) => ({
                     changeId: c.changeId,
                     externalId: c.externalId,
@@ -1756,14 +1756,14 @@ export class SyncConnector<
               console.info(
                 `Confirmed ${changesToConfirm.length} UPDATE changes for model ${modelName}`
               );
-            } else if (connector.bulkDelete && delta.operation === "DELETE") {
+            } else if (connector.batchDelete && delta.operation === "DELETE") {
               console.info(
-                `Deleting ${delta.changes.length} items for model ${modelName} (bulk)`
+                `Deleting ${delta.changes.length} items for model ${modelName} (batch)`
               );
               const payloadType =
-                connector.config.bulkDelete?.payloadType ??
-                (connector.config.bulkDelete?.extract ? "changes" : "ids");
-              const bulkInput =
+                connector.config.batchDelete?.payloadType ??
+                (connector.config.batchDelete?.extract ? "changes" : "ids");
+              const batchInput =
                 payloadType === "changes"
                   ? delta.changes.map((change: any) => ({
                       ...change,
@@ -1774,7 +1774,7 @@ export class SyncConnector<
                       changeId: c.changeId,
                       externalId: String(c.externalId),
                     }));
-              const deleted = await connector.bulkDelete(bulkInput as any);
+              const deleted = await connector.batchDelete(batchInput as any);
               let changesToConfirm: Array<{
                 changeId: string;
                 externalId: string;
@@ -1801,7 +1801,7 @@ export class SyncConnector<
                     item.externalId ?? change?.externalId ?? change?.id;
                   if (externalIdCandidate === undefined || externalIdCandidate === null) {
                     throw new Error(
-                      `Bulk delete extract did not provide externalId for change ${item.changeId}`
+                      `Batch delete extract did not provide externalId for change ${item.changeId}`
                     );
                   }
                   return {
@@ -1825,10 +1825,10 @@ export class SyncConnector<
                 `Confirmed ${changesToConfirm.length} DELETE changes for model ${modelName}`
               );
             } else {
-              // Fallback to non-bulk
+              // Fallback to non-batch
               if (delta.operation === "CREATE" && connector.create) {
                 console.info(
-                  `Creating ${delta.changes.length} items for model ${modelName} (non-bulk)`
+                `Creating ${delta.changes.length} items for model ${modelName} (non-batch)`
                 );
                 const confirmations: Array<{
                   changeId: string;
@@ -1855,7 +1855,7 @@ export class SyncConnector<
                   });
                   try {
                     console.debug(
-                      `Confirming CREATE (non-bulk) change for model ${modelName}:`,
+                      `Confirming CREATE (non-batch) change for model ${modelName}:`,
                       {
                         changeId: change.changeId,
                         externalId: String(
@@ -1876,7 +1876,7 @@ export class SyncConnector<
                 );
               } else if (delta.operation === "UPDATE" && connector.update) {
                 console.info(
-                  `Updating ${delta.changes.length} items for model ${modelName} (non-bulk)`
+                `Updating ${delta.changes.length} items for model ${modelName} (non-batch)`
                 );
                 const confirmations: Array<{
                   changeId: string;
@@ -1906,7 +1906,7 @@ export class SyncConnector<
                   });
                   try {
                     console.debug(
-                      `Confirming UPDATE (non-bulk) change for model ${modelName}:`,
+                      `Confirming UPDATE (non-batch) change for model ${modelName}:`,
                       {
                         changeId: change.changeId,
                         externalId: String(
@@ -1927,7 +1927,7 @@ export class SyncConnector<
                 );
               } else if (delta.operation === "DELETE" && connector.delete) {
                 console.info(
-                  `Deleting ${delta.changes.length} items for model ${modelName} (non-bulk)`
+                `Deleting ${delta.changes.length} items for model ${modelName} (non-batch)`
                 );
                 const confirmations: Array<{
                   changeId: string;
