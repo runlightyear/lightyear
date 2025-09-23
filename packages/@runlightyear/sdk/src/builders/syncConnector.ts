@@ -238,7 +238,9 @@ export interface TypeSafeListConfig<
     hasMore: boolean;
   };
   transform?: TResponseSchema extends z.ZodType<any>
-    ? (response: InferResponseType<TResponseSchema>) => Array<SyncObject<TModel>>
+    ? (
+        response: InferResponseType<TResponseSchema>
+      ) => Array<SyncObject<TModel>>
     : (response: unknown) => Array<SyncObject<TModel>>;
   filter?: (args: ListFilterArgs<TModel>) => boolean;
 }
@@ -1248,6 +1250,16 @@ export class SyncConnector<
                   externalUpdatedAt: externalId.externalUpdatedAt ?? null,
                 };
               });
+              try {
+                console.debug(
+                  `Confirming ${changesToConfirm.length} CREATE (bulk) changes for model ${modelName}:`,
+                  changesToConfirm.map((c) => ({
+                    changeId: c.changeId,
+                    externalId: c.externalId,
+                    externalUpdatedAt: c.externalUpdatedAt,
+                  }))
+                );
+              } catch {}
               await confirmChangeBatch({
                 syncId,
                 changes: changesToConfirm,
@@ -1281,6 +1293,16 @@ export class SyncConnector<
                   externalUpdatedAt: extracted.externalUpdatedAt ?? null,
                 };
               });
+              try {
+                console.debug(
+                  `Confirming ${changesToConfirm.length} UPDATE (bulk) changes for model ${modelName}:`,
+                  changesToConfirm.map((c) => ({
+                    changeId: c.changeId,
+                    externalId: c.externalId,
+                    externalUpdatedAt: c.externalUpdatedAt,
+                  }))
+                );
+              } catch {}
               await confirmChangeBatch({
                 syncId,
                 changes: changesToConfirm,
@@ -1337,6 +1359,18 @@ export class SyncConnector<
                     ),
                     externalUpdatedAt: extracted.externalUpdatedAt ?? null,
                   });
+                  try {
+                    console.debug(
+                      `Confirming CREATE (non-bulk) change for model ${modelName}:`,
+                      {
+                        changeId: change.changeId,
+                        externalId: String(
+                          extracted.externalId ?? (created as any).id
+                        ),
+                        externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+                      }
+                    );
+                  } catch {}
                 }
                 await confirmChangeBatch({
                   syncId,
@@ -1376,6 +1410,18 @@ export class SyncConnector<
                     ),
                     externalUpdatedAt: extracted.externalUpdatedAt ?? null,
                   });
+                  try {
+                    console.debug(
+                      `Confirming UPDATE (non-bulk) change for model ${modelName}:`,
+                      {
+                        changeId: change.changeId,
+                        externalId: String(
+                          extracted.externalId ?? change.externalId
+                        ),
+                        externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+                      }
+                    );
+                  } catch {}
                 }
                 await confirmChangeBatch({
                   syncId,
