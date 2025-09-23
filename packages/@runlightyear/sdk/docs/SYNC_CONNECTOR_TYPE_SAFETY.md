@@ -439,6 +439,52 @@ builder.withBulkCreate({
       externalUpdatedAt: result.updatedAt,
     })),
 });
+
+builder.withBulkUpdate({
+  request: (changes) => ({
+    endpoint: "/objects/contacts/batch/update",
+    method: "POST",
+    json: {
+      inputs: changes.map((change) => ({
+        objectWriteTraceId: change.changeId,
+        id: change.externalId,
+        properties: {
+          firstname: change.obj.firstName,
+          lastname: change.obj.lastName,
+          email: change.obj.email,
+        },
+      })),
+    },
+  }),
+  responseSchema: z.object({
+    results: z.array(
+      z.object({
+        objectWriteTraceId: z.string(),
+        id: z.string(),
+        updatedAt: z.string(),
+      })
+    ),
+  }),
+  extract: (response) =>
+    response.results.map((result) => ({
+      changeId: result.objectWriteTraceId,
+      externalId: result.id,
+      externalUpdatedAt: result.updatedAt,
+    })),
+});
+
+builder.withBulkDelete({
+  request: (changes) => ({
+    endpoint: "/objects/contacts/batch/delete",
+    method: "POST",
+    json: {
+      inputs: changes.map((change) => ({
+        objectWriteTraceId: change.changeId,
+        id: change.externalId,
+      })),
+    },
+  }),
+});
 ```
 
 ## Migration Guide

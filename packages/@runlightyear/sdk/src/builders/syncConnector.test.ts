@@ -447,15 +447,14 @@ describe("SyncConnector", () => {
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .with("user", {
-          bulk: {
-            create: {
-              request: (items) => ({
-                endpoint: "/users/bulk",
-                method: "POST",
-                data: items,
-              }),
-              batchSize: 2,
-            },
+          bulkCreate: {
+            payloadType: "items",
+            request: (items) => ({
+              endpoint: "/users/bulk",
+              method: "POST",
+              data: items,
+            }),
+            batchSize: 2,
           },
         })
         .build();
@@ -592,6 +591,196 @@ describe("SyncConnector", () => {
           externalUpdatedAt: "2024-01-02T00:00:00.000Z",
         },
       ]);
+    });
+
+    it("should support bulk update change payloads with extraction", async () => {
+      const changes = [
+        {
+          changeId: "change-1",
+          externalId: "201",
+          data: {
+            firstName: "Ada",
+            lastName: "Lovelace",
+            email: "ada@example.com",
+          },
+        },
+        {
+          changeId: "change-2",
+          externalId: "202",
+          data: {
+            firstName: "Alan",
+            lastName: "Turing",
+            email: "alan@example.com",
+          },
+        },
+      ];
+
+      const responsePayload = {
+        results: [
+          {
+            objectWriteTraceId: "change-1",
+            id: "201",
+            updatedAt: "2024-02-01T00:00:00.000Z",
+          },
+          {
+            objectWriteTraceId: "change-2",
+            id: "202",
+            updatedAt: "2024-02-02T00:00:00.000Z",
+          },
+        ],
+      };
+
+      (mockRestConnector.request as any).mockResolvedValueOnce({
+        data: responsePayload,
+      });
+
+      const syncConnector = createSyncConnector(mockRestConnector, collection)
+        .withModelConnector("user", (builder) =>
+          builder.withBulkUpdate({
+            request: (incomingChanges) => {
+              expect(incomingChanges).toEqual(
+                changes.map((change) => ({
+                  ...change,
+                  id: change.externalId,
+                  obj: change.data,
+                  data: change.data,
+                }))
+              );
+              return {
+                endpoint: "/objects/contacts/batch/update",
+                method: "POST",
+                json: {
+                  inputs: incomingChanges.map((change) => ({
+                    objectWriteTraceId: change.changeId,
+                    id: change.externalId,
+                    properties: {
+                      firstname: change.obj.firstName,
+                      lastname: change.obj.lastName,
+                      email: change.obj.email,
+                    },
+                  })),
+                },
+              };
+            },
+            responseSchema: z.object({
+              results: z.array(
+                z.object({
+                  objectWriteTraceId: z.string(),
+                  id: z.string(),
+                  updatedAt: z.string(),
+                })
+              ),
+            }),
+            extract: (response) =>
+              response.results.map((result) => ({
+                changeId: result.objectWriteTraceId,
+                externalId: result.id,
+                externalUpdatedAt: result.updatedAt,
+              })),
+          })
+        )
+        .build();
+
+      const userConnector = syncConnector.getModelConnector("user");
+      const confirmations = await userConnector?.bulkUpdate?.(
+        changes as any
+      );
+
+      expect(mockRestConnector.request).toHaveBeenCalledWith({
+        method: "POST",
+        url: "/objects/contacts/batch/update",
+        data: {
+          inputs: [
+            {
+              objectWriteTraceId: "change-1",
+              id: "201",
+              properties: {
+                firstname: "Ada",
+                lastname: "Lovelace",
+                email: "ada@example.com",
+              },
+            },
+            {
+              objectWriteTraceId: "change-2",
+              id: "202",
+              properties: {
+                firstname: "Alan",
+                lastname: "Turing",
+                email: "alan@example.com",
+              },
+            },
+          ],
+        },
+      });
+
+      expect(confirmations).toEqual([
+        {
+          changeId: "change-1",
+          externalId: "201",
+          externalUpdatedAt: "2024-02-01T00:00:00.000Z",
+        },
+        {
+          changeId: "change-2",
+          externalId: "202",
+          externalUpdatedAt: "2024-02-02T00:00:00.000Z",
+        },
+      ]);
+    });
+
+    it("should support bulk delete change payloads", async () => {
+      const changes = [
+        { changeId: "change-1", externalId: "201" },
+        { changeId: "change-2", externalId: "202" },
+      ];
+
+      (mockRestConnector.request as any).mockResolvedValue({ data: {} });
+
+      const syncConnector = createSyncConnector(mockRestConnector, collection)
+        .withModelConnector("user", (builder) =>
+          builder.withBulkDelete({
+            request: (incomingChanges) => {
+              expect(incomingChanges).toEqual(
+                changes.map((change) => ({
+                  ...change,
+                  id: change.externalId,
+                }))
+              );
+              return {
+                endpoint: "/objects/contacts/batch/delete",
+                method: "POST",
+                json: {
+                  inputs: incomingChanges.map((change) => ({
+                    objectWriteTraceId: change.changeId,
+                    id: change.externalId,
+                  })),
+                },
+              };
+            },
+          })
+        )
+        .build();
+
+      const userConnector = syncConnector.getModelConnector("user");
+      const confirmations = await userConnector?.bulkDelete?.(changes as any);
+
+      expect(mockRestConnector.request).toHaveBeenCalledWith({
+        method: "POST",
+        url: "/objects/contacts/batch/delete",
+        data: {
+          inputs: [
+            {
+              objectWriteTraceId: "change-1",
+              id: "201",
+            },
+            {
+              objectWriteTraceId: "change-2",
+              id: "202",
+            },
+          ],
+        },
+      });
+
+      expect(confirmations).toEqual([]);
     });
   });
 
@@ -908,6 +1097,296 @@ describe("SyncConnector", () => {
       expect(updateSyncMock.mock.calls.some(([args]) => args.currentDirection === "PUSH")).toBe(true);
       expect(platformSync.retrieveDelta).toHaveBeenCalledTimes(2);
       expect(platformSync.finishSync).toHaveBeenCalledWith("sync-123");
+    });
+
+    it("prefers bulk update when both update and bulk update are configured", async () => {
+      process.env.NODE_ENV = "development";
+
+      const setContextMock = vi.fn();
+      vi.spyOn(logging, "getLogCapture").mockReturnValue({
+        setContext: setContextMock,
+      } as any);
+      vi.spyOn(logging, "getCurrentContext").mockReturnValue({
+        managedUserId: "managed-1",
+      } as any);
+
+      vi.spyOn(timeUtils, "resetTimeLimit").mockImplementation(() => {});
+      vi.spyOn(timeUtils, "isTimeLimitExceeded").mockReturnValue(false);
+
+      vi.spyOn(platformSync, "startSync").mockResolvedValue({
+        id: "sync-456",
+        type: "FULL",
+      } as any);
+      vi.spyOn(platformSync, "finishSync").mockResolvedValue(undefined);
+      const updateSyncMock = vi
+        .spyOn(platformSync, "updateSync")
+        .mockResolvedValue(undefined);
+      const confirmChangeBatchMock = vi
+        .spyOn(platformSync, "confirmChangeBatch")
+        .mockResolvedValue(undefined);
+
+      const changes = [
+        {
+          changeId: "change-1",
+          externalId: "201",
+          data: {
+            firstName: "Ada",
+            lastName: "Lovelace",
+            email: "ada@example.com",
+          },
+        },
+        {
+          changeId: "change-2",
+          externalId: "202",
+          data: {
+            firstName: "Alan",
+            lastName: "Turing",
+            email: "alan@example.com",
+          },
+        },
+      ];
+
+      vi.spyOn(platformSync, "retrieveDelta")
+        .mockResolvedValueOnce({
+          operation: "UPDATE",
+          changes,
+        } as any)
+        .mockResolvedValueOnce({
+          operation: "UPDATE",
+          changes: [],
+        } as any);
+
+      const syncState = {
+        id: "sync-456",
+        type: "FULL",
+        currentModel: null,
+        modelStatuses: {},
+        requestedDirection: "push",
+        currentDirection: null,
+      } as any;
+
+      const getSyncMock = vi.spyOn(platformSync, "getSync");
+      getSyncMock
+        .mockResolvedValueOnce(syncState)
+        .mockResolvedValueOnce(syncState)
+        .mockResolvedValue(syncState);
+
+      vi.spyOn(platformSync, "getModels").mockResolvedValue([
+        { name: "user" },
+      ] as any);
+
+      const responsePayload = {
+        results: [
+          {
+            objectWriteTraceId: "change-1",
+            id: "201",
+            updatedAt: "2024-02-01T00:00:00.000Z",
+          },
+          {
+            objectWriteTraceId: "change-2",
+            id: "202",
+            updatedAt: "2024-02-02T00:00:00.000Z",
+          },
+        ],
+      };
+
+      const bulkRequestSpy = vi.fn((incomingChanges: any[]) => ({
+        endpoint: "/objects/contacts/batch/update",
+        method: "POST",
+        json: {
+          inputs: incomingChanges.map((change) => ({
+            objectWriteTraceId: change.changeId,
+            id: change.externalId,
+            properties: {
+              firstname: change.obj.firstName,
+              lastname: change.obj.lastName,
+              email: change.obj.email,
+            },
+          })),
+        },
+      }));
+
+      (mockRestConnector.request as any).mockImplementation(async (requestConfig: any) => {
+        if (requestConfig?.url === "/objects/contacts/batch/update") {
+          expect(bulkRequestSpy).toHaveBeenCalled();
+          return { data: responsePayload };
+        }
+        return { data: {} };
+      });
+
+      const syncConnector = createSyncConnector(mockRestConnector, collection)
+        .withModelConnector("user", (builder) =>
+          builder.withBulkUpdate({
+            request: bulkRequestSpy,
+            responseSchema: z.object({
+              results: z.array(
+                z.object({
+                  objectWriteTraceId: z.string(),
+                  id: z.string(),
+                  updatedAt: z.string(),
+                })
+              ),
+            }),
+            extract: (response) =>
+              response.results.map((result: any) => ({
+                changeId: result.objectWriteTraceId,
+                externalId: result.id,
+                externalUpdatedAt: result.updatedAt,
+              })),
+          })
+        )
+        .build();
+
+      await syncConnector.sync("FULL");
+
+      expect(bulkRequestSpy).toHaveBeenCalledTimes(1);
+      expect(bulkRequestSpy.mock.calls[0][0]).toEqual(
+        changes.map((change) => ({
+          ...change,
+          id: change.externalId,
+          obj: change.data,
+          data: change.data,
+        }))
+      );
+      expect(confirmChangeBatchMock).toHaveBeenCalledWith({
+        syncId: "sync-456",
+        changes: [
+          {
+            changeId: "change-1",
+            externalId: "201",
+            externalUpdatedAt: "2024-02-01T00:00:00.000Z",
+          },
+          {
+            changeId: "change-2",
+            externalId: "202",
+            externalUpdatedAt: "2024-02-02T00:00:00.000Z",
+          },
+        ],
+        async: true,
+      });
+      expect(updateSyncMock.mock.calls.some(([args]) => args.currentDirection === "PUSH")).toBe(true);
+      expect(platformSync.retrieveDelta).toHaveBeenCalledTimes(2);
+      expect(platformSync.finishSync).toHaveBeenCalledWith("sync-456");
+    });
+
+    it("prefers bulk delete when both delete and bulk delete are configured", async () => {
+      process.env.NODE_ENV = "development";
+
+      const setContextMock = vi.fn();
+      vi.spyOn(logging, "getLogCapture").mockReturnValue({
+        setContext: setContextMock,
+      } as any);
+      vi.spyOn(logging, "getCurrentContext").mockReturnValue({
+        managedUserId: "managed-1",
+      } as any);
+
+      vi.spyOn(timeUtils, "resetTimeLimit").mockImplementation(() => {});
+      vi.spyOn(timeUtils, "isTimeLimitExceeded").mockReturnValue(false);
+
+      vi.spyOn(platformSync, "startSync").mockResolvedValue({
+        id: "sync-789",
+        type: "FULL",
+      } as any);
+      vi.spyOn(platformSync, "finishSync").mockResolvedValue(undefined);
+      const updateSyncMock = vi
+        .spyOn(platformSync, "updateSync")
+        .mockResolvedValue(undefined);
+      const confirmChangeBatchMock = vi
+        .spyOn(platformSync, "confirmChangeBatch")
+        .mockResolvedValue(undefined);
+
+      const changes = [
+        {
+          changeId: "change-1",
+          externalId: "201",
+        },
+        {
+          changeId: "change-2",
+          externalId: "202",
+        },
+      ];
+
+      vi.spyOn(platformSync, "retrieveDelta")
+        .mockResolvedValueOnce({
+          operation: "DELETE",
+          changes,
+        } as any)
+        .mockResolvedValueOnce({
+          operation: "DELETE",
+          changes: [],
+        } as any);
+
+      const syncState = {
+        id: "sync-789",
+        type: "FULL",
+        currentModel: null,
+        modelStatuses: {},
+        requestedDirection: "push",
+        currentDirection: null,
+      } as any;
+
+      const getSyncMock = vi.spyOn(platformSync, "getSync");
+      getSyncMock
+        .mockResolvedValueOnce(syncState)
+        .mockResolvedValueOnce(syncState)
+        .mockResolvedValue(syncState);
+
+      vi.spyOn(platformSync, "getModels").mockResolvedValue([
+        { name: "user" },
+      ] as any);
+
+      const bulkRequestSpy = vi.fn((incomingChanges: any[]) => ({
+        endpoint: "/objects/contacts/batch/delete",
+        method: "POST",
+        json: {
+          inputs: incomingChanges.map((change) => ({
+            objectWriteTraceId: change.changeId,
+            id: change.externalId,
+          })),
+        },
+      }));
+
+      (mockRestConnector.request as any).mockImplementation(async (requestConfig: any) => {
+        if (requestConfig?.url === "/objects/contacts/batch/delete") {
+          return { data: {} };
+        }
+        return { data: {} };
+      });
+
+      const syncConnector = createSyncConnector(mockRestConnector, collection)
+        .withModelConnector("user", (builder) =>
+          builder.withBulkDelete({
+            request: bulkRequestSpy,
+          })
+        )
+        .build();
+
+      await syncConnector.sync("FULL");
+
+      expect(bulkRequestSpy).toHaveBeenCalledTimes(1);
+      expect(bulkRequestSpy.mock.calls[0][0]).toEqual(
+        changes.map((change) => ({
+          ...change,
+          id: change.externalId,
+        }))
+      );
+      expect(confirmChangeBatchMock).toHaveBeenCalledWith({
+        syncId: "sync-789",
+        changes: [
+          {
+            changeId: "change-1",
+            externalId: "201",
+          },
+          {
+            changeId: "change-2",
+            externalId: "202",
+          },
+        ],
+        async: true,
+      });
+      expect(updateSyncMock.mock.calls.some(([args]) => args.currentDirection === "PUSH")).toBe(true);
+      expect(platformSync.retrieveDelta).toHaveBeenCalledTimes(2);
+      expect(platformSync.finishSync).toHaveBeenCalledWith("sync-789");
     });
   });
 });

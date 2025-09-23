@@ -502,48 +502,49 @@ const productModelConnector = createModelConnector<Product>(
       }),
     })
   )
-  .bulk({
-    create: {
-      request: (items) => ({
-        endpoint: "/products/bulk",
-        method: "POST",
-        json: {
-          products: items.map((item) => ({
-            sku: item.sku,
-            product_name: item.name,
-            product_description: item.description,
-            price_cents: Math.round(item.price * 100),
-            currency_code: item.currency,
-            stock_quantity: item.inventory,
-            category_name: item.category,
-            tags: item.tags,
-            is_active: item.isActive,
-          })),
-        },
-      }),
-      batchSize: 50,
-    },
-    update: {
-      request: (items) => ({
-        endpoint: "/products/bulk-update",
-        method: "PATCH",
-        json: {
-          updates: items.map((item) => ({
-            product_id: item.id,
-            data: item.data,
-          })),
-        },
-      }),
-      batchSize: 50,
-    },
-    delete: {
-      request: (ids) => ({
-        endpoint: "/products/bulk-delete",
-        method: "POST",
-        json: { product_ids: ids },
-      }),
-      batchSize: 100,
-    },
+  .bulkCreate({
+    payloadType: "items",
+    request: (items) => ({
+      endpoint: "/products/bulk",
+      method: "POST",
+      json: {
+        products: items.map((item) => ({
+          sku: item.sku,
+          product_name: item.name,
+          product_description: item.description,
+          price_cents: Math.round(item.price * 100),
+          currency_code: item.currency,
+          stock_quantity: item.inventory,
+          category_name: item.category,
+          tags: item.tags,
+          is_active: item.isActive,
+        })),
+      },
+    }),
+    batchSize: 50,
+  })
+  .bulkUpdate({
+    payloadType: "items",
+    request: (items) => ({
+      endpoint: "/products/bulk-update",
+      method: "PATCH",
+      json: {
+        updates: items.map((item) => ({
+          product_id: item.id,
+          data: item.data,
+        })),
+      },
+    }),
+    batchSize: 50,
+  })
+  .bulkDelete({
+    payloadType: "ids",
+    request: (ids) => ({
+      endpoint: "/products/bulk-delete",
+      method: "POST",
+      json: { product_ids: ids },
+    }),
+    batchSize: 100,
   })
   .build();
 

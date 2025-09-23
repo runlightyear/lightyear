@@ -6,10 +6,18 @@ import type {
   CreateConfig,
   UpdateConfig,
   DeleteConfig,
-  BulkConfig,
+  ModelConnectorConfig,
+  BulkCreateOperationConfig,
+  BulkCreateChange,
+  BulkUpdateOperationConfig,
+  BulkDeleteOperationConfig,
   ListParams,
   ModelConnector as ModelConnectorInterface,
-  BulkCreateConfirmation,
+  BulkConfirmation,
+  BulkUpdateRequestItems,
+  BulkDeleteRequestItems,
+  BulkUpdateChange,
+  BulkDeleteChange,
   SyncObject,
 } from "./syncConnector";
 
@@ -20,13 +28,7 @@ import type {
 export class ModelConnectorBuilder<T = any> {
   private restConnector: RestConnector;
   private model: Model;
-  private config: {
-    list?: ListConfig<T>;
-    create?: CreateConfig<T>;
-    update?: UpdateConfig<T>;
-    delete?: DeleteConfig;
-    bulk?: BulkConfig<T>;
-  } = {};
+  private config: ModelConnectorConfig<T> = {};
 
   constructor(restConnector: RestConnector, model: Model) {
     this.restConnector = restConnector;
@@ -53,9 +55,76 @@ export class ModelConnectorBuilder<T = any> {
     return this;
   }
 
-  bulk(config: BulkConfig<T>): this {
-    this.config.bulk = config;
+  bulkCreate(config: BulkCreateOperationConfig<T>): this {
+    this.config.bulkCreate = {
+      ...config,
+      payloadType: config.payloadType ?? "changes",
+    } as BulkCreateOperationConfig<T>;
     return this;
+  }
+
+  withBulkCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BulkCreateChange<T>>) => {
+      endpoint: string;
+      method?: "POST" | "PUT";
+      data?: any;
+    };
+    responseSchema?: TSchema;
+    extract?: (
+      response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
+    ) => Array<BulkConfirmation>;
+    batchSize?: number;
+    payloadType?: "items" | "changes";
+  }): this {
+    return this.bulkCreate(config as BulkCreateOperationConfig<T>);
+  }
+
+  bulkUpdate(config: BulkUpdateOperationConfig<T>): this {
+    this.config.bulkUpdate = {
+      ...config,
+      payloadType: config.payloadType ?? "changes",
+    } as BulkUpdateOperationConfig<T>;
+    return this;
+  }
+
+  withBulkUpdate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BulkUpdateChange<T>>) => {
+      endpoint: string;
+      method?: "PUT" | "PATCH" | "POST";
+      data?: any;
+    };
+    responseSchema?: TSchema;
+    extract?: (
+      response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
+    ) => Array<BulkConfirmation>;
+    batchSize?: number;
+    payloadType?: "items" | "changes";
+  }): this {
+    return this.bulkUpdate(config as BulkUpdateOperationConfig<T>);
+  }
+
+  bulkDelete(config: BulkDeleteOperationConfig): this {
+    this.config.bulkDelete = {
+      ...config,
+      payloadType: config.payloadType ?? "changes",
+    } as BulkDeleteOperationConfig;
+    return this;
+  }
+
+  withBulkDelete<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BulkDeleteChange>) => {
+      endpoint: string;
+      method?: "DELETE" | "POST";
+      data?: any;
+    };
+    responseSchema?: TSchema;
+    extract?: (
+      response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
+    ) => Array<BulkConfirmation>;
+    batchSize?: number;
+    payloadType?: "ids" | "changes";
+  }): this {
+    return this.bulkDelete(config as BulkDeleteOperationConfig);
   }
 
   build(): ModelConnectorInterface<T> {
@@ -207,12 +276,13 @@ export class ModelConnectorBuilder<T = any> {
     }
 
     // Add bulk implementations
-    if (this.config.bulk?.create) {
+    if (this.config.bulkCreate) {
       connector.bulkCreate = async (items: any[]) => {
-        const batchSize = this.config.bulk!.create!.batchSize || 100;
+        const batchSize = this.config.bulkCreate!.batchSize || 100;
         const aggregatedResponses: any[] = [];
-        const confirmations: BulkCreateConfirmation[] = [];
-        const isChangePayload = this.config.bulk!.create!.payloadType === "changes";
+        const confirmations: BulkConfirmation[] = [];
+        const isChangePayload =
+          this.config.bulkCreate!.payloadType === "changes";
 
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
@@ -227,7 +297,7 @@ export class ModelConnectorBuilder<T = any> {
                 };
               })
             : batch;
-          const requestConfig = this.config.bulk!.create!.request(formattedBatch);
+          const requestConfig = this.config.bulkCreate!.request(formattedBatch);
 
           const response = await this.restConnector.request({
             method: requestConfig.method || "POST",
@@ -237,16 +307,18 @@ export class ModelConnectorBuilder<T = any> {
           });
 
           let responseData = response.data;
-          if (this.config.bulk!.create!.responseSchema) {
-            responseData = this.config.bulk!.create!.responseSchema!.parse(
+          if (this.config.bulkCreate!.responseSchema) {
+            responseData = this.config.bulkCreate!.responseSchema!.parse(
               responseData
             );
           }
 
-          if (this.config.bulk!.create!.extract) {
-            const extracted = this.config.bulk!.create!.extract(responseData);
+          if (this.config.bulkCreate!.extract) {
+            const extracted = (this.config.bulkCreate!.extract(
+              responseData
+            ) ?? []) as Array<BulkConfirmation>;
             confirmations.push(
-              ...(extracted ?? []).map((item) => ({
+              ...extracted.map((item: BulkConfirmation) => ({
                 changeId: String(item.changeId),
                 externalId: String(item.externalId),
                 externalUpdatedAt:
@@ -263,51 +335,140 @@ export class ModelConnectorBuilder<T = any> {
           );
         }
 
-        return this.config.bulk!.create!.extract
+        return this.config.bulkCreate!.extract
           ? confirmations
           : aggregatedResponses;
       };
     }
 
-    if (this.config.bulk?.update) {
-      connector.bulkUpdate = async (
-        items: Array<{ id: string; data: Partial<T> }>
-      ) => {
-        const batchSize = this.config.bulk!.update!.batchSize || 100;
-        const results: T[] = [];
+    if (this.config.bulkUpdate) {
+      connector.bulkUpdate = async (items: BulkUpdateRequestItems<any>) => {
+        const batchSize = this.config.bulkUpdate!.batchSize || 100;
+        const aggregatedResponses: any[] = [];
+        const confirmations: BulkConfirmation[] = [];
+        const payloadType =
+          this.config.bulkUpdate!.payloadType ??
+          (this.config.bulkUpdate!.extract ? "changes" : "items");
 
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
-          const requestConfig = this.config.bulk!.update!.request(batch);
+          const formattedBatch =
+            payloadType === "changes"
+              ? batch.map((item: BulkUpdateChange<any>) => {
+                  const payload = item.data ?? item.obj ?? {};
+                  const externalId = String(item.externalId ?? item.id);
+                  return {
+                    ...item,
+                    externalId,
+                    id: item.id ?? externalId,
+                    data: payload,
+                    obj: item.obj ?? payload,
+                  };
+                })
+              : batch;
+          const requestConfig = this.config.bulkUpdate!.request(
+            formattedBatch as any
+          );
 
           const response = await this.restConnector.request({
             method: requestConfig.method || "PUT",
             url: requestConfig.endpoint,
-            data: requestConfig.data || batch,
+            data:
+              requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
-          results.push(
-            ...(Array.isArray(response.data) ? response.data : [response.data])
+
+          let responseData = response.data;
+          if (this.config.bulkUpdate!.responseSchema) {
+            responseData = this.config.bulkUpdate!.responseSchema!.parse(
+              responseData
+            );
+          }
+
+          if (this.config.bulkUpdate!.extract) {
+            const extracted = (this.config.bulkUpdate!.extract!(
+              responseData
+            ) ?? []) as Array<BulkConfirmation>;
+            confirmations.push(
+              ...extracted.map((item: BulkConfirmation) => ({
+                changeId: String(item.changeId),
+                externalId: String(item.externalId),
+                externalUpdatedAt:
+                  item.externalUpdatedAt === undefined ||
+                  item.externalUpdatedAt === null
+                    ? null
+                    : String(item.externalUpdatedAt),
+              }))
+            );
+          }
+
+          aggregatedResponses.push(
+            ...(Array.isArray(responseData) ? responseData : [responseData])
           );
         }
 
-        return results;
+        return this.config.bulkUpdate!.extract
+          ? confirmations
+          : aggregatedResponses;
       };
     }
 
-    if (this.config.bulk?.delete) {
-      connector.bulkDelete = async (ids: string[]) => {
-        const batchSize = this.config.bulk!.delete!.batchSize || 100;
+    if (this.config.bulkDelete) {
+      connector.bulkDelete = async (items: BulkDeleteRequestItems) => {
+        const batchSize = this.config.bulkDelete!.batchSize || 100;
+        const confirmations: BulkConfirmation[] = [];
+        const payloadType =
+          this.config.bulkDelete!.payloadType ??
+          (this.config.bulkDelete!.extract ? "changes" : "ids");
 
-        for (let i = 0; i < ids.length; i += batchSize) {
-          const batch = ids.slice(i, i + batchSize);
-          const requestConfig = this.config.bulk!.delete!.request(batch);
+        for (let i = 0; i < items.length; i += batchSize) {
+          const batch = items.slice(i, i + batchSize);
+          const formattedBatch =
+            payloadType === "changes"
+              ? batch.map((item: BulkDeleteChange) => {
+                  const externalId = String(item.externalId ?? item.id);
+                  return {
+                    ...item,
+                    externalId,
+                    id: item.id ?? externalId,
+                  };
+                })
+              : batch;
+          const requestConfig = this.config.bulkDelete!.request(
+            formattedBatch as any
+          );
 
-          await this.restConnector.request({
+          const response = await this.restConnector.request({
             method: requestConfig.method || "DELETE",
             url: requestConfig.endpoint,
-            data: requestConfig.data || batch,
+            data:
+              requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
+
+          if (this.config.bulkDelete!.extract) {
+            let responseData = response.data;
+            if (this.config.bulkDelete!.responseSchema) {
+              responseData = this.config.bulkDelete!.responseSchema!.parse(
+                responseData
+              );
+            }
+            const extracted = (this.config.bulkDelete!.extract!(
+              responseData
+            ) ?? []) as Array<BulkConfirmation>;
+            confirmations.push(
+              ...extracted.map((item: BulkConfirmation) => ({
+                changeId: String(item.changeId),
+                externalId: String(item.externalId),
+                externalUpdatedAt:
+                  item.externalUpdatedAt === undefined ||
+                  item.externalUpdatedAt === null
+                    ? null
+                    : String(item.externalUpdatedAt),
+              }))
+            );
+          }
         }
+
+        return confirmations;
       };
     }
 

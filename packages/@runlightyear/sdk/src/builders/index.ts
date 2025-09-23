@@ -58,7 +58,9 @@ export type {
   CreateConfig,
   UpdateConfig,
   DeleteConfig,
-  BulkConfig,
+  BulkCreateOperationConfig,
+  BulkUpdateOperationConfig,
+  BulkDeleteOperationConfig,
   SyncObject,
 } from "./syncConnector";
 
