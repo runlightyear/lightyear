@@ -1450,8 +1450,7 @@ describe("SyncConnector", () => {
       expect(syncConnector.useAsyncWrites).toBe(false);
     });
 
-    it("should pass confirm object for batch operations with async writes", async () => {
-      // Directly test the batch create async method
+    it("should pass changeIds at top level for batch operations with async writes", async () => {
       const connector = createSyncConnector(mockRestConnector, collection)
         .withModelConnector("user", (builder) =>
           builder.withBatchCreate({
@@ -1460,8 +1459,6 @@ describe("SyncConnector", () => {
               method: "POST",
               json: items,
             }),
-            idPath: "user_id",
-            updatedAtPath: "last_modified",
           })
         )
         .build();
@@ -1490,18 +1487,68 @@ describe("SyncConnector", () => {
         processor
       );
 
-      // Verify the request was made with correct confirm object
-      expect(mockRestConnector.request).toHaveBeenCalledWith({
-        method: "POST",
-        url: "/users/batch",
-        json: changes.map(c => c.data),
-        async: true,
-        confirm: {
-          changeIds: ["change-1", "change-2"],
-          idPath: "user_id",
-          updatedAtPath: "last_modified",
-        }
-      });
+      // Verify the request was made with changeIds at top level
+      expect(mockRestConnector.request).toHaveBeenCalled();
+      const call = mockRestConnector.request.mock.calls[0][0];
+      expect(call.method).toBe("POST");
+      expect(call.url).toBe("/users/batch");
+      expect(call.async).toBe(true);
+      expect(call.changeIds).toEqual(["change-1", "change-2"]);
+      expect(call.confirm).toBeUndefined();
+    });
+
+    it("should work with extract functions in async mode", async () => {
+      // Test with extract function
+      const connector = createSyncConnector(mockRestConnector, collection)
+        .withModelConnector("user", (builder) =>
+          builder.withBatchCreate({
+            request: (items) => ({
+              endpoint: "/users/batch",
+              method: "POST",
+              json: items,
+            }),
+            extract: (response) => response.results.map((item: any) => ({
+              externalId: item.id,
+              externalUpdatedAt: item.updated_at,
+            })),
+          })
+        )
+        .build();
+
+      // Access the private method through any cast
+      const syncConnectorInstance = connector as any;
+      const modelConnector = syncConnectorInstance.modelConnectors.get("user");
+      
+      const changes = [
+        { changeId: "change-1", data: { name: "New User 1", email: "user1@example.com" } },
+      ];
+
+      // Mock the request method
+      mockRestConnector.request = vi.fn().mockResolvedValue({ data: [] });
+
+      // Create a ChangeProcessor instance
+      const { ChangeProcessor } = await import("../platform/changeProcessor");
+      const processor = new ChangeProcessor("sync-123");
+
+      // Call the async batch create method directly
+      await syncConnectorInstance.processBatchCreateAsync(
+        modelConnector,
+        changes,
+        "user",
+        processor
+      );
+
+      // Verify the request was made with changeIds at top level
+      expect(mockRestConnector.request).toHaveBeenCalled();
+      const call = mockRestConnector.request.mock.calls[0][0];
+      expect(call.method).toBe("POST");
+      expect(call.url).toBe("/users/batch");
+      expect(call.async).toBe(true);
+      expect(call.changeIds).toEqual(["change-1"]);
+      expect(call.confirm).toBeUndefined();
+      
+      // Verify extract function is stored in processor
+      expect(modelConnector.config.batchCreate.extract).toBeDefined();
     });
 
     it("should respect useAsyncWrites runtime option", async () => {

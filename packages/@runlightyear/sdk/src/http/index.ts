@@ -29,11 +29,6 @@ export interface HttpProxyRequestProps {
   async?: boolean;
   changeId?: string;
   changeIds?: string[];
-  confirm?: {
-    changeIds: string[];
-    idPath: string;
-    updatedAtPath: string;
-  };
 }
 
 /**

@@ -136,11 +136,11 @@ Custom extract functions are fully supported in async mode:
   extract: (response) => response.results.map(item => ({
     externalId: item.id,
     externalUpdatedAt: item.updated_at
-  })),
-  idPath: "id", // Path to extract ID from response (optional, defaults to "id")
-  updatedAtPath: "updatedAt" // Path to extract updatedAt from response (optional, defaults to "updatedAt")
+  }))
 })
 ```
+
+When using async writes, the SDK will automatically track the changes and handle polling for responses. The extract function will be used to process the response when it becomes available.
 
 ## Error Handling
 

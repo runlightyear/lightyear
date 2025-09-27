@@ -100,7 +100,6 @@ export class RestConnector {
       async: asyncRequest,
       changeId,
       changeIds,
-      confirm,
     } = props as HttpProxyRequestProps & { json?: unknown };
 
     if (!url) {
@@ -123,7 +122,6 @@ export class RestConnector {
       async: asyncRequest,
       changeId,
       changeIds,
-      confirm,
     };
 
     return await httpRequest(requestProps);

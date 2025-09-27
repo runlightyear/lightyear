@@ -192,8 +192,6 @@ export interface BatchCreateOperationConfig<T = any> {
   extract?: (response: any) => Array<BatchConfirmation>;
   payloadType?: "items" | "changes";
   batchSize?: number;
-  idPath?: string;
-  updatedAtPath?: string;
 }
 
 export interface BatchUpdateOperationConfig<T = any> {
@@ -208,8 +206,6 @@ export interface BatchUpdateOperationConfig<T = any> {
   extract?: (response: any) => Array<BatchConfirmation>;
   payloadType?: "items" | "changes";
   batchSize?: number;
-  idPath?: string;
-  updatedAtPath?: string;
 }
 
 export interface BatchDeleteOperationConfig {
@@ -224,8 +220,6 @@ export interface BatchDeleteOperationConfig {
   extract?: (response: any) => Array<BatchConfirmation>;
   payloadType?: "ids" | "changes";
   batchSize?: number;
-  idPath?: string;
-  updatedAtPath?: string;
 }
 
 export interface ModelConnectorConfig<T = any> {
@@ -1342,17 +1336,13 @@ export class SyncConnector<
         });
       });
 
-      // For batch operations with async, we need to pass confirm object
+      // For batch operations with async, pass changeIds at top level
       const requestBody: any = {
         method: requestConfig.method || "POST",
         url: requestConfig.endpoint,
         json: requestConfig.json ?? requestConfig.data ?? formattedBatch,
         async: true,
-        confirm: {
-          changeIds: batch.map(c => c.changeId),
-          idPath: connector.config.batchCreate?.idPath || "id",
-          updatedAtPath: connector.config.batchCreate?.updatedAtPath || "updatedAt",
-        }
+        changeIds: batch.map(c => c.changeId),
       };
       await this.restConnector.request(requestBody);
 
@@ -1420,11 +1410,7 @@ export class SyncConnector<
         url: requestConfig.endpoint,
         json: requestConfig.json ?? requestConfig.data ?? formattedBatch,
         async: true,
-        confirm: {
-          changeIds: batch.map(c => c.changeId),
-          idPath: connector.config.batchUpdate?.idPath || "id",
-          updatedAtPath: connector.config.batchUpdate?.updatedAtPath || "updatedAt",
-        }
+        changeIds: batch.map(c => c.changeId),
       };
       await this.restConnector.request(requestBody);
 
@@ -1483,11 +1469,7 @@ export class SyncConnector<
         url: requestConfig.endpoint,
         json: requestConfig.json ?? requestConfig.data ?? formattedBatch,
         async: true,
-        confirm: {
-          changeIds: batch.map(c => c.changeId),
-          idPath: connector.config.batchDelete?.idPath || "id",
-          updatedAtPath: connector.config.batchDelete?.updatedAtPath || "updatedAt",
-        }
+        changeIds: batch.map(c => c.changeId),
       };
       await this.restConnector.request(requestBody);
 
