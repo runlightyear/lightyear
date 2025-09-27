@@ -27,6 +27,13 @@ export interface HttpProxyRequestProps {
   redactKeys?: string[];
   maxRetries?: number;
   async?: boolean;
+  changeId?: string;
+  changeIds?: string[];
+  confirm?: {
+    changeIds: string[];
+    idPath: string;
+    updatedAtPath: string;
+  };
 }
 
 /**
@@ -103,6 +110,31 @@ function getCurrentRunContext(): {
     managedUserExternalId: (ctx as any).managedUserExternalId,
     managedUserDisplayName: (ctx as any).managedUserDisplayName ?? null,
   };
+}
+
+/**
+ * @public
+ */
+export interface BatchHttpProxyRequestProps {
+  requests: Array<HttpProxyRequestProps>;
+  syncId?: string;
+}
+
+/**
+ * @public
+ */
+export interface BatchHttpProxyResponse {
+  requestId: string;
+  changeId?: string;
+  status?: number;
+  statusText?: string;
+  headers?: any;
+  data?: any;
+  error?: string;
+}
+
+export interface BatchHttpRequest {
+  (props: BatchHttpProxyRequestProps): Promise<Array<BatchHttpProxyResponse>>;
 }
 
 // HTTP implementation for SDK that uses the Lightyear proxy infrastructure
@@ -309,4 +341,113 @@ export const httpRequest: HttpRequest = async (props) => {
       throw error;
     }
   } while (true);
+};
+
+// Batch HTTP implementation for async requests
+export const batchHttpRequest: BatchHttpRequest = async (props) => {
+  // Get environment variables
+  const envName = process.env.ENV_NAME || "dev";
+  const baseUrl = process.env.BASE_URL || "https://app.runlightyear.com";
+  const apiKey = process.env.LIGHTYEAR_API_KEY || process.env.API_KEY;
+
+  if (!apiKey) {
+    throw new Error(
+      "Missing API key. Set LIGHTYEAR_API_KEY or API_KEY environment variable."
+    );
+  }
+
+  // Get the current run and execution context
+  const { runId } = getCurrentRunContext();
+
+  const batchUrl = `${baseUrl}/api/v1/envs/${envName}/http-request/batch`;
+
+  // Prepare batch requests
+  const batchRequests = props.requests.map((request) => {
+    const {
+      headers: providedHeaders,
+      body: providedBody,
+      json: providedJson,
+      data: providedData,
+      params,
+      url,
+      changeId,
+      ...restWithoutPayload
+    } = request;
+
+    let finalBody: string | undefined = providedBody;
+    if (finalBody == null && providedJson !== undefined) {
+      finalBody = JSON.stringify(providedJson);
+    } else if (finalBody == null && providedData !== undefined) {
+      finalBody = JSON.stringify(providedData);
+    }
+
+    const finalHeaders: Record<string, string> = {
+      ...(providedHeaders || {}),
+    };
+    if (
+      finalBody !== undefined &&
+      !Object.keys(finalHeaders).some((h) => h.toLowerCase() === "content-type")
+    ) {
+      finalHeaders["Content-Type"] = "application/json";
+    }
+
+    // Append query params to URL
+    let urlWithQuery = url;
+    if (params && Object.keys(params).length > 0) {
+      try {
+        const u = new URL(urlWithQuery);
+        for (const [key, value] of Object.entries(params)) {
+          if (value === undefined || value === null) continue;
+          u.searchParams.append(key, String(value));
+        }
+        urlWithQuery = u.toString();
+      } catch {
+        const qs = Object.entries(params)
+          .filter(([, v]) => v !== undefined && v !== null)
+          .map(
+            ([k, v]) =>
+              `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`
+          )
+          .join("&");
+        urlWithQuery = qs
+          ? `${urlWithQuery}${urlWithQuery.includes("?") ? "&" : "?"}${qs}`
+          : urlWithQuery;
+      }
+    }
+
+    return {
+      ...restWithoutPayload,
+      url: urlWithQuery,
+      headers: finalHeaders,
+      body: finalBody,
+      changeId,
+    };
+  });
+
+  console.debug("Making batch proxy request to:", batchUrl);
+  console.debug(`Batch size: ${batchRequests.length}`);
+
+  const response = await fetch(batchUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      requests: batchRequests,
+      runId,
+      syncId: props.syncId,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Batch proxy request failed: ${response.status} ${response.statusText} - ${errorText}`
+    );
+  }
+
+  const batchResponses =
+    (await response.json()) as Array<BatchHttpProxyResponse>;
+  return batchResponses;
 };

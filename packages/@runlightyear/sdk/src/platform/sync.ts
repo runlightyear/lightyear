@@ -484,9 +484,45 @@ export async function confirmChangeBatch(props: {
     {
       method: "POST",
       data: {
+        syncId: props.syncId,
         changes: props.changes,
         async: props.async,
       },
     }
   );
+}
+
+export async function getUnconfirmedChanges(props: {
+  syncId: string;
+  limit?: number;
+}): Promise<
+  Array<{
+    changeId: string;
+    httpRequestId: string;
+    response?: any;
+    error?: string;
+  }>
+> {
+  const envName = getEnvName();
+  const response = await makeApiRequest(
+    `/api/v1/envs/${envName}/syncs/${props.syncId}/changes/unconfirmed`,
+    {
+      method: "GET",
+    }
+  );
+  const payload = await response.json();
+
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload && Array.isArray(payload.changes)) {
+    return payload.changes;
+  }
+
+  if (payload && Array.isArray(payload.data)) {
+    return payload.data;
+  }
+
+  return [];
 }

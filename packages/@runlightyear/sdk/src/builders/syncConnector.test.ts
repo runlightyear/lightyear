@@ -1389,4 +1389,202 @@ describe("SyncConnector", () => {
       expect(platformSync.finishSync).toHaveBeenCalledWith("sync-789");
     });
   });
+
+  describe("Async Writes", () => {
+    let getUnconfirmedChangesMock: any;
+    let batchHttpRequestMock: any;
+    let retrieveDeltaMock: any;
+    let startSyncMock: any;
+    let getSyncMock: any;
+    let updateSyncMock: any;
+    let getModelsMock: any;
+    let confirmChangeBatchMock: any;
+    let finishSyncMock: any;
+
+    beforeEach(() => {
+      // Mock log context
+      vi.spyOn(logging, "getCurrentContext").mockReturnValue({
+        runId: "run-123",
+        managedUserId: "user-456",
+        syncId: "sync-789",
+      } as any);
+
+      // Mock time functions
+      vi.spyOn(timeUtils, "resetTimeLimit");
+      vi.spyOn(timeUtils, "isTimeLimitExceeded").mockReturnValue(false);
+
+      // Mock platform sync methods
+      getUnconfirmedChangesMock = vi.spyOn(platformSync, 'getUnconfirmedChanges').mockResolvedValue([]);
+      retrieveDeltaMock = vi.spyOn(platformSync, 'retrieveDelta');
+      startSyncMock = vi.spyOn(platformSync, 'startSync').mockResolvedValue({ id: "sync-789", type: "FULL" });
+      getSyncMock = vi.spyOn(platformSync, 'getSync').mockResolvedValue({ 
+        currentDirection: null,
+        requestedDirection: "bidirectional",
+        type: "FULL",
+        modelStatuses: {}
+      });
+      updateSyncMock = vi.spyOn(platformSync, 'updateSync').mockResolvedValue({});
+      getModelsMock = vi.spyOn(platformSync, 'getModels').mockResolvedValue([{ name: "user" }]);
+      confirmChangeBatchMock = vi.spyOn(platformSync, 'confirmChangeBatch').mockResolvedValue(undefined);
+      finishSyncMock = vi.spyOn(platformSync, 'finishSync').mockResolvedValue(undefined);
+      
+      // Mock batch HTTP request
+      batchHttpRequestMock = vi.fn();
+      mockRestConnector.batchRequest = batchHttpRequestMock;
+    });
+
+    it("should default to using async writes", () => {
+      const syncConnector = createSyncConnector(mockRestConnector, collection)
+        .withModelConnector("user", (builder) => builder)
+        .build();
+
+      expect(syncConnector.useAsyncWrites).toBe(true);
+    });
+
+    it("should allow disabling async writes via builder", () => {
+      const syncConnector = createSyncConnector(mockRestConnector, collection)
+        .withModelConnector("user", (builder) => builder)
+        .withSyncWrites()
+        .build();
+
+      expect(syncConnector.useAsyncWrites).toBe(false);
+    });
+
+    it("should pass confirm object for batch operations with async writes", async () => {
+      // Directly test the batch create async method
+      const connector = createSyncConnector(mockRestConnector, collection)
+        .withModelConnector("user", (builder) =>
+          builder.withBatchCreate({
+            request: (items) => ({
+              endpoint: "/users/batch",
+              method: "POST",
+              json: items,
+            }),
+            idPath: "user_id",
+            updatedAtPath: "last_modified",
+          })
+        )
+        .build();
+
+      // Access the private method through any cast
+      const syncConnectorInstance = connector as any;
+      const modelConnector = syncConnectorInstance.modelConnectors.get("user");
+      
+      const changes = [
+        { changeId: "change-1", data: { name: "New User 1", email: "user1@example.com" } },
+        { changeId: "change-2", data: { name: "New User 2", email: "user2@example.com" } },
+      ];
+
+      // Mock the request method
+      mockRestConnector.request = vi.fn().mockResolvedValue({ data: [] });
+
+      // Create a ChangeProcessor instance
+      const { ChangeProcessor } = await import("../platform/changeProcessor");
+      const processor = new ChangeProcessor("sync-123");
+
+      // Call the async batch create method directly
+      await syncConnectorInstance.processBatchCreateAsync(
+        modelConnector,
+        changes,
+        "user",
+        processor
+      );
+
+      // Verify the request was made with correct confirm object
+      expect(mockRestConnector.request).toHaveBeenCalledWith({
+        method: "POST",
+        url: "/users/batch",
+        json: changes.map(c => c.data),
+        async: true,
+        confirm: {
+          changeIds: ["change-1", "change-2"],
+          idPath: "user_id",
+          updatedAtPath: "last_modified",
+        }
+      });
+    });
+
+    it("should respect useAsyncWrites runtime option", async () => {
+      const changes = [
+        { changeId: "change-1", data: { name: "New User", email: "user@example.com" } },
+      ];
+
+      retrieveDeltaMock.mockResolvedValueOnce({ operation: "CREATE", changes })
+        .mockResolvedValue({ operation: "CREATE", changes: [] });
+
+      mockRestConnector.request = vi.fn().mockResolvedValue({ 
+        data: { id: "123", name: "New User", email: "user@example.com" } 
+      });
+
+      const syncConnector = createSyncConnector(mockRestConnector, collection)
+        .withModelConnector("user", (builder) =>
+          builder
+            .withList({
+              request: () => ({ endpoint: "/users", method: "GET" }),
+              extract: (response) => ({ items: [], pagination: { hasMore: false } })
+            })
+            .withBatchCreate({
+              request: (items) => ({
+                endpoint: "/users/batch",
+                method: "POST",
+                json: items,
+              }),
+            })
+        )
+        .build();
+
+      // Sync with async writes disabled
+      await syncConnector.sync("FULL", { useAsyncWrites: false });
+
+      // Should not have async flag
+      expect(mockRestConnector.request).toHaveBeenCalledWith(
+        expect.not.objectContaining({ async: true })
+      );
+    });
+
+    it("should handle environment variable for disabling async writes", async () => {
+      // Set environment variable
+      process.env.LIGHTYEAR_ASYNC_WRITES = "false";
+
+      const syncConnector = createSyncConnector(mockRestConnector, collection)
+        .withModelConnector("user", (builder) => 
+          builder
+            .withList({
+              request: () => ({ endpoint: "/users", method: "GET" }),
+              extract: (response) => ({ items: [], pagination: { hasMore: false } })
+            })
+            .withCreate({
+              request: (data) => ({ 
+                endpoint: "/users", 
+                method: "POST", 
+                json: data 
+              }),
+            })
+        )
+        .build();
+
+      // The environment variable affects the behavior at runtime if not explicitly set
+      const changes = [
+        { changeId: "change-1", data: { name: "New User", email: "user@example.com" } },
+      ];
+
+      retrieveDeltaMock.mockResolvedValueOnce({ operation: "CREATE", changes })
+        .mockResolvedValue({ operation: "CREATE", changes: [] });
+
+      mockRestConnector.request = vi.fn().mockResolvedValue({ 
+        data: { id: "123", name: "New User", email: "user@example.com" } 
+      });
+
+      // Sync should use sync writes due to env variable
+      await syncConnector.sync("FULL");
+
+      // Should not have async flag
+      expect(mockRestConnector.request).toHaveBeenCalledWith(
+        expect.not.objectContaining({ async: true })
+      );
+
+      // Cleanup
+      delete process.env.LIGHTYEAR_ASYNC_WRITES;
+    });
+  });
 });

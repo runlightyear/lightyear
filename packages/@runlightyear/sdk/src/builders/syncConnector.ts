@@ -11,10 +11,12 @@ import {
   pauseSync,
   startSync,
   finishSync,
+  getUnconfirmedChanges,
 } from "../platform/sync";
 import { getCurrentContext, getLogCapture } from "../logging";
 import { isTemporaryHttpError } from "../utils/httpErrors";
 import { isTimeLimitExceeded, resetTimeLimit } from "../utils/time";
+import { ChangeProcessor } from "../platform/changeProcessor";
 
 // Removed legacy PaginationConfig (page/offset types no longer supported)
 
@@ -190,6 +192,8 @@ export interface BatchCreateOperationConfig<T = any> {
   extract?: (response: any) => Array<BatchConfirmation>;
   payloadType?: "items" | "changes";
   batchSize?: number;
+  idPath?: string;
+  updatedAtPath?: string;
 }
 
 export interface BatchUpdateOperationConfig<T = any> {
@@ -204,6 +208,8 @@ export interface BatchUpdateOperationConfig<T = any> {
   extract?: (response: any) => Array<BatchConfirmation>;
   payloadType?: "items" | "changes";
   batchSize?: number;
+  idPath?: string;
+  updatedAtPath?: string;
 }
 
 export interface BatchDeleteOperationConfig {
@@ -218,6 +224,8 @@ export interface BatchDeleteOperationConfig {
   extract?: (response: any) => Array<BatchConfirmation>;
   payloadType?: "ids" | "changes";
   batchSize?: number;
+  idPath?: string;
+  updatedAtPath?: string;
 }
 
 export interface ModelConnectorConfig<T = any> {
@@ -327,7 +335,9 @@ export interface ModelConnector<T = any> {
   batchUpdate?: (
     items: BatchUpdateRequestItems<T>
   ) => Promise<BatchUpdateResponseItems<T>>;
-  batchDelete?: (items: BatchDeleteRequestItems) => Promise<BatchDeleteResponseItems>;
+  batchDelete?: (
+    items: BatchDeleteRequestItems
+  ) => Promise<BatchDeleteResponseItems>;
 }
 
 type ExtractModels<T> = T extends { __modelData?: infer Map }
@@ -373,6 +383,25 @@ type ModelConnectorMap<C extends Collection> = {
   ) => SyncModelConnectorBuilder<any>;
 };
 
+/**
+ * Builder for creating sync connectors with model configurations.
+ *
+ * By default, uses async writes for batch operations to improve performance.
+ *
+ * @example
+ * ```typescript
+ * // Default: async writes enabled
+ * const connector = createSyncConnector(restConnector, collection)
+ *   .withModelConnector("contacts", builder => ...)
+ *   .build();
+ *
+ * // Disable async writes
+ * const syncConnector = createSyncConnector(restConnector, collection)
+ *   .withModelConnector("contacts", builder => ...)
+ *   .withSyncWrites() // Use synchronous writes
+ *   .build();
+ * ```
+ */
 export class SyncConnectorBuilder<
   TRestConnector extends RestConnector = RestConnector,
   TCollection extends Collection = Collection
@@ -380,6 +409,7 @@ export class SyncConnectorBuilder<
   private restConnector: TRestConnector;
   private collection: TCollection;
   private modelConnectors: Map<string, ModelConnector> = new Map();
+  private useAsyncWrites: boolean = true; // Default to async writes
 
   constructor(restConnector: TRestConnector, collection: TCollection) {
     this.restConnector = restConnector;
@@ -415,6 +445,10 @@ export class SyncConnectorBuilder<
           return bb;
         });
       });
+      // Copy async writes setting if available
+      if (typeof (source as any).useAsyncWrites === "boolean") {
+        builder.useAsyncWrites = (source as any).useAsyncWrites;
+      }
       return builder;
     }
 
@@ -620,13 +654,13 @@ export class SyncConnectorBuilder<
         const aggregatedResponses: any[] = [];
         const confirmations: BatchConfirmation[] = [];
         const isChangePayload = config.batchCreate!.payloadType === "changes";
+        const useAsync = (items[0] as any)?.changeId !== undefined;
 
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
           const formattedBatch = isChangePayload
             ? batch.map((item: any) => {
-                const payload =
-                  item.data ?? item.obj ?? item.payload ?? item;
+                const payload = item.data ?? item.obj ?? item.payload ?? item;
                 return {
                   ...item,
                   data: payload,
@@ -639,13 +673,15 @@ export class SyncConnectorBuilder<
           const response = await this.restConnector.request({
             method: requestConfig.method || "POST",
             url: requestConfig.endpoint,
-            data:
-              requestConfig.json ?? requestConfig.data ?? formattedBatch,
+            data: requestConfig.json ?? requestConfig.data ?? formattedBatch,
+            async: useAsync,
+            changeId: useAsync ? (batch[0] as any).changeId : undefined,
           });
 
           let responseData = response.data;
           if (config.batchCreate!.responseSchema) {
-            responseData = config.batchCreate!.responseSchema.parse(responseData);
+            responseData =
+              config.batchCreate!.responseSchema.parse(responseData);
           }
 
           if (config.batchCreate!.extract) {
@@ -668,14 +704,14 @@ export class SyncConnectorBuilder<
           );
         }
 
-        return config.batchCreate!.extract ? confirmations : aggregatedResponses;
+        return config.batchCreate!.extract
+          ? confirmations
+          : aggregatedResponses;
       };
     }
 
     if (config.batchUpdate) {
-      connector.batchUpdate = async (
-        items: BatchUpdateRequestItems<any>
-      ) => {
+      connector.batchUpdate = async (items: BatchUpdateRequestItems<any>) => {
         const batchSize = config.batchUpdate!.batchSize || 100;
         const aggregatedResponses: any[] = [];
         const confirmations: BatchConfirmation[] = [];
@@ -699,20 +735,19 @@ export class SyncConnectorBuilder<
                   };
                 })
               : batch;
-          const requestConfig =
-            config.batchUpdate!.request(formattedBatch as any);
+          const requestConfig = config.batchUpdate!.request(
+            formattedBatch as any
+          );
 
           const response = await this.restConnector.request({
             method: requestConfig.method || "PUT",
             url: requestConfig.endpoint,
-            data:
-              requestConfig.json ?? requestConfig.data ?? formattedBatch,
+            data: requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
           let responseData = response.data;
           if (config.batchUpdate!.responseSchema) {
-            responseData = config.batchUpdate!.responseSchema!.parse(
-              responseData
-            );
+            responseData =
+              config.batchUpdate!.responseSchema!.parse(responseData);
           }
 
           if (config.batchUpdate!.extract) {
@@ -742,9 +777,7 @@ export class SyncConnectorBuilder<
     }
 
     if (config.batchDelete) {
-      connector.batchDelete = async (
-        items: BatchDeleteRequestItems
-      ) => {
+      connector.batchDelete = async (items: BatchDeleteRequestItems) => {
         const batchSize = config.batchDelete!.batchSize || 100;
         const confirmations: BatchConfirmation[] = [];
         const payloadType =
@@ -764,21 +797,21 @@ export class SyncConnectorBuilder<
                   };
                 })
               : batch;
-          const requestConfig = config.batchDelete!.request(formattedBatch as any);
+          const requestConfig = config.batchDelete!.request(
+            formattedBatch as any
+          );
 
           const response = await this.restConnector.request({
             method: requestConfig.method || "DELETE",
             url: requestConfig.endpoint,
-            data:
-              requestConfig.json ?? requestConfig.data ?? formattedBatch,
+            data: requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
 
           if (config.batchDelete!.extract) {
             let responseData = response.data;
             if (config.batchDelete!.responseSchema) {
-              responseData = config.batchDelete!.responseSchema!.parse(
-                responseData
-              );
+              responseData =
+                config.batchDelete!.responseSchema!.parse(responseData);
             }
             const extracted = config.batchDelete!.extract!(responseData) ?? [];
             confirmations.push(
@@ -867,11 +900,28 @@ export class SyncConnectorBuilder<
       | undefined;
   }
 
+  /**
+   * Enable or disable async writes (enabled by default)
+   * When enabled, batch operations use async HTTP requests with polling
+   */
+  withAsyncWrites(enabled: boolean = true): this {
+    this.useAsyncWrites = enabled;
+    return this;
+  }
+
+  /**
+   * Use synchronous writes (convenience method)
+   */
+  withSyncWrites(): this {
+    return this.withAsyncWrites(false);
+  }
+
   build(): SyncConnector<TRestConnector, TCollection> {
     return new SyncConnector(
       this.restConnector,
       this.collection,
-      this.modelConnectors
+      this.modelConnectors,
+      this.useAsyncWrites
     );
   }
 }
@@ -993,7 +1043,9 @@ export class SyncModelConnectorBuilder<T = any> {
     return this;
   }
 
-  withBatchCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+  withBatchCreate<
+    TSchema extends z.ZodType<any> | undefined = undefined
+  >(config: {
     request: (changes: Array<BatchCreateChange<T>>) => {
       endpoint: string;
       method?: "POST" | "PUT";
@@ -1015,7 +1067,9 @@ export class SyncModelConnectorBuilder<T = any> {
     return this;
   }
 
-  withBatchUpdate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+  withBatchUpdate<
+    TSchema extends z.ZodType<any> | undefined = undefined
+  >(config: {
     request: (changes: Array<BatchUpdateChange<T>>) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
@@ -1037,7 +1091,9 @@ export class SyncModelConnectorBuilder<T = any> {
     return this;
   }
 
-  withBatchDelete<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+  withBatchDelete<
+    TSchema extends z.ZodType<any> | undefined = undefined
+  >(config: {
     request: (changes: Array<BatchDeleteChange>) => {
       endpoint: string;
       method?: "DELETE" | "POST";
@@ -1146,7 +1202,9 @@ export class ModelConnectorConfigBuilder<T = any> {
     return this;
   }
 
-  withBatchCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+  withBatchCreate<
+    TSchema extends z.ZodType<any> | undefined = undefined
+  >(config: {
     request: (changes: Array<BatchCreateChange<T>>) => {
       endpoint: string;
       method?: "POST" | "PUT";
@@ -1171,7 +1229,9 @@ export class ModelConnectorConfigBuilder<T = any> {
     return this;
   }
 
-  withBatchUpdate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+  withBatchUpdate<
+    TSchema extends z.ZodType<any> | undefined = undefined
+  >(config: {
     request: (changes: Array<BatchUpdateChange<T>>) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
@@ -1196,7 +1256,9 @@ export class ModelConnectorConfigBuilder<T = any> {
     return this;
   }
 
-  withBatchDelete<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+  withBatchDelete<
+    TSchema extends z.ZodType<any> | undefined = undefined
+  >(config: {
     request: (changes: Array<BatchDeleteChange>) => {
       endpoint: string;
       method?: "DELETE" | "POST";
@@ -1225,15 +1287,426 @@ export class SyncConnector<
   private restConnector: TRestConnector;
   private collection: TCollection;
   private modelConnectors: Map<string, ModelConnector>;
+  private useAsyncWrites: boolean;
 
   constructor(
     restConnector: TRestConnector,
     collection: TCollection,
-    modelConnectors: Map<string, ModelConnector>
+    modelConnectors: Map<string, ModelConnector>,
+    useAsyncWrites: boolean = true
   ) {
     this.restConnector = restConnector;
     this.collection = collection;
     this.modelConnectors = modelConnectors;
+    this.useAsyncWrites = useAsyncWrites;
+  }
+
+  /**
+   * Process batch create operations asynchronously
+   * Uses regular http-request endpoint with async flag since the API supports batch operations
+   */
+  private async processBatchCreateAsync(
+    connector: ModelConnector,
+    changes: Array<any>,
+    modelName: string,
+    processor: ChangeProcessor
+  ): Promise<void> {
+    const batchSize = connector.config.batchCreate?.batchSize || 100;
+    const payloadType =
+      connector.config.batchCreate?.payloadType ??
+      (connector.config.batchCreate?.extract ? "changes" : "items");
+
+    console.info(
+      `Processing ${changes.length} CREATE changes for model ${modelName} (native batch API)`
+    );
+
+    for (let i = 0; i < changes.length; i += batchSize) {
+      const batch = changes.slice(i, i + batchSize);
+      const formattedBatch = payloadType === "changes"
+        ? batch.map((change: any) => ({
+            ...change,
+            data: change.data ?? change.obj ?? change.payload ?? null,
+            obj: change.obj ?? change.data ?? change.payload ?? null,
+          }))
+        : batch.map((c: any) => c.data);
+
+      const requestConfig = connector.config.batchCreate!.request(formattedBatch);
+
+      // Track all changes in this batch
+      batch.forEach((change: any) => {
+        processor.addPendingChange({
+          changeId: change.changeId,
+          operation: "CREATE",
+          data: change.data,
+          extractFn: connector.config.create?.extract,
+        });
+      });
+
+      // For batch operations with async, we need to pass confirm object
+      const requestBody: any = {
+        method: requestConfig.method || "POST",
+        url: requestConfig.endpoint,
+        json: requestConfig.json ?? requestConfig.data ?? formattedBatch,
+        async: true,
+        confirm: {
+          changeIds: batch.map(c => c.changeId),
+          idPath: connector.config.batchCreate?.idPath || "id",
+          updatedAtPath: connector.config.batchCreate?.updatedAtPath || "updatedAt",
+        }
+      };
+      await this.restConnector.request(requestBody);
+
+      console.info(
+        `Sent batch CREATE request for ${batch.length} items to ${requestConfig.endpoint}`
+      );
+    }
+  }
+
+  /**
+   * Process batch update operations asynchronously
+   * Uses regular http-request endpoint with async flag since the API supports batch operations
+   */
+  private async processBatchUpdateAsync(
+    connector: ModelConnector,
+    changes: Array<any>,
+    modelName: string,
+    processor: ChangeProcessor
+  ): Promise<void> {
+    const batchSize = connector.config.batchUpdate?.batchSize || 100;
+    const payloadType =
+      connector.config.batchUpdate?.payloadType ??
+      (connector.config.batchUpdate?.extract ? "changes" : "items");
+
+    console.info(
+      `Processing ${changes.length} UPDATE changes for model ${modelName} (native batch API)`
+    );
+
+    for (let i = 0; i < changes.length; i += batchSize) {
+      const batch = changes.slice(i, i + batchSize);
+      const formattedBatch = payloadType === "changes"
+        ? batch.map((change: any) => ({
+            ...change,
+            externalId: String(change.externalId ?? change.id),
+            id: change.id ?? change.externalId,
+            data: change.data ?? change.obj ?? {},
+            obj: change.obj ?? change.data ?? {},
+          }))
+        : batch.map((c: any) => ({ id: c.externalId, data: c.data }));
+
+      const requestConfig = connector.config.batchUpdate!.request(formattedBatch);
+
+      // Track all changes in this batch
+      batch.forEach((change: any) => {
+        processor.addPendingChange({
+          changeId: change.changeId,
+          operation: "UPDATE",
+          externalId: change.externalId,
+          data: change.data,
+          extractFn: connector.config.update?.extract
+            ? (response: any) => {
+                const result = connector.config.update!.extract(response);
+                return {
+                  externalId: result.externalId || change.externalId,
+                  externalUpdatedAt: result.externalUpdatedAt,
+                };
+              }
+            : undefined,
+        });
+      });
+
+      // Send single async request for the entire batch
+      const requestBody: any = {
+        method: requestConfig.method || "PUT",
+        url: requestConfig.endpoint,
+        json: requestConfig.json ?? requestConfig.data ?? formattedBatch,
+        async: true,
+        confirm: {
+          changeIds: batch.map(c => c.changeId),
+          idPath: connector.config.batchUpdate?.idPath || "id",
+          updatedAtPath: connector.config.batchUpdate?.updatedAtPath || "updatedAt",
+        }
+      };
+      await this.restConnector.request(requestBody);
+
+      console.info(
+        `Sent batch UPDATE request for ${batch.length} items to ${requestConfig.endpoint}`
+      );
+    }
+  }
+
+  /**
+   * Process batch delete operations asynchronously
+   * Uses regular http-request endpoint with async flag since the API supports batch operations
+   */
+  private async processBatchDeleteAsync(
+    connector: ModelConnector,
+    changes: Array<any>,
+    modelName: string,
+    processor: ChangeProcessor
+  ): Promise<void> {
+    const batchSize = connector.config.batchDelete?.batchSize || 100;
+    const payloadType =
+      connector.config.batchDelete?.payloadType ??
+      (connector.config.batchDelete?.extract ? "changes" : "ids");
+
+    console.info(
+      `Processing ${changes.length} DELETE changes for model ${modelName} (native batch API)`
+    );
+
+    for (let i = 0; i < changes.length; i += batchSize) {
+      const batch = changes.slice(i, i + batchSize);
+      const formattedBatch = payloadType === "changes"
+        ? batch.map((change: any) => ({
+            ...change,
+            externalId: String(change.externalId ?? change.id),
+            id: change.id ?? change.externalId,
+          }))
+        : batch.map((c: any) => ({
+            changeId: c.changeId,
+            externalId: String(c.externalId),
+          }));
+
+      const requestConfig = connector.config.batchDelete!.request(formattedBatch);
+
+      // Track all changes in this batch
+      batch.forEach((change: any) => {
+        processor.addPendingChange({
+          changeId: change.changeId,
+          operation: "DELETE",
+          externalId: change.externalId,
+        });
+      });
+
+      // Send single async request for the entire batch
+      const requestBody: any = {
+        method: requestConfig.method || "DELETE",
+        url: requestConfig.endpoint,
+        json: requestConfig.json ?? requestConfig.data ?? formattedBatch,
+        async: true,
+        confirm: {
+          changeIds: batch.map(c => c.changeId),
+          idPath: connector.config.batchDelete?.idPath || "id",
+          updatedAtPath: connector.config.batchDelete?.updatedAtPath || "updatedAt",
+        }
+      };
+      await this.restConnector.request(requestBody);
+
+      console.info(
+        `Sent batch DELETE request for ${batch.length} items to ${requestConfig.endpoint}`
+      );
+    }
+  }
+
+  /**
+   * Process individual create/update/delete operations asynchronously using batch endpoint
+   * This simulates batch behavior for APIs that don't have native batch support
+   */
+  private async processIndividualChangesAsync(
+    connector: ModelConnector,
+    delta: any,
+    modelName: string,
+    processor: ChangeProcessor
+  ): Promise<void> {
+    if (delta.operation === "CREATE" && connector.create) {
+      console.info(
+        `Processing ${delta.changes.length} CREATE changes for model ${modelName} (individual requests via batch endpoint)`
+      );
+      
+      const requests = delta.changes.map((change: any) => {
+        const requestConfig = connector.config.create!.request(change.data);
+        
+        // Track the pending change
+        processor.addPendingChange({
+          changeId: change.changeId,
+          operation: "CREATE",
+          data: change.data,
+          extractFn: connector.config.create?.extract,
+        });
+
+        return {
+          method: requestConfig.method || "POST",
+          url: requestConfig.endpoint,
+          json: requestConfig.json ?? requestConfig.data ?? change.data,
+          changeId: change.changeId,
+        };
+      });
+
+      // Send all requests in parallel using batch endpoint
+      await this.restConnector.batchRequest({
+        requests,
+        syncId: processor.getSyncId(),
+      });
+      
+      console.info(
+        `Sent ${requests.length} parallel CREATE requests for model ${modelName}`
+      );
+    } else if (delta.operation === "UPDATE" && connector.update) {
+      console.info(
+        `Processing ${delta.changes.length} UPDATE changes for model ${modelName} (individual requests via batch endpoint)`
+      );
+      
+      const requests = delta.changes.map((change: any) => {
+        const requestConfig = connector.config.update!.request(change.externalId, change.data);
+        
+        // Track the pending change
+        processor.addPendingChange({
+          changeId: change.changeId,
+          operation: "UPDATE",
+          externalId: change.externalId,
+          data: change.data,
+          extractFn: connector.config.update?.extract
+            ? (response: any) => {
+                const result = connector.config.update!.extract(response);
+                return {
+                  externalId: result.externalId || change.externalId,
+                  externalUpdatedAt: result.externalUpdatedAt,
+                };
+              }
+            : undefined,
+        });
+
+        return {
+          method: requestConfig.method || "PUT",
+          url: requestConfig.endpoint,
+          json: requestConfig.json ?? requestConfig.data ?? change.data,
+          changeId: change.changeId,
+        };
+      });
+
+      // Send all requests in parallel using batch endpoint
+      await this.restConnector.batchRequest({
+        requests,
+        syncId: processor.getSyncId(),
+      });
+      
+      console.info(
+        `Sent ${requests.length} parallel UPDATE requests for model ${modelName}`
+      );
+    } else if (delta.operation === "DELETE" && connector.delete) {
+      console.info(
+        `Processing ${delta.changes.length} DELETE changes for model ${modelName} (individual requests via batch endpoint)`
+      );
+      
+      const requests = delta.changes.map((change: any) => {
+        const requestConfig = connector.config.delete!.request(change.externalId);
+        
+        // Track the pending change
+        processor.addPendingChange({
+          changeId: change.changeId,
+          operation: "DELETE",
+          externalId: change.externalId,
+        });
+
+        return {
+          method: requestConfig.method || "DELETE",
+          url: requestConfig.endpoint,
+          json: requestConfig.json ?? requestConfig.data,
+          changeId: change.changeId,
+        };
+      });
+
+      // Send all requests in parallel using batch endpoint
+      await this.restConnector.batchRequest({
+        requests,
+        syncId: processor.getSyncId(),
+      });
+      
+      console.info(
+        `Sent ${requests.length} parallel DELETE requests for model ${modelName}`
+      );
+    }
+  }
+
+  /**
+   * Process changes synchronously (fallback when async is disabled)
+   */
+  private async processSyncChanges(
+    connector: ModelConnector,
+    delta: any,
+    modelName: string,
+    syncId: string
+  ): Promise<void> {
+    if (delta.operation === "CREATE" && connector.create) {
+      console.info(
+        `Creating ${delta.changes.length} items for model ${modelName} (non-batch)`
+      );
+      const confirmations: Array<{
+        changeId: string;
+        externalId: string;
+        externalUpdatedAt: string | null;
+      }> = [];
+      for (const change of delta.changes) {
+        const created = await connector.create(change.data);
+        const extracted = (
+          connector.config.create?.extract
+            ? connector.config.create.extract(created)
+            : {
+                externalId: (created as any).id as string,
+                externalUpdatedAt: ((created as any).updatedAt ?? null) as any,
+              }
+        ) as any;
+        confirmations.push({
+          changeId: change.changeId,
+          externalId: String(extracted.externalId ?? (created as any).id),
+          externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+        });
+      }
+      await confirmChangeBatch({
+        syncId,
+        changes: confirmations,
+        async: false,
+      });
+    } else if (delta.operation === "UPDATE" && connector.update) {
+      console.info(
+        `Updating ${delta.changes.length} items for model ${modelName} (non-batch)`
+      );
+      const confirmations: Array<{
+        changeId: string;
+        externalId: string;
+        externalUpdatedAt: string | null;
+      }> = [];
+      for (const change of delta.changes) {
+        const updated = await connector.update(change.externalId, change.data);
+        const extracted = (
+          connector.config.update?.extract
+            ? connector.config.update.extract(updated)
+            : {
+                externalId: change.externalId,
+                externalUpdatedAt: ((updated as any).updatedAt ?? null) as any,
+              }
+        ) as any;
+        confirmations.push({
+          changeId: change.changeId,
+          externalId: String(extracted.externalId ?? change.externalId),
+          externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+        });
+      }
+      await confirmChangeBatch({
+        syncId,
+        changes: confirmations,
+        async: false,
+      });
+    } else if (delta.operation === "DELETE" && connector.delete) {
+      console.info(
+        `Deleting ${delta.changes.length} items for model ${modelName} (non-batch)`
+      );
+      const confirmations: Array<{
+        changeId: string;
+        externalId: string;
+      }> = [];
+      for (const change of delta.changes) {
+        await connector.delete(change.externalId);
+        confirmations.push({
+          changeId: change.changeId,
+          externalId: String(change.externalId),
+        });
+      }
+      await confirmChangeBatch({
+        syncId,
+        changes: confirmations,
+        async: false,
+      });
+    }
   }
 
   getRestConnector(): TRestConnector {
@@ -1252,7 +1725,408 @@ export class SyncConnector<
       | undefined;
   }
 
-  async sync(type?: "FULL" | "INCREMENTAL"): Promise<void> {
+  /**
+   * Sync implementation with async writes for batch operations
+   */
+  private async syncWithAsyncWrites(
+    type?: "FULL" | "INCREMENTAL"
+  ): Promise<void> {
+    let changeProcessor: ChangeProcessor | null = null;
+
+    try {
+      // Test/offline mode: perform a local sync without platform API calls
+      try {
+        if (process?.env?.NODE_ENV === "test") {
+          for (const model of this.collection.models) {
+            const connector = this.modelConnectors.get(model.name);
+            if (!connector?.list) continue;
+            const { items } = await connector.list({
+              syncType: type || "FULL",
+            });
+            console.log(
+              `Synced ${items?.length ?? 0} items for model ${model.name}`
+            );
+          }
+          return;
+        }
+      } catch {}
+
+      // High-level orchestration per sync-requirements
+      const ctx = getCurrentContext();
+      let syncId: string | undefined = (ctx as any)?.syncId;
+      const managedUserId: string | undefined = (ctx as any)?.managedUserId;
+      const app: string | undefined = (ctx as any)?.appName ?? undefined;
+      const customApp: string | undefined =
+        (ctx as any)?.customAppName ?? undefined;
+      const runId: string | undefined = (ctx as any)?.runId ?? undefined;
+
+      // If syncId is not provided in context, start a new sync via API
+      if (!syncId) {
+        if (!managedUserId) {
+          console.warn(
+            "No managedUserId in context; attempting to start sync without it"
+          );
+        }
+        const collectionName = this.collection.name;
+        const sync = await startSync({
+          collectionName,
+          appName: app ?? null,
+          customAppName: customApp ?? null,
+          managedUserId,
+          runId,
+          type,
+        });
+        console.info(
+          `Started sync ${sync?.id} (${
+            sync?.type || "UNKNOWN"
+          }) for collection ${collectionName}`
+        );
+        syncId = sync?.id;
+        if (!syncId) {
+          throw new Error("Failed to start sync: missing id in response");
+        }
+        // Set syncId into the log/context so subsequent platform calls can read it
+        getLogCapture()?.setContext({ syncId } as any);
+      }
+
+      // Initialize ChangeProcessor with syncId
+      changeProcessor = new ChangeProcessor(syncId);
+
+      // Require managed user for sync execution
+      if (!managedUserId) {
+        throw new Error("Missing managedUserId in context");
+      }
+
+      // Reset time budget for this run
+      resetTimeLimit();
+
+      // Start polling for async changes
+      changeProcessor.startPolling(2000);
+
+      // Determine models to sync from platform
+      const collectionName = this.collection.name;
+      const orderedModels = await getModels({ collectionName });
+      let modelsToSync = orderedModels.map((m: any) => m.name);
+
+      const sync = await getSync({ syncId });
+      console.log("sync", sync);
+
+      const currentModelName: string | undefined =
+        sync.currentModel?.name ?? undefined;
+      if (currentModelName) {
+        const idx = modelsToSync.indexOf(currentModelName);
+        if (idx >= 0) modelsToSync = modelsToSync.slice(idx);
+      }
+
+      let hadError = false;
+      let errorMessage: string | undefined = undefined;
+      let unrecoverableError = false;
+      let canceledByServer = false;
+
+      const isUnrecoverableSyncError = (err: any): boolean => {
+        let status: number | undefined = undefined;
+        if (err && typeof err === "object") {
+          if (typeof (err as any).status === "number") {
+            status = (err as any).status as number;
+          } else if (
+            (err as any).response &&
+            typeof (err as any).response.status === "number"
+          ) {
+            status = (err as any).response.status as number;
+          }
+        }
+        if (typeof status === "number") {
+          return !isTemporaryHttpError(status);
+        }
+        // No status available: treat as temporary
+        return false;
+      };
+
+      try {
+        for (const modelName of modelsToSync) {
+          const connector = this.modelConnectors.get(modelName);
+          if (!connector) continue;
+
+          await updateSync({ syncId, currentModelName: modelName });
+
+          // Load latest sync state before starting model
+          let state = await getSync({ syncId });
+          const requestedDirection: "pull" | "push" | "bidirectional" =
+            (state.requestedDirection as any) || "bidirectional";
+          let currentDirection: "PULL" | "PUSH" | null =
+            state.currentDirection ?? null;
+
+          // PULL phase remains synchronous
+          if (
+            (requestedDirection === "pull" ||
+              requestedDirection === "bidirectional") &&
+            currentDirection !== "PUSH"
+          ) {
+            await updateSync({ syncId, currentDirection: "PULL" });
+            console.info(`PULL phase started for model ${modelName}`);
+
+            // ... existing PULL logic remains unchanged ...
+            const listFn = connector.list;
+            if (listFn) {
+              let hasMore: boolean = true;
+              let cursor: string | undefined =
+                state.modelStatuses?.[modelName]?.cursor;
+              let page: number | undefined =
+                state.modelStatuses?.[modelName]?.page;
+              let offset: number | undefined =
+                state.modelStatuses?.[modelName]?.offset;
+              let lastExternalId: string | undefined =
+                state.modelStatuses?.[modelName]?.lastExternalId;
+              let lastExternalUpdatedAt: string | undefined =
+                state.modelStatuses?.[modelName]?.lastExternalUpdatedAt;
+              const syncType = state.type || "FULL";
+
+              while (hasMore) {
+                if (isTimeLimitExceeded()) {
+                  await pauseSync(syncId);
+                  throw "RERUN";
+                }
+
+                const params: any = {
+                  cursor,
+                  page,
+                  offset,
+                  lastExternalId,
+                  lastExternalUpdatedAt,
+                  syncType,
+                };
+
+                const { items, pagination } = await listFn(params);
+                console.info(
+                  `Fetched ${items?.length ?? 0} items for model ${modelName}`
+                );
+
+                if (!items || items.length === 0) {
+                  break;
+                }
+
+                const objects = items.map((it) => ({
+                  externalId: String(it.externalId),
+                  externalUpdatedAt: it.externalUpdatedAt
+                    ? String(it.externalUpdatedAt)
+                    : null,
+                  data: it.data,
+                }));
+
+                await upsertObjectBatch({
+                  collectionName,
+                  syncId,
+                  modelName,
+                  app,
+                  customApp,
+                  objects,
+                  cursor: pagination?.cursor,
+                  page: pagination?.page,
+                  offset: pagination?.offset,
+                  async: true,
+                });
+
+                const last = objects[objects.length - 1];
+                lastExternalId = last.externalId;
+                lastExternalUpdatedAt = last.externalUpdatedAt || undefined;
+                cursor = pagination?.cursor;
+                page = pagination?.page;
+                offset = pagination?.offset;
+                hasMore = !!pagination?.hasMore;
+              }
+            }
+          }
+
+          // PUSH phase with async HTTP
+          if (
+            requestedDirection === "push" ||
+            requestedDirection === "bidirectional"
+          ) {
+            await updateSync({ syncId, currentDirection: "PUSH" });
+            console.info(`PUSH phase started for model ${modelName}`);
+
+            while (true) {
+              if (isTimeLimitExceeded()) {
+                // Wait for pending changes before pausing
+                await changeProcessor.waitForPendingChanges(10000);
+                await pauseSync(syncId);
+                throw "RERUN";
+              }
+
+              const delta = await retrieveDelta({
+                collectionName,
+                syncId,
+                modelName,
+              });
+
+              console.info(
+                `Delta received for model ${modelName}: operation=${
+                  (delta as any).operation
+                } count=${(delta as any).changes?.length ?? 0}`
+              );
+
+              if (!delta.changes || delta.changes.length === 0) break;
+
+              // Process changes with async HTTP
+              if (connector.batchCreate && delta.operation === "CREATE") {
+                await this.processBatchCreateAsync(
+                  connector,
+                  delta.changes,
+                  modelName,
+                  changeProcessor
+                );
+              } else if (
+                connector.batchUpdate &&
+                delta.operation === "UPDATE"
+              ) {
+                await this.processBatchUpdateAsync(
+                  connector,
+                  delta.changes,
+                  modelName,
+                  changeProcessor
+                );
+              } else if (
+                connector.batchDelete &&
+                delta.operation === "DELETE"
+              ) {
+                await this.processBatchDeleteAsync(
+                  connector,
+                  delta.changes,
+                  modelName,
+                  changeProcessor
+                );
+              } else {
+                // Process individual operations asynchronously
+                await this.processIndividualChangesAsync(
+                  connector,
+                  delta,
+                  modelName,
+                  changeProcessor
+                );
+              }
+            }
+          }
+
+          // Clear direction after model finishes
+          await updateSync({ syncId, currentDirection: null });
+        }
+
+        // Wait for all pending async operations
+        console.info("Waiting for pending async operations to complete...");
+        await changeProcessor.waitForPendingChanges(60000);
+      } catch (e: any) {
+        if (e === "RERUN") throw e;
+        if (e === "SKIPPED") {
+          console.warn(
+            "Sync start was skipped by server policy; exiting cleanly"
+          );
+          return;
+        }
+
+        let status: number | undefined = undefined;
+        if (e && typeof e === "object") {
+          if (typeof (e as any).status === "number") {
+            status = (e as any).status as number;
+          } else if (
+            (e as any).response &&
+            typeof (e as any).response.status === "number"
+          ) {
+            status = (e as any).response.status as number;
+          }
+        }
+
+        if (status === 409) {
+          canceledByServer = true;
+          hadError = true;
+          errorMessage = e instanceof Error ? e.message : String(e);
+          unrecoverableError = isUnrecoverableSyncError(e);
+          console.error(`Sync encountered an error:`, e);
+        } else {
+          hadError = true;
+          errorMessage = e instanceof Error ? e.message : String(e);
+          unrecoverableError = isUnrecoverableSyncError(e);
+          console.error(`Sync encountered an error:`, e);
+        }
+      } finally {
+        if (changeProcessor) {
+          changeProcessor.stopPolling();
+        }
+      }
+
+      // Finish the sync
+      if (!canceledByServer) {
+        try {
+          console.info(
+            `Finishing sync ${syncId}${hadError ? " (with error)" : ""} force=${
+              hadError && unrecoverableError
+            }`
+          );
+          if (hadError) {
+            try {
+              await finishSync(syncId, {
+                error: errorMessage,
+                force: true,
+              });
+            } catch (finishErr: any) {
+              console.warn(`finishSync(force=true) failed:`, finishErr);
+            }
+          } else {
+            await finishSync(syncId);
+          }
+          console.info(`Finished sync ${syncId}`);
+        } catch (e) {
+          console.warn(`Failed to finish sync ${syncId}:`, e);
+          hadError = true;
+          errorMessage =
+            (e instanceof Error ? e.message : String(e)) ||
+            errorMessage ||
+            "Failed to finish sync";
+        }
+      }
+
+      if (hadError) {
+        throw new Error(errorMessage || "Sync failed");
+      }
+    } finally {
+      if (changeProcessor) {
+        changeProcessor.stopPolling();
+      }
+    }
+  }
+
+  async sync(
+    type?: "FULL" | "INCREMENTAL",
+    options?: { useAsyncWrites?: boolean }
+  ): Promise<void> {
+    // Priority order:
+    // 1. Options parameter (if provided)
+    // 2. Instance configuration (from builder)
+    // 3. Environment variable override (can force disable)
+    let useAsync = options?.useAsyncWrites;
+
+    if (useAsync === undefined) {
+      // Check environment variable for forced disable
+      if (
+        process.env.LIGHTYEAR_ASYNC_WRITES === "false" ||
+        process.env.LIGHTYEAR_ASYNC_WRITES === "0"
+      ) {
+        useAsync = false;
+      } else {
+        // Use instance configuration (defaults to true)
+        useAsync = this.useAsyncWrites;
+      }
+    }
+
+    if (useAsync) {
+      console.info("Using async writes for batch operations");
+      return this.syncWithAsyncWrites(type);
+    }
+
+    console.info("Using synchronous writes for batch operations");
+    return this.syncLegacy(type);
+  }
+
+  private async syncLegacy(type?: "FULL" | "INCREMENTAL"): Promise<void> {
     // Test/offline mode: perform a local sync without platform API calls
     try {
       if (process?.env?.NODE_ENV === "test") {
@@ -1593,7 +2467,10 @@ export class SyncConnector<
                     change?.externalId ??
                     change?.data?.id ??
                     change?.data?.externalId;
-                  if (externalIdCandidate === undefined || externalIdCandidate === null) {
+                  if (
+                    externalIdCandidate === undefined ||
+                    externalIdCandidate === null
+                  ) {
                     throw new Error(
                       `Batch create extract did not provide externalId for change ${item.changeId}`
                     );
@@ -1632,7 +2509,7 @@ export class SyncConnector<
 
               try {
                 console.debug(
-                `Confirming ${changesToConfirm.length} CREATE (batch) changes for model ${modelName}:`,
+                  `Confirming ${changesToConfirm.length} CREATE (batch) changes for model ${modelName}:`,
                   changesToConfirm.map((c) => ({
                     changeId: c.changeId,
                     externalId: c.externalId,
@@ -1703,7 +2580,10 @@ export class SyncConnector<
                     change?.externalId ??
                     change?.data?.id ??
                     change?.data?.externalId;
-                  if (externalIdCandidate === undefined || externalIdCandidate === null) {
+                  if (
+                    externalIdCandidate === undefined ||
+                    externalIdCandidate === null
+                  ) {
                     throw new Error(
                       `Batch update extract did not provide externalId for change ${item.changeId}`
                     );
@@ -1732,7 +2612,9 @@ export class SyncConnector<
                   ) as any;
                   return {
                     changeId: change.changeId,
-                    externalId: String(extracted.externalId ?? change.externalId),
+                    externalId: String(
+                      extracted.externalId ?? change.externalId
+                    ),
                     externalUpdatedAt: extracted.externalUpdatedAt ?? null,
                   };
                 });
@@ -1740,7 +2622,7 @@ export class SyncConnector<
 
               try {
                 console.debug(
-                `Confirming ${changesToConfirm.length} UPDATE (batch) changes for model ${modelName}:`,
+                  `Confirming ${changesToConfirm.length} UPDATE (batch) changes for model ${modelName}:`,
                   changesToConfirm.map((c) => ({
                     changeId: c.changeId,
                     externalId: c.externalId,
@@ -1799,7 +2681,10 @@ export class SyncConnector<
                   const change = changeById.get(String(item.changeId));
                   const externalIdCandidate =
                     item.externalId ?? change?.externalId ?? change?.id;
-                  if (externalIdCandidate === undefined || externalIdCandidate === null) {
+                  if (
+                    externalIdCandidate === undefined ||
+                    externalIdCandidate === null
+                  ) {
                     throw new Error(
                       `Batch delete extract did not provide externalId for change ${item.changeId}`
                     );
@@ -1828,7 +2713,7 @@ export class SyncConnector<
               // Fallback to non-batch
               if (delta.operation === "CREATE" && connector.create) {
                 console.info(
-                `Creating ${delta.changes.length} items for model ${modelName} (non-batch)`
+                  `Creating ${delta.changes.length} items for model ${modelName} (non-batch)`
                 );
                 const confirmations: Array<{
                   changeId: string;
@@ -1876,7 +2761,7 @@ export class SyncConnector<
                 );
               } else if (delta.operation === "UPDATE" && connector.update) {
                 console.info(
-                `Updating ${delta.changes.length} items for model ${modelName} (non-batch)`
+                  `Updating ${delta.changes.length} items for model ${modelName} (non-batch)`
                 );
                 const confirmations: Array<{
                   changeId: string;
@@ -1927,7 +2812,7 @@ export class SyncConnector<
                 );
               } else if (delta.operation === "DELETE" && connector.delete) {
                 console.info(
-                `Deleting ${delta.changes.length} items for model ${modelName} (non-batch)`
+                  `Deleting ${delta.changes.length} items for model ${modelName} (non-batch)`
                 );
                 const confirmations: Array<{
                   changeId: string;
