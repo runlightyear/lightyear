@@ -648,7 +648,6 @@ export class SyncConnectorBuilder<
         const aggregatedResponses: any[] = [];
         const confirmations: BatchConfirmation[] = [];
         const isChangePayload = config.batchCreate!.payloadType === "changes";
-        const useAsync = (items[0] as any)?.changeId !== undefined;
 
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
@@ -668,8 +667,6 @@ export class SyncConnectorBuilder<
             method: requestConfig.method || "POST",
             url: requestConfig.endpoint,
             data: requestConfig.json ?? requestConfig.data ?? formattedBatch,
-            async: useAsync,
-            changeId: useAsync ? (batch[0] as any).changeId : undefined,
           });
 
           let responseData = response.data;
@@ -1327,14 +1324,8 @@ export class SyncConnector<
       const requestConfig = connector.config.batchCreate!.request(formattedBatch);
 
       // Track all changes in this batch
-      batch.forEach((change: any) => {
-        processor.addPendingChange({
-          changeId: change.changeId,
-          operation: "CREATE",
-          data: change.data,
-          extractFn: connector.config.create?.extract,
-        });
-      });
+      const batchExtractFn = connector.config.batchCreate?.extract;
+      
 
       // For batch operations with async, pass changeIds at top level
       const requestBody: any = {
@@ -1344,7 +1335,27 @@ export class SyncConnector<
         async: true,
         changeIds: batch.map(c => c.changeId),
       };
-      await this.restConnector.request(requestBody);
+      const response = await this.restConnector.request(requestBody);
+      
+      console.debug(
+        `Batch CREATE response:`,
+        {
+          hasHttpRequestId: !!response.httpRequestId,
+          httpRequestId: response.httpRequestId,
+          responseKeys: Object.keys(response),
+          hasBatchExtractFn: !!batchExtractFn,
+          changeIds: batch.map(c => c.changeId)
+        }
+      );
+      
+      // If we have a batch extract function and got a httpRequestId, register it
+      if (batchExtractFn && response.httpRequestId) {
+        processor.registerBatchExtractFunction(response.httpRequestId, batchExtractFn);
+      } else if (batchExtractFn && !response.httpRequestId) {
+        console.warn(
+          `Batch CREATE request completed but no httpRequestId returned. Cannot register extract function.`
+        );
+      }
 
       console.info(
         `Sent batch CREATE request for ${batch.length} items to ${requestConfig.endpoint}`
@@ -1385,24 +1396,8 @@ export class SyncConnector<
 
       const requestConfig = connector.config.batchUpdate!.request(formattedBatch);
 
-      // Track all changes in this batch
-      batch.forEach((change: any) => {
-        processor.addPendingChange({
-          changeId: change.changeId,
-          operation: "UPDATE",
-          externalId: change.externalId,
-          data: change.data,
-          extractFn: connector.config.update?.extract
-            ? (response: any) => {
-                const result = connector.config.update!.extract(response);
-                return {
-                  externalId: result.externalId || change.externalId,
-                  externalUpdatedAt: result.externalUpdatedAt,
-                };
-              }
-            : undefined,
-        });
-      });
+      // Track the batch extract function if provided
+      const batchExtractFn = connector.config.batchUpdate?.extract;
 
       // Send single async request for the entire batch
       const requestBody: any = {
@@ -1412,7 +1407,27 @@ export class SyncConnector<
         async: true,
         changeIds: batch.map(c => c.changeId),
       };
-      await this.restConnector.request(requestBody);
+      const response = await this.restConnector.request(requestBody);
+      
+      console.debug(
+        `Batch UPDATE response:`,
+        {
+          hasHttpRequestId: !!response.httpRequestId,
+          httpRequestId: response.httpRequestId,
+          responseKeys: Object.keys(response),
+          hasBatchExtractFn: !!batchExtractFn,
+          changeIds: batch.map(c => c.changeId)
+        }
+      );
+      
+      // If we have a batch extract function and got a httpRequestId, register it
+      if (batchExtractFn && response.httpRequestId) {
+        processor.registerBatchExtractFunction(response.httpRequestId, batchExtractFn);
+      } else if (batchExtractFn && !response.httpRequestId) {
+        console.warn(
+          `Batch UPDATE request completed but no httpRequestId returned. Cannot register extract function.`
+        );
+      }
 
       console.info(
         `Sent batch UPDATE request for ${batch.length} items to ${requestConfig.endpoint}`
@@ -1454,14 +1469,8 @@ export class SyncConnector<
 
       const requestConfig = connector.config.batchDelete!.request(formattedBatch);
 
-      // Track all changes in this batch
-      batch.forEach((change: any) => {
-        processor.addPendingChange({
-          changeId: change.changeId,
-          operation: "DELETE",
-          externalId: change.externalId,
-        });
-      });
+      // Track the batch extract function if provided
+      const batchExtractFn = connector.config.batchDelete?.extract;
 
       // Send single async request for the entire batch
       const requestBody: any = {
@@ -1471,7 +1480,27 @@ export class SyncConnector<
         async: true,
         changeIds: batch.map(c => c.changeId),
       };
-      await this.restConnector.request(requestBody);
+      const response = await this.restConnector.request(requestBody);
+      
+      console.debug(
+        `Batch DELETE response:`,
+        {
+          hasHttpRequestId: !!response.httpRequestId,
+          httpRequestId: response.httpRequestId,
+          responseKeys: Object.keys(response),
+          hasBatchExtractFn: !!batchExtractFn,
+          changeIds: batch.map(c => c.changeId)
+        }
+      );
+      
+      // If we have a batch extract function and got a httpRequestId, register it
+      if (batchExtractFn && response.httpRequestId) {
+        processor.registerBatchExtractFunction(response.httpRequestId, batchExtractFn);
+      } else if (batchExtractFn && !response.httpRequestId) {
+        console.warn(
+          `Batch DELETE request completed but no httpRequestId returned. Cannot register extract function.`
+        );
+      }
 
       console.info(
         `Sent batch DELETE request for ${batch.length} items to ${requestConfig.endpoint}`
@@ -1496,14 +1525,6 @@ export class SyncConnector<
       
       const requests = delta.changes.map((change: any) => {
         const requestConfig = connector.config.create!.request(change.data);
-        
-        // Track the pending change
-        processor.addPendingChange({
-          changeId: change.changeId,
-          operation: "CREATE",
-          data: change.data,
-          extractFn: connector.config.create?.extract,
-        });
 
         return {
           method: requestConfig.method || "POST",
@@ -1529,23 +1550,6 @@ export class SyncConnector<
       
       const requests = delta.changes.map((change: any) => {
         const requestConfig = connector.config.update!.request(change.externalId, change.data);
-        
-        // Track the pending change
-        processor.addPendingChange({
-          changeId: change.changeId,
-          operation: "UPDATE",
-          externalId: change.externalId,
-          data: change.data,
-          extractFn: connector.config.update?.extract
-            ? (response: any) => {
-                const result = connector.config.update!.extract(response);
-                return {
-                  externalId: result.externalId || change.externalId,
-                  externalUpdatedAt: result.externalUpdatedAt,
-                };
-              }
-            : undefined,
-        });
 
         return {
           method: requestConfig.method || "PUT",
@@ -1571,13 +1575,6 @@ export class SyncConnector<
       
       const requests = delta.changes.map((change: any) => {
         const requestConfig = connector.config.delete!.request(change.externalId);
-        
-        // Track the pending change
-        processor.addPendingChange({
-          changeId: change.changeId,
-          operation: "DELETE",
-          externalId: change.externalId,
-        });
 
         return {
           method: requestConfig.method || "DELETE",

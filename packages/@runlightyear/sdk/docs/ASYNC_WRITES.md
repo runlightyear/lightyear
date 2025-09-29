@@ -124,7 +124,7 @@ The SDK intelligently chooses the optimal async approach based on your connector
 
 ## Extract Functions
 
-Custom extract functions are fully supported in async mode:
+**IMPORTANT**: When using async writes with batch operations, you MUST provide an extract function that properly maps changeIds to results. The extract function is responsible for returning an array of `BatchConfirmation` objects that include the changeId for each item.
 
 ```typescript
 .withBatchCreate({
@@ -133,14 +133,28 @@ Custom extract functions are fully supported in async mode:
     method: "POST",
     json: changes
   }),
-  extract: (response) => response.results.map(item => ({
-    externalId: item.id,
-    externalUpdatedAt: item.updated_at
-  }))
+  extract: (response) => {
+    // The extract function must return an array of BatchConfirmation objects
+    // that map each changeId to its corresponding externalId
+    return response.results.map((item, index) => ({
+      changeId: changes[index].changeId,  // Map to the original changeId
+      externalId: item.id,
+      externalUpdatedAt: item.updated_at
+    }));
+  }
 })
 ```
 
-When using async writes, the SDK will automatically track the changes and handle polling for responses. The extract function will be used to process the response when it becomes available.
+The extract function receives:
+- `response`: The full HTTP response from the batch API
+- Access to the original `changes` array in the closure
+
+It must return an array of objects with:
+- `changeId`: The original changeId from the request
+- `externalId`: The ID assigned by the external system
+- `externalUpdatedAt`: The timestamp from the external system (optional)
+
+Without a properly implemented extract function that includes changeId mapping, the SDK cannot match batch response items back to individual changes, resulting in "Could not extract externalId" errors.
 
 ## Error Handling
 

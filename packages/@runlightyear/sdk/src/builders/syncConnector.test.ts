@@ -1039,9 +1039,10 @@ describe("SyncConnector", () => {
               batchSize: 10,
             })
         )
+        .withSyncWrites()
         .build();
 
-      await syncConnector.sync("FULL");
+      await syncConnector.sync("FULL", { useAsyncWrites: false });
 
       expect(createRequestSpy).not.toHaveBeenCalled();
       expect(batchRequestSpy).toHaveBeenCalledTimes(1);
@@ -1235,9 +1236,10 @@ describe("SyncConnector", () => {
               })),
           })
         )
+        .withSyncWrites()
         .build();
 
-      await syncConnector.sync("FULL");
+      await syncConnector.sync("FULL", { useAsyncWrites: false });
 
       expect(batchRequestSpy).toHaveBeenCalledTimes(1);
       expect(batchRequestSpy.mock.calls[0][0]).toEqual(
@@ -1359,9 +1361,10 @@ describe("SyncConnector", () => {
             request: batchRequestSpy,
           })
         )
+        .withSyncWrites()
         .build();
 
-      await syncConnector.sync("FULL");
+      await syncConnector.sync("FULL", { useAsyncWrites: false });
 
       expect(batchRequestSpy).toHaveBeenCalledTimes(1);
       expect(batchRequestSpy.mock.calls[0][0]).toEqual(

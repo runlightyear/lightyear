@@ -356,15 +356,24 @@ class LogCapture {
         .join(" ");
 
       const redactedMessage = this.redact(rawMessage);
+      
+      // Truncate message if it exceeds 240000 bytes
+      const maxLogSize = 240000;
+      const truncationMessage = "\n[truncated]";
+      let finalMessage = redactedMessage;
+      
+      if (redactedMessage.length > maxLogSize) {
+        finalMessage = redactedMessage.substring(0, maxLogSize - truncationMessage.length) + truncationMessage;
+      }
 
-      // Print redacted message to original console
-      originalMethod(redactedMessage);
+      // Print truncated message to original console
+      originalMethod(finalMessage);
 
-      // Capture the redacted log
+      // Capture the truncated log
       if (this.isCapturing) {
         this.addLog({
           level,
-          message: redactedMessage,
+          message: finalMessage,
           timestamp: new Date().toISOString(),
           position: this.logs.length,
         });

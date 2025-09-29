@@ -51,6 +51,10 @@ export type HttpProxyResponse = {
    * The http body of the proxied response
    */
   data: any;
+  /**
+   * The httpRequestId for async requests (optional)
+   */
+  httpRequestId?: string;
 };
 
 /**
