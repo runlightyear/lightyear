@@ -484,7 +484,6 @@ export async function confirmChangeBatch(props: {
     {
       method: "POST",
       data: {
-        syncId: props.syncId,
         changes: props.changes,
         async: props.async,
       },
