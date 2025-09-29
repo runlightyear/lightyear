@@ -479,7 +479,18 @@ export async function confirmChangeBatch(props: {
   async?: boolean;
 }): Promise<void> {
   const envName = process.env.ENV_NAME || "dev";
-  await makeApiRequest(
+  console.info(
+    `confirmChangeBatch: confirming ${props.changes.length} changes for sync ${props.syncId}`
+  );
+  console.debug(
+    "Changes to confirm:",
+    props.changes.map((c) => ({
+      changeId: c.changeId,
+      externalId: c.externalId,
+    }))
+  );
+
+  const response = await makeApiRequest(
     `/api/v1/envs/${envName}/syncs/${props.syncId}/changes/batch/confirm`,
     {
       method: "POST",
@@ -489,20 +500,26 @@ export async function confirmChangeBatch(props: {
       },
     }
   );
+
+  console.info(
+    `confirmChangeBatch: API returned status ${response.status} for ${props.changes.length} changes`
+  );
 }
 
 export async function getUnconfirmedChanges(props: {
   syncId: string;
   limit?: number;
-}): Promise<
-  Array<{
+}): Promise<{
+  changes: Array<{
     changeId: string;
     httpRequestId: string;
     response?: any;
     error?: string;
-  }>
-> {
+  }>;
+  pendingWritesCount: number;
+}> {
   const envName = getEnvName();
+  console.debug(`Fetching unconfirmed changes for sync ${props.syncId}`);
   const response = await makeApiRequest(
     `/api/v1/envs/${envName}/syncs/${props.syncId}/changes/unconfirmed`,
     {
@@ -511,17 +528,41 @@ export async function getUnconfirmedChanges(props: {
   );
   const payload = await response.json();
 
+  console.debug("Unconfirmed changes payload structure:", {
+    isArray: Array.isArray(payload),
+    hasChanges: payload && "changes" in payload,
+    hasData: payload && "data" in payload,
+    hasPendingWritesCount: payload && "pendingWritesCount" in payload,
+    payloadKeys:
+      payload && typeof payload === "object" ? Object.keys(payload) : undefined,
+    payloadType: typeof payload,
+  });
+
+  const pendingWritesCount = payload?.pendingWritesCount ?? 0;
+
   if (Array.isArray(payload)) {
-    return payload;
+    console.debug(
+      `Returning ${payload.length} unconfirmed changes (array format), pendingWritesCount=${pendingWritesCount}`
+    );
+    return { changes: payload, pendingWritesCount };
   }
 
   if (payload && Array.isArray(payload.changes)) {
-    return payload.changes;
+    console.debug(
+      `Returning ${payload.changes.length} unconfirmed changes (payload.changes format), pendingWritesCount=${pendingWritesCount}`
+    );
+    return { changes: payload.changes, pendingWritesCount };
   }
 
   if (payload && Array.isArray(payload.data)) {
-    return payload.data;
+    console.debug(
+      `Returning ${payload.data.length} unconfirmed changes (payload.data format), pendingWritesCount=${pendingWritesCount}`
+    );
+    return { changes: payload.data, pendingWritesCount };
   }
 
-  return [];
+  console.debug(
+    `Returning 0 unconfirmed changes (no valid format found), pendingWritesCount=${pendingWritesCount}`
+  );
+  return { changes: [], pendingWritesCount };
 }

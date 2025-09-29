@@ -222,7 +222,7 @@ export class RestConnector {
   async batchRequest(props: {
     requests: Array<HttpProxyRequestProps>;
     syncId?: string;
-  }): Promise<Array<BatchHttpProxyResponse>> {
+  }): Promise<BatchHttpProxyResponse> {
     // Prepare requests with full URLs
     const preparedRequests = props.requests.map((req) => ({
       ...req,

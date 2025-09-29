@@ -27,8 +27,38 @@ export interface HttpProxyRequestProps {
   redactKeys?: string[];
   maxRetries?: number;
   async?: boolean;
+  /**
+   * @deprecated Use syncInfo instead
+   */
   changeId?: string;
+  /**
+   * @deprecated Use syncInfo instead
+   */
   changeIds?: string[];
+  /**
+   * Sync information for async write operations
+   */
+  syncInfo?: {
+    syncId: string;
+    modelName: string;
+    changeIds: string[];
+    confirmationPaths?: {
+      externalIdPath: string;
+      externalUpdatedAtPath: string;
+    };
+  };
+  /**
+   * Managed user ID for auth templating
+   */
+  managedUserId?: string;
+  /**
+   * Managed user external ID for auth templating
+   */
+  managedUserExternalId?: string;
+  /**
+   * Integration name for auth templating
+   */
+  integrationName?: string;
 }
 
 /**
@@ -96,6 +126,8 @@ async function exponentialBackoffWithJitter(retryCount: number): Promise<void> {
 // Get the current context values from log context
 function getCurrentRunContext(): {
   runId?: string;
+  syncId?: string;
+  modelName?: string;
   integrationName?: string;
   managedUserId?: string;
   managedUserExternalId?: string;
@@ -104,6 +136,8 @@ function getCurrentRunContext(): {
   const ctx = getCurrentContext();
   return {
     runId: ctx.runId,
+    syncId: (ctx as any).syncId,
+    modelName: (ctx as any).modelName,
     integrationName: (ctx as any).integrationName,
     managedUserId: (ctx as any).managedUserId,
     managedUserExternalId: (ctx as any).managedUserExternalId,
@@ -123,17 +157,11 @@ export interface BatchHttpProxyRequestProps {
  * @public
  */
 export interface BatchHttpProxyResponse {
-  requestId: string;
-  changeId?: string;
-  status?: number;
-  statusText?: string;
-  headers?: any;
-  data?: any;
-  error?: string;
+  batchId: string;
 }
 
 export interface BatchHttpRequest {
-  (props: BatchHttpProxyRequestProps): Promise<Array<BatchHttpProxyResponse>>;
+  (props: BatchHttpProxyRequestProps): Promise<BatchHttpProxyResponse>;
 }
 
 // HTTP implementation for SDK that uses the Lightyear proxy infrastructure
@@ -152,7 +180,14 @@ export const httpRequest: HttpRequest = async (props) => {
   }
 
   // Get the current run and execution context
-  const { runId } = getCurrentRunContext();
+  const {
+    runId,
+    syncId,
+    modelName,
+    integrationName,
+    managedUserId,
+    managedUserExternalId,
+  } = getCurrentRunContext();
 
   console.debug("SDK httpRequest - runId from context:", runId);
   console.debug("SDK httpRequest - props:", JSON.stringify(rest, null, 2));
@@ -233,13 +268,60 @@ export const httpRequest: HttpRequest = async (props) => {
         }
       }
 
-      const requestBody = {
+      // Build syncInfo automatically if async=true and we have the required context
+      let syncInfo = rest.syncInfo;
+      if (!syncInfo && rest.async && (rest.changeId || rest.changeIds)) {
+        // Backward compatibility: auto-build syncInfo from changeId/changeIds
+        const changeIds =
+          rest.changeIds || (rest.changeId ? [rest.changeId] : []);
+        if (syncId && modelName && changeIds.length > 0) {
+          syncInfo = {
+            syncId,
+            modelName,
+            changeIds,
+          };
+          console.debug("Auto-built syncInfo from context:", syncInfo);
+        } else {
+          console.warn(
+            "async=true with changeId(s) but missing syncId or modelName in context. " +
+              "The request may fail. Provide syncInfo explicitly or ensure sync context is set."
+          );
+        }
+      }
+
+      // Use explicit auth params from props, or fall back to context
+      const effectiveManagedUserId = rest.managedUserId || managedUserId;
+      const effectiveManagedUserExternalId =
+        rest.managedUserExternalId || managedUserExternalId;
+      const effectiveIntegrationName = rest.integrationName || integrationName;
+
+      const requestBody: any = {
         ...restForProxy,
         url: urlWithQuery,
         headers: finalHeaders,
         body: finalBody,
         runId,
       };
+
+      // Add syncInfo if present
+      if (syncInfo) {
+        requestBody.syncInfo = syncInfo;
+      }
+
+      // Add auth params if present (for templating)
+      // Only send one of managedUserId or managedUserExternalId (API doesn't allow both)
+      if (effectiveManagedUserExternalId) {
+        requestBody.managedUserExternalId = effectiveManagedUserExternalId;
+      } else if (effectiveManagedUserId) {
+        requestBody.managedUserId = effectiveManagedUserId;
+      }
+      if (effectiveIntegrationName) {
+        requestBody.integrationName = effectiveIntegrationName;
+      }
+
+      // Remove deprecated fields that are now in syncInfo
+      delete requestBody.changeId;
+      delete requestBody.changeIds;
 
       console.debug("Making proxy request to:", proxyUrl);
       console.debug("Request body:", JSON.stringify(requestBody, null, 2));
@@ -356,11 +438,20 @@ export const batchHttpRequest: BatchHttpRequest = async (props) => {
   }
 
   // Get the current run and execution context
-  const { runId } = getCurrentRunContext();
+  const { runId, syncId: contextSyncId } = getCurrentRunContext();
+
+  // Use explicit syncId from props or fall back to context
+  const effectiveSyncId = props.syncId || contextSyncId;
+
+  if (!effectiveSyncId) {
+    throw new Error(
+      "Batch requests require a syncId. Either provide syncId in props or ensure sync context is set."
+    );
+  }
 
   const batchUrl = `${baseUrl}/api/v1/envs/${envName}/http-request/batch`;
 
-  // Prepare batch requests
+  // Prepare batch requests - convert to new API format
   const batchRequests = props.requests.map((request) => {
     const {
       headers: providedHeaders,
@@ -370,6 +461,8 @@ export const batchHttpRequest: BatchHttpRequest = async (props) => {
       params,
       url,
       changeId,
+      changeIds,
+      syncInfo,
       ...restWithoutPayload
     } = request;
 
@@ -414,13 +507,19 @@ export const batchHttpRequest: BatchHttpRequest = async (props) => {
       }
     }
 
-    return {
-      ...restWithoutPayload,
+    const batchRequest: any = {
+      method: request.method || "POST",
       url: urlWithQuery,
       headers: finalHeaders,
       body: finalBody,
-      changeId,
     };
+
+    // Include syncInfo if provided
+    if (syncInfo) {
+      batchRequest.syncInfo = syncInfo;
+    }
+
+    return batchRequest;
   });
 
   console.debug("Making batch proxy request to:", batchUrl);
@@ -433,9 +532,9 @@ export const batchHttpRequest: BatchHttpRequest = async (props) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      requests: batchRequests,
+      syncId: effectiveSyncId,
       runId,
-      syncId: props.syncId,
+      requests: batchRequests,
     }),
   });
 
@@ -446,7 +545,6 @@ export const batchHttpRequest: BatchHttpRequest = async (props) => {
     );
   }
 
-  const batchResponses =
-    (await response.json()) as Array<BatchHttpProxyResponse>;
-  return batchResponses;
+  const batchResponse = (await response.json()) as BatchHttpProxyResponse;
+  return batchResponse;
 };
