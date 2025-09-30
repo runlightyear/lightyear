@@ -1837,9 +1837,6 @@ export class SyncConnector<
       // Reset time budget for this run
       resetTimeLimit();
 
-      // Start polling for async changes
-      changeProcessor.startPolling(2000);
-
       // Determine models to sync from platform
       const collectionName = this.collection.name;
       const orderedModels = await getModels({ collectionName });
@@ -2048,10 +2045,6 @@ export class SyncConnector<
           await updateSync({ syncId, currentDirection: null });
         }
 
-        // Stop the background poller before explicit waiting
-        console.info("Stopping background poller before final wait...");
-        changeProcessor.stopPolling();
-
         // Wait for all pending async operations
         console.info("Waiting for pending async operations to complete...");
         await changeProcessor.waitForPendingChanges(60000);
@@ -2089,9 +2082,7 @@ export class SyncConnector<
           console.error(`Sync encountered an error:`, e);
         }
       } finally {
-        if (changeProcessor) {
-          changeProcessor.stopPolling();
-        }
+        // Cleanup is handled in waitForPendingChanges
       }
 
       // Finish the sync
@@ -2129,9 +2120,7 @@ export class SyncConnector<
         throw new Error(errorMessage || "Sync failed");
       }
     } finally {
-      if (changeProcessor) {
-        changeProcessor.stopPolling();
-      }
+      // Cleanup is handled in waitForPendingChanges
     }
   }
 

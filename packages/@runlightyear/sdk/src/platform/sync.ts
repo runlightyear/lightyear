@@ -272,28 +272,12 @@ export async function upsertObjectBatch(props: {
   async?: boolean;
 }): Promise<void> {
   const envName = process.env.ENV_NAME || "dev";
-  try {
-    const count = props.objects?.length ?? 0;
-    const preview = (props.objects || [])
-      .slice(0, Math.min(3, count))
-      .map((o) => ({
-        externalId: o.externalId,
-        externalUpdatedAt: o.externalUpdatedAt,
-        dataKeys: Object.keys(o.data || {}),
-      }));
-    console.info(
-      `upsertObjectBatch → env=${envName} collection=${
-        props.collectionName
-      } model=${props.modelName} sync=${props.syncId} app=${
-        props.app
-      } customApp=${props.customApp} count=${count} cursor=${
-        props.cursor ?? "none"
-      } page=${props.page ?? "none"} offset=${props.offset ?? "none"} async=${
-        props.async ?? false
-      } overwrite=${props.overwrite ?? false}`
-    );
-    console.debug("upsertObjectBatch preview:", preview);
-  } catch {}
+  const count = props.objects?.length ?? 0;
+  console.info(
+    `📤 upsertObjectBatch: model=${props.modelName} count=${count} async=${
+      props.async ?? false
+    }`
+  );
   await makeApiRequest(
     `/api/v1/envs/${envName}/collections/${props.collectionName}/models/${props.modelName}/objects/upsert/batch`,
     {
@@ -311,11 +295,9 @@ export async function upsertObjectBatch(props: {
       },
     }
   );
-  try {
-    console.info(
-      `upsertObjectBatch ✓ submitted ${props.objects.length} objects for model=${props.modelName}`
-    );
-  } catch {}
+  console.info(
+    `✅ Submitted ${props.objects.length} objects for model=${props.modelName}`
+  );
 }
 
 export async function retrieveDelta<T = any>(props: {
@@ -479,16 +461,6 @@ export async function confirmChangeBatch(props: {
   async?: boolean;
 }): Promise<void> {
   const envName = process.env.ENV_NAME || "dev";
-  console.info(
-    `confirmChangeBatch: confirming ${props.changes.length} changes for sync ${props.syncId}`
-  );
-  console.debug(
-    "Changes to confirm:",
-    props.changes.map((c) => ({
-      changeId: c.changeId,
-      externalId: c.externalId,
-    }))
-  );
 
   const response = await makeApiRequest(
     `/api/v1/envs/${envName}/syncs/${props.syncId}/changes/batch/confirm`,
