@@ -1,6 +1,7 @@
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 import { program } from "commander";
 import { terminal } from "terminal-kit";
+import { parseJsonResponse } from "./parseJsonResponse";
 
 export interface CreateDeployProps {
   envName?: "dev" | "prod";
@@ -37,24 +38,37 @@ export default async function createDeploy(
   }
 
   if (response.ok) {
-    const json = await response.json();
+    const json = await parseJsonResponse(response, {
+      operationName: "create deploy",
+      showResponsePreview: false,
+    });
     if (!json.id) {
       throw new Error("Missing deploy id");
     }
     return json.id as string;
   } else {
-    const json = await response.json();
+    // For error responses, we want to show more details
+    const json = await parseJsonResponse(response, {
+      operationName: "create deploy",
+      showResponsePreview: true,
+    }).catch(() => null); // If JSON parsing fails, continue with null
+
     if (response.status === 403) {
-      console.error(json.message);
+      if (json?.message) {
+        console.error(json.message);
+      }
       terminal.red("Deploy failed 💥\n");
-      process.exit(1);
+      program.error("Deploy forbidden", { exitCode: 1 });
     }
+
     console.error(
       "Failed to create deploy",
       response.status,
       response.statusText
     );
-    console.error(json); // Fixed: use the already-parsed json instead of reading body again
+    if (json) {
+      console.error(json);
+    }
     throw new Error("Failed to create deploy");
   }
 }

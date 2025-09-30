@@ -12,6 +12,8 @@ export interface BatchExtractFunction {
 export class ChangeProcessor {
   private syncId: string;
   private batchExtractFunctions: Map<string, BatchExtractFunction> = new Map();
+  private batchExtractFunctionsByModel: Map<string, BatchExtractFunction> =
+    new Map();
   private pollingInterval: ReturnType<typeof setInterval> | null = null;
   private confirmationQueue: Array<{
     changeId: string;
@@ -25,7 +27,7 @@ export class ChangeProcessor {
   }
 
   /**
-   * Register a batch extract function for a specific httpRequestId
+   * Register a batch extract function for a specific httpRequestId (for sync requests that return httpRequestId)
    */
   registerBatchExtractFunction(
     httpRequestId: string,
@@ -35,6 +37,24 @@ export class ChangeProcessor {
       `Registering batch extract function for httpRequestId: ${httpRequestId}`
     );
     this.batchExtractFunctions.set(httpRequestId, extractFn);
+  }
+
+  /**
+   * Register a batch extract function by model name (for async requests that don't return httpRequestId immediately)
+   */
+  registerBatchExtractFunctionByModel(
+    modelName: string,
+    extractFn: BatchExtractFunction
+  ) {
+    console.debug(`Registering batch extract function for model: ${modelName}`);
+    this.batchExtractFunctionsByModel.set(modelName, extractFn);
+  }
+
+  /**
+   * Check if a batch extract function is already registered for a model
+   */
+  hasBatchExtractFunctionForModel(modelName: string): boolean {
+    return this.batchExtractFunctionsByModel.has(modelName);
   }
 
   /**
@@ -68,7 +88,7 @@ export class ChangeProcessor {
   }
 
   /**
-   * Process unconfirmed changes from the server
+   * Process unconfirmed changes from the server using the new http-requests endpoint
    */
   private async processUnconfirmedChanges() {
     try {
@@ -77,40 +97,19 @@ export class ChangeProcessor {
         limit: 100,
       });
 
-      const unconfirmedChanges = result.changes;
+      const httpRequests = result.httpRequests;
 
-      if (unconfirmedChanges.length === 0) {
+      if (httpRequests.length === 0) {
         return;
       }
 
-      console.info(
-        `Processing ${unconfirmedChanges.length} unconfirmed changes for sync ${this.syncId} (pendingWritesCount: ${result.pendingWritesCount})`
+      const totalChangeIds = httpRequests.reduce(
+        (sum, req) => sum + req.changeIds.length,
+        0
       );
 
-      // Log structure overview
       console.info(
-        "Unconfirmed changes structure:",
-        unconfirmedChanges.map((c) => ({
-          changeId: c.changeId,
-          hasHttpRequest: !!(c as any).httpRequest,
-          httpRequestStatus: (c as any).httpRequest?.statusCode,
-          hasResponseBody: !!(c as any).httpRequest?.responseBody,
-          allKeys: Object.keys(c),
-        }))
-      );
-
-      // Log FULL JSON of first change to see actual structure
-      if (unconfirmedChanges.length > 0) {
-        console.info(
-          "FULL JSON of first unconfirmed change:",
-          JSON.stringify(unconfirmedChanges[0], null, 2)
-        );
-      }
-
-      // Debug log the full unconfirmed response
-      console.debug(
-        `Full unconfirmed changes response for sync ${this.syncId}:`,
-        JSON.stringify(unconfirmedChanges, null, 2)
+        `Processing ${httpRequests.length} HTTP request(s) covering ${totalChangeIds} change(s) for sync ${this.syncId} (pendingWritesCount: ${result.pendingWritesCount})`
       );
 
       const confirmations: Array<{
@@ -119,241 +118,151 @@ export class ChangeProcessor {
         externalUpdatedAt?: string | null;
       }> = [];
 
-      // Group unconfirmed changes by httpRequestId to detect batch responses
-      const changesByRequestId = new Map<string, typeof unconfirmedChanges>();
-      for (const unconfirmed of unconfirmedChanges) {
-        const requestId = unconfirmed.httpRequestId;
-        if (!changesByRequestId.has(requestId)) {
-          changesByRequestId.set(requestId, []);
-        }
-        changesByRequestId.get(requestId)!.push(unconfirmed);
-      }
+      // Process each HTTP request (already grouped by the API)
+      for (const item of httpRequests) {
+        const httpRequest = item.httpRequest;
+        const changeIds = item.changeIds;
+        const modelName = item.modelName;
+        const requestId = httpRequest.id;
 
-      // Debug log the grouping
-      console.debug(
-        `Grouped changes by requestId:`,
-        Array.from(changesByRequestId.entries()).map(
-          ([requestId, changes]) => ({
-            requestId,
-            changeCount: changes.length,
-            changeIds: changes.map((c) => c.changeId),
-            hasResponses: changes.map((c) => ({
-              changeId: c.changeId,
-              hasResponse: !!c.response,
-              hasError: !!c.error,
-            })),
-          })
-        )
-      );
-
-      // Process each group of changes
-      for (const [requestId, changes] of changesByRequestId) {
         // Filter out already confirmed changes
-        const unconfirmedOnlyChanges = changes.filter(
-          (c) => !this.confirmedChangeIds.has(c.changeId)
+        const unconfirmedChangeIds = changeIds.filter(
+          (id) => !this.confirmedChangeIds.has(id)
         );
 
-        if (unconfirmedOnlyChanges.length === 0) {
+        if (unconfirmedChangeIds.length === 0) {
           console.debug(
-            `All ${changes.length} changes for requestId ${requestId} have already been confirmed, skipping`
+            `All ${changeIds.length} changes for httpRequest ${requestId} have already been confirmed, skipping`
           );
           continue;
         }
 
-        if (unconfirmedOnlyChanges.length < changes.length) {
+        if (unconfirmedChangeIds.length < changeIds.length) {
           console.info(
             `Skipping ${
-              changes.length - unconfirmedOnlyChanges.length
-            } already-confirmed changes for requestId ${requestId}`
+              changeIds.length - unconfirmedChangeIds.length
+            } already-confirmed changes for httpRequest ${requestId}`
           );
         }
 
-        // Check if we have a batch extract function for this request
-        const batchExtractFn = this.batchExtractFunctions.get(requestId);
-
-        console.debug(`Processing requestId ${requestId}:`, {
-          hasBatchExtractFn: !!batchExtractFn,
-          changeCount: changes.length,
-          registeredExtractFunctions: Array.from(
-            this.batchExtractFunctions.keys()
-          ),
-        });
-
-        if (batchExtractFn && unconfirmedOnlyChanges.length > 1) {
-          // This is a batch request - process all changes together
-          // Check if we have a response for this batch
-          const changeWithHttpRequest = unconfirmedOnlyChanges.find(
-            (c) => (c as any).httpRequest?.responseBody
+        // Check if request failed
+        if (httpRequest.statusCode >= 400) {
+          console.error(
+            `HTTP request ${requestId} failed with status ${httpRequest.statusCode}, skipping ${unconfirmedChangeIds.length} changes`
           );
+          continue;
+        }
 
-          if (changeWithHttpRequest) {
-            const httpRequest = (changeWithHttpRequest as any).httpRequest;
+        // Parse the response body
+        let responseData: any;
+        try {
+          responseData = JSON.parse(httpRequest.responseBody);
+        } catch (error) {
+          console.error(
+            `Failed to parse responseBody for httpRequest ${requestId}:`,
+            error
+          );
+          continue;
+        }
 
-            // Check if request failed
-            if (httpRequest.statusCode && httpRequest.statusCode >= 400) {
-              console.error(
-                `Batch request ${requestId} failed with status ${httpRequest.statusCode}`
-              );
-              this.batchExtractFunctions.delete(requestId);
-              continue;
-            }
+        // Check if we have a batch extract function for this request
+        // First try by httpRequestId, then by modelName-firstChangeId pattern
+        let batchExtractFn = this.batchExtractFunctions.get(requestId);
+        let extractFnSource: "httpRequestId" | "modelName" = "httpRequestId";
 
-            // Parse the response body
-            let responseData: any;
-            try {
-              responseData = JSON.parse(httpRequest.responseBody);
-            } catch (error) {
-              console.error(
-                `Failed to parse batch response body for request ${requestId}:`,
-                error
-              );
-              continue;
-            }
+        if (!batchExtractFn && modelName) {
+          // Try by modelName - same function can handle all batches for this model
+          batchExtractFn = this.batchExtractFunctionsByModel.get(modelName);
+          if (batchExtractFn) {
+            extractFnSource = "modelName";
+            console.debug(
+              `Found batch extract function for model ${modelName}`
+            );
+          }
+        }
 
-            try {
-              // Call the batch extract function once for the entire response
-              const batchConfirmations = batchExtractFn(responseData);
+        if (batchExtractFn) {
+          // Use custom batch extract function
+          console.debug(
+            `Using batch extract function for httpRequest ${requestId} (source: ${extractFnSource})`
+          );
+          try {
+            const batchConfirmations = batchExtractFn(responseData);
 
-              console.info(
-                `Batch extract function returned ${batchConfirmations.length} confirmations for request ${requestId}`
-              );
+            console.info(
+              `Batch extract function returned ${batchConfirmations.length} confirmations for request ${requestId}`
+            );
 
-              // Process all confirmations
-              for (const confirmation of batchConfirmations) {
+            // Add confirmations for the unconfirmed changes only
+            for (const confirmation of batchConfirmations) {
+              if (unconfirmedChangeIds.includes(confirmation.changeId)) {
                 confirmations.push({
                   changeId: confirmation.changeId,
                   externalId: confirmation.externalId,
                   externalUpdatedAt: confirmation.externalUpdatedAt || null,
                 });
               }
+            }
 
-              // Clean up the extract function as it's been used
+            // Clean up the extract function
+            if (extractFnSource === "httpRequestId") {
               this.batchExtractFunctions.delete(requestId);
-            } catch (error) {
-              console.error(
-                `Failed to extract batch confirmations for request ${requestId}:`,
-                error
-              );
-              // On error, we might want to retry, so don't delete the extract function
             }
+            // Note: Don't delete by-model extract functions - they're reused for all batches of that model
+          } catch (error) {
+            console.error(
+              `Failed to extract batch confirmations for request ${requestId}:`,
+              error
+            );
+            // On error, we might want to retry, so don't delete the extract function
           }
-          // If no httpRequest yet, do nothing - we'll get these changes again in the next poll
         } else {
-          // Process individual changes (non-batch or no batch extract function)
-          for (const unconfirmed of unconfirmedOnlyChanges) {
-            const httpRequest = (unconfirmed as any).httpRequest;
+          // No custom extract function - use default logic based on changeIds length
+          if (unconfirmedChangeIds.length === 1) {
+            // Single change - extract directly from response
+            const changeId = unconfirmedChangeIds[0];
+            const externalId = responseData?.id || responseData?.externalId;
+            const externalUpdatedAt =
+              responseData?.updatedAt ||
+              responseData?.externalUpdatedAt ||
+              responseData?.createdAt ||
+              null;
 
-            // Skip if no httpRequest yet
-            if (!httpRequest) {
+            if (externalId) {
+              confirmations.push({
+                changeId,
+                externalId: String(externalId),
+                externalUpdatedAt: externalUpdatedAt
+                  ? String(externalUpdatedAt)
+                  : null,
+              });
               console.debug(
-                `Change ${unconfirmed.changeId} has no httpRequest yet, skipping`
+                `Extracted confirmation for single change ${changeId}: externalId=${externalId}`
               );
-              continue;
-            }
-
-            let externalId: string | undefined;
-            let externalUpdatedAt: string | null = null;
-
-            // Check if the request failed
-            if (httpRequest.statusCode && httpRequest.statusCode >= 400) {
+            } else {
               console.error(
-                `Change ${unconfirmed.changeId} failed with status ${httpRequest.statusCode}:`,
-                httpRequest.responseBody?.substring(0, 200)
-              );
-              // Don't confirm failed changes - let the server handle them
-              continue;
-            }
-
-            // Parse responseBody (it's a JSON string)
-            let responseData: any;
-            try {
-              if (httpRequest.responseBody) {
-                responseData = JSON.parse(httpRequest.responseBody);
-              } else {
-                console.warn(
-                  `Change ${unconfirmed.changeId} has no responseBody`
-                );
-                continue;
-              }
-            } catch (error) {
-              console.error(
-                `Failed to parse responseBody for change ${unconfirmed.changeId}:`,
-                error
-              );
-              continue;
-            }
-
-            if (responseData) {
-              // Extract from successful response
-
-              // Log response structure for debugging
-              console.debug(
-                `Processing individual response for change ${unconfirmed.changeId}`,
+                `Could not extract externalId for single change ${changeId}`,
                 {
-                  httpRequestId: unconfirmed.httpRequestId,
-                  hasData: !!responseData,
-                  dataType: typeof responseData,
-                  isArray: Array.isArray(responseData),
-                  dataKeys:
-                    responseData && typeof responseData === "object"
-                      ? Object.keys(responseData).slice(0, 10)
-                      : undefined,
-                  sampleData: JSON.stringify(responseData).substring(0, 200),
+                  statusCode: httpRequest.statusCode,
+                  responsePreview: JSON.stringify(responseData).substring(
+                    0,
+                    200
+                  ),
                 }
               );
-
-              // For individual responses, extract the ID directly
-              // The server should only send us individual responses for non-batch operations
-              if (
-                Array.isArray(responseData) ||
-                (responseData?.results && Array.isArray(responseData.results))
-              ) {
-                // This shouldn't happen for individual changes
-                console.error(
-                  `Unexpected batch response format for individual change ${unconfirmed.changeId}. ` +
-                    `This suggests the change was part of a batch operation but no batch extract function was registered.`
-                );
-                continue;
-              }
-
-              // Extract from single item response
-              externalId = responseData?.id || responseData?.externalId;
-              externalUpdatedAt =
-                responseData?.updatedAt ||
-                responseData?.externalUpdatedAt ||
-                responseData?.properties?.hs_lastmodifieddate ||
-                null;
-
-              if (externalId) {
-                confirmations.push({
-                  changeId: unconfirmed.changeId,
-                  externalId: String(externalId),
-                  externalUpdatedAt: externalUpdatedAt
-                    ? String(externalUpdatedAt)
-                    : null,
-                });
-              } else {
-                console.error(
-                  `Could not extract externalId for change ${unconfirmed.changeId}`,
-                  {
-                    hasHttpRequest: true,
-                    httpRequestStatus: httpRequest.statusCode,
-                    responseData: JSON.stringify(responseData).substring(
-                      0,
-                      500
-                    ),
-                    httpRequestId: httpRequest.id,
-                  }
-                );
-              }
             }
+          } else {
+            // Multiple changes but no extract function - this shouldn't happen
+            console.warn(
+              `HTTP request ${requestId} has ${unconfirmedChangeIds.length} changes but no batch extract function. Cannot process.`
+            );
           }
         }
       }
 
       // Batch confirm the processed changes
       console.info(
-        `Extracted ${confirmations.length} confirmations from ${unconfirmedChanges.length} unconfirmed changes`
+        `Extracted ${confirmations.length} confirmations from ${totalChangeIds} change(s) across ${httpRequests.length} HTTP request(s)`
       );
 
       if (confirmations.length > 0) {
@@ -457,31 +366,38 @@ export class ChangeProcessor {
       }
 
       pollCount++;
-      console.info(`Polling for unconfirmed changes (poll #${pollCount})...`);
+      console.info(
+        `Polling for unconfirmed HTTP requests (poll #${pollCount})...`
+      );
 
-      // Check for unconfirmed changes (just check if any exist)
+      // Check for unconfirmed HTTP requests
       const result = await getUnconfirmedChanges({
         syncId: this.syncId,
         limit: 100, // Fetch batch to process
       });
 
-      console.info(
-        `Found ${result.changes.length} unconfirmed change(s), pendingWritesCount: ${result.pendingWritesCount}`
+      const totalChangeIds = result.httpRequests.reduce(
+        (sum, req) => sum + req.changeIds.length,
+        0
       );
 
-      // Continue polling if there are unconfirmed changes OR pending writes
-      if (result.changes.length === 0 && result.pendingWritesCount === 0) {
-        // No more unconfirmed changes and no pending writes
+      console.info(
+        `Found ${result.httpRequests.length} HTTP request(s) with ${totalChangeIds} change(s), pendingWritesCount: ${result.pendingWritesCount}`
+      );
+
+      // Continue polling if there are unconfirmed HTTP requests OR pending writes
+      if (result.httpRequests.length === 0 && result.pendingWritesCount === 0) {
+        // No more unconfirmed requests and no pending writes
         break;
       }
 
-      if (result.changes.length > 0) {
-        console.info("Processing unconfirmed changes...");
-        // Process any available changes
+      if (result.httpRequests.length > 0) {
+        console.info("Processing unconfirmed HTTP requests...");
+        // Process any available requests
         await this.processUnconfirmedChanges();
       } else if (result.pendingWritesCount > 0) {
         console.info(
-          `No changes ready yet, but ${result.pendingWritesCount} write(s) still pending...`
+          `No requests ready yet, but ${result.pendingWritesCount} write(s) still pending...`
         );
       }
 

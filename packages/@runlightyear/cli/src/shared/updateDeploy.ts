@@ -1,4 +1,5 @@
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
+import { parseJsonResponse } from "./parseJsonResponse";
 
 export interface UpdateDeployProps {
   deployId: string;
@@ -47,6 +48,16 @@ export default async function updateDeploy(props: UpdateDeployProps) {
       response.status,
       response.statusText
     );
-    console.error(await response.json());
+
+    // Try to get error details from response
+    try {
+      const errorData = await parseJsonResponse(response, {
+        operationName: "update deploy",
+        showResponsePreview: true,
+      });
+      console.error(errorData);
+    } catch (parseError) {
+      // parseJsonResponse already logged detailed error info
+    }
   }
 }

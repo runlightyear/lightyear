@@ -1328,13 +1328,17 @@ export class SyncConnector<
       // Track all changes in this batch
       const batchExtractFn = connector.config.batchCreate?.extract;
 
-      // For batch operations with async, pass changeIds at top level
+      // For batch operations with async, build proper syncInfo
       const requestBody: any = {
         method: requestConfig.method || "POST",
         url: requestConfig.endpoint,
         json: requestConfig.json ?? requestConfig.data ?? formattedBatch,
         async: true,
-        changeIds: batch.map((c) => c.changeId),
+        syncInfo: {
+          syncId: processor.getSyncId(),
+          modelName,
+          changeIds: batch.map((c) => c.changeId),
+        },
       };
       const response = await this.restConnector.request(requestBody);
 
@@ -1346,16 +1350,24 @@ export class SyncConnector<
         changeIds: batch.map((c) => c.changeId),
       });
 
-      // If we have a batch extract function and got a httpRequestId, register it
-      if (batchExtractFn && response.httpRequestId) {
-        processor.registerBatchExtractFunction(
-          response.httpRequestId,
-          batchExtractFn
-        );
-      } else if (batchExtractFn && !response.httpRequestId) {
-        console.warn(
-          `Batch CREATE request completed but no httpRequestId returned. Cannot register extract function.`
-        );
+      // Register batch extract function (only once per model)
+      if (batchExtractFn) {
+        if (response.httpRequestId) {
+          // Sync request - register by httpRequestId
+          processor.registerBatchExtractFunction(
+            response.httpRequestId,
+            batchExtractFn
+          );
+        } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
+          // Async request - register once per model (function is reusable)
+          processor.registerBatchExtractFunctionByModel(
+            modelName,
+            batchExtractFn
+          );
+          console.debug(
+            `Registered batch extract function for model ${modelName} (reusable for all batches)`
+          );
+        }
       }
 
       console.info(
@@ -1408,7 +1420,11 @@ export class SyncConnector<
         url: requestConfig.endpoint,
         json: requestConfig.json ?? requestConfig.data ?? formattedBatch,
         async: true,
-        changeIds: batch.map((c) => c.changeId),
+        syncInfo: {
+          syncId: processor.getSyncId(),
+          modelName,
+          changeIds: batch.map((c) => c.changeId),
+        },
       };
       const response = await this.restConnector.request(requestBody);
 
@@ -1420,16 +1436,24 @@ export class SyncConnector<
         changeIds: batch.map((c) => c.changeId),
       });
 
-      // If we have a batch extract function and got a httpRequestId, register it
-      if (batchExtractFn && response.httpRequestId) {
-        processor.registerBatchExtractFunction(
-          response.httpRequestId,
-          batchExtractFn
-        );
-      } else if (batchExtractFn && !response.httpRequestId) {
-        console.warn(
-          `Batch UPDATE request completed but no httpRequestId returned. Cannot register extract function.`
-        );
+      // Register batch extract function (only once per model)
+      if (batchExtractFn) {
+        if (response.httpRequestId) {
+          // Sync request - register by httpRequestId
+          processor.registerBatchExtractFunction(
+            response.httpRequestId,
+            batchExtractFn
+          );
+        } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
+          // Async request - register once per model (function is reusable)
+          processor.registerBatchExtractFunctionByModel(
+            modelName,
+            batchExtractFn
+          );
+          console.debug(
+            `Registered batch extract function for model ${modelName} (reusable for all batches)`
+          );
+        }
       }
 
       console.info(
@@ -1483,7 +1507,11 @@ export class SyncConnector<
         url: requestConfig.endpoint,
         json: requestConfig.json ?? requestConfig.data ?? formattedBatch,
         async: true,
-        changeIds: batch.map((c) => c.changeId),
+        syncInfo: {
+          syncId: processor.getSyncId(),
+          modelName,
+          changeIds: batch.map((c) => c.changeId),
+        },
       };
       const response = await this.restConnector.request(requestBody);
 
@@ -1495,16 +1523,24 @@ export class SyncConnector<
         changeIds: batch.map((c) => c.changeId),
       });
 
-      // If we have a batch extract function and got a httpRequestId, register it
-      if (batchExtractFn && response.httpRequestId) {
-        processor.registerBatchExtractFunction(
-          response.httpRequestId,
-          batchExtractFn
-        );
-      } else if (batchExtractFn && !response.httpRequestId) {
-        console.warn(
-          `Batch DELETE request completed but no httpRequestId returned. Cannot register extract function.`
-        );
+      // Register batch extract function (only once per model)
+      if (batchExtractFn) {
+        if (response.httpRequestId) {
+          // Sync request - register by httpRequestId
+          processor.registerBatchExtractFunction(
+            response.httpRequestId,
+            batchExtractFn
+          );
+        } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
+          // Async request - register once per model (function is reusable)
+          processor.registerBatchExtractFunctionByModel(
+            modelName,
+            batchExtractFn
+          );
+          console.debug(
+            `Registered batch extract function for model ${modelName} (reusable for all batches)`
+          );
+        }
       }
 
       console.info(

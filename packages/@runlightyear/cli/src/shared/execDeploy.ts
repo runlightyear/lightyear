@@ -5,6 +5,7 @@ import updateDeploy from "./updateDeploy";
 import { terminal } from "terminal-kit";
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { prepareConsole } from "../logging";
+import { parseJsonResponse } from "./parseJsonResponse";
 
 export interface ExecDeployProps {
   deployId: string;
@@ -47,8 +48,28 @@ export default async function execDeploy(props: ExecDeployProps) {
   prepareConsole();
 
   const { statusCode, body } = handlerResult;
-  const responseData = JSON.parse(body);
-  const { logs } = responseData;
+
+  let responseData;
+  let logs;
+
+  try {
+    responseData = JSON.parse(body);
+    logs = responseData.logs;
+  } catch (error) {
+    terminal.red("\n❌ Failed to parse deploy handler response\n");
+    terminal(`Response body preview:\n`);
+    const preview =
+      typeof body === "string"
+        ? body.substring(0, 500)
+        : String(body).substring(0, 500);
+    terminal.dim(`${preview}${body.length > 500 ? "..." : ""}\n\n`);
+    throw new Error(
+      `Deploy handler returned invalid JSON: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+
   const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
   await updateDeploy({

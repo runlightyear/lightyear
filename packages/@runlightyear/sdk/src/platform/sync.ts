@@ -509,60 +509,63 @@ export async function confirmChangeBatch(props: {
 export async function getUnconfirmedChanges(props: {
   syncId: string;
   limit?: number;
+  cursor?: string;
 }): Promise<{
-  changes: Array<{
-    changeId: string;
-    httpRequestId: string;
-    response?: any;
-    error?: string;
+  httpRequests: Array<{
+    httpRequest: {
+      id: string;
+      method: string;
+      url: string;
+      statusCode: number;
+      statusText: string;
+      requestHeaders: Record<string, string>;
+      requestBody: string;
+      responseHeaders: Record<string, string>;
+      responseBody: string;
+      createdAt: string;
+      startedAt: string;
+      endedAt: string;
+      idPath?: string;
+      updatedAtPath?: string;
+    };
+    modelName: string;
+    changeIds: string[];
   }>;
+  nextCursor: string | null;
   pendingWritesCount: number;
 }> {
   const envName = getEnvName();
-  console.debug(`Fetching unconfirmed changes for sync ${props.syncId}`);
+  console.debug(`Fetching unconfirmed HTTP requests for sync ${props.syncId}`);
   const response = await makeApiRequest(
-    `/api/v1/envs/${envName}/syncs/${props.syncId}/changes/unconfirmed`,
+    `/api/v1/envs/${envName}/http-requests/unconfirmed`,
     {
-      method: "GET",
+      method: "POST",
+      data: {
+        syncId: props.syncId,
+        limit: props.limit ?? 100,
+        cursor: props.cursor,
+      },
     }
   );
   const payload = await response.json();
 
-  console.debug("Unconfirmed changes payload structure:", {
-    isArray: Array.isArray(payload),
-    hasChanges: payload && "changes" in payload,
-    hasData: payload && "data" in payload,
+  console.debug("Unconfirmed HTTP requests payload structure:", {
+    hasHttpRequests: payload && "httpRequests" in payload,
+    hasNextCursor: payload && "nextCursor" in payload,
     hasPendingWritesCount: payload && "pendingWritesCount" in payload,
     payloadKeys:
       payload && typeof payload === "object" ? Object.keys(payload) : undefined,
-    payloadType: typeof payload,
   });
 
+  const httpRequests = payload?.httpRequests ?? [];
+  const nextCursor = payload?.nextCursor ?? null;
   const pendingWritesCount = payload?.pendingWritesCount ?? 0;
 
-  if (Array.isArray(payload)) {
-    console.debug(
-      `Returning ${payload.length} unconfirmed changes (array format), pendingWritesCount=${pendingWritesCount}`
-    );
-    return { changes: payload, pendingWritesCount };
-  }
-
-  if (payload && Array.isArray(payload.changes)) {
-    console.debug(
-      `Returning ${payload.changes.length} unconfirmed changes (payload.changes format), pendingWritesCount=${pendingWritesCount}`
-    );
-    return { changes: payload.changes, pendingWritesCount };
-  }
-
-  if (payload && Array.isArray(payload.data)) {
-    console.debug(
-      `Returning ${payload.data.length} unconfirmed changes (payload.data format), pendingWritesCount=${pendingWritesCount}`
-    );
-    return { changes: payload.data, pendingWritesCount };
-  }
-
   console.debug(
-    `Returning 0 unconfirmed changes (no valid format found), pendingWritesCount=${pendingWritesCount}`
+    `Returning ${
+      httpRequests.length
+    } unconfirmed HTTP requests, pendingWritesCount=${pendingWritesCount}, hasNextCursor=${!!nextCursor}`
   );
-  return { changes: [], pendingWritesCount };
+
+  return { httpRequests, nextCursor, pendingWritesCount };
 }

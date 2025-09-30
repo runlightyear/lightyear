@@ -1,5 +1,6 @@
 import { program } from "commander";
 import { getApiKey, getBaseUrl } from "@runlightyear/lightyear";
+import { parseJsonResponse } from "./parseJsonResponse";
 
 export interface PusherCredentials {
   pusherKey: string;
@@ -24,8 +25,22 @@ export default async function getPusherCredentials(): Promise<PusherCredentials>
   });
 
   if (!response.ok) {
-    program.error("Could not get pusher credentials");
+    // parseJsonResponse will show detailed error information
+    await parseJsonResponse(response, {
+      operationName: "get pusher credentials",
+      showResponsePreview: true,
+    }).catch(() => {}); // Ignore parsing errors, we'll error out anyway
+
+    program.error(
+      `Could not get pusher credentials (HTTP ${response.status})`,
+      {
+        exitCode: 1,
+      }
+    );
   }
 
-  return await response.json();
+  return await parseJsonResponse(response, {
+    operationName: "get pusher credentials",
+    showResponsePreview: false,
+  });
 }
