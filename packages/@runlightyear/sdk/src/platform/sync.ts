@@ -472,10 +472,6 @@ export async function confirmChangeBatch(props: {
       },
     }
   );
-
-  console.info(
-    `confirmChangeBatch: API returned status ${response.status} for ${props.changes.length} changes`
-  );
 }
 
 export async function getUnconfirmedChanges(props: {

@@ -1981,8 +1981,11 @@ export class SyncConnector<
 
             while (true) {
               if (isTimeLimitExceeded()) {
-                // Wait for pending changes before pausing
-                await changeProcessor.waitForPendingChanges(10000);
+                // Time limit reached - pause immediately
+                // Unconfirmed changes will be processed on next run
+                console.info(
+                  "⏱️  Time limit reached, pausing sync (unconfirmed changes will be handled on next run)..."
+                );
                 await pauseSync(syncId);
                 throw "RERUN";
               }
@@ -2038,6 +2041,14 @@ export class SyncConnector<
                   changeProcessor
                 );
               }
+
+              // Process any unconfirmed changes after each delta batch
+              // This prevents building up a huge backlog
+              try {
+                await changeProcessor.processUnconfirmedChanges();
+              } catch (error) {
+                console.warn("Error processing unconfirmed changes:", error);
+              }
             }
           }
 
@@ -2045,9 +2056,10 @@ export class SyncConnector<
           await updateSync({ syncId, currentDirection: null });
         }
 
-        // Wait for all pending async operations
-        console.info("Waiting for pending async operations to complete...");
-        await changeProcessor.waitForPendingChanges(60000);
+        // Async writes will be confirmed on next run if needed
+        console.info(
+          "✅ All models synced (async confirmations handled separately)"
+        );
       } catch (e: any) {
         if (e === "RERUN") throw e;
         if (e === "SKIPPED") {

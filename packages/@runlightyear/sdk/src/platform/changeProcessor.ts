@@ -61,7 +61,7 @@ export class ChangeProcessor {
   /**
    * Process unconfirmed changes from the server using the new http-requests endpoint
    */
-  private async processUnconfirmedChanges() {
+  async processUnconfirmedChanges() {
     try {
       const result = await getUnconfirmedChanges({
         syncId: this.syncId,
@@ -197,10 +197,12 @@ export class ChangeProcessor {
       // Batch confirm the processed changes
       if (confirmations.length > 0) {
         console.info(
-          `📊 Confirming ${confirmations.length} from ${httpRequests.length} requests`
+          `📊 Extracted ${confirmations.length} confirmations from ${httpRequests.length} requests`
         );
         this.confirmationQueue.push(...confirmations);
+        console.info(`⏱️  Starting confirmation flush...`);
         await this.flushConfirmations();
+        console.info(`⏱️  Confirmation flush complete`);
       } else {
         console.warn(
           `⚠️  No confirmations extracted - external IDs could not be extracted`
@@ -275,7 +277,7 @@ export class ChangeProcessor {
   /**
    * Wait for all pending changes to be confirmed
    */
-  async waitForPendingChanges(timeoutMs: number = 30000) {
+  async waitForPendingChanges(timeoutMs: number = 120000) {
     const startTime = Date.now();
     let pollCount = 0;
 
@@ -308,19 +310,26 @@ export class ChangeProcessor {
 
       if (result.httpRequests.length > 0 || result.pendingWritesCount > 0) {
         console.info(
-          `🔄 Poll #${pollCount}: ${result.httpRequests.length} requests (${totalChangeIds} changes), ${result.pendingWritesCount} pending`
+          `🔄 Poll #${pollCount}: ${result.httpRequests.length} requests (${totalChangeIds} changes), ${result.pendingWritesCount} pending writes`
         );
       }
 
       // Continue polling if there are unconfirmed HTTP requests OR pending writes
       if (result.httpRequests.length === 0 && result.pendingWritesCount === 0) {
         // No more unconfirmed requests and no pending writes
+        console.info(`✅ Polling complete - no unconfirmed changes remaining`);
         break;
       }
 
       if (result.httpRequests.length > 0) {
+        console.info(
+          `⏱️  Processing ${result.httpRequests.length} unconfirmed requests...`
+        );
         // Process any available requests
         await this.processUnconfirmedChanges();
+        console.info(`⏱️  Processing complete, waiting 1s before next poll...`);
+      } else if (result.pendingWritesCount > 0) {
+        console.info(`⏱️  No requests ready, waiting 1s for pending writes...`);
       }
 
       // Wait before next poll
