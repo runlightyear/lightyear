@@ -1915,8 +1915,15 @@ export class SyncConnector<
                 state.modelStatuses?.[modelName]?.lastExternalUpdatedAt;
               const syncType = state.type || "FULL";
 
+              // Track pending upserts and page timing
+              const pendingUpserts: Promise<void>[] = [];
+              let pageCount = 0;
+              const pullStartTime = Date.now();
+
               while (hasMore) {
                 if (isTimeLimitExceeded()) {
+                  // Wait for pending upserts before pausing
+                  await Promise.all(pendingUpserts);
                   await pauseSync(syncId);
                   throw "RERUN";
                 }
@@ -1930,9 +1937,15 @@ export class SyncConnector<
                   syncType,
                 };
 
+                const fetchStart = Date.now();
                 const { items, pagination } = await listFn(params);
+                const fetchTime = Date.now() - fetchStart;
+                pageCount++;
+
                 console.info(
-                  `Fetched ${items?.length ?? 0} items for model ${modelName}`
+                  `📄 Page ${pageCount}: fetched ${
+                    items?.length ?? 0
+                  } items in ${fetchTime}ms`
                 );
 
                 if (!items || items.length === 0) {
@@ -1947,7 +1960,8 @@ export class SyncConnector<
                   data: it.data,
                 }));
 
-                await upsertObjectBatch({
+                // Fire-and-forget upsert - track promise for error handling
+                const upsertPromise = upsertObjectBatch({
                   collectionName,
                   syncId,
                   modelName,
@@ -1958,8 +1972,17 @@ export class SyncConnector<
                   page: pagination?.page,
                   offset: pagination?.offset,
                   async: true,
+                }).catch((error) => {
+                  console.error(
+                    `Failed to upsert batch for ${modelName}:`,
+                    error
+                  );
+                  throw error;
                 });
 
+                pendingUpserts.push(upsertPromise);
+
+                // Update watermarks (server tracks actual success)
                 const last = objects[objects.length - 1];
                 lastExternalId = last.externalId;
                 lastExternalUpdatedAt = last.externalUpdatedAt || undefined;
@@ -1967,7 +1990,43 @@ export class SyncConnector<
                 page = pagination?.page;
                 offset = pagination?.offset;
                 hasMore = !!pagination?.hasMore;
+
+                // Every 10 pages, checkpoint
+                if (pendingUpserts.length >= 10) {
+                  const checkpointStart = Date.now();
+                  await Promise.all(pendingUpserts);
+                  const checkpointTime = Date.now() - checkpointStart;
+                  const totalTime = Date.now() - pullStartTime;
+                  const avgPerPage = totalTime / pageCount;
+                  console.info(
+                    `✅ Checkpoint at page ${pageCount}: ${
+                      pendingUpserts.length
+                    } upserts completed in ${checkpointTime}ms (avg ${avgPerPage.toFixed(
+                      0
+                    )}ms/page)`
+                  );
+                  pendingUpserts.length = 0;
+                }
               }
+
+              // Wait for any remaining upserts
+              if (pendingUpserts.length > 0) {
+                const finalStart = Date.now();
+                await Promise.all(pendingUpserts);
+                const finalTime = Date.now() - finalStart;
+                console.info(
+                  `✅ Final ${pendingUpserts.length} upserts completed in ${finalTime}ms`
+                );
+              }
+
+              const totalPullTime = Date.now() - pullStartTime;
+              console.info(
+                `📊 PULL complete: ${pageCount} pages in ${(
+                  totalPullTime / 1000
+                ).toFixed(1)}s (avg ${(totalPullTime / pageCount).toFixed(
+                  0
+                )}ms/page)`
+              );
             }
           }
 
@@ -2374,17 +2433,11 @@ export class SyncConnector<
         ) {
           await updateSync({ syncId, currentDirection: "PULL" });
           console.info(`PULL phase started for model ${modelName}`);
-          // Paginate using the configured list
+          // Paginate using the configured list with parallel upserts for speed
           const listFn = connector.list;
           if (listFn) {
-            let hasMore: boolean = true;
-            while (hasMore) {
-              if (isTimeLimitExceeded()) {
-                await pauseSync(syncId);
-                throw "RERUN";
-              }
-
-              // Build params with pagination + watermarks
+            // Build initial params
+            const buildParams = () => {
               const params: any = {};
               if (cursor) params.cursor = cursor;
               if (typeof page === "number") params.page = page;
@@ -2393,26 +2446,47 @@ export class SyncConnector<
               if (lastExternalUpdatedAt)
                 params.lastExternalUpdatedAt = lastExternalUpdatedAt;
               params.syncType = syncType;
+              return params;
+            };
 
-              const { items, pagination } = await listFn(params);
+            // Track pending upserts for error handling
+            const pendingUpserts: Promise<void>[] = [];
+            let hasMore: boolean = true;
+            let pageCount = 0;
+            const pullStartTime = Date.now();
+
+            while (hasMore) {
+              if (isTimeLimitExceeded()) {
+                // Wait for pending upserts before pausing
+                await Promise.all(pendingUpserts);
+                await pauseSync(syncId);
+                throw "RERUN";
+              }
+
+              const fetchStart = Date.now();
+              // Fetch next page
+              const { items, pagination } = await listFn(buildParams());
+              const fetchTime = Date.now() - fetchStart;
+              pageCount++;
+
               console.info(
-                `Fetched ${
+                `📄 Page ${pageCount}: fetched ${
                   items?.length ?? 0
-                } items for model ${modelName} (cursor=${
-                  pagination?.cursor ?? "none"
-                } page=${pagination?.page ?? "-"} offset=${
-                  pagination?.offset ?? "-"
-                } hasMore=${pagination?.hasMore ?? false})`
+                } items in ${fetchTime}ms`
               );
 
               if (!items || items.length === 0) {
-                console.info(
-                  `No more items for model ${modelName}; ending pull page`
-                );
-                break; // no data
+                break;
               }
 
-              // Items are already in platform-ready shape from transform
+              // Update pagination state
+              cursor = pagination?.cursor;
+              if (typeof pagination?.page === "number") page = pagination.page;
+              if (typeof pagination?.offset === "number")
+                offset = pagination.offset;
+              hasMore = !!pagination?.hasMore;
+
+              // Process current page
               const objects = items.map((it) => ({
                 externalId: String(it.externalId),
                 externalUpdatedAt: it.externalUpdatedAt
@@ -2421,14 +2495,8 @@ export class SyncConnector<
                 data: it.data,
               }));
 
-              console.info(
-                `Upserting ${
-                  objects.length
-                } objects for model ${modelName} (cursor=${
-                  pagination?.cursor ?? "none"
-                })`
-              );
-              await upsertObjectBatch({
+              // Fire-and-forget upsert (don't await) - track promise for error handling
+              const upsertPromise = upsertObjectBatch({
                 collectionName,
                 syncId,
                 modelName,
@@ -2445,21 +2513,57 @@ export class SyncConnector<
                     ? pagination.offset
                     : undefined,
                 async: true,
+              }).catch((error) => {
+                console.error(
+                  `Failed to upsert batch for ${modelName}:`,
+                  error
+                );
+                throw error; // Re-throw to fail the sync
               });
-              console.info(
-                `Queued ${objects.length} upserts for model ${modelName}`
-              );
 
-              // advance watermarks
+              pendingUpserts.push(upsertPromise);
+
+              // Update watermarks (server will track actual success)
               const last = objects[objects.length - 1];
               lastExternalId = last.externalId;
               lastExternalUpdatedAt = last.externalUpdatedAt || undefined;
-              cursor = pagination?.cursor;
-              if (typeof pagination?.page === "number") page = pagination.page;
-              if (typeof pagination?.offset === "number")
-                offset = pagination.offset;
-              hasMore = !!pagination?.hasMore;
+
+              // Every 10 pages, await all pending to prevent unbounded growth and catch errors
+              if (pendingUpserts.length >= 10) {
+                const checkpointStart = Date.now();
+                await Promise.all(pendingUpserts);
+                const checkpointTime = Date.now() - checkpointStart;
+                const totalTime = Date.now() - pullStartTime;
+                const avgPerPage = totalTime / pageCount;
+                console.info(
+                  `✅ Checkpoint at page ${pageCount}: ${
+                    pendingUpserts.length
+                  } upserts completed in ${checkpointTime}ms (avg ${avgPerPage.toFixed(
+                    0
+                  )}ms/page)`
+                );
+                pendingUpserts.length = 0;
+              }
             }
+
+            // Wait for any remaining upserts
+            if (pendingUpserts.length > 0) {
+              const finalStart = Date.now();
+              await Promise.all(pendingUpserts);
+              const finalTime = Date.now() - finalStart;
+              console.info(
+                `✅ Final ${pendingUpserts.length} upserts completed in ${finalTime}ms`
+              );
+            }
+
+            const totalPullTime = Date.now() - pullStartTime;
+            console.info(
+              `📊 PULL complete: ${pageCount} pages in ${(
+                totalPullTime / 1000
+              ).toFixed(1)}s (avg ${(totalPullTime / pageCount).toFixed(
+                0
+              )}ms/page)`
+            );
           }
         }
 
