@@ -2056,10 +2056,37 @@ export class SyncConnector<
           await updateSync({ syncId, currentDirection: null });
         }
 
-        // Async writes will be confirmed on next run if needed
-        console.info(
-          "✅ All models synced (async confirmations handled separately)"
-        );
+        // Final confirmation passes - poll until no pending writes remain
+        console.info("🔄 Processing remaining async writes...");
+        let passCount = 0;
+        while (true) {
+          passCount++;
+          try {
+            const result = await changeProcessor.processUnconfirmedChanges();
+
+            if (!result.hasChanges && result.pendingWritesCount === 0) {
+              // No changes and no pending writes - we're done!
+              console.info(
+                `✅ All confirmations complete after ${passCount} passes`
+              );
+              break;
+            }
+
+            if (result.pendingWritesCount > 0) {
+              console.info(
+                `⏳ ${result.pendingWritesCount} writes still pending, waiting...`
+              );
+            }
+
+            // Wait a bit for any in-flight async writes to complete
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          } catch (error) {
+            console.warn(`Error in confirmation pass ${passCount}:`, error);
+            break;
+          }
+        }
+
+        console.info("✅ All models synced");
       } catch (e: any) {
         if (e === "RERUN") throw e;
         if (e === "SKIPPED") {

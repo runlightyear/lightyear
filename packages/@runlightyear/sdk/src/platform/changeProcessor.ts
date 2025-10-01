@@ -60,8 +60,12 @@ export class ChangeProcessor {
 
   /**
    * Process unconfirmed changes from the server using the new http-requests endpoint
+   * @returns object with hasChanges and pendingWritesCount
    */
-  async processUnconfirmedChanges() {
+  async processUnconfirmedChanges(): Promise<{
+    hasChanges: boolean;
+    pendingWritesCount: number;
+  }> {
     try {
       const result = await getUnconfirmedChanges({
         syncId: this.syncId,
@@ -71,7 +75,10 @@ export class ChangeProcessor {
       const httpRequests = result.httpRequests;
 
       if (httpRequests.length === 0) {
-        return;
+        return {
+          hasChanges: false,
+          pendingWritesCount: result.pendingWritesCount,
+        };
       }
 
       const confirmations: Array<{
@@ -208,8 +215,14 @@ export class ChangeProcessor {
           `⚠️  No confirmations extracted - external IDs could not be extracted`
         );
       }
+
+      return {
+        hasChanges: httpRequests.length > 0,
+        pendingWritesCount: result.pendingWritesCount,
+      };
     } catch (error) {
       console.error("Failed to process unconfirmed changes:", error);
+      return { hasChanges: false, pendingWritesCount: 0 };
     }
   }
 
