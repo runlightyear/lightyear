@@ -2042,12 +2042,16 @@ export class SyncConnector<
                 );
               }
 
-              // Process any unconfirmed changes after each delta batch
-              // This prevents building up a huge backlog
-              try {
-                await changeProcessor.processUnconfirmedChanges();
-              } catch (error) {
-                console.warn("Error processing unconfirmed changes:", error);
+              // Track delta batch count
+              changeProcessor.incrementDeltaBatch();
+
+              // Process confirmations every 10 deltas to prevent backlog buildup
+              if (changeProcessor.shouldProcessConfirmations(10)) {
+                try {
+                  await changeProcessor.processUnconfirmedChanges();
+                } catch (error) {
+                  console.warn("Error processing unconfirmed changes:", error);
+                }
               }
             }
           }

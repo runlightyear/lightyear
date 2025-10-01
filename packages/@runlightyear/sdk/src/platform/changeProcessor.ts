@@ -20,9 +20,24 @@ export class ChangeProcessor {
     externalUpdatedAt?: string | null;
   }> = [];
   private confirmedChangeIds: Set<string> = new Set();
+  private deltaBatchCount: number = 0;
 
   constructor(syncId: string) {
     this.syncId = syncId;
+  }
+
+  /**
+   * Increment delta batch counter (used for confirmation frequency control)
+   */
+  incrementDeltaBatch() {
+    this.deltaBatchCount++;
+  }
+
+  /**
+   * Check if confirmations should be processed based on delta count
+   */
+  shouldProcessConfirmations(frequency: number = 10): boolean {
+    return this.deltaBatchCount % frequency === 0;
   }
 
   /**
@@ -227,7 +242,7 @@ export class ChangeProcessor {
   }
 
   /**
-   * Flush pending confirmations in batches
+   * Flush pending confirmations in batches (sent in parallel for speed)
    */
   async flushConfirmations(batchSize: number = 100) {
     if (this.confirmationQueue.length === 0) {
@@ -245,46 +260,59 @@ export class ChangeProcessor {
 
     if (batches.length > 1) {
       console.info(
-        `💾 Confirming ${toConfirm.length} changes in ${batches.length} batches of ${batchSize}...`
+        `💾 Confirming ${toConfirm.length} changes in ${batches.length} batches (parallel)...`
       );
     } else {
       console.info(`💾 Confirming ${toConfirm.length} changes...`);
     }
 
-    // Process each batch sequentially
-    for (let i = 0; i < batches.length; i++) {
-      const batch = batches[i];
-      try {
-        await confirmChangeBatch({
+    // Process all batches in parallel for speed
+    const results = await Promise.allSettled(
+      batches.map((batch) =>
+        confirmChangeBatch({
           syncId: this.syncId,
           changes: batch,
-          async: false, // Synchronous confirmation
-        });
+          async: false,
+        })
+      )
+    );
 
+    // Process results and mark confirmed
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      const batch = batches[i];
+
+      if (result.status === "fulfilled") {
         // Mark as confirmed
         for (const confirmation of batch) {
           this.confirmedChangeIds.add(confirmation.changeId);
         }
-
-        console.info(
-          `✅ Batch ${i + 1}/${batches.length}: confirmed ${
-            batch.length
-          } (total: ${this.confirmedChangeIds.size})`
-        );
-      } catch (error) {
-        console.error(
-          `❌ Batch ${i + 1}/${batches.length} failed (${
-            batch.length
-          } changes):`,
-          error instanceof Error ? error.message : String(error)
-        );
+        successCount += batch.length;
+      } else {
         // Re-add failed batch to queue for retry
         this.confirmationQueue.unshift(...batch);
-        console.warn(
-          `↩️  Re-queued ${batch.length} confirmations from failed batch`
+        failedCount += batch.length;
+        console.error(
+          `❌ Batch ${i + 1}/${batches.length} failed:`,
+          result.reason instanceof Error
+            ? result.reason.message
+            : String(result.reason)
         );
       }
     }
+
+    if (failedCount > 0) {
+      console.warn(
+        `⚠️  ${successCount} confirmed, ${failedCount} failed (re-queued)`
+      );
+    }
+
+    console.info(
+      `✅ Confirmed ${successCount} changes (total: ${this.confirmedChangeIds.size})`
+    );
   }
 
   /**
