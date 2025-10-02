@@ -79,10 +79,11 @@ export default async function getQueuedRuns(
         return {
           id: item.id,
           actionName,
-          createdAt: item.createdAt ?? item.created_at ?? new Date().toISOString(),
+          createdAt:
+            item.createdAt ?? item.created_at ?? new Date().toISOString(),
           data: item.data ?? item.payload ?? undefined,
           deliveryId: item.deliveryId ?? item.delivery_id ?? undefined,
-        } satisfies QueuedRunItem;
+        };
       })
       .filter(Boolean) as QueuedRunItem[];
 
