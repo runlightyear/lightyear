@@ -1307,9 +1307,18 @@ export class SyncConnector<
       connector.config.batchCreate?.payloadType ??
       (connector.config.batchCreate?.extract ? "changes" : "items");
 
+    const numBatches = Math.ceil(changes.length / batchSize);
     console.info(
-      `Processing ${changes.length} CREATE changes for model ${modelName} (native batch API)`
+      `Processing ${changes.length} CREATE changes for model ${modelName} in ${numBatches} batches (parallel)`
     );
+
+    // Prepare all batch requests
+    const batchRequests: Array<{
+      promise: Promise<any>;
+      batch: any[];
+      batchExtractFn: any;
+      requestConfig: any;
+    }> = [];
 
     for (let i = 0; i < changes.length; i += batchSize) {
       const batch = changes.slice(i, i + batchSize);
@@ -1324,8 +1333,6 @@ export class SyncConnector<
 
       const requestConfig =
         connector.config.batchCreate!.request(formattedBatch);
-
-      // Track all changes in this batch
       const batchExtractFn = connector.config.batchCreate?.extract;
 
       // For batch operations with async, build proper syncInfo
@@ -1340,39 +1347,40 @@ export class SyncConnector<
           changeIds: batch.map((c) => c.changeId),
         },
       };
-      const response = await this.restConnector.request(requestBody);
 
-      console.debug(`Batch CREATE response:`, {
-        hasHttpRequestId: !!response.httpRequestId,
-        httpRequestId: response.httpRequestId,
-        responseKeys: Object.keys(response),
-        hasBatchExtractFn: !!batchExtractFn,
-        changeIds: batch.map((c) => c.changeId),
+      batchRequests.push({
+        promise: this.restConnector.request(requestBody),
+        batch,
+        batchExtractFn,
+        requestConfig,
       });
+    }
+
+    // Send all batches in parallel
+    const sendStart = Date.now();
+    const responses = await Promise.all(batchRequests.map((r) => r.promise));
+    const sendTime = Date.now() - sendStart;
+    console.info(`✅ Sent ${numBatches} batches in parallel in ${sendTime}ms`);
+
+    // Register extract functions after all requests complete
+    for (let i = 0; i < responses.length; i++) {
+      const response = responses[i];
+      const { batchExtractFn } = batchRequests[i];
 
       // Register batch extract function (only once per model)
       if (batchExtractFn) {
         if (response.httpRequestId) {
-          // Sync request - register by httpRequestId
           processor.registerBatchExtractFunction(
             response.httpRequestId,
             batchExtractFn
           );
         } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
-          // Async request - register once per model (function is reusable)
           processor.registerBatchExtractFunctionByModel(
             modelName,
             batchExtractFn
           );
-          console.debug(
-            `Registered batch extract function for model ${modelName} (reusable for all batches)`
-          );
         }
       }
-
-      console.info(
-        `Sent batch CREATE request for ${batch.length} items to ${requestConfig.endpoint}`
-      );
     }
   }
 
@@ -1391,9 +1399,17 @@ export class SyncConnector<
       connector.config.batchUpdate?.payloadType ??
       (connector.config.batchUpdate?.extract ? "changes" : "items");
 
+    const numBatches = Math.ceil(changes.length / batchSize);
     console.info(
-      `Processing ${changes.length} UPDATE changes for model ${modelName} (native batch API)`
+      `Processing ${changes.length} UPDATE changes for model ${modelName} in ${numBatches} batches (parallel)`
     );
+
+    // Prepare all batch requests
+    const batchRequests: Array<{
+      promise: Promise<any>;
+      batch: any[];
+      batchExtractFn: any;
+    }> = [];
 
     for (let i = 0; i < changes.length; i += batchSize) {
       const batch = changes.slice(i, i + batchSize);
@@ -1410,11 +1426,8 @@ export class SyncConnector<
 
       const requestConfig =
         connector.config.batchUpdate!.request(formattedBatch);
-
-      // Track the batch extract function if provided
       const batchExtractFn = connector.config.batchUpdate?.extract;
 
-      // Send single async request for the entire batch
       const requestBody: any = {
         method: requestConfig.method || "PUT",
         url: requestConfig.endpoint,
@@ -1426,39 +1439,38 @@ export class SyncConnector<
           changeIds: batch.map((c) => c.changeId),
         },
       };
-      const response = await this.restConnector.request(requestBody);
 
-      console.debug(`Batch UPDATE response:`, {
-        hasHttpRequestId: !!response.httpRequestId,
-        httpRequestId: response.httpRequestId,
-        responseKeys: Object.keys(response),
-        hasBatchExtractFn: !!batchExtractFn,
-        changeIds: batch.map((c) => c.changeId),
+      batchRequests.push({
+        promise: this.restConnector.request(requestBody),
+        batch,
+        batchExtractFn,
       });
+    }
 
-      // Register batch extract function (only once per model)
+    // Send all batches in parallel
+    const sendStart = Date.now();
+    const responses = await Promise.all(batchRequests.map((r) => r.promise));
+    const sendTime = Date.now() - sendStart;
+    console.info(`✅ Sent ${numBatches} batches in parallel in ${sendTime}ms`);
+
+    // Register extract functions after all requests complete
+    for (let i = 0; i < responses.length; i++) {
+      const response = responses[i];
+      const { batchExtractFn } = batchRequests[i];
+
       if (batchExtractFn) {
         if (response.httpRequestId) {
-          // Sync request - register by httpRequestId
           processor.registerBatchExtractFunction(
             response.httpRequestId,
             batchExtractFn
           );
         } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
-          // Async request - register once per model (function is reusable)
           processor.registerBatchExtractFunctionByModel(
             modelName,
             batchExtractFn
           );
-          console.debug(
-            `Registered batch extract function for model ${modelName} (reusable for all batches)`
-          );
         }
       }
-
-      console.info(
-        `Sent batch UPDATE request for ${batch.length} items to ${requestConfig.endpoint}`
-      );
     }
   }
 
@@ -1477,9 +1489,17 @@ export class SyncConnector<
       connector.config.batchDelete?.payloadType ??
       (connector.config.batchDelete?.extract ? "changes" : "ids");
 
+    const numBatches = Math.ceil(changes.length / batchSize);
     console.info(
-      `Processing ${changes.length} DELETE changes for model ${modelName} (native batch API)`
+      `Processing ${changes.length} DELETE changes for model ${modelName} in ${numBatches} batches (parallel)`
     );
+
+    // Prepare all batch requests
+    const batchRequests: Array<{
+      promise: Promise<any>;
+      batch: any[];
+      batchExtractFn: any;
+    }> = [];
 
     for (let i = 0; i < changes.length; i += batchSize) {
       const batch = changes.slice(i, i + batchSize);
@@ -1497,11 +1517,8 @@ export class SyncConnector<
 
       const requestConfig =
         connector.config.batchDelete!.request(formattedBatch);
-
-      // Track the batch extract function if provided
       const batchExtractFn = connector.config.batchDelete?.extract;
 
-      // Send single async request for the entire batch
       const requestBody: any = {
         method: requestConfig.method || "DELETE",
         url: requestConfig.endpoint,
@@ -1513,39 +1530,38 @@ export class SyncConnector<
           changeIds: batch.map((c) => c.changeId),
         },
       };
-      const response = await this.restConnector.request(requestBody);
 
-      console.debug(`Batch DELETE response:`, {
-        hasHttpRequestId: !!response.httpRequestId,
-        httpRequestId: response.httpRequestId,
-        responseKeys: Object.keys(response),
-        hasBatchExtractFn: !!batchExtractFn,
-        changeIds: batch.map((c) => c.changeId),
+      batchRequests.push({
+        promise: this.restConnector.request(requestBody),
+        batch,
+        batchExtractFn,
       });
+    }
 
-      // Register batch extract function (only once per model)
+    // Send all batches in parallel
+    const sendStart = Date.now();
+    const responses = await Promise.all(batchRequests.map((r) => r.promise));
+    const sendTime = Date.now() - sendStart;
+    console.info(`✅ Sent ${numBatches} batches in parallel in ${sendTime}ms`);
+
+    // Register extract functions after all requests complete
+    for (let i = 0; i < responses.length; i++) {
+      const response = responses[i];
+      const { batchExtractFn } = batchRequests[i];
+
       if (batchExtractFn) {
         if (response.httpRequestId) {
-          // Sync request - register by httpRequestId
           processor.registerBatchExtractFunction(
             response.httpRequestId,
             batchExtractFn
           );
         } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
-          // Async request - register once per model (function is reusable)
           processor.registerBatchExtractFunctionByModel(
             modelName,
             batchExtractFn
           );
-          console.debug(
-            `Registered batch extract function for model ${modelName} (reusable for all batches)`
-          );
         }
       }
-
-      console.info(
-        `Sent batch DELETE request for ${batch.length} items to ${requestConfig.endpoint}`
-      );
     }
   }
 
@@ -2038,6 +2054,9 @@ export class SyncConnector<
             await updateSync({ syncId, currentDirection: "PUSH" });
             console.info(`PUSH phase started for model ${modelName}`);
 
+            let pushDeltaCount = 0;
+            const pushStartTime = Date.now();
+
             while (true) {
               if (isTimeLimitExceeded()) {
                 // Time limit reached - pause immediately
@@ -2049,19 +2068,33 @@ export class SyncConnector<
                 throw "RERUN";
               }
 
+              const deltaStart = Date.now();
               const delta = await retrieveDelta({
                 collectionName,
                 syncId,
                 modelName,
+                limit: 1000, // Fetch larger batches for efficiency
               });
+              const deltaTime = Date.now() - deltaStart;
+              pushDeltaCount++;
 
               console.info(
-                `Delta received for model ${modelName}: operation=${
-                  (delta as any).operation
-                } count=${(delta as any).changes?.length ?? 0}`
+                `📋 Delta ${pushDeltaCount}: ${
+                  delta.operation ?? "null"
+                } operation, ${
+                  delta.changes?.length ?? 0
+                } changes in ${deltaTime}ms`
               );
 
-              if (!delta.changes || delta.changes.length === 0) break;
+              if (!delta.changes || delta.changes.length === 0) {
+                const totalPushTime = Date.now() - pushStartTime;
+                console.info(
+                  `📊 PUSH complete: ${pushDeltaCount} delta fetches in ${(
+                    totalPushTime / 1000
+                  ).toFixed(1)}s`
+                );
+                break;
+              }
 
               // Process changes with async HTTP
               if (connector.batchCreate && delta.operation === "CREATE") {
@@ -2101,13 +2134,14 @@ export class SyncConnector<
                 );
               }
 
-              // Track delta batch count
-              changeProcessor.incrementDeltaBatch();
+              // Track changes processed
+              changeProcessor.addChangesProcessed(delta.changes.length);
 
-              // Process confirmations every 10 deltas to prevent backlog buildup
-              if (changeProcessor.shouldProcessConfirmations(10)) {
+              // Process confirmations every 5000 changes (balances even progress with performance)
+              if (changeProcessor.shouldProcessConfirmations(5000)) {
                 try {
                   await changeProcessor.processUnconfirmedChanges();
+                  changeProcessor.resetConfirmationCounter();
                 } catch (error) {
                   console.warn("Error processing unconfirmed changes:", error);
                 }

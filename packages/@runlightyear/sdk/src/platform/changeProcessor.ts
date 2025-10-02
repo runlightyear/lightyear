@@ -21,6 +21,7 @@ export class ChangeProcessor {
   }> = [];
   private confirmedChangeIds: Set<string> = new Set();
   private deltaBatchCount: number = 0;
+  private changesSinceLastConfirmation: number = 0;
 
   constructor(syncId: string) {
     this.syncId = syncId;
@@ -34,10 +35,25 @@ export class ChangeProcessor {
   }
 
   /**
-   * Check if confirmations should be processed based on delta count
+   * Track changes processed since last confirmation
    */
-  shouldProcessConfirmations(frequency: number = 10): boolean {
-    return this.deltaBatchCount % frequency === 0;
+  addChangesProcessed(count: number) {
+    this.changesSinceLastConfirmation += count;
+  }
+
+  /**
+   * Check if confirmations should be processed based on change count
+   * @param threshold Number of changes to process before confirming (default: 1000)
+   */
+  shouldProcessConfirmations(threshold: number = 1000): boolean {
+    return this.changesSinceLastConfirmation >= threshold;
+  }
+
+  /**
+   * Reset confirmation counter after processing
+   */
+  resetConfirmationCounter() {
+    this.changesSinceLastConfirmation = 0;
   }
 
   /**
