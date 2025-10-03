@@ -11,7 +11,7 @@ deploy
   .argument("<env>", "Environment (only 'prod' for now)")
   .action(async (env) => {
     requireAuth();
-    
+
     const options = program.opts();
     if (options.debug) {
       setLogDisplayLevel("DEBUG");

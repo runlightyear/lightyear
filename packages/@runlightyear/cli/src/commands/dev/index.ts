@@ -35,7 +35,7 @@ dev
   .addOption(new Option("--dev").hideHelp())
   .action(async () => {
     requireAuth();
-    
+
     terminal(largeLogo);
     terminal("\n\n");
 

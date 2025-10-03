@@ -23,7 +23,7 @@ trigger
   .option("--env <environment>", "Environment name (e.g. dev, prod)")
   .action(async (actionName, options) => {
     requireAuth();
-    
+
     const globalOptions = program.opts();
     if (globalOptions.debug) {
       setLogDisplayLevel("DEBUG");

@@ -41,7 +41,7 @@ export function ensureConfigDir(): void {
  */
 export function readConfig(): LightyearConfig {
   const configPath = getConfigFilePath();
-  
+
   if (!fs.existsSync(configPath)) {
     return {};
   }
@@ -62,7 +62,7 @@ export function readConfig(): LightyearConfig {
 export function writeConfig(config: LightyearConfig): void {
   ensureConfigDir();
   const configPath = getConfigFilePath();
-  
+
   try {
     const yamlContent = yaml.dump(config);
     fs.writeFileSync(configPath, yamlContent, "utf8");

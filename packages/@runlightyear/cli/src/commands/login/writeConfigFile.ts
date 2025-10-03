@@ -21,7 +21,7 @@ export default async function writeConfigFile(
     }
 
     writeConfig(config);
-    
+
     res.setHeader("location", `${baseUrl}/cli-login/succeeded`);
     res.end();
     terminal(`Login successful, wrote credentials to ${getConfigFilePath()}\n`);
