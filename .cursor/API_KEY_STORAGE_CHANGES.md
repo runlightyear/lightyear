@@ -3,6 +3,8 @@
 ## Overview
 The CLI's API key storage has been moved from `.env` files in the project directory to a user-specific configuration directory at `~/.lightyear/.lightyear.yaml`.
 
+Additionally, all dependencies on the deprecated `@runlightyear/lightyear` package have been removed from the CLI package. The CLI now contains its own implementations of the necessary utilities.
+
 ## Changes Made
 
 ### 1. New Configuration Management Module
@@ -21,12 +23,21 @@ The CLI's API key storage has been moved from `.env` files in the project direct
 **File**: `packages/@runlightyear/cli/src/commands/login/getRequestHandler.ts`
 - Updated to use the renamed `writeConfigFile` function
 
-### 3. Updated API Key Reading Logic
-**Files**: 
+### 3. Created Local Utility Functions in CLI
+**New Files**:
+- `packages/@runlightyear/cli/src/shared/getApiKey.ts`
+- `packages/@runlightyear/cli/src/shared/getBaseUrl.ts`
+- `packages/@runlightyear/cli/src/shared/getEnvName.ts`
+
+These functions replace imports from the deprecated lightyear package:
+1. First try to read from the config file (`~/.lightyear/.lightyear.yaml`)
+2. Fall back to environment variables for backward compatibility
+
+**Updated lightyear package** (for backward compatibility with other packages):
 - `packages/@runlightyear/lightyear/src/util/getApiKey.ts`
 - `packages/@runlightyear/lightyear/src/util/getBaseUrl.ts`
 
-Both functions now:
+Both functions updated to:
 1. First try to read from the config file (`~/.lightyear/.lightyear.yaml`)
 2. Fall back to environment variables for backward compatibility
 3. Use simple regex parsing to avoid requiring js-yaml in the lightyear package
@@ -46,10 +57,25 @@ Added `requireAuth()` calls to commands that require authentication:
 **File**: `packages/@runlightyear/cli/src/shared/getPusherCredentials.ts`
 - Updated to show user-friendly authentication error message
 
-### 7. Dependencies
-Added to `packages/@runlightyear/cli/package.json`:
-- `js-yaml: ^4.1.0` (runtime dependency)
-- `@types/js-yaml: ^4.0.5` (dev dependency)
+### 7. Removed Lightyear Package Dependency
+**Updated**: `packages/@runlightyear/cli/package.json`
+- **Removed**: `@runlightyear/lightyear` dependency
+- **Added**: `js-yaml: ^4.1.0` (runtime dependency)
+- **Added**: `@types/js-yaml: ^4.0.5` (dev dependency)
+
+### 8. Created Local Logging Utilities
+**New Files**:
+- `packages/@runlightyear/cli/src/logging/PrefixedRedactedConsole.ts` - Simplified version of the console wrapper without server streaming
+- `packages/@runlightyear/cli/src/logging/utils.ts` - Utility functions (argsToStr, redactSecrets, isString, isObject, isArray)
+
+**Updated**: `packages/@runlightyear/cli/src/logging.ts`
+- Now imports from local `./logging/PrefixedRedactedConsole` instead of lightyear package
+
+### 9. Updated All CLI Imports
+Replaced all imports from `@runlightyear/lightyear` throughout the CLI package with local implementations:
+- 23 files updated to use local `getApiKey`, `getBaseUrl`, and `getEnvName`
+- All shared utility files now use local implementations
+- All command files now use local implementations
 
 ## Backward Compatibility
 The implementation maintains backward compatibility:

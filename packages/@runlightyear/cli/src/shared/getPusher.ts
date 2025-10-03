@@ -1,6 +1,7 @@
 import Pusher from "pusher-js";
 import { PusherCredentials } from "./getPusherCredentials";
-import { getApiKey, getBaseUrl } from "@runlightyear/lightyear";
+import { getApiKey } from "./getApiKey";
+import { getBaseUrl } from "./getBaseUrl";
 import crypto from "crypto";
 
 export default async function getPusher(credentials: PusherCredentials) {

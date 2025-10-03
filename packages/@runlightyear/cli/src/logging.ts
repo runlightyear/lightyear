@@ -1,4 +1,4 @@
-import { PrefixedRedactedConsole } from "@runlightyear/lightyear";
+import { PrefixedRedactedConsole } from "./logging/PrefixedRedactedConsole";
 import { logDisplayLevel } from "./shared/setLogDisplayLevel";
 
 export const prefixedRedactedConsole = new PrefixedRedactedConsole();

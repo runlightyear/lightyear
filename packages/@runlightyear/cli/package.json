@@ -19,7 +19,6 @@
     "build": "tsup src/index.ts --dts"
   },
   "dependencies": {
-    "@runlightyear/lightyear": "workspace:*",
     "better-opn": "^3.0.2",
     "boxen": "^7.1.1",
     "chalk": "^5.3.0",

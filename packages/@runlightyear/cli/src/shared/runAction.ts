@@ -3,7 +3,9 @@ import readPackage from "./readPackage";
 import runInContext from "./runInContext";
 import { prepareConsole } from "../logging";
 import { logDisplayLevel } from "./setLogDisplayLevel";
-import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
+import { getApiKey } from "./getApiKey";
+import { getBaseUrl } from "./getBaseUrl";
+import { getEnvName } from "./getEnvName";
 import { terminal } from "terminal-kit";
 
 export interface RunActionProps {

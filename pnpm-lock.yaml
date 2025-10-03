@@ -106,9 +106,6 @@ importers:
 
   packages/@runlightyear/cli:
     dependencies:
-      '@runlightyear/lightyear':
-        specifier: workspace:*
-        version: link:../lightyear
       better-opn:
         specifier: ^3.0.2
         version: 3.0.2
@@ -6865,7 +6862,7 @@ packages:
     resolution: {integrity: sha512-jGjmu/ZqS7FjSH6owMcD5qpq19+1RS9DeVRqfl1FeBMxTDQAGwlMWOcs52NDoXaNKyG3d1cYQFMs9rCrb88o9Q==}
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 18.3.3
+      '@types/react': 19.1.8
 
   /@types/react@18.3.3:
     resolution: {integrity: sha512-hti/R0pS0q1/xx+TsI73XIqk26eBsISZ2R0wUijXIngRK9R/e7Xw/cXVxQK7R5JjW+SV4zGcn5hXjudkN/pLIw==}

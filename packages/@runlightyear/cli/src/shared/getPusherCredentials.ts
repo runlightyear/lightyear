@@ -1,5 +1,6 @@
 import { program } from "commander";
-import { getApiKey, getBaseUrl } from "@runlightyear/lightyear";
+import { getApiKey } from "./getApiKey";
+import { getBaseUrl } from "./getBaseUrl";
 import { parseJsonResponse } from "./parseJsonResponse";
 import { terminal } from "terminal-kit";
 
