@@ -14,6 +14,7 @@
     "build:docs": "turbo run build:docs",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
+    "prettier": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prettier:check": "turbo run prettier:check",
     "prettier:write": "turbo run prettier:write",
     "compile": "turbo run compile",
