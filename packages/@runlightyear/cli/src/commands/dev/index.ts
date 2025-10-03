@@ -24,6 +24,7 @@ import { handleReceiveCustomAppWebhook } from "./handleReceiveCustomAppWebhook";
 import { trigger as triggerCommand } from "../trigger";
 import getQueuedRuns from "../../shared/getQueuedRuns";
 import execDeployAndSubscribe from "../../shared/execDeployAndSubscribe";
+import { requireAuth } from "../../shared/requireAuth";
 
 export const dev = new Command("dev");
 
@@ -33,6 +34,8 @@ dev
   )
   .addOption(new Option("--dev").hideHelp())
   .action(async () => {
+    requireAuth();
+    
     terminal(largeLogo);
     terminal("\n\n");
 

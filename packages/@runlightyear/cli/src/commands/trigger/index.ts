@@ -8,6 +8,7 @@ import {
   TriggerPayload,
 } from "../../shared/triggerAction";
 import { runInteractiveTrigger } from "./interactive";
+import { requireAuth } from "../../shared/requireAuth";
 
 const DEFAULT_ACTION = "self";
 
@@ -21,6 +22,8 @@ trigger
   .option("--interactive", "Prompt for action and managed user")
   .option("--env <environment>", "Environment name (e.g. dev, prod)")
   .action(async (actionName, options) => {
+    requireAuth();
+    
     const globalOptions = program.opts();
     if (globalOptions.debug) {
       setLogDisplayLevel("DEBUG");

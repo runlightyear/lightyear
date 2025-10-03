@@ -1,6 +1,6 @@
 import { RequestListener } from "http";
 import fetchApiKey from "./fetchApiKey";
-import writeEnvFile from "./writeEnvFile";
+import writeConfigFile from "./writeConfigFile";
 import parseCode from "./parseCode";
 import { program } from "commander";
 import { terminal } from "terminal-kit";
@@ -19,7 +19,7 @@ export default function getRequestHandler(baseUrl: string) {
     }
 
     const { LIGHTYEAR_API_KEY } = await fetchApiKey(baseUrl, code, res);
-    await writeEnvFile({ LIGHTYEAR_API_KEY, baseUrl }, res);
+    await writeConfigFile({ LIGHTYEAR_API_KEY, baseUrl }, res);
 
     process.exit(0);
   };
