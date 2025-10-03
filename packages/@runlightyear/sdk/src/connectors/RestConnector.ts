@@ -3,6 +3,9 @@ import {
   HttpProxyResponse,
   httpRequest,
   HttpMethod,
+  BatchHttpProxyRequestProps,
+  BatchHttpProxyResponse,
+  batchHttpRequest,
 } from "../http";
 
 /**
@@ -95,6 +98,7 @@ export class RestConnector {
       redactKeys,
       maxRetries,
       async: asyncRequest,
+      syncInfo,
     } = props as HttpProxyRequestProps & { json?: unknown };
 
     if (!url) {
@@ -115,6 +119,7 @@ export class RestConnector {
       redactKeys,
       maxRetries,
       async: asyncRequest,
+      syncInfo,
     };
 
     return await httpRequest(requestProps);
@@ -206,6 +211,29 @@ export class RestConnector {
     return this.request({
       method: "DELETE",
       ...props,
+    });
+  }
+
+  /**
+   * Make batch requests asynchronously
+   */
+  async batchRequest(props: {
+    requests: Array<HttpProxyRequestProps>;
+    syncId?: string;
+  }): Promise<BatchHttpProxyResponse> {
+    // Prepare requests with full URLs
+    const preparedRequests = props.requests.map((req) => ({
+      ...req,
+      url: this.buildUrl(req.url),
+      headers: {
+        ...this.getDefaultHeaders(),
+        ...req.headers,
+      },
+    }));
+
+    return await batchHttpRequest({
+      requests: preparedRequests,
+      syncId: props.syncId,
     });
   }
 }

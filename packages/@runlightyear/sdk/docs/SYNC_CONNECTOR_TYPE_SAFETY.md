@@ -373,11 +373,11 @@ const deleteConfig = {
 ### Bulk Operations
 
 ```typescript
-const bulkConfig = {
-  bulk: {
+const batchConfig = {
+  batch: {
     create: {
       request: (items: Customer[]) => ({
-        endpoint: "/api/customers/bulk",
+      endpoint: "/api/customers/batch",
         method: "POST",
         data: { customers: items },
       }),
@@ -385,7 +385,7 @@ const bulkConfig = {
     },
     update: {
       request: (items: Array<{ id: string; data: Partial<Customer> }>) => ({
-        endpoint: "/api/customers/bulk-update",
+      endpoint: "/api/customers/batch-update",
         method: "PATCH",
         data: { updates: items },
       }),
@@ -393,7 +393,7 @@ const bulkConfig = {
     },
     delete: {
       request: (ids: string[]) => ({
-        endpoint: "/api/customers/bulk-delete",
+      endpoint: "/api/customers/batch-delete",
         method: "POST",
         data: { ids },
       }),
@@ -401,6 +401,90 @@ const bulkConfig = {
     },
   },
 };
+```
+
+When working with sync push changes you can opt into the change-aware helper,
+which receives the full change (including `changeId`) and extracts the
+confirmation payload from the API response:
+
+```typescript
+builder.withBatchCreate({
+  request: (changes) => ({
+    endpoint: "/objects/contacts/batch/create",
+    method: "POST",
+  json: {
+      inputs: changes.map((change) => ({
+        objectWriteTraceId: change.changeId,
+        properties: {
+          firstname: change.obj.firstName,
+          lastname: change.obj.lastName,
+          email: change.obj.email,
+        },
+      })),
+    },
+  }),
+  responseSchema: z.object({
+    results: z.array(
+      z.object({
+        objectWriteTraceId: z.string(),
+        id: z.string(),
+        updatedAt: z.string(),
+      })
+    ),
+  }),
+  extract: (response) =>
+    response.results.map((result) => ({
+      changeId: result.objectWriteTraceId,
+      externalId: result.id,
+      externalUpdatedAt: result.updatedAt,
+    })),
+});
+
+builder.withBatchUpdate({
+  request: (changes) => ({
+    endpoint: "/objects/contacts/batch/update",
+    method: "POST",
+    json: {
+      inputs: changes.map((change) => ({
+        objectWriteTraceId: change.changeId,
+        id: change.externalId,
+        properties: {
+          firstname: change.obj.firstName,
+          lastname: change.obj.lastName,
+          email: change.obj.email,
+        },
+      })),
+    },
+  }),
+  responseSchema: z.object({
+    results: z.array(
+      z.object({
+        objectWriteTraceId: z.string(),
+        id: z.string(),
+        updatedAt: z.string(),
+      })
+    ),
+  }),
+  extract: (response) =>
+    response.results.map((result) => ({
+      changeId: result.objectWriteTraceId,
+      externalId: result.id,
+      externalUpdatedAt: result.updatedAt,
+    })),
+});
+
+builder.withBatchDelete({
+  request: (changes) => ({
+    endpoint: "/objects/contacts/batch/delete",
+    method: "POST",
+    json: {
+      inputs: changes.map((change) => ({
+        objectWriteTraceId: change.changeId,
+        id: change.externalId,
+      })),
+    },
+  }),
+});
 ```
 
 ## Migration Guide

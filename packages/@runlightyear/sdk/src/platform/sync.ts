@@ -272,28 +272,12 @@ export async function upsertObjectBatch(props: {
   async?: boolean;
 }): Promise<void> {
   const envName = process.env.ENV_NAME || "dev";
-  try {
-    const count = props.objects?.length ?? 0;
-    const preview = (props.objects || [])
-      .slice(0, Math.min(3, count))
-      .map((o) => ({
-        externalId: o.externalId,
-        externalUpdatedAt: o.externalUpdatedAt,
-        dataKeys: Object.keys(o.data || {}),
-      }));
-    console.info(
-      `upsertObjectBatch → env=${envName} collection=${
-        props.collectionName
-      } model=${props.modelName} sync=${props.syncId} app=${
-        props.app
-      } customApp=${props.customApp} count=${count} cursor=${
-        props.cursor ?? "none"
-      } page=${props.page ?? "none"} offset=${props.offset ?? "none"} async=${
-        props.async ?? false
-      } overwrite=${props.overwrite ?? false}`
-    );
-    console.debug("upsertObjectBatch preview:", preview);
-  } catch {}
+  const count = props.objects?.length ?? 0;
+  console.info(
+    `📤 upsertObjectBatch: model=${props.modelName} count=${count} async=${
+      props.async ?? false
+    }`
+  );
   await makeApiRequest(
     `/api/v1/envs/${envName}/collections/${props.collectionName}/models/${props.modelName}/objects/upsert/batch`,
     {
@@ -311,11 +295,9 @@ export async function upsertObjectBatch(props: {
       },
     }
   );
-  try {
-    console.info(
-      `upsertObjectBatch ✓ submitted ${props.objects.length} objects for model=${props.modelName}`
-    );
-  } catch {}
+  console.info(
+    `✅ Submitted ${props.objects.length} objects for model=${props.modelName}`
+  );
 }
 
 export async function retrieveDelta<T = any>(props: {
@@ -479,7 +461,8 @@ export async function confirmChangeBatch(props: {
   async?: boolean;
 }): Promise<void> {
   const envName = process.env.ENV_NAME || "dev";
-  await makeApiRequest(
+
+  const response = await makeApiRequest(
     `/api/v1/envs/${envName}/syncs/${props.syncId}/changes/batch/confirm`,
     {
       method: "POST",
@@ -489,4 +472,68 @@ export async function confirmChangeBatch(props: {
       },
     }
   );
+}
+
+export async function getUnconfirmedChanges(props: {
+  syncId: string;
+  limit?: number;
+  cursor?: string;
+}): Promise<{
+  httpRequests: Array<{
+    httpRequest: {
+      id: string;
+      method: string;
+      url: string;
+      statusCode: number;
+      statusText: string;
+      requestHeaders: Record<string, string>;
+      requestBody: string;
+      responseHeaders: Record<string, string>;
+      responseBody: string;
+      createdAt: string;
+      startedAt: string;
+      endedAt: string;
+      idPath?: string;
+      updatedAtPath?: string;
+    };
+    modelName: string;
+    changeIds: string[];
+  }>;
+  nextCursor: string | null;
+  pendingWritesCount: number;
+}> {
+  const envName = getEnvName();
+  console.debug(`Fetching unconfirmed HTTP requests for sync ${props.syncId}`);
+  const response = await makeApiRequest(
+    `/api/v1/envs/${envName}/http-requests/unconfirmed`,
+    {
+      method: "POST",
+      data: {
+        syncId: props.syncId,
+        limit: props.limit ?? 100,
+        cursor: props.cursor,
+      },
+    }
+  );
+  const payload = await response.json();
+
+  console.debug("Unconfirmed HTTP requests payload structure:", {
+    hasHttpRequests: payload && "httpRequests" in payload,
+    hasNextCursor: payload && "nextCursor" in payload,
+    hasPendingWritesCount: payload && "pendingWritesCount" in payload,
+    payloadKeys:
+      payload && typeof payload === "object" ? Object.keys(payload) : undefined,
+  });
+
+  const httpRequests = payload?.httpRequests ?? [];
+  const nextCursor = payload?.nextCursor ?? null;
+  const pendingWritesCount = payload?.pendingWritesCount ?? 0;
+
+  console.debug(
+    `Returning ${
+      httpRequests.length
+    } unconfirmed HTTP requests, pendingWritesCount=${pendingWritesCount}, hasNextCursor=${!!nextCursor}`
+  );
+
+  return { httpRequests, nextCursor, pendingWritesCount };
 }

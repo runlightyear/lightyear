@@ -23,6 +23,7 @@ import { handleRefreshSubscription } from "./handleRefreshSubscription";
 import { handleReceiveCustomAppWebhook } from "./handleReceiveCustomAppWebhook";
 import { trigger as triggerCommand } from "../trigger";
 import getQueuedRuns from "../../shared/getQueuedRuns";
+import execDeployAndSubscribe from "../../shared/execDeployAndSubscribe";
 
 export const dev = new Command("dev");
 
@@ -40,6 +41,16 @@ dev
       setLogDisplayLevel("DEBUG");
       prepareConsole();
       console.debug("Outputting debug information");
+    }
+
+    const devEnvironment = "dev";
+
+    terminal("Deploying latest build to dev...\n");
+    try {
+      await execDeployAndSubscribe(devEnvironment);
+    } catch (error) {
+      terminal.red("Initial dev deploy failed.\n");
+      console.error(error);
     }
 
     const credentials = await getPusherCredentials();
@@ -90,7 +101,7 @@ dev
     // On startup, fetch any queued runs and enqueue them oldest-first
     try {
       terminal("\nChecking for queued runs...\n");
-      const queued = await getQueuedRuns();
+      const queued = await getQueuedRuns(devEnvironment);
       if (queued.length > 0) {
         terminal(`Found ${queued.length} queued run(s). Adding to queue...\n`);
         for (const item of queued) {
@@ -101,6 +112,7 @@ dev
               runId: item.id,
               data: item.data,
               deliveryId: item.deliveryId,
+              environment: devEnvironment,
             },
           });
         }
@@ -128,13 +140,23 @@ dev
           process.exit();
         }, 100);
       } else if (data.code === "d") {
-        pushOperation({ operation: "deploy", params: undefined });
+        pushOperation({
+          operation: "deploy",
+          params: { environment: devEnvironment },
+        });
       } else if (data.code === "t") {
         // Execute the trigger command interactively
         terminal.grabInput(false);
         pauseOperationQueue(); // Pause the queue while trigger is active
         try {
-          await triggerCommand.parseAsync(["node", "lightyear", "t"]);
+          await triggerCommand.parseAsync([
+            "node",
+            "lightyear",
+            "trigger",
+            "--interactive",
+            "--env",
+            devEnvironment,
+          ]);
         } finally {
           resumeOperationQueue(); // Always resume the queue
           terminal.grabInput(true);
@@ -167,7 +189,10 @@ dev
     });
 
     nodemon.on("exit", async () => {
-      pushOperation({ operation: "deploy", params: undefined });
+      pushOperation({
+        operation: "deploy",
+        params: { environment: devEnvironment },
+      });
       terminal.grabInput(true);
     });
   });

@@ -1,3 +1,21 @@
 {
-  "extends": "api-extractor-config/connector.json"
+  "projectFolder": ".",
+  "mainEntryPointFilePath": "./dist/index.d.ts",
+  "apiReport": {
+    "enabled": false
+  },
+  "docModel": {
+    "enabled": true,
+    "apiJsonFilePath": "../../../temp/<packageName>.api.json"
+  },
+  "dtsRollup": {
+    "enabled": false
+  },
+  "messages": {
+    "extractorMessageReporting": {
+      "ae-wrong-input-file-type": {
+        "logLevel": "none"
+      }
+    }
+  }
 }

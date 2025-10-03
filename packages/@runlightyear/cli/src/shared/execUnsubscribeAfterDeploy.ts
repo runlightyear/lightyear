@@ -4,20 +4,21 @@ import updateDeploy from "./updateDeploy";
 
 export interface ExecUnsubscribeAfterDeployProps {
   deployId: string;
+  environment?: string;
 }
 
 export default async function execUnsubscribeAfterDeploy(
   props: ExecUnsubscribeAfterDeployProps
 ) {
-  const { deployId } = props;
+  const { deployId, environment } = props;
 
-  const unsubscribeList = await getUnsubscribeList();
+  const unsubscribeList = await getUnsubscribeList(environment);
 
   const doTheUnsubscribe = async (webhookName: string, removed: boolean) => {
     let message, level;
 
     try {
-      await execUnsubscribe({ webhookName, removed });
+      await execUnsubscribe({ webhookName, removed, environment });
       message = `Unsubscribed ${webhookName}`;
       level = "INFO";
     } catch (err) {
@@ -33,6 +34,7 @@ export default async function execUnsubscribeAfterDeploy(
     await updateDeploy({
       deployId,
       logs: [`[${level}]: ${message}`],
+      environment,
     });
   };
 
@@ -53,6 +55,7 @@ export default async function execUnsubscribeAfterDeploy(
     await updateDeploy({
       deployId,
       logs: [`[INFO]: ${message}`],
+      environment,
     });
   }
 

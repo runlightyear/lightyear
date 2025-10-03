@@ -129,6 +129,8 @@ class LogCapture {
     deliveryId?: string;
     subscriptionActivityId?: string;
     authorizerActivityId?: string;
+    syncId?: string;
+    modelName?: string;
     integrationName?: string;
     managedUserId?: string;
     managedUserExternalId?: string;
@@ -279,6 +281,8 @@ class LogCapture {
     deliveryId?: string;
     subscriptionActivityId?: string;
     authorizerActivityId?: string;
+    syncId?: string;
+    modelName?: string;
     integrationName?: string;
     managedUserId?: string;
     managedUserExternalId?: string;
@@ -323,6 +327,8 @@ class LogCapture {
     deliveryId?: string;
     subscriptionActivityId?: string;
     authorizerActivityId?: string;
+    syncId?: string;
+    modelName?: string;
     integrationName?: string;
     managedUserId?: string;
     managedUserExternalId?: string;
@@ -357,14 +363,25 @@ class LogCapture {
 
       const redactedMessage = this.redact(rawMessage);
 
-      // Print redacted message to original console
-      originalMethod(redactedMessage);
+      // Truncate message if it exceeds 240000 bytes
+      const maxLogSize = 240000;
+      const truncationMessage = "\n[truncated]";
+      let finalMessage = redactedMessage;
 
-      // Capture the redacted log
+      if (redactedMessage.length > maxLogSize) {
+        finalMessage =
+          redactedMessage.substring(0, maxLogSize - truncationMessage.length) +
+          truncationMessage;
+      }
+
+      // Print truncated message to original console
+      originalMethod(finalMessage);
+
+      // Capture the truncated log
       if (this.isCapturing) {
         this.addLog({
           level,
-          message: redactedMessage,
+          message: finalMessage,
           timestamp: new Date().toISOString(),
           position: this.logs.length,
         });

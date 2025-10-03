@@ -8,10 +8,11 @@ import { prepareConsole } from "../logging";
 export interface ExecSubscribeProps {
   deployId: string;
   compiledCode: Buffer;
+  environment?: string;
 }
 
 export default async function execSubscribeProps(props: ExecSubscribeProps) {
-  const { deployId, compiledCode } = props;
+  const { deployId, compiledCode, environment } = props;
 
   const handler = runInContext(compiledCode).handler;
 
@@ -19,6 +20,7 @@ export default async function execSubscribeProps(props: ExecSubscribeProps) {
   const handlerResult = await handler({
     operation: "subscribeProps",
     logDisplayLevel,
+    environment,
   });
 
   prepareConsole();
@@ -30,6 +32,7 @@ export default async function execSubscribeProps(props: ExecSubscribeProps) {
   await updateDeploy({
     deployId,
     logs,
+    environment,
   });
 
   return handlerResult;

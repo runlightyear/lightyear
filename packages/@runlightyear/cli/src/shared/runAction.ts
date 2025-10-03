@@ -11,16 +11,17 @@ export interface RunActionProps {
   runId: string;
   data?: object;
   deliveryId?: string;
+  environment?: string;
 }
 
 export default async function runAction({
   actionName,
   runId,
   data,
-  deliveryId,
+  environment,
 }: RunActionProps) {
   const baseUrl = getBaseUrl();
-  const envName = getEnvName();
+  const envName = environment ?? getEnvName();
   const apiKey = getApiKey();
 
   const startResponse = await fetch(
@@ -133,7 +134,8 @@ export default async function runAction({
         response.status,
         response.statusText
       );
-      console.error(await response.text());
+      const text = await response.text();
+      console.error(text);
     }
   } else {
     console.info(

@@ -10,7 +10,7 @@ import updateDeploy from "./updateDeploy";
 import getPreviouslyDeployedCode from "./getPreviouslyDeployedCode";
 import runInContext from "./runInContext";
 
-export default async function execDeployAndSubscribe() {
+export default async function execDeployAndSubscribe(environment?: string) {
   const pkg = readPackage();
   const compiledCode = getCompiledCode(pkg.main);
   // const previousCompiledCode = await getPreviouslyDeployedCode();
@@ -22,19 +22,28 @@ export default async function execDeployAndSubscribe() {
     return;
   }
 
-  const deployId = await createDeploy({ status: "RUNNING", compiledCode });
+  const deployId = await createDeploy({
+    status: "RUNNING",
+    compiledCode,
+    envName: environment as "dev" | "prod" | undefined,
+  });
 
-  const handlerResult = await execDeploy({ deployId, compiledCode });
+  const handlerResult = await execDeploy({
+    deployId,
+    compiledCode,
+    environment,
+  });
 
   const { statusCode } = handlerResult;
   const status = statusCode >= 300 ? "FAILED" : "SUCCEEDED";
 
   if (status === "SUCCEEDED") {
-    await execSubscribeProps({ deployId, compiledCode });
+    await execSubscribeProps({ deployId, compiledCode, environment });
     await execUnsubscribeAfterDeploy({
       deployId,
+      environment,
     });
-    await execSubscribeAfterDeploy({ deployId, compiledCode });
+    await execSubscribeAfterDeploy({ deployId, compiledCode, environment });
   }
 
   if (status === "SUCCEEDED") {
@@ -47,5 +56,6 @@ export default async function execDeployAndSubscribe() {
     deployId,
     status,
     endedAt: "now",
+    environment,
   });
 }

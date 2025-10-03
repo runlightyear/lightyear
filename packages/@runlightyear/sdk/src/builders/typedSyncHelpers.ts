@@ -81,7 +81,7 @@ export function extractNestedData(data: any, path: string): any {
 }
 
 /**
- * Batch items for bulk operations
+ * Batch items for batch operations
  */
 export function batchItems<T>(items: T[], batchSize: number): T[][] {
   const batches: T[][] = [];
@@ -119,7 +119,7 @@ export function createModelConfig<T>() {
       method?: "DELETE" | "POST";
     }) => ({ delete: config }),
 
-    bulk: (config: {
+    batch: (config: {
       create?: {
         endpoint: string;
         method?: "POST" | "PUT";
@@ -135,6 +135,6 @@ export function createModelConfig<T>() {
         method?: "DELETE" | "POST";
         batchSize?: number;
       };
-    }) => ({ bulk: config }),
+    }) => ({ batch: config }),
   };
 }

@@ -3,15 +3,16 @@ import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
 export interface CreateSubscribeActivityProps {
   webhookName: string;
   deployId: string;
+  environment?: string;
 }
 
 export default async function createSubscribeActivity(
   props: CreateSubscribeActivityProps
 ) {
-  const { webhookName, deployId } = props;
+  const { webhookName, deployId, environment } = props;
 
   const baseUrl = getBaseUrl();
-  const envName = getEnvName();
+  const envName = environment ?? getEnvName();
   const apiKey = getApiKey();
 
   const activityResponse = await fetch(

@@ -6,9 +6,18 @@ import type {
   CreateConfig,
   UpdateConfig,
   DeleteConfig,
-  BulkConfig,
+  ModelConnectorConfig,
+  BatchCreateOperationConfig,
+  BatchCreateChange,
+  BatchUpdateOperationConfig,
+  BatchDeleteOperationConfig,
   ListParams,
   ModelConnector as ModelConnectorInterface,
+  BatchConfirmation,
+  BatchUpdateRequestItems,
+  BatchDeleteRequestItems,
+  BatchUpdateChange,
+  BatchDeleteChange,
   SyncObject,
 } from "./syncConnector";
 
@@ -19,13 +28,7 @@ import type {
 export class ModelConnectorBuilder<T = any> {
   private restConnector: RestConnector;
   private model: Model;
-  private config: {
-    list?: ListConfig<T>;
-    create?: CreateConfig<T>;
-    update?: UpdateConfig<T>;
-    delete?: DeleteConfig;
-    bulk?: BulkConfig<T>;
-  } = {};
+  private config: ModelConnectorConfig<T> = {};
 
   constructor(restConnector: RestConnector, model: Model) {
     this.restConnector = restConnector;
@@ -52,9 +55,76 @@ export class ModelConnectorBuilder<T = any> {
     return this;
   }
 
-  bulk(config: BulkConfig<T>): this {
-    this.config.bulk = config;
+  batchCreate(config: BatchCreateOperationConfig<T>): this {
+    this.config.batchCreate = {
+      ...config,
+      payloadType: config.payloadType ?? "changes",
+    } as BatchCreateOperationConfig<T>;
     return this;
+  }
+
+  withBatchCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BatchCreateChange<T>>) => {
+      endpoint: string;
+      method?: "POST" | "PUT";
+      data?: any;
+    };
+    responseSchema?: TSchema;
+    extract?: (
+      response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
+    ) => Array<BatchConfirmation>;
+    batchSize?: number;
+    payloadType?: "items" | "changes";
+  }): this {
+    return this.batchCreate(config as BatchCreateOperationConfig<T>);
+  }
+
+  batchUpdate(config: BatchUpdateOperationConfig<T>): this {
+    this.config.batchUpdate = {
+      ...config,
+      payloadType: config.payloadType ?? "changes",
+    } as BatchUpdateOperationConfig<T>;
+    return this;
+  }
+
+  withBatchUpdate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BatchUpdateChange<T>>) => {
+      endpoint: string;
+      method?: "PUT" | "PATCH" | "POST";
+      data?: any;
+    };
+    responseSchema?: TSchema;
+    extract?: (
+      response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
+    ) => Array<BatchConfirmation>;
+    batchSize?: number;
+    payloadType?: "items" | "changes";
+  }): this {
+    return this.batchUpdate(config as BatchUpdateOperationConfig<T>);
+  }
+
+  batchDelete(config: BatchDeleteOperationConfig): this {
+    this.config.batchDelete = {
+      ...config,
+      payloadType: config.payloadType ?? "changes",
+    } as BatchDeleteOperationConfig;
+    return this;
+  }
+
+  withBatchDelete<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+    request: (changes: Array<BatchDeleteChange>) => {
+      endpoint: string;
+      method?: "DELETE" | "POST";
+      data?: any;
+    };
+    responseSchema?: TSchema;
+    extract?: (
+      response: TSchema extends z.ZodType<any> ? z.infer<TSchema> : unknown
+    ) => Array<BatchConfirmation>;
+    batchSize?: number;
+    payloadType?: "ids" | "changes";
+  }): this {
+    return this.batchDelete(config as BatchDeleteOperationConfig);
   }
 
   build(): ModelConnectorInterface<T> {
@@ -205,69 +275,200 @@ export class ModelConnectorBuilder<T = any> {
       };
     }
 
-    // Add bulk implementations
-    if (this.config.bulk?.create) {
-      connector.bulkCreate = async (items: T[]) => {
-        const batchSize = this.config.bulk!.create!.batchSize || 100;
-        const results: T[] = [];
+    // Add batch implementations
+    if (this.config.batchCreate) {
+      connector.batchCreate = async (items: any[]) => {
+        const batchSize = this.config.batchCreate!.batchSize || 100;
+        const aggregatedResponses: any[] = [];
+        const confirmations: BatchConfirmation[] = [];
+        const isChangePayload =
+          this.config.batchCreate!.payloadType === "changes";
 
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
-          const requestConfig = this.config.bulk!.create!.request(batch);
+          const formattedBatch = isChangePayload
+            ? batch.map((item: any) => {
+                const payload =
+                  item.data ?? item.obj ?? item.payload ?? item;
+                return {
+                  ...item,
+                  data: payload,
+                  obj: item.obj ?? payload,
+                };
+              })
+            : batch;
+          const requestConfig = this.config.batchCreate!.request(formattedBatch);
 
           const response = await this.restConnector.request({
             method: requestConfig.method || "POST",
             url: requestConfig.endpoint,
-            data: requestConfig.data || batch,
+            data:
+              requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
-          results.push(
-            ...(Array.isArray(response.data) ? response.data : [response.data])
+
+          let responseData = response.data;
+          if (this.config.batchCreate!.responseSchema) {
+            responseData = this.config.batchCreate!.responseSchema!.parse(
+              responseData
+            );
+          }
+
+          if (this.config.batchCreate!.extract) {
+            const extracted = (this.config.batchCreate!.extract(
+              responseData
+            ) ?? []) as Array<BatchConfirmation>;
+            confirmations.push(
+              ...extracted.map((item: BatchConfirmation) => ({
+                changeId: String(item.changeId),
+                externalId: String(item.externalId),
+                externalUpdatedAt:
+                  item.externalUpdatedAt === undefined ||
+                  item.externalUpdatedAt === null
+                    ? null
+                    : String(item.externalUpdatedAt),
+              }))
+            );
+          }
+
+          aggregatedResponses.push(
+            ...(Array.isArray(responseData) ? responseData : [responseData])
           );
         }
 
-        return results;
+        return this.config.batchCreate!.extract
+          ? confirmations
+          : aggregatedResponses;
       };
     }
 
-    if (this.config.bulk?.update) {
-      connector.bulkUpdate = async (
-        items: Array<{ id: string; data: Partial<T> }>
-      ) => {
-        const batchSize = this.config.bulk!.update!.batchSize || 100;
-        const results: T[] = [];
+    if (this.config.batchUpdate) {
+      connector.batchUpdate = async (items: BatchUpdateRequestItems<any>) => {
+        const batchSize = this.config.batchUpdate!.batchSize || 100;
+        const aggregatedResponses: any[] = [];
+        const confirmations: BatchConfirmation[] = [];
+        const payloadType =
+          this.config.batchUpdate!.payloadType ??
+          (this.config.batchUpdate!.extract ? "changes" : "items");
 
         for (let i = 0; i < items.length; i += batchSize) {
           const batch = items.slice(i, i + batchSize);
-          const requestConfig = this.config.bulk!.update!.request(batch);
+          const formattedBatch =
+            payloadType === "changes"
+              ? batch.map((item: BatchUpdateChange<any>) => {
+                  const payload = item.data ?? item.obj ?? {};
+                  const externalId = String(item.externalId ?? item.id);
+                  return {
+                    ...item,
+                    externalId,
+                    id: item.id ?? externalId,
+                    data: payload,
+                    obj: item.obj ?? payload,
+                  };
+                })
+              : batch;
+          const requestConfig = this.config.batchUpdate!.request(
+            formattedBatch as any
+          );
 
           const response = await this.restConnector.request({
             method: requestConfig.method || "PUT",
             url: requestConfig.endpoint,
-            data: requestConfig.data || batch,
+            data:
+              requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
-          results.push(
-            ...(Array.isArray(response.data) ? response.data : [response.data])
+
+          let responseData = response.data;
+          if (this.config.batchUpdate!.responseSchema) {
+            responseData = this.config.batchUpdate!.responseSchema!.parse(
+              responseData
+            );
+          }
+
+          if (this.config.batchUpdate!.extract) {
+            const extracted = (this.config.batchUpdate!.extract!(
+              responseData
+            ) ?? []) as Array<BatchConfirmation>;
+            confirmations.push(
+              ...extracted.map((item: BatchConfirmation) => ({
+                changeId: String(item.changeId),
+                externalId: String(item.externalId),
+                externalUpdatedAt:
+                  item.externalUpdatedAt === undefined ||
+                  item.externalUpdatedAt === null
+                    ? null
+                    : String(item.externalUpdatedAt),
+              }))
+            );
+          }
+
+          aggregatedResponses.push(
+            ...(Array.isArray(responseData) ? responseData : [responseData])
           );
         }
 
-        return results;
+        return this.config.batchUpdate!.extract
+          ? confirmations
+          : aggregatedResponses;
       };
     }
 
-    if (this.config.bulk?.delete) {
-      connector.bulkDelete = async (ids: string[]) => {
-        const batchSize = this.config.bulk!.delete!.batchSize || 100;
+    if (this.config.batchDelete) {
+      connector.batchDelete = async (items: BatchDeleteRequestItems) => {
+        const batchSize = this.config.batchDelete!.batchSize || 100;
+        const confirmations: BatchConfirmation[] = [];
+        const payloadType =
+          this.config.batchDelete!.payloadType ??
+          (this.config.batchDelete!.extract ? "changes" : "ids");
 
-        for (let i = 0; i < ids.length; i += batchSize) {
-          const batch = ids.slice(i, i + batchSize);
-          const requestConfig = this.config.bulk!.delete!.request(batch);
+        for (let i = 0; i < items.length; i += batchSize) {
+          const batch = items.slice(i, i + batchSize);
+          const formattedBatch =
+            payloadType === "changes"
+              ? batch.map((item: BatchDeleteChange) => {
+                  const externalId = String(item.externalId ?? item.id);
+                  return {
+                    ...item,
+                    externalId,
+                    id: item.id ?? externalId,
+                  };
+                })
+              : batch;
+          const requestConfig = this.config.batchDelete!.request(
+            formattedBatch as any
+          );
 
-          await this.restConnector.request({
+          const response = await this.restConnector.request({
             method: requestConfig.method || "DELETE",
             url: requestConfig.endpoint,
-            data: requestConfig.data || batch,
+            data:
+              requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
+
+          if (this.config.batchDelete!.extract) {
+            let responseData = response.data;
+            if (this.config.batchDelete!.responseSchema) {
+              responseData = this.config.batchDelete!.responseSchema!.parse(
+                responseData
+              );
+            }
+            const extracted = (this.config.batchDelete!.extract!(
+              responseData
+            ) ?? []) as Array<BatchConfirmation>;
+            confirmations.push(
+              ...extracted.map((item: BatchConfirmation) => ({
+                changeId: String(item.changeId),
+                externalId: String(item.externalId),
+                externalUpdatedAt:
+                  item.externalUpdatedAt === undefined ||
+                  item.externalUpdatedAt === null
+                    ? null
+                    : String(item.externalUpdatedAt),
+              }))
+            );
+          }
         }
+
+        return confirmations;
       };
     }
 

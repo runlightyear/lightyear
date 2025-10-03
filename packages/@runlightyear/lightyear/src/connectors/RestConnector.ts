@@ -76,7 +76,19 @@ export abstract class RestConnector extends AuthConnector {
    */
   async request(props: HttpProxyRequestProps): Promise<HttpProxyResponse> {
     console.debug("in RestConnector.request");
-    const { method, url, params, headers, data, async, confirm } = props;
+    const {
+      method,
+      url,
+      params,
+      headers,
+      data,
+      async,
+      confirm,
+      syncInfo,
+      managedUserId,
+      managedUserExternalId,
+      integrationName,
+    } = props;
 
     const proxyProps = {
       method,
@@ -96,6 +108,10 @@ export abstract class RestConnector extends AuthConnector {
         }),
       async,
       confirm,
+      syncInfo,
+      managedUserId,
+      managedUserExternalId,
+      integrationName,
     };
 
     let response;
@@ -146,9 +162,21 @@ export abstract class RestConnector extends AuthConnector {
     return { ...response, data: processedData };
   }
 
-  async requestBatch(props: Array<HttpProxyRequestProps>) {
+  async requestBatch(props: Array<HttpProxyRequestProps>, syncId?: string) {
     const requests = props.map((prop) => {
-      const { method, url, params, headers, data, async, confirm } = prop;
+      const {
+        method,
+        url,
+        params,
+        headers,
+        data,
+        async,
+        confirm,
+        syncInfo,
+        managedUserId,
+        managedUserExternalId,
+        integrationName,
+      } = prop;
 
       return {
         method,
@@ -168,10 +196,14 @@ export abstract class RestConnector extends AuthConnector {
           }),
         async,
         confirm,
+        syncInfo,
+        managedUserId,
+        managedUserExternalId,
+        integrationName,
       };
     });
 
-    const response = await httpRequestBatch(requests);
+    const response = await httpRequestBatch(requests, syncId);
 
     return response;
   }

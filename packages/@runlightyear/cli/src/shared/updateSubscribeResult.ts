@@ -10,6 +10,7 @@ export interface UploadSubscribeResultProps {
   unsubscribeProps?: any;
   deployId: string;
   logs?: any;
+  environment?: string;
 }
 
 export default async function updateSubscribeResult(
@@ -24,10 +25,11 @@ export default async function updateSubscribeResult(
     unsubscribeProps,
     logs,
     deployId,
+    environment,
   } = props;
 
   const baseUrl = getBaseUrl();
-  const envName = getEnvName();
+  const envName = environment ?? getEnvName();
   const apiKey = getApiKey();
 
   const activityResponse = await fetch(

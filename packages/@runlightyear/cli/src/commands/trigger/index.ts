@@ -1,258 +1,120 @@
-import { Command } from "commander";
-import { prompt } from "enquirer";
+import { Command, program } from "commander";
 import { terminal } from "terminal-kit";
-import fs from "fs";
-import path from "path";
-import os from "os";
-import crypto from "crypto";
-import getCompiledCode from "../../shared/getCompiledCode";
-import readPackage from "../../shared/readPackage";
-import runInContext from "../../shared/runInContext";
-import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
-import invariant from "tiny-invariant";
+import { setLogDisplayLevel } from "../../shared/setLogDisplayLevel";
+import { prepareConsole } from "../../logging";
+import {
+  triggerAction,
+  getManagedUsers,
+  TriggerPayload,
+} from "../../shared/triggerAction";
+import { runInteractiveTrigger } from "./interactive";
 
-export const trigger = new Command("t");
+const DEFAULT_ACTION = "self";
 
-interface TriggerPreferences {
-  lastAction?: string;
-  lastManagedUser?: string;
-  triggerForAllManagedUsers?: boolean;
-}
-
-const PREFS_FILE = path.join(
-  process.cwd(),
-  ".lightyear",
-  "trigger-preferences.json"
-);
-
-function loadPreferences(): TriggerPreferences {
-  try {
-    if (fs.existsSync(PREFS_FILE)) {
-      return JSON.parse(fs.readFileSync(PREFS_FILE, "utf-8"));
-    }
-  } catch (error) {
-    console.debug("Failed to load preferences:", error);
-  }
-  return {};
-}
-
-function savePreferences(prefs: TriggerPreferences) {
-  try {
-    const dir = path.dirname(PREFS_FILE);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(PREFS_FILE, JSON.stringify(prefs, null, 2));
-  } catch (error) {
-    console.debug("Failed to save preferences:", error);
-  }
-}
-
-async function getManagedUsers(): Promise<
-  Array<{ id: string; externalId: string; displayName: string }>
-> {
-  const baseUrl = getBaseUrl();
-  const envName = getEnvName();
-  const apiKey = getApiKey();
-
-  try {
-    const response = await fetch(
-      `${baseUrl}/api/v1/envs/${envName}/managed-users`,
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      console.debug("Failed to fetch managed users:", response.status);
-      return [];
+export const trigger = new Command("trigger");
+trigger
+  .description("Trigger an action")
+  .argument("[action]", "Action name", DEFAULT_ACTION)
+  .option("--managed-user-id <id>", "Managed user ID")
+  .option("--managed-user-external-id <externalId>", "Managed user external ID")
+  .option("--all-managed-users", "Trigger for all managed users")
+  .option("--interactive", "Prompt for action and managed user")
+  .option("--env <environment>", "Environment name (e.g. dev, prod)")
+  .action(async (actionName, options) => {
+    const globalOptions = program.opts();
+    if (globalOptions.debug) {
+      setLogDisplayLevel("DEBUG");
+      prepareConsole();
+      console.debug("Outputting debug information");
     }
 
-    const data = await response.json();
-    return data.managedUsers || [];
-  } catch (error) {
-    console.debug("Error fetching managed users:", error);
-    return [];
-  }
-}
+    const resolvedAction = actionName || DEFAULT_ACTION;
+    const {
+      managedUserId,
+      managedUserExternalId,
+      allManagedUsers,
+      interactive,
+      env,
+    } = options;
 
-async function triggerAction(
-  actionName: string,
-  managedUserId?: string
-): Promise<{ success: boolean; error?: string }> {
-  const baseUrl = getBaseUrl();
-  const envName = getEnvName();
-  const apiKey = getApiKey();
+    const environment = env ?? "dev";
 
-  try {
-    const response = await fetch(
-      `${baseUrl}/api/v1/envs/${envName}/actions/${actionName}/trigger`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          managedUserId,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(
-        `Failed to trigger action: ${response.status} ${response.statusText}`
-      );
-      console.debug("Error response:", errorText);
-      return {
-        success: false,
-        error: `${response.status} ${response.statusText}`,
-      };
+    if (interactive) {
+      await runInteractiveTrigger(environment);
+      return;
     }
 
-    return { success: true };
-  } catch (error) {
-    console.error("Error triggering action:", error);
-    return { success: false, error: String(error) };
-  }
-}
+    const selectionCount = [
+      managedUserId,
+      managedUserExternalId,
+      allManagedUsers ? "ALL" : undefined,
+    ].filter(Boolean).length;
 
-trigger.description("Trigger an action interactively").action(async () => {
-  const pkg = readPackage();
-  const compiledCode = getCompiledCode(pkg.main);
-
-  let getDeployList;
-  try {
-    const runInContextResult = runInContext(compiledCode);
-    getDeployList = runInContextResult.getDeployList;
-  } catch (error) {
-    terminal.red("Failed to load compiled code: ");
-    terminal(`${error}\n`);
-    return;
-  }
-
-  if (!getDeployList) {
-    terminal.red("No deploy list found. Please build your project first.\n");
-    return;
-  }
-
-  const deployList = getDeployList();
-  const actions = deployList
-    .filter((item: any) => item.type === "action")
-    .map((item: any) => item.actionProps?.name)
-    .filter(Boolean);
-
-  if (actions.length === 0) {
-    terminal.yellow("No actions found in your project.\n");
-    return;
-  }
-
-  // Load preferences
-  const prefs = loadPreferences();
-
-  // Select action
-  const actionChoices = actions.map((action: string) => ({
-    name: action,
-    message:
-      action === prefs.lastAction ? `${action} (last triggered)` : action,
-    hint: action === prefs.lastAction ? "↵ to select" : undefined,
-  }));
-
-  const { selectedAction } = await prompt<{ selectedAction: string }>({
-    type: "select",
-    name: "selectedAction",
-    message: "Select an action to trigger:",
-    choices: actionChoices,
-    initial: prefs.lastAction ? actions.indexOf(prefs.lastAction) : 0,
-  });
-
-  // Check for managed users
-  const managedUsers = await getManagedUsers();
-  let managedUserId: string | undefined;
-  let triggerForAllManagedUsers = false;
-
-  if (managedUsers.length > 0) {
-    // Ask if triggering for all or specific managed user
-    const { managedUserChoice } = await prompt<{ managedUserChoice: string }>({
-      type: "select",
-      name: "managedUserChoice",
-      message: "Trigger for:",
-      choices: [
-        { name: "all", message: "All managed users" },
-        { name: "specific", message: "Specific managed user" },
-      ],
-      initial: prefs.triggerForAllManagedUsers ? 0 : 1,
-    });
-
-    if (managedUserChoice === "all") {
-      triggerForAllManagedUsers = true;
-    } else {
-      // Select specific managed user
-      const userChoices = managedUsers.map((user) => ({
-        name: user.id,
-        message:
-          user.id === prefs.lastManagedUser
-            ? `${user.displayName} (${user.externalId}) (last triggered)`
-            : `${user.displayName} (${user.externalId})`,
-      }));
-
-      const { selectedUser } = await prompt<{ selectedUser: string }>({
-        type: "select",
-        name: "selectedUser",
-        message: "Select a managed user:",
-        choices: userChoices,
-        initial: prefs.lastManagedUser
-          ? managedUsers.findIndex((u) => u.id === prefs.lastManagedUser)
-          : 0,
-      });
-
-      managedUserId = selectedUser;
-    }
-  }
-
-  // Save preferences
-  savePreferences({
-    lastAction: selectedAction,
-    lastManagedUser: managedUserId,
-    triggerForAllManagedUsers,
-  });
-
-  // Trigger the action
-  terminal.cyan(`\nTriggering action: ${selectedAction}\n`);
-
-  if (triggerForAllManagedUsers && managedUsers.length > 0) {
-    terminal(`Triggering for all ${managedUsers.length} managed users...\n`);
-
-    const { success, error } = await triggerAction(selectedAction, "ALL");
-
-    if (success) {
-      terminal.green(
-        `\n✓ Action triggered successfully for all managed users\n`
-      );
-    } else {
+    if (selectionCount > 1) {
       terminal.red(
-        `\n✗ Failed to trigger action for all managed users: ${error}\n`
+        "Specify only one of --managed-user-id, --managed-user-external-id, or --all-managed-users.\n"
       );
-    }
-  } else {
-    if (managedUserId) {
-      const user = managedUsers.find((u) => u.id === managedUserId);
-      invariant(user, "Managed user not found");
-      terminal(`Triggering for ${user.displayName} (${user.externalId})...\n`);
+      process.exitCode = 1;
+      return;
     }
 
-    const { success, error } = await triggerAction(
-      selectedAction,
-      managedUserId
+    const payload: TriggerPayload = { environment };
+    const scopeParts: string[] = [`env '${environment}'`];
+
+    if (allManagedUsers) {
+      payload.managedUserId = "ALL";
+      scopeParts.push("all managed users");
+    } else if (managedUserId) {
+      payload.managedUserId = managedUserId;
+      scopeParts.push(`managed user '${managedUserId}'`);
+    } else if (managedUserExternalId) {
+      const managedUsers = await getManagedUsers(environment);
+      const user = managedUsers.find(
+        (u) => u.externalId === String(managedUserExternalId)
+      );
+
+      if (!user) {
+        terminal.red(
+          `Managed user with external id '${managedUserExternalId}' not found.\n`
+        );
+        process.exitCode = 1;
+        return;
+      }
+
+      payload.managedUserId = user.id;
+      payload.managedUserExternalId = user.externalId;
+      terminal.gray(
+        `Resolved managed user external id '${managedUserExternalId}' to managed user id '${user.id}'.\n`
+      );
+      scopeParts.push(`managed user '${user.id}' (${user.externalId})`);
+    }
+
+    if (!payload.managedUserId) {
+      terminal.red(
+        "No managed user specified. Use --managed-user-id, --managed-user-external-id, --all-managed-users, or --interactive.\n"
+      );
+      process.exitCode = 1;
+      return;
+    }
+
+    const scopeDescription =
+      scopeParts.length > 0 ? ` for ${scopeParts.join(" and ")}` : "";
+
+    terminal.cyan(
+      `\nTriggering action '${resolvedAction}'${scopeDescription}...\n`
     );
 
-    if (success) {
-      terminal.green(`\n✓ Action triggered successfully\n`);
-    } else {
-      terminal.red(`\n✗ Failed to trigger action: ${error}\n`);
+    const response = await triggerAction(resolvedAction, payload);
+
+    if (!response.success) {
+      terminal.red(
+        `\n✗ Failed to trigger action '${resolvedAction}'${scopeDescription}: ${response.error}\n`
+      );
+      process.exitCode = 1;
+      return;
     }
-  }
-});
+
+    terminal.green(
+      `\n✓ Action '${resolvedAction}' triggered successfully${scopeDescription}\n`
+    );
+  });

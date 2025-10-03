@@ -98,8 +98,8 @@ describe("ActionBuilder", () => {
         { name: "key", title: "Secret Key", required: true },
       ];
 
-      const action = defineAction("bulk-config")
-        .withTitle("Bulk Configuration")
+      const action = defineAction("batch-config")
+        .withTitle("Batch Configuration")
         .addVariables(variables)
         .addSecrets(secrets)
         .deploy();

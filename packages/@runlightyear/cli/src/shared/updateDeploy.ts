@@ -1,4 +1,5 @@
 import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
+import { parseJsonResponse } from "./parseJsonResponse";
 
 export interface UpdateDeployProps {
   deployId: string;
@@ -6,13 +7,14 @@ export interface UpdateDeployProps {
   endedAt?: "now";
   logs?: any;
   compiledCode?: any;
+  environment?: string;
 }
 
 export default async function updateDeploy(props: UpdateDeployProps) {
-  const { deployId, status, endedAt, logs, compiledCode } = props;
+  const { deployId, status, endedAt, logs, compiledCode, environment } = props;
 
   const baseUrl = getBaseUrl();
-  const envName = getEnvName();
+  const envName = environment ?? getEnvName();
   const apiKey = getApiKey();
 
   let response;
@@ -40,13 +42,22 @@ export default async function updateDeploy(props: UpdateDeployProps) {
     return;
   }
 
-  if (response.ok) {
-  } else {
+  if (!response.ok) {
     console.error(
       "Failed to upload deploy result",
       response.status,
       response.statusText
     );
-    console.error(await response.json());
+
+    // Try to get error details from response
+    try {
+      const errorData = await parseJsonResponse(response, {
+        operationName: "update deploy",
+        showResponsePreview: true,
+      });
+      console.error(errorData);
+    } catch (parseError) {
+      // parseJsonResponse already logged detailed error info
+    }
   }
 }
