@@ -1,4 +1,6 @@
-import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
+import { getApiKey } from "./getApiKey";
+import { getBaseUrl } from "./getBaseUrl";
+import { getEnvName } from "./getEnvName";
 import { terminal } from "terminal-kit";
 
 export interface QueuedRunItem {

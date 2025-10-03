@@ -1,5 +1,6 @@
 import { program } from "commander";
-import { getApiKey, getBaseUrl } from "@runlightyear/lightyear";
+import { getApiKey } from "../../../shared/getApiKey";
+import { getBaseUrl } from "../../../shared/getBaseUrl";
 
 export default async function fetchDeploy(envName: string, deployId: string) {
   const baseUrl = getBaseUrl();

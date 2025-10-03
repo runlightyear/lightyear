@@ -19,7 +19,6 @@
     "build": "tsup src/index.ts --dts"
   },
   "dependencies": {
-    "@runlightyear/lightyear": "workspace:*",
     "better-opn": "^3.0.2",
     "boxen": "^7.1.1",
     "chalk": "^5.3.0",
@@ -30,6 +29,7 @@
     "esbuild": "^0.25.4",
     "execa": "^8.0.1",
     "fs-extra": "^10.1.0",
+    "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
     "nodemon": "^3.0.1",
     "open": "^8.4.2",
@@ -46,6 +46,7 @@
     "@types/command-exists": "^1.2.0",
     "@types/fs-extra": "^9.0.13",
     "@types/jest": "^29.5.12",
+    "@types/js-yaml": "^4.0.5",
     "@types/lodash": "^4.14.191",
     "@types/node": "^20.11.24",
     "@types/node-fetch": "^2.6.2",

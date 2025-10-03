@@ -1,7 +1,8 @@
 import fse from "fs-extra";
 import { program } from "commander";
 import { TEMP_TGZ_FILE } from "./constants";
-import { getApiKey, getBaseUrl } from "@runlightyear/lightyear";
+import { getApiKey } from "../../../shared/getApiKey";
+import { getBaseUrl } from "../../../shared/getBaseUrl";
 
 export default async function requestDeploy(envName: string) {
   const baseUrl = getBaseUrl();

@@ -1,5 +1,7 @@
 import { terminal } from "terminal-kit";
-import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
+import { getApiKey } from "./getApiKey";
+import { getBaseUrl } from "./getBaseUrl";
+import { getEnvName } from "./getEnvName";
 
 export default async function getSubscribeList(environment?: string) {
   const baseUrl = getBaseUrl();

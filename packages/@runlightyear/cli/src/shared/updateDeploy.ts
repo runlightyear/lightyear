@@ -1,4 +1,6 @@
-import { getApiKey, getBaseUrl, getEnvName } from "@runlightyear/lightyear";
+import { getApiKey } from "./getApiKey";
+import { getBaseUrl } from "./getBaseUrl";
+import { getEnvName } from "./getEnvName";
 import { parseJsonResponse } from "./parseJsonResponse";
 
 export interface UpdateDeployProps {

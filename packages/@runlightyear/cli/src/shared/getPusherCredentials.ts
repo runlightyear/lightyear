@@ -1,6 +1,8 @@
 import { program } from "commander";
-import { getApiKey, getBaseUrl } from "@runlightyear/lightyear";
+import { getApiKey } from "./getApiKey";
+import { getBaseUrl } from "./getBaseUrl";
 import { parseJsonResponse } from "./parseJsonResponse";
+import { terminal } from "terminal-kit";
 
 export interface PusherCredentials {
   pusherKey: string;
@@ -15,7 +17,12 @@ export default async function getPusherCredentials(): Promise<PusherCredentials>
 
   const apiKey = getApiKey();
   if (!apiKey) {
-    program.error("Missing LIGHTYEAR_API_KEY env variable");
+    terminal.red("\n❌ Authentication required\n\n");
+    terminal("You need to log in or sign up before using this command.\n\n");
+    terminal.bold("To get started, run one of the following commands:\n");
+    terminal.green("  lightyear login\n");
+    terminal.green("  lightyear signup\n\n");
+    program.error("", { exitCode: 1 });
   }
 
   const response = await fetch(`${baseUrl}/api/v1/realtime/credentials`, {

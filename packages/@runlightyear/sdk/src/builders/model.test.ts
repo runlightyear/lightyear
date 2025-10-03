@@ -5,7 +5,9 @@ import { defineCollection } from "./collection";
 describe("ModelBuilder", () => {
   it("should create a basic model", () => {
     const collection = defineCollection("users");
-    const model = defineModel(collection, "user").withTitle("User Model").deploy();
+    const model = defineModel(collection, "user")
+      .withTitle("User Model")
+      .deploy();
 
     expect(model.name).toBe("user");
     expect(model.title).toBe("User Model");
@@ -56,9 +58,7 @@ describe("ModelBuilder", () => {
 
   it("should add model to collection when deployed", () => {
     const collection = defineCollection("items");
-    const model = defineModel(collection, "item")
-      .withTitle("Item")
-      .deploy();
+    const model = defineModel(collection, "item").withTitle("Item").deploy();
 
     // The model should be added to the collection builder
     const deployedCollection = collection.deploy();
@@ -70,7 +70,7 @@ describe("ModelBuilder", () => {
     const deployedCollection = defineCollection("orders")
       .withTitle("Orders")
       .deploy();
-    
+
     const model = defineModel(deployedCollection, "order")
       .withTitle("Order")
       .deploy();

@@ -65,11 +65,11 @@ describe("CollectionBuilder", () => {
   });
 
   it("should support method chaining", () => {
-    const collectionBuilder = defineCollection("users")
-      .withTitle("User Management");
-    
+    const collectionBuilder =
+      defineCollection("users").withTitle("User Management");
+
     const user = defineModel(collectionBuilder, "user").deploy();
-    
+
     const collection = collectionBuilder
       .addModel("admin", { title: "Administrator" })
       .deploy();
