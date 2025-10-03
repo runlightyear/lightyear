@@ -98,8 +98,6 @@ export class RestConnector {
       redactKeys,
       maxRetries,
       async: asyncRequest,
-      changeId,
-      changeIds,
       syncInfo,
     } = props as HttpProxyRequestProps & { json?: unknown };
 
@@ -121,8 +119,6 @@ export class RestConnector {
       redactKeys,
       maxRetries,
       async: asyncRequest,
-      changeId,
-      changeIds,
       syncInfo,
     };
 

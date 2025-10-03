@@ -28,14 +28,6 @@ export interface HttpProxyRequestProps {
   maxRetries?: number;
   async?: boolean;
   /**
-   * @deprecated Use syncInfo instead
-   */
-  changeId?: string;
-  /**
-   * @deprecated Use syncInfo instead
-   */
-  changeIds?: string[];
-  /**
    * Sync information for async write operations
    */
   syncInfo?: {
@@ -268,26 +260,8 @@ export const httpRequest: HttpRequest = async (props) => {
         }
       }
 
-      // Build syncInfo automatically if async=true and we have the required context
-      let syncInfo = rest.syncInfo;
-      if (!syncInfo && rest.async && (rest.changeId || rest.changeIds)) {
-        // Backward compatibility: auto-build syncInfo from changeId/changeIds
-        const changeIds =
-          rest.changeIds || (rest.changeId ? [rest.changeId] : []);
-        if (syncId && modelName && changeIds.length > 0) {
-          syncInfo = {
-            syncId,
-            modelName,
-            changeIds,
-          };
-          console.debug("Auto-built syncInfo from context:", syncInfo);
-        } else {
-          console.warn(
-            "async=true with changeId(s) but missing syncId or modelName in context. " +
-              "The request may fail. Provide syncInfo explicitly or ensure sync context is set."
-          );
-        }
-      }
+      // Use syncInfo from request props
+      const syncInfo = rest.syncInfo;
 
       // Use explicit auth params from props, or fall back to context
       const effectiveManagedUserId = rest.managedUserId || managedUserId;
@@ -460,8 +434,6 @@ export const batchHttpRequest: BatchHttpRequest = async (props) => {
       data: providedData,
       params,
       url,
-      changeId,
-      changeIds,
       syncInfo,
       ...restWithoutPayload
     } = request;

@@ -76,11 +76,13 @@ describe("SyncConnector", () => {
               request: (params) => ({
                 endpoint: "/products",
               }),
-              responseSchema: z.array(z.object({
-                id: z.string(),
-                name: z.string(),
-                price: z.number(),
-              })),
+              responseSchema: z.array(
+                z.object({
+                  id: z.string(),
+                  name: z.string(),
+                  price: z.number(),
+                })
+              ),
               transform: (response) => response,
             })
             .create({
@@ -102,14 +104,16 @@ describe("SyncConnector", () => {
 
     it("should throw error when adding connector for non-existent model", () => {
       expect(() => {
-        createSyncConnector(mockRestConnector, collection)
-          .with("nonExistentModel" as any, {
+        createSyncConnector(mockRestConnector, collection).with(
+          "nonExistentModel" as any,
+          {
             list: {
               request: (params) => ({
                 endpoint: "/test",
               }),
             },
-          });
+          }
+        );
       }).toThrow('Model "nonExistentModel" does not exist in collection');
     });
 
@@ -197,7 +201,7 @@ describe("SyncConnector", () => {
         .build();
 
       const userConnector = syncConnector.getModelConnector("user");
-      
+
       await expect(userConnector?.list?.()).rejects.toThrow();
     });
 
@@ -236,8 +240,16 @@ describe("SyncConnector", () => {
     it("should transform list items when transform function is provided", async () => {
       const mockResponse = {
         data: [
-          { user_id: "1", full_name: "User 1", email_address: "user1@example.com" },
-          { user_id: "2", full_name: "User 2", email_address: "user2@example.com" },
+          {
+            user_id: "1",
+            full_name: "User 1",
+            email_address: "user1@example.com",
+          },
+          {
+            user_id: "2",
+            full_name: "User 2",
+            email_address: "user2@example.com",
+          },
         ],
       };
 
@@ -249,11 +261,12 @@ describe("SyncConnector", () => {
             request: (params) => ({
               endpoint: "/users",
             }),
-            transform: (response: any[]) => response.map((item: any) => ({
-              id: item.user_id,
-              name: item.full_name,
-              email: item.email_address,
-            })),
+            transform: (response: any[]) =>
+              response.map((item: any) => ({
+                id: item.user_id,
+                name: item.full_name,
+                email: item.email_address,
+              })),
           },
         })
         .build();
@@ -361,7 +374,9 @@ describe("SyncConnector", () => {
 
     it("should perform update operation with function endpoint", async () => {
       const updateData = { name: "Updated User" };
-      const mockResponse = { data: { id: "1", name: "Updated User", email: "user1@example.com" } };
+      const mockResponse = {
+        data: { id: "1", name: "Updated User", email: "user1@example.com" },
+      };
 
       (mockRestConnector.request as any).mockResolvedValue(mockResponse);
 
@@ -390,7 +405,13 @@ describe("SyncConnector", () => {
 
     it("should transform create request and response", async () => {
       const newUser = { id: "3", name: "New User", email: "new@example.com" };
-      const mockResponse = { data: { user_id: "3", full_name: "New User", email_address: "new@example.com" } };
+      const mockResponse = {
+        data: {
+          user_id: "3",
+          full_name: "New User",
+          email_address: "new@example.com",
+        },
+      };
 
       (mockRestConnector.request as any).mockResolvedValue(mockResponse);
 
@@ -440,7 +461,10 @@ describe("SyncConnector", () => {
       ];
 
       const mockResponse = {
-        data: newUsers.map((user, index) => ({ id: String(index + 1), ...user })),
+        data: newUsers.map((user, index) => ({
+          id: String(index + 1),
+          ...user,
+        })),
       };
 
       (mockRestConnector.request as any).mockResolvedValue(mockResponse);
@@ -682,9 +706,7 @@ describe("SyncConnector", () => {
         .build();
 
       const userConnector = syncConnector.getModelConnector("user");
-      const confirmations = await userConnector?.batchUpdate?.(
-        changes as any
-      );
+      const confirmations = await userConnector?.batchUpdate?.(changes as any);
 
       expect(mockRestConnector.request).toHaveBeenCalledWith({
         method: "POST",
@@ -787,11 +809,9 @@ describe("SyncConnector", () => {
   describe("sync method", () => {
     it("should sync all configured models", async () => {
       const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-      
+
       const mockUserResponse = {
-        data: [
-          { id: "1", name: "User 1", email: "user1@example.com" },
-        ],
+        data: [{ id: "1", name: "User 1", email: "user1@example.com" }],
       };
 
       const mockProductResponse = {
@@ -825,7 +845,9 @@ describe("SyncConnector", () => {
       await syncConnector.sync();
 
       expect(consoleSpy).toHaveBeenCalledWith("Synced 1 items for model user");
-      expect(consoleSpy).toHaveBeenCalledWith("Synced 2 items for model product");
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Synced 2 items for model product"
+      );
 
       consoleSpy.mockRestore();
     });
@@ -847,7 +869,10 @@ describe("SyncConnector", () => {
         })
         .deploy();
 
-      const syncConnector = createSyncConnector(mockRestConnector, typedCollection)
+      const syncConnector = createSyncConnector(
+        mockRestConnector,
+        typedCollection
+      )
         .with("user", {
           list: {
             request: (params) => ({
@@ -866,12 +891,12 @@ describe("SyncConnector", () => {
         .build();
 
       const userConnector = syncConnector.getModelConnector("user");
-      
+
       // Type check - this should compile without errors
       if (userConnector?.create) {
         // This should error - missing required fields
         // await userConnector.create({ name: "Test" });
-        
+
         // This should be valid - but we're not calling it to avoid making actual requests
         // Just checking that TypeScript accepts the correct shape
         const validUser = {
@@ -996,12 +1021,14 @@ describe("SyncConnector", () => {
         },
       }));
 
-      (mockRestConnector.request as any).mockImplementation(async (requestConfig: any) => {
-        if (requestConfig?.url === "/objects/contacts/batch/create") {
-          return { data: responsePayload };
+      (mockRestConnector.request as any).mockImplementation(
+        async (requestConfig: any) => {
+          if (requestConfig?.url === "/objects/contacts/batch/create") {
+            return { data: responsePayload };
+          }
+          throw new Error(`Unexpected request to ${requestConfig?.url}`);
         }
-        throw new Error(`Unexpected request to ${requestConfig?.url}`);
-      });
+      );
 
       const createRequestSpy = vi.fn(() => ({
         endpoint: "/users",
@@ -1095,7 +1122,11 @@ describe("SyncConnector", () => {
         async: true,
       });
 
-      expect(updateSyncMock.mock.calls.some(([args]) => args.currentDirection === "PUSH")).toBe(true);
+      expect(
+        updateSyncMock.mock.calls.some(
+          ([args]) => args.currentDirection === "PUSH"
+        )
+      ).toBe(true);
       expect(platformSync.retrieveDelta).toHaveBeenCalledTimes(2);
       expect(platformSync.finishSync).toHaveBeenCalledWith("sync-123");
     });
@@ -1207,13 +1238,15 @@ describe("SyncConnector", () => {
         },
       }));
 
-      (mockRestConnector.request as any).mockImplementation(async (requestConfig: any) => {
-        if (requestConfig?.url === "/objects/contacts/batch/update") {
-          expect(batchRequestSpy).toHaveBeenCalled();
-          return { data: responsePayload };
+      (mockRestConnector.request as any).mockImplementation(
+        async (requestConfig: any) => {
+          if (requestConfig?.url === "/objects/contacts/batch/update") {
+            expect(batchRequestSpy).toHaveBeenCalled();
+            return { data: responsePayload };
+          }
+          return { data: {} };
         }
-        return { data: {} };
-      });
+      );
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .withModelConnector("user", (builder) =>
@@ -1266,7 +1299,11 @@ describe("SyncConnector", () => {
         ],
         async: true,
       });
-      expect(updateSyncMock.mock.calls.some(([args]) => args.currentDirection === "PUSH")).toBe(true);
+      expect(
+        updateSyncMock.mock.calls.some(
+          ([args]) => args.currentDirection === "PUSH"
+        )
+      ).toBe(true);
       expect(platformSync.retrieveDelta).toHaveBeenCalledTimes(2);
       expect(platformSync.finishSync).toHaveBeenCalledWith("sync-456");
     });
@@ -1348,12 +1385,14 @@ describe("SyncConnector", () => {
         },
       }));
 
-      (mockRestConnector.request as any).mockImplementation(async (requestConfig: any) => {
-        if (requestConfig?.url === "/objects/contacts/batch/delete") {
+      (mockRestConnector.request as any).mockImplementation(
+        async (requestConfig: any) => {
+          if (requestConfig?.url === "/objects/contacts/batch/delete") {
+            return { data: {} };
+          }
           return { data: {} };
         }
-        return { data: {} };
-      });
+      );
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .withModelConnector("user", (builder) =>
@@ -1387,7 +1426,11 @@ describe("SyncConnector", () => {
         ],
         async: true,
       });
-      expect(updateSyncMock.mock.calls.some(([args]) => args.currentDirection === "PUSH")).toBe(true);
+      expect(
+        updateSyncMock.mock.calls.some(
+          ([args]) => args.currentDirection === "PUSH"
+        )
+      ).toBe(true);
       expect(platformSync.retrieveDelta).toHaveBeenCalledTimes(2);
       expect(platformSync.finishSync).toHaveBeenCalledWith("sync-789");
     });
@@ -1417,20 +1460,32 @@ describe("SyncConnector", () => {
       vi.spyOn(timeUtils, "isTimeLimitExceeded").mockReturnValue(false);
 
       // Mock platform sync methods
-      getUnconfirmedChangesMock = vi.spyOn(platformSync, 'getUnconfirmedChanges').mockResolvedValue([]);
-      retrieveDeltaMock = vi.spyOn(platformSync, 'retrieveDelta');
-      startSyncMock = vi.spyOn(platformSync, 'startSync').mockResolvedValue({ id: "sync-789", type: "FULL" });
-      getSyncMock = vi.spyOn(platformSync, 'getSync').mockResolvedValue({ 
+      getUnconfirmedChangesMock = vi
+        .spyOn(platformSync, "getUnconfirmedChanges")
+        .mockResolvedValue([]);
+      retrieveDeltaMock = vi.spyOn(platformSync, "retrieveDelta");
+      startSyncMock = vi
+        .spyOn(platformSync, "startSync")
+        .mockResolvedValue({ id: "sync-789", type: "FULL" });
+      getSyncMock = vi.spyOn(platformSync, "getSync").mockResolvedValue({
         currentDirection: null,
         requestedDirection: "bidirectional",
         type: "FULL",
-        modelStatuses: {}
+        modelStatuses: {},
       });
-      updateSyncMock = vi.spyOn(platformSync, 'updateSync').mockResolvedValue({});
-      getModelsMock = vi.spyOn(platformSync, 'getModels').mockResolvedValue([{ name: "user" }]);
-      confirmChangeBatchMock = vi.spyOn(platformSync, 'confirmChangeBatch').mockResolvedValue(undefined);
-      finishSyncMock = vi.spyOn(platformSync, 'finishSync').mockResolvedValue(undefined);
-      
+      updateSyncMock = vi
+        .spyOn(platformSync, "updateSync")
+        .mockResolvedValue({});
+      getModelsMock = vi
+        .spyOn(platformSync, "getModels")
+        .mockResolvedValue([{ name: "user" }]);
+      confirmChangeBatchMock = vi
+        .spyOn(platformSync, "confirmChangeBatch")
+        .mockResolvedValue(undefined);
+      finishSyncMock = vi
+        .spyOn(platformSync, "finishSync")
+        .mockResolvedValue(undefined);
+
       // Mock batch HTTP request
       batchHttpRequestMock = vi.fn();
       mockRestConnector.batchRequest = batchHttpRequestMock;
@@ -1453,7 +1508,7 @@ describe("SyncConnector", () => {
       expect(syncConnector.useAsyncWrites).toBe(false);
     });
 
-    it("should pass changeIds at top level for batch operations with async writes", async () => {
+    it("should pass changeIds in syncInfo for batch operations with async writes", async () => {
       const connector = createSyncConnector(mockRestConnector, collection)
         .withModelConnector("user", (builder) =>
           builder.withBatchCreate({
@@ -1469,10 +1524,16 @@ describe("SyncConnector", () => {
       // Access the private method through any cast
       const syncConnectorInstance = connector as any;
       const modelConnector = syncConnectorInstance.modelConnectors.get("user");
-      
+
       const changes = [
-        { changeId: "change-1", data: { name: "New User 1", email: "user1@example.com" } },
-        { changeId: "change-2", data: { name: "New User 2", email: "user2@example.com" } },
+        {
+          changeId: "change-1",
+          data: { name: "New User 1", email: "user1@example.com" },
+        },
+        {
+          changeId: "change-2",
+          data: { name: "New User 2", email: "user2@example.com" },
+        },
       ];
 
       // Mock the request method
@@ -1490,13 +1551,14 @@ describe("SyncConnector", () => {
         processor
       );
 
-      // Verify the request was made with changeIds at top level
+      // Verify the request was made with changeIds in syncInfo
       expect(mockRestConnector.request).toHaveBeenCalled();
       const call = mockRestConnector.request.mock.calls[0][0];
       expect(call.method).toBe("POST");
       expect(call.url).toBe("/users/batch");
       expect(call.async).toBe(true);
-      expect(call.changeIds).toEqual(["change-1", "change-2"]);
+      expect(call.syncInfo).toBeDefined();
+      expect(call.syncInfo.changeIds).toEqual(["change-1", "change-2"]);
       expect(call.confirm).toBeUndefined();
     });
 
@@ -1510,10 +1572,11 @@ describe("SyncConnector", () => {
               method: "POST",
               json: items,
             }),
-            extract: (response) => response.results.map((item: any) => ({
-              externalId: item.id,
-              externalUpdatedAt: item.updated_at,
-            })),
+            extract: (response) =>
+              response.results.map((item: any) => ({
+                externalId: item.id,
+                externalUpdatedAt: item.updated_at,
+              })),
           })
         )
         .build();
@@ -1521,9 +1584,12 @@ describe("SyncConnector", () => {
       // Access the private method through any cast
       const syncConnectorInstance = connector as any;
       const modelConnector = syncConnectorInstance.modelConnectors.get("user");
-      
+
       const changes = [
-        { changeId: "change-1", data: { name: "New User 1", email: "user1@example.com" } },
+        {
+          changeId: "change-1",
+          data: { name: "New User 1", email: "user1@example.com" },
+        },
       ];
 
       // Mock the request method
@@ -1541,29 +1607,34 @@ describe("SyncConnector", () => {
         processor
       );
 
-      // Verify the request was made with changeIds at top level
+      // Verify the request was made with changeIds in syncInfo
       expect(mockRestConnector.request).toHaveBeenCalled();
       const call = mockRestConnector.request.mock.calls[0][0];
       expect(call.method).toBe("POST");
       expect(call.url).toBe("/users/batch");
       expect(call.async).toBe(true);
-      expect(call.changeIds).toEqual(["change-1"]);
+      expect(call.syncInfo).toBeDefined();
+      expect(call.syncInfo.changeIds).toEqual(["change-1"]);
       expect(call.confirm).toBeUndefined();
-      
+
       // Verify extract function is stored in processor
       expect(modelConnector.config.batchCreate.extract).toBeDefined();
     });
 
     it("should respect useAsyncWrites runtime option", async () => {
       const changes = [
-        { changeId: "change-1", data: { name: "New User", email: "user@example.com" } },
+        {
+          changeId: "change-1",
+          data: { name: "New User", email: "user@example.com" },
+        },
       ];
 
-      retrieveDeltaMock.mockResolvedValueOnce({ operation: "CREATE", changes })
+      retrieveDeltaMock
+        .mockResolvedValueOnce({ operation: "CREATE", changes })
         .mockResolvedValue({ operation: "CREATE", changes: [] });
 
-      mockRestConnector.request = vi.fn().mockResolvedValue({ 
-        data: { id: "123", name: "New User", email: "user@example.com" } 
+      mockRestConnector.request = vi.fn().mockResolvedValue({
+        data: { id: "123", name: "New User", email: "user@example.com" },
       });
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
@@ -1571,7 +1642,10 @@ describe("SyncConnector", () => {
           builder
             .withList({
               request: () => ({ endpoint: "/users", method: "GET" }),
-              extract: (response) => ({ items: [], pagination: { hasMore: false } })
+              extract: (response) => ({
+                items: [],
+                pagination: { hasMore: false },
+              }),
             })
             .withBatchCreate({
               request: (items) => ({
@@ -1597,17 +1671,20 @@ describe("SyncConnector", () => {
       process.env.LIGHTYEAR_ASYNC_WRITES = "false";
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
-        .withModelConnector("user", (builder) => 
+        .withModelConnector("user", (builder) =>
           builder
             .withList({
               request: () => ({ endpoint: "/users", method: "GET" }),
-              extract: (response) => ({ items: [], pagination: { hasMore: false } })
+              extract: (response) => ({
+                items: [],
+                pagination: { hasMore: false },
+              }),
             })
             .withCreate({
-              request: (data) => ({ 
-                endpoint: "/users", 
-                method: "POST", 
-                json: data 
+              request: (data) => ({
+                endpoint: "/users",
+                method: "POST",
+                json: data,
               }),
             })
         )
@@ -1615,14 +1692,18 @@ describe("SyncConnector", () => {
 
       // The environment variable affects the behavior at runtime if not explicitly set
       const changes = [
-        { changeId: "change-1", data: { name: "New User", email: "user@example.com" } },
+        {
+          changeId: "change-1",
+          data: { name: "New User", email: "user@example.com" },
+        },
       ];
 
-      retrieveDeltaMock.mockResolvedValueOnce({ operation: "CREATE", changes })
+      retrieveDeltaMock
+        .mockResolvedValueOnce({ operation: "CREATE", changes })
         .mockResolvedValue({ operation: "CREATE", changes: [] });
 
-      mockRestConnector.request = vi.fn().mockResolvedValue({ 
-        data: { id: "123", name: "New User", email: "user@example.com" } 
+      mockRestConnector.request = vi.fn().mockResolvedValue({
+        data: { id: "123", name: "New User", email: "user@example.com" },
       });
 
       // Sync should use sync writes due to env variable
