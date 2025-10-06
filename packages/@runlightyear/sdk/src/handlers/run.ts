@@ -32,8 +32,20 @@ declare global {
 export const handleRun: RunHandler = async (
   payloadOrEvent?: RunPayload | any
 ): Promise<InternalResponse> => {
-  console.log("\n⚡ Starting action execution...");
-  console.log("Run operation called", { payload: payloadOrEvent });
+  const env = process.env.ENV_NAME || "dev";
+  const actionName = payloadOrEvent?.actionName ?? "unknown";
+  const runId = payloadOrEvent?.runId ?? "none";
+  const app = payloadOrEvent?.integration?.name ?? "none";
+  const customApp = payloadOrEvent?.integration?.title ?? "none";
+  const managedUser = payloadOrEvent?.managedUser?.id ?? "none";
+  const type = payloadOrEvent?.type ?? "default";
+  const timeout = payloadOrEvent?.timeout ?? "default";
+  const fullFrequency = payloadOrEvent?.fullFrequency ?? "default";
+
+  // Example: startRun → env=prod action=myAction runId=abc123 app=none customApp=hubspot managedUser=5862 type=FULL timeout=default
+  console.log(
+    `startRun → env=${env} action=${actionName} runId=${runId} app=${app} customApp=${customApp} managedUser=${managedUser} fullFrequency=${fullFrequency} type=${type} timeout=${timeout}`
+  );
 
   // Handle both payload structure and direct event structure
   let runData: RunPayload;
@@ -172,7 +184,10 @@ export const handleRun: RunHandler = async (
         }
         // Add once so future logs are masked
         addLogRedactionSecrets(secretsToAdd);
-        console.log("📥 Fetched run props:", JSON.stringify(fetched, null, 2));
+        console.debug(
+          "📥 Fetched run props:",
+          JSON.stringify(fetched, null, 2)
+        );
         if (fetched) {
           effectiveAuths = fetched.auths || effectiveAuths;
           effectiveVariables = fetched.variables || effectiveVariables;
@@ -253,18 +268,6 @@ export const handleRun: RunHandler = async (
       integration: effectiveIntegration,
       managedUser: effectiveManagedUser,
     };
-
-    console.log(
-      `📝 Run function props: ${JSON.stringify(
-        {
-          ...runProps,
-          secrets: runProps.secrets ? Object.keys(runProps.secrets) : {},
-          auths: runProps.auths ? Object.keys(runProps.auths) : {},
-        },
-        null,
-        2
-      )}`
-    );
 
     try {
       await runFunction(runProps);
