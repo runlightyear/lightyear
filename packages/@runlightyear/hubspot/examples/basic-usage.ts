@@ -10,8 +10,7 @@ import {
 } from "../src";
 
 // 1. Define a custom app using the HubSpot helper (includes OAuth connector)
-const hubspotCustomApp = defineHubSpotCustomApp()
-  .deploy();
+const hubspotCustomApp = defineHubSpotCustomApp().deploy();
 
 // 2. Create the REST connector
 const hubspotRestConnector = createHubSpotRestConnector();

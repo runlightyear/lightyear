@@ -41,8 +41,7 @@ const minimalCrmCollection = defineCollection("minimal-crm")
   .deploy();
 
 // Create custom app with default OAuth connector
-const hubspotCustomApp = defineHubSpotCustomApp()
-  .deploy();
+const hubspotCustomApp = defineHubSpotCustomApp().deploy();
 
 const hubspotRestConnector = createHubSpotRestConnector();
 

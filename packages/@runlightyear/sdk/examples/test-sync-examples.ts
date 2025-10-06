@@ -22,7 +22,13 @@ if (listConnector) {
 }
 
 const crudConnector = fullCrudSyncConnector.getModelConnector("user");
-if (crudConnector && crudConnector.list && crudConnector.create && crudConnector.update && crudConnector.delete) {
+if (
+  crudConnector &&
+  crudConnector.list &&
+  crudConnector.create &&
+  crudConnector.update &&
+  crudConnector.delete
+) {
   console.log("✓ Full CRUD model connector has all methods");
 }
 

@@ -63,23 +63,23 @@ export class PrefixedRedactedConsole {
       "console.dir not supported. Objects are pretty-printed if possible by console.log, .debug, .info, .warn, and .error"
     );
   }
-  
+
   dirxml(...params: any[]) {
     this.error("console.dirxml not supported.");
   }
-  
+
   group(...params: any[]) {
     this.error("console.group not supported.");
   }
-  
+
   groupCollapsed(...params: any[]) {
     this.error("console.groupCollapsed not supported.");
   }
-  
+
   groupEnd(...params: any[]) {
     this.error("console.groupEnd not supported.");
   }
-  
+
   table(...params: any[]) {
     this.error("console.table not supported.");
   }
@@ -116,7 +116,7 @@ export class PrefixedRedactedConsole {
     const { params, color, prefix, stream, display } = props;
     const message = `[${prefix}]: ${this._redactParams(params)}`;
     this.history.push(message);
-    
+
     if (display) {
       if (getEnvName() === "dev") {
         stream.write(
