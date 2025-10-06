@@ -1,0 +1,15 @@
+# Directories
+.exploration
+.changeset
+.conductor
+.agents
+node_modules
+dist
+build
+temp
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
