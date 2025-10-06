@@ -5,6 +5,9 @@ import { logDisplayLevel } from "../setLogDisplayLevel";
 import { prepareConsole } from "../../logging";
 import { deliverLocalResponse } from "../deliverLocalResponse";
 import createAuthorizerActivity from "../createAuthorizerActivity";
+import { getApiKey } from "../getApiKey";
+import { getBaseUrl } from "../getBaseUrl";
+import { getEnvName } from "../getEnvName";
 
 export interface ExecRefreshAccessTokenProps {
   customAppName: string;
@@ -35,6 +38,13 @@ export async function execRefreshAccessToken(
     customAppName,
     authName,
     logDisplayLevel,
+    payload: {
+      customAppName,
+      authName,
+      apiKey: getApiKey(),
+      baseUrl: getBaseUrl(),
+      environment: getEnvName(),
+    },
   });
 
   prepareConsole();

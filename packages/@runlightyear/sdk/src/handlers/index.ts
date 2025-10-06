@@ -66,7 +66,11 @@ export const handler: DirectHandler = async (
         if (isRealDeploy) {
           // Initialize log capture specifically for deploy operations
           console.log("🚀 Starting log capture for deploy operation...");
-          const deployLogCapture = initializeLogCapture();
+          const deployLogCapture = initializeLogCapture({
+            apiKey: deployData.apiKey,
+            baseUrl: deployData.baseUrl,
+            environment: deployData.environment,
+          });
 
           try {
             // Set initial context with deployId (from CLI) or temp deployId
@@ -119,11 +123,15 @@ export const handler: DirectHandler = async (
       case "run":
         // Initialize log capture specifically for run operations
         console.log("🚀 Starting log capture for run operation...");
-        const logCapture = initializeLogCapture();
+        const runData = payload || event;
+        const logCapture = initializeLogCapture({
+          apiKey: runData.apiKey,
+          baseUrl: runData.baseUrl,
+          environment: runData.environment,
+        });
 
         try {
           // Set log context for run operations
-          const runData = payload || event;
           if (runData?.runId) {
             setLogContext({ runId: runData.runId });
           }
@@ -209,7 +217,23 @@ export const handler: DirectHandler = async (
       case "getAuthRequestUrl":
         // Initialize log capture for OAuth operations
         console.log("🚀 Starting log capture for OAuth getAuthRequestUrl...");
-        const getAuthLogCapture = initializeLogCapture();
+        const getAuthData = payload || event;
+        const getAuthLogCapture = initializeLogCapture({
+          apiKey: getAuthData.apiKey,
+          baseUrl: getAuthData.baseUrl,
+          environment: getAuthData.environment,
+        });
+
+        // Set environment variables for OAuth handler to use
+        if (getAuthData.apiKey) {
+          process.env.LIGHTYEAR_API_KEY = getAuthData.apiKey;
+        }
+        if (getAuthData.baseUrl) {
+          process.env.BASE_URL = getAuthData.baseUrl;
+        }
+        if (getAuthData.environment) {
+          process.env.ENV_NAME = getAuthData.environment;
+        }
 
         try {
           internalResponse = await handleGetAuthRequestUrl({
@@ -240,7 +264,23 @@ export const handler: DirectHandler = async (
       case "requestAccessToken":
         // Initialize log capture for OAuth operations
         console.log("🚀 Starting log capture for OAuth requestAccessToken...");
-        const requestTokenLogCapture = initializeLogCapture();
+        const requestTokenData = payload || event;
+        const requestTokenLogCapture = initializeLogCapture({
+          apiKey: requestTokenData.apiKey,
+          baseUrl: requestTokenData.baseUrl,
+          environment: requestTokenData.environment,
+        });
+
+        // Set environment variables for OAuth handler to use
+        if (requestTokenData.apiKey) {
+          process.env.LIGHTYEAR_API_KEY = requestTokenData.apiKey;
+        }
+        if (requestTokenData.baseUrl) {
+          process.env.BASE_URL = requestTokenData.baseUrl;
+        }
+        if (requestTokenData.environment) {
+          process.env.ENV_NAME = requestTokenData.environment;
+        }
 
         try {
           internalResponse = await handleRequestAccessToken({
@@ -272,7 +312,23 @@ export const handler: DirectHandler = async (
       case "refreshAccessToken":
         // Initialize log capture for OAuth operations
         console.log("🚀 Starting log capture for OAuth refreshAccessToken...");
-        const refreshTokenLogCapture = initializeLogCapture();
+        const refreshTokenData = payload || event;
+        const refreshTokenLogCapture = initializeLogCapture({
+          apiKey: refreshTokenData.apiKey,
+          baseUrl: refreshTokenData.baseUrl,
+          environment: refreshTokenData.environment,
+        });
+
+        // Set environment variables for OAuth handler to use
+        if (refreshTokenData.apiKey) {
+          process.env.LIGHTYEAR_API_KEY = refreshTokenData.apiKey;
+        }
+        if (refreshTokenData.baseUrl) {
+          process.env.BASE_URL = refreshTokenData.baseUrl;
+        }
+        if (refreshTokenData.environment) {
+          process.env.ENV_NAME = refreshTokenData.environment;
+        }
 
         try {
           internalResponse = await handleRefreshAccessToken({

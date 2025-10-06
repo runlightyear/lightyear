@@ -66,6 +66,14 @@ export default async function runAction({
       runId,
       data,
       logDisplayLevel,
+      payload: {
+        runId,
+        actionName,
+        data,
+        apiKey,
+        baseUrl,
+        environment: envName,
+      },
     });
 
     prepareConsole();
