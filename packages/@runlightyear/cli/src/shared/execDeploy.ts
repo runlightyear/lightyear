@@ -6,6 +6,8 @@ import { terminal } from "terminal-kit";
 import { logDisplayLevel } from "./setLogDisplayLevel";
 import { prepareConsole } from "../logging";
 import { parseJsonResponse } from "./parseJsonResponse";
+import { getApiKey } from "./getApiKey";
+import { getBaseUrl } from "./getBaseUrl";
 
 export interface ExecDeployProps {
   deployId: string;
@@ -38,11 +40,19 @@ export default async function execDeploy(props: ExecDeployProps) {
     console.debug("getDeployList not returned");
   }
 
+  const apiKey = getApiKey();
+  const baseUrl = getBaseUrl();
+
   const handlerResult = await handler({
     operation: "deploy",
     deployId,
     logDisplayLevel,
     environment,
+    payload: {
+      apiKey,
+      baseUrl,
+      environment,
+    },
   });
 
   prepareConsole();

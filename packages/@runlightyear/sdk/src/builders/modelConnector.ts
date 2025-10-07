@@ -63,7 +63,9 @@ export class ModelConnectorBuilder<T = any> {
     return this;
   }
 
-  withBatchCreate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+  withBatchCreate<
+    TSchema extends z.ZodType<any> | undefined = undefined
+  >(config: {
     request: (changes: Array<BatchCreateChange<T>>) => {
       endpoint: string;
       method?: "POST" | "PUT";
@@ -87,7 +89,9 @@ export class ModelConnectorBuilder<T = any> {
     return this;
   }
 
-  withBatchUpdate<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+  withBatchUpdate<
+    TSchema extends z.ZodType<any> | undefined = undefined
+  >(config: {
     request: (changes: Array<BatchUpdateChange<T>>) => {
       endpoint: string;
       method?: "PUT" | "PATCH" | "POST";
@@ -111,7 +115,9 @@ export class ModelConnectorBuilder<T = any> {
     return this;
   }
 
-  withBatchDelete<TSchema extends z.ZodType<any> | undefined = undefined>(config: {
+  withBatchDelete<
+    TSchema extends z.ZodType<any> | undefined = undefined
+  >(config: {
     request: (changes: Array<BatchDeleteChange>) => {
       endpoint: string;
       method?: "DELETE" | "POST";
@@ -288,8 +294,7 @@ export class ModelConnectorBuilder<T = any> {
           const batch = items.slice(i, i + batchSize);
           const formattedBatch = isChangePayload
             ? batch.map((item: any) => {
-                const payload =
-                  item.data ?? item.obj ?? item.payload ?? item;
+                const payload = item.data ?? item.obj ?? item.payload ?? item;
                 return {
                   ...item,
                   data: payload,
@@ -297,26 +302,24 @@ export class ModelConnectorBuilder<T = any> {
                 };
               })
             : batch;
-          const requestConfig = this.config.batchCreate!.request(formattedBatch);
+          const requestConfig =
+            this.config.batchCreate!.request(formattedBatch);
 
           const response = await this.restConnector.request({
             method: requestConfig.method || "POST",
             url: requestConfig.endpoint,
-            data:
-              requestConfig.json ?? requestConfig.data ?? formattedBatch,
+            data: requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
 
           let responseData = response.data;
           if (this.config.batchCreate!.responseSchema) {
-            responseData = this.config.batchCreate!.responseSchema!.parse(
-              responseData
-            );
+            responseData =
+              this.config.batchCreate!.responseSchema!.parse(responseData);
           }
 
           if (this.config.batchCreate!.extract) {
-            const extracted = (this.config.batchCreate!.extract(
-              responseData
-            ) ?? []) as Array<BatchConfirmation>;
+            const extracted = (this.config.batchCreate!.extract(responseData) ??
+              []) as Array<BatchConfirmation>;
             confirmations.push(
               ...extracted.map((item: BatchConfirmation) => ({
                 changeId: String(item.changeId),
@@ -373,15 +376,13 @@ export class ModelConnectorBuilder<T = any> {
           const response = await this.restConnector.request({
             method: requestConfig.method || "PUT",
             url: requestConfig.endpoint,
-            data:
-              requestConfig.json ?? requestConfig.data ?? formattedBatch,
+            data: requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
 
           let responseData = response.data;
           if (this.config.batchUpdate!.responseSchema) {
-            responseData = this.config.batchUpdate!.responseSchema!.parse(
-              responseData
-            );
+            responseData =
+              this.config.batchUpdate!.responseSchema!.parse(responseData);
           }
 
           if (this.config.batchUpdate!.extract) {
@@ -440,16 +441,14 @@ export class ModelConnectorBuilder<T = any> {
           const response = await this.restConnector.request({
             method: requestConfig.method || "DELETE",
             url: requestConfig.endpoint,
-            data:
-              requestConfig.json ?? requestConfig.data ?? formattedBatch,
+            data: requestConfig.json ?? requestConfig.data ?? formattedBatch,
           });
 
           if (this.config.batchDelete!.extract) {
             let responseData = response.data;
             if (this.config.batchDelete!.responseSchema) {
-              responseData = this.config.batchDelete!.responseSchema!.parse(
-                responseData
-              );
+              responseData =
+                this.config.batchDelete!.responseSchema!.parse(responseData);
             }
             const extracted = (this.config.batchDelete!.extract!(
               responseData

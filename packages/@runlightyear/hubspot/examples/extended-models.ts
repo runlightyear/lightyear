@@ -28,15 +28,21 @@ const HubSpotProductSchema = z.object({
 
 const HubSpotProductListResponseSchema = z.object({
   results: z.array(HubSpotProductSchema),
-  paging: z.object({
-    next: z.object({
-      after: z.string(),
-    }).optional(),
-  }).optional(),
+  paging: z
+    .object({
+      next: z
+        .object({
+          after: z.string(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 // Create a custom product model connector
-const productModelConnector = (modelConnector: SyncModelConnectorBuilder<any>) =>
+const productModelConnector = (
+  modelConnector: SyncModelConnectorBuilder<any>
+) =>
   modelConnector
     .withList({
       request: (props) => ({
@@ -121,8 +127,7 @@ const extendedCrmCollection = defineCrmCollection()
   .deploy();
 
 // Set up custom app with default OAuth connector
-const hubspotCustomApp = defineHubSpotCustomApp()
-  .deploy();
+const hubspotCustomApp = defineHubSpotCustomApp().deploy();
 
 const hubspotRestConnector = createHubSpotRestConnector();
 
@@ -135,53 +140,58 @@ const hubspotSyncConnector = createHubSpotSyncConnector(
   .build();
 
 // You can also override existing model connectors
-const customContactConnector = (modelConnector: SyncModelConnectorBuilder<any>) =>
-  modelConnector
-    .withList({
-      request: (props) => ({
-        endpoint: "/objects/contacts",
-        method: "GET",
-        params: {
-          limit: 50, // Different page size
-          after: props.cursor,
-          properties: ["firstname", "lastname", "email", "phone"].join(","),
+const customContactConnector = (
+  modelConnector: SyncModelConnectorBuilder<any>
+) =>
+  modelConnector.withList({
+    request: (props) => ({
+      endpoint: "/objects/contacts",
+      method: "GET",
+      params: {
+        limit: 50, // Different page size
+        after: props.cursor,
+        properties: ["firstname", "lastname", "email", "phone"].join(","),
+      },
+    }),
+    responseSchema: z.object({
+      results: z.array(
+        z.object({
+          id: z.string(),
+          properties: z.object({
+            firstname: z.string().nullable(),
+            lastname: z.string().nullable(),
+            email: z.string().nullable(),
+            phone: z.string().nullable(),
+            hs_lastmodifieddate: z.string(),
+          }),
+          updatedAt: z.string(),
+        })
+      ),
+      paging: z
+        .object({
+          next: z
+            .object({
+              after: z.string(),
+            })
+            .optional(),
+        })
+        .optional(),
+    }),
+    pagination: (response) => ({
+      cursor: response.paging?.next?.after,
+    }),
+    transform: (response) =>
+      response.results.map((result) => ({
+        externalId: result.id,
+        externalUpdatedAt: result.updatedAt,
+        data: {
+          firstName: result.properties.firstname,
+          lastName: result.properties.lastname,
+          email: result.properties.email,
+          phone: result.properties.phone,
         },
-      }),
-      responseSchema: z.object({
-        results: z.array(
-          z.object({
-            id: z.string(),
-            properties: z.object({
-              firstname: z.string().nullable(),
-              lastname: z.string().nullable(),
-              email: z.string().nullable(),
-              phone: z.string().nullable(),
-              hs_lastmodifieddate: z.string(),
-            }),
-            updatedAt: z.string(),
-          })
-        ),
-        paging: z.object({
-          next: z.object({
-            after: z.string(),
-          }).optional(),
-        }).optional(),
-      }),
-      pagination: (response) => ({
-        cursor: response.paging?.next?.after,
-      }),
-      transform: (response) =>
-        response.results.map((result) => ({
-          externalId: result.id,
-          externalUpdatedAt: result.updatedAt,
-          data: {
-            firstName: result.properties.firstname,
-            lastName: result.properties.lastname,
-            email: result.properties.email,
-            phone: result.properties.phone,
-          },
-        })),
-    });
+      })),
+  });
 
 // Override the contact connector
 const customSyncConnector = createHubSpotSyncConnector(

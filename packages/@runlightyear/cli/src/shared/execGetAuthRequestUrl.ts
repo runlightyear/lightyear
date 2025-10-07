@@ -5,6 +5,9 @@ import { logDisplayLevel } from "./setLogDisplayLevel";
 import { prepareConsole } from "../logging";
 import { deliverLocalResponse } from "./deliverLocalResponse";
 import createAuthorizerActivity from "./createAuthorizerActivity";
+import { getApiKey } from "./getApiKey";
+import { getBaseUrl } from "./getBaseUrl";
+import { getEnvName } from "./getEnvName";
 
 export interface ExecGetAuthRequestUrlProps {
   customAppName: string;
@@ -37,6 +40,13 @@ export async function execGetAuthRequestUrl(props: ExecGetAuthRequestUrlProps) {
       customAppName,
       authName,
       logDisplayLevel,
+      payload: {
+        customAppName,
+        authName,
+        apiKey: getApiKey(),
+        baseUrl: getBaseUrl(),
+        environment: getEnvName(),
+      },
     });
 
     prepareConsole();
