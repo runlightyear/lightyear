@@ -296,7 +296,7 @@ describe("handleRun", () => {
 
       // Check that appropriate log messages were called
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Starting action execution")
+        expect.stringContaining("startRun →")
       );
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining("📍 Action: logging-test")

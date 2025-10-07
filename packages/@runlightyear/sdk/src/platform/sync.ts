@@ -144,7 +144,6 @@ export async function startSync(props: {
             json?.type ?? "unknown"
           }`
         );
-        console.log("json", json);
         const initialModel = json?.currentModel?.name ?? "none";
         const initialCursor = json?.lastBatch?.cursor ?? json?.cursor ?? null;
         const initialPage =

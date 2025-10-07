@@ -1859,7 +1859,6 @@ export class SyncConnector<
       let modelsToSync = orderedModels.map((m: any) => m.name);
 
       const sync = await getSync({ syncId });
-      console.log("sync", sync);
 
       const currentModelName: string | undefined =
         sync.currentModel?.name ?? undefined;
@@ -2360,7 +2359,6 @@ export class SyncConnector<
     let modelsToSync = orderedModels.map((m: any) => m.name);
 
     const sync = await getSync({ syncId });
-    console.log("sync", sync);
     // Log current model and pagination state at the moment the sync starts/resumes
     try {
       const currentModel = sync?.currentModel?.name ?? "none";
