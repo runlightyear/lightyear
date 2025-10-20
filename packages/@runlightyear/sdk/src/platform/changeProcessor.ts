@@ -258,7 +258,7 @@ export class ChangeProcessor {
   }
 
   /**
-   * Flush pending confirmations in batches (sent in parallel for speed)
+   * Flush pending confirmations in batches (sent in parallel for speed, with concurrency limit)
    */
   async flushConfirmations(batchSize: number = 100) {
     if (this.confirmationQueue.length === 0) {
@@ -282,16 +282,24 @@ export class ChangeProcessor {
       console.info(`💾 Confirming ${toConfirm.length} changes...`);
     }
 
-    // Process all batches in parallel for speed
-    const results = await Promise.allSettled(
-      batches.map((batch) =>
-        confirmChangeBatch({
-          syncId: this.syncId,
-          changes: batch,
-          async: false,
-        })
-      )
-    );
+    // Process batches in parallel with a concurrency limit to avoid overwhelming the AbortSignal
+    // Even though we increased the listener limit, it's still good practice to limit concurrency
+    const MAX_PARALLEL_BATCHES = 50;
+    const results: PromiseSettledResult<void>[] = [];
+
+    for (let i = 0; i < batches.length; i += MAX_PARALLEL_BATCHES) {
+      const batchChunk = batches.slice(i, i + MAX_PARALLEL_BATCHES);
+      const chunkResults = await Promise.allSettled(
+        batchChunk.map((batch) =>
+          confirmChangeBatch({
+            syncId: this.syncId,
+            changes: batch,
+            async: false,
+          })
+        )
+      );
+      results.push(...chunkResults);
+    }
 
     // Process results and mark confirmed
     let successCount = 0;

@@ -1365,21 +1365,41 @@ export class SyncConnector<
     // Register extract functions after all requests complete
     for (let i = 0; i < responses.length; i++) {
       const response = responses[i];
-      const { batchExtractFn } = batchRequests[i];
+      const { batchExtractFn, batch } = batchRequests[i];
+
+      // Create default extract function if none provided
+      const extractFn =
+        batchExtractFn ||
+        ((responseData: any) => {
+          // Default extraction logic for batch creates
+          const items = Array.isArray(responseData)
+            ? responseData
+            : responseData?.results || responseData?.data || [];
+
+          return batch.map((change: any, index: number) => {
+            const item = items[index] || {};
+            return {
+              changeId: change.changeId,
+              externalId: String(
+                item.id || item.externalId || change.externalId || index
+              ),
+              externalUpdatedAt:
+                item.updatedAt ||
+                item.externalUpdatedAt ||
+                item.createdAt ||
+                null,
+            };
+          });
+        });
 
       // Register batch extract function (only once per model)
-      if (batchExtractFn) {
-        if (response.httpRequestId) {
-          processor.registerBatchExtractFunction(
-            response.httpRequestId,
-            batchExtractFn
-          );
-        } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
-          processor.registerBatchExtractFunctionByModel(
-            modelName,
-            batchExtractFn
-          );
-        }
+      if (response.httpRequestId) {
+        processor.registerBatchExtractFunction(
+          response.httpRequestId,
+          extractFn
+        );
+      } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
+        processor.registerBatchExtractFunctionByModel(modelName, extractFn);
       }
     }
   }
@@ -1456,20 +1476,41 @@ export class SyncConnector<
     // Register extract functions after all requests complete
     for (let i = 0; i < responses.length; i++) {
       const response = responses[i];
-      const { batchExtractFn } = batchRequests[i];
+      const { batchExtractFn, batch } = batchRequests[i];
 
-      if (batchExtractFn) {
-        if (response.httpRequestId) {
-          processor.registerBatchExtractFunction(
-            response.httpRequestId,
-            batchExtractFn
-          );
-        } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
-          processor.registerBatchExtractFunctionByModel(
-            modelName,
-            batchExtractFn
-          );
-        }
+      // Create default extract function if none provided
+      const extractFn =
+        batchExtractFn ||
+        ((responseData: any) => {
+          // Default extraction logic for batch updates
+          const items = Array.isArray(responseData)
+            ? responseData
+            : responseData?.results || responseData?.data || [];
+
+          return batch.map((change: any, index: number) => {
+            const item = items[index] || {};
+            return {
+              changeId: change.changeId,
+              externalId: String(
+                item.id || item.externalId || change.externalId || index
+              ),
+              externalUpdatedAt:
+                item.updatedAt ||
+                item.externalUpdatedAt ||
+                item.createdAt ||
+                null,
+            };
+          });
+        });
+
+      // Register batch extract function (only once per model)
+      if (response.httpRequestId) {
+        processor.registerBatchExtractFunction(
+          response.httpRequestId,
+          extractFn
+        );
+      } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
+        processor.registerBatchExtractFunctionByModel(modelName, extractFn);
       }
     }
   }
@@ -1547,20 +1588,28 @@ export class SyncConnector<
     // Register extract functions after all requests complete
     for (let i = 0; i < responses.length; i++) {
       const response = responses[i];
-      const { batchExtractFn } = batchRequests[i];
+      const { batchExtractFn, batch } = batchRequests[i];
 
-      if (batchExtractFn) {
-        if (response.httpRequestId) {
-          processor.registerBatchExtractFunction(
-            response.httpRequestId,
-            batchExtractFn
-          );
-        } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
-          processor.registerBatchExtractFunctionByModel(
-            modelName,
-            batchExtractFn
-          );
-        }
+      // Create default extract function if none provided
+      const extractFn =
+        batchExtractFn ||
+        ((responseData: any) => {
+          // Default extraction logic for batch deletes
+          // For deletes, we just need to confirm the changeIds with their externalIds
+          return batch.map((change: any) => ({
+            changeId: change.changeId,
+            externalId: String(change.externalId || change.id),
+          }));
+        });
+
+      // Register batch extract function (only once per model)
+      if (response.httpRequestId) {
+        processor.registerBatchExtractFunction(
+          response.httpRequestId,
+          extractFn
+        );
+      } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
+        processor.registerBatchExtractFunctionByModel(modelName, extractFn);
       }
     }
   }

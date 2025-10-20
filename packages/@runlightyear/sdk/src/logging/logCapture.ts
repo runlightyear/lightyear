@@ -87,6 +87,17 @@ export function resetRunCancellation(): void {
     // @ts-ignore
     if (typeof AbortController !== "undefined") {
       runAbortController = new AbortController();
+      // Increase max listeners to avoid warnings when many parallel requests share the signal
+      // This is safe because we're using a single abort controller for the entire run
+      try {
+        // setMaxListeners is available on EventTarget in Node.js
+        const signal = runAbortController.signal as any;
+        if (typeof signal?.setMaxListeners === "function") {
+          signal.setMaxListeners(1000);
+        }
+      } catch {
+        // Ignore if setMaxListeners is not available
+      }
     } else {
       runAbortController = null;
     }
@@ -103,6 +114,16 @@ export function getRunAbortSignal(): AbortSignal {
       // @ts-ignore
       if (typeof AbortController !== "undefined") {
         runAbortController = new AbortController();
+        // Increase max listeners to avoid warnings when many parallel requests share the signal
+        try {
+          // setMaxListeners is available on EventTarget in Node.js
+          const signal = runAbortController.signal as any;
+          if (typeof signal?.setMaxListeners === "function") {
+            signal.setMaxListeners(1000);
+          }
+        } catch {
+          // Ignore if setMaxListeners is not available
+        }
       }
     } catch {}
   }
