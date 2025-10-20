@@ -193,19 +193,10 @@ class LogCapture {
    */
   startCapture(): void {
     if (this.isCapturing) {
-      this.originalConsole.log("🔄 Log capture already running");
       return;
     }
 
     this.isCapturing = true;
-    this.originalConsole.log("🚀 Starting log capture system...");
-    this.originalConsole.log("📋 Config:", {
-      uploadIntervalMs: this.config.uploadIntervalMs,
-      maxLogsPerBatch: this.config.maxLogsPerBatch,
-      baseUrl: this.config.baseUrl,
-      environment: this.config.environment,
-      hasApiKey: !!this.config.apiKey,
-    });
 
     // Intercept console methods
     console.log = this.createInterceptor("LOG", this.originalConsole.log);
@@ -214,15 +205,8 @@ class LogCapture {
     console.error = this.createInterceptor("ERROR", this.originalConsole.error);
     console.debug = this.createInterceptor("DEBUG", this.originalConsole.debug);
 
-    this.originalConsole.log("✅ Console methods intercepted");
-
     // Start periodic upload
     this.startPeriodicUpload();
-    this.originalConsole.log(
-      "⏰ Periodic upload started (interval: " +
-        this.config.uploadIntervalMs +
-        "ms)"
-    );
   }
 
   /**
@@ -260,15 +244,8 @@ class LogCapture {
    */
   stopCapture(): void {
     if (!this.isCapturing) {
-      this.originalConsole.log("🔄 Log capture already stopped");
       return;
     }
-
-    this.originalConsole.log("🛑 Stopping log capture system...");
-    this.originalConsole.log("📊 Final stats:", {
-      capturedLogs: this.logs.length,
-      currentContext: this.currentContext,
-    });
 
     this.isCapturing = false;
 
@@ -279,17 +256,13 @@ class LogCapture {
     console.error = this.originalConsole.error;
     console.debug = this.originalConsole.debug;
 
-    this.originalConsole.log("✅ Console methods restored");
-
     // Stop periodic upload
     if (this.uploadTimer) {
       clearInterval(this.uploadTimer);
       this.uploadTimer = null;
-      this.originalConsole.log("⏰ Periodic upload timer stopped");
     }
 
     // Upload any remaining logs
-    this.originalConsole.log("📤 Attempting final log upload...");
     this.uploadLogs();
   }
 
@@ -309,15 +282,10 @@ class LogCapture {
     managedUserExternalId?: string;
     managedUserDisplayName?: string | null;
   }): void {
-    this.originalConsole.log("🔗 Setting log context:", context);
     this.currentContext = { ...this.currentContext, ...context };
-    this.originalConsole.log("📋 Current context:", this.currentContext);
 
     // If we have uploadable context and pending logs, trigger an immediate upload
     if (this.hasUploadableContext() && this.logs.length > 0) {
-      this.originalConsole.log(
-        "⚡ Context set with pending logs - triggering immediate upload"
-      );
       setTimeout(() => this.uploadLogs(), 100); // Small delay to avoid blocking
     }
   }
@@ -326,17 +294,12 @@ class LogCapture {
    * Clear the current context
    */
   clearContext(): void {
-    this.originalConsole.log("🧹 Clearing log context");
-    this.originalConsole.log("📊 Context before clear:", this.currentContext);
-
     // Do a final upload before clearing context
     if (this.hasUploadableContext() && this.logs.length > 0) {
-      this.originalConsole.log("📤 Final upload before clearing context");
       this.uploadLogs();
     }
 
     this.currentContext = {};
-    this.originalConsole.log("✅ Context cleared");
   }
 
   /**
@@ -416,21 +379,9 @@ class LogCapture {
   private addLog(entry: LogEntry): void {
     this.logs.push(entry);
 
-    // Debug info (but use original console to avoid recursion)
-    if (this.logs.length % 10 === 0) {
-      // Every 10th log
-      this.originalConsole.log(
-        `📊 Log buffer: ${this.logs.length} logs captured`
-      );
-    }
-
     // Prevent memory issues by limiting log count
     if (this.logs.length > this.config.maxLogsPerBatch * 2) {
-      const oldCount = this.logs.length;
       this.logs = this.logs.slice(-this.config.maxLogsPerBatch);
-      this.originalConsole.log(
-        `📏 Log buffer trimmed: ${oldCount} -> ${this.logs.length}`
-      );
     }
   }
 
@@ -440,9 +391,6 @@ class LogCapture {
   private startPeriodicUpload(): void {
     this.uploadTimer = setInterval(() => {
       if (this.logs.length > 0 && !isRunCanceled()) {
-        this.originalConsole.log(
-          `⏰ Periodic upload check: ${this.logs.length} logs pending`
-        );
         this.uploadLogs();
       }
     }, this.config.uploadIntervalMs);
@@ -453,45 +401,25 @@ class LogCapture {
    */
   private async uploadLogs(): Promise<void> {
     if (isRunCanceled()) {
-      this.originalConsole.log(
-        "⏹️ Run canceled; skipping log upload and clearing buffer"
-      );
       this.logs = [];
       return;
     }
-    this.originalConsole.log("📤 Upload attempt started...");
-    this.originalConsole.log("📊 Current state:", {
-      pendingLogs: this.logs.length,
-      hasContext: this.hasUploadableContext(),
-      context: this.currentContext,
-      hasApiKey: !!this.config.apiKey,
-    });
 
     if (this.logs.length === 0) {
-      this.originalConsole.log("📭 No logs to upload");
       return;
     }
 
     // Only upload if we have a context that requires it (like runId)
     if (!this.hasUploadableContext()) {
-      this.originalConsole.log("🚫 No uploadable context - skipping upload");
-      this.originalConsole.log(
-        "💡 Logs will be uploaded when context is set (runId, deployId, etc.)"
-      );
       return;
     }
 
     if (!this.config.apiKey) {
-      this.originalConsole.log("🚫 No API key configured - skipping upload");
       return;
     }
 
     const logsToUpload = this.logs.slice(0, this.config.maxLogsPerBatch);
     this.logs = this.logs.slice(this.config.maxLogsPerBatch);
-
-    this.originalConsole.log(
-      `📦 Preparing to upload ${logsToUpload.length} logs`
-    );
 
     // Only send recognized context fields; keep any extra fields internal
     const cleanContext = {
@@ -507,26 +435,17 @@ class LogCapture {
       logs: logsToUpload,
     };
 
-    this.originalConsole.log("📋 Upload payload:", {
-      contextKeys: Object.keys(cleanContext).filter(
-        (k) =>
-          (cleanContext as any)[k as keyof typeof cleanContext] !== undefined
-      ),
-      logCount: payload.logs.length,
-      firstLogLevel: payload.logs[0]?.level,
-      lastLogLevel: payload.logs[payload.logs.length - 1]?.level,
-    });
-
     try {
-      this.originalConsole.log("🚀 Sending logs to API...");
       await this.sendLogsToAPI(payload);
-      this.originalConsole.log("✅ Logs uploaded successfully!");
+      // Single debug message about successful upload
+      this.originalConsole.debug(
+        `📤 Uploaded ${logsToUpload.length} log${
+          logsToUpload.length !== 1 ? "s" : ""
+        } to backend`
+      );
     } catch (error) {
       if (error instanceof RunCanceledError) {
         // Do not requeue logs; the server will no longer accept them for this run
-        this.originalConsole.warn(
-          "🛑 Detected run cancellation during log upload (410)."
-        );
         this.logs = [];
         return;
       }
@@ -535,7 +454,6 @@ class LogCapture {
 
       // Use original console to avoid infinite recursion
       this.originalConsole.error("❌ Failed to upload logs:", error);
-      this.originalConsole.log("🔄 Logs restored to buffer for retry");
     }
   }
 
@@ -557,126 +475,77 @@ class LogCapture {
    */
   private async sendLogsToAPI(payload: LogUploadPayload): Promise<void> {
     if (!this.config.apiKey) {
-      this.originalConsole.log("🚫 No API key - cannot send logs");
       return; // Skip upload if no API key
     }
 
     const url = `${this.config.baseUrl}/api/v1/envs/${this.config.environment}/logs`;
-
-    this.originalConsole.log("🌐 API Request details:", {
-      url,
-      method: "POST",
-      bodySize: JSON.stringify(payload).length,
-      hasApiKey: !!this.config.apiKey,
-    });
-
     const body = JSON.stringify(payload);
-    this.originalConsole.log(
-      "📦 Request body preview:",
-      body.substring(0, 500) + (body.length > 500 ? "..." : "")
-    );
 
-    try {
-      this.originalConsole.log("⏰ Making HTTP request...");
-      const maxAttempts = 5; // total attempts including first
-      let attempt = 1;
-      while (true) {
-        try {
-          const response = await fetch(url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${this.config.apiKey}`,
-              "User-Agent": "@runlightyear/sdk",
-              "X-SDK-Version": "0.1.0",
-            },
-            signal: getRunAbortSignal(),
-            body,
-          });
+    const maxAttempts = 5; // total attempts including first
+    let attempt = 1;
+    while (true) {
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${this.config.apiKey}`,
+            "User-Agent": "@runlightyear/sdk",
+            "X-SDK-Version": "0.1.0",
+          },
+          signal: getRunAbortSignal(),
+          body,
+        });
 
-          this.originalConsole.log("📈 HTTP Response:", {
-            status: response.status,
-            statusText: response.statusText,
-            ok: response.ok,
-          });
-
-          if (!response.ok) {
-            if (response.status === 410) {
-              this.originalConsole.warn(
-                "🚫 Log endpoint returned 410 Gone — run was canceled by the server."
-              );
-              // Signal cancellation to the rest of the system
-              notifyRunCanceledInternal();
-              // Clear buffer; further uploads will be rejected
-              this.logs = [];
-              throw new RunCanceledError();
-            }
-            const retriable =
-              response.status === 429 ||
-              (response.status >= 500 && response.status < 600);
-            if (retriable && attempt < maxAttempts) {
-              const waitMs =
-                Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
-              this.originalConsole.warn(
-                `Log upload transient error ${response.status}. Retrying in ${(
-                  waitMs / 1000
-                ).toFixed(2)}s (attempt ${attempt}/${maxAttempts})`
-              );
-              await new Promise((r) => setTimeout(r, waitMs));
-              attempt += 1;
-              continue;
-            }
-            const errorText = await response
-              .text()
-              .catch(() => "Unable to read response");
-            this.originalConsole.log("📄 Error response body:", errorText);
-            throw new Error(
-              `Log upload failed: ${response.status} ${response.statusText}`
-            );
+        if (!response.ok) {
+          if (response.status === 410) {
+            // Signal cancellation to the rest of the system
+            notifyRunCanceledInternal();
+            // Clear buffer; further uploads will be rejected
+            this.logs = [];
+            throw new RunCanceledError();
           }
-
-          try {
-            const textFn = (response as any)?.text;
-            if (typeof textFn === "function") {
-              const responseText = await textFn
-                .call(response)
-                .catch(() => "Unable to read response");
-              this.originalConsole.log(
-                "📄 Success response body:",
-                responseText
-              );
-            } else {
-              // Some test environments stub fetch without a text() method
-              this.originalConsole.log(
-                "📄 Success response body: <unavailable>"
-              );
-            }
-          } catch {}
-          break;
-        } catch (err: any) {
-          if (err instanceof RunCanceledError) {
-            // Do not retry cancellations
-            throw err;
-          }
-          const isNetworkError = err && !("status" in (err as any));
-          if (isNetworkError && attempt < maxAttempts) {
+          const retriable =
+            response.status === 429 ||
+            (response.status >= 500 && response.status < 600);
+          if (retriable && attempt < maxAttempts) {
             const waitMs =
               Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
             this.originalConsole.warn(
-              `Log upload network error. Retrying in ${(waitMs / 1000).toFixed(
-                2
-              )}s (attempt ${attempt}/${maxAttempts})`
+              `Log upload transient error ${response.status}. Retrying in ${(
+                waitMs / 1000
+              ).toFixed(2)}s (attempt ${attempt}/${maxAttempts})`
             );
             await new Promise((r) => setTimeout(r, waitMs));
             attempt += 1;
             continue;
           }
+          throw new Error(
+            `Log upload failed: ${response.status} ${response.statusText}`
+          );
+        }
+
+        break;
+      } catch (err: any) {
+        if (err instanceof RunCanceledError) {
+          // Do not retry cancellations
           throw err;
         }
+        const isNetworkError = err && !("status" in (err as any));
+        if (isNetworkError && attempt < maxAttempts) {
+          const waitMs =
+            Math.pow(2, attempt) * 1000 + Math.floor(Math.random() * 5000);
+          this.originalConsole.warn(
+            `Log upload network error. Retrying in ${(waitMs / 1000).toFixed(
+              2
+            )}s (attempt ${attempt}/${maxAttempts})`
+          );
+          await new Promise((r) => setTimeout(r, waitMs));
+          attempt += 1;
+          continue;
+        }
+        throw err;
       }
-    } catch (error) {
-      this.originalConsole.error("🔥 HTTP Request failed:", error);
-      throw error;
     }
   }
 
@@ -772,9 +641,6 @@ export function stopLogCapture(): void {
   if (globalLogCapture) {
     globalLogCapture.stopCapture();
     globalLogCapture = null;
-    console.log("✅ Log capture system completely stopped and cleaned up");
-  } else {
-    console.log("⚠️  No log capture system to stop");
   }
 }
 
