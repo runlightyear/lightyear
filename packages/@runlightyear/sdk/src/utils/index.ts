@@ -52,3 +52,4 @@ export function getEnvName(): string {
 }
 
 export * from "./httpErrors";
+export { ValidationError } from "./ValidationError";

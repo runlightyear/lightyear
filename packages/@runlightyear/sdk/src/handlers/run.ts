@@ -1,4 +1,5 @@
 import type { InternalResponse, RunHandler } from "./types";
+import { ValidationError } from "../utils/ValidationError";
 
 interface RunPayload {
   actionName: string;
@@ -336,15 +337,22 @@ export const handleRun: RunHandler = async (
     };
   } catch (error) {
     console.error("💥 Action execution failed!");
-    console.error("❌ Error details:", error);
 
-    // Enhanced error logging
-    if (error instanceof Error) {
-      console.error(`🏷️ Error type: ${error.constructor.name}`);
-      console.error(`📝 Error name: ${error.name}`);
-      console.error(`💬 Error message: ${error.message}`);
-      console.error(`🔍 Error stack:`);
-      console.error(error.stack);
+    // Handle validation errors specially (check flag since error may have been serialized)
+    if (
+      error &&
+      (error instanceof ValidationError || (error as any).__isValidationError)
+    ) {
+      console.error(`💬 Error message:\n${(error as any).message || error}`);
+      // No stack trace for validation errors
+    } else if (error instanceof Error) {
+      console.error(`💬 Error message:\n${error.message}`);
+
+      // Log stack trace for non-validation errors
+      if (error.stack) {
+        console.error(`🔍 Error stack:`);
+        console.error(error.stack);
+      }
     } else {
       console.error(`🤷 Non-Error object thrown:`);
       console.error(`   Type: ${typeof error}`);

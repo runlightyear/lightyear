@@ -17,6 +17,8 @@ import { getCurrentContext, getLogCapture } from "../logging";
 import { isTemporaryHttpError } from "../utils/httpErrors";
 import { isTimeLimitExceeded, resetTimeLimit } from "../utils/time";
 import { ChangeProcessor } from "../platform/changeProcessor";
+import { validateAgainstSchema } from "../utils/schemaValidation";
+import { ValidationError } from "../utils/ValidationError";
 
 // Removed legacy PaginationConfig (page/offset types no longer supported)
 
@@ -508,6 +510,17 @@ export class SyncConnectorBuilder<
           ? config.list!.transform(data)
           : (data as Array<SyncObject<any>>);
 
+        // Validate each item's data field against the model schema
+        if (model.schema && items.length > 0) {
+          items.forEach((item, index) => {
+            validateAgainstSchema(
+              item.data,
+              model.schema as any,
+              `Model "${modelName}" list item ${index}`
+            );
+          });
+        }
+
         if (config.list!.filter) {
           items = items.filter((obj) =>
             config.list!.filter!({
@@ -595,6 +608,15 @@ export class SyncConnectorBuilder<
           ? (config.create as any).transform(validated)
           : validated;
 
+        // Validate the transformed result against the model schema
+        if (model.schema) {
+          validateAgainstSchema(
+            result,
+            model.schema as any,
+            `Model "${modelName}" create result`
+          );
+        }
+
         return result as any;
       };
     }
@@ -624,6 +646,15 @@ export class SyncConnectorBuilder<
         const result = (config.update as any).transform
           ? (config.update as any).transform(validated)
           : validated;
+
+        // Validate the transformed result against the model schema
+        if (model.schema) {
+          validateAgainstSchema(
+            result,
+            model.schema as any,
+            `Model "${modelName}" update result`
+          );
+        }
 
         return result as any;
       };
@@ -2258,12 +2289,30 @@ export class SyncConnector<
           hadError = true;
           errorMessage = e instanceof Error ? e.message : String(e);
           unrecoverableError = isUnrecoverableSyncError(e);
-          console.error(`Sync encountered an error:`, e);
+          // Don't log validation errors here - they'll be logged by the run handler
+          if (
+            !(e instanceof ValidationError || (e as any).__isValidationError)
+          ) {
+            console.error(
+              `Sync encountered an error: ${
+                e instanceof Error ? e.message : String(e)
+              }`
+            );
+          }
         } else {
           hadError = true;
           errorMessage = e instanceof Error ? e.message : String(e);
           unrecoverableError = isUnrecoverableSyncError(e);
-          console.error(`Sync encountered an error:`, e);
+          // Don't log validation errors here - they'll be logged by the run handler
+          if (
+            !(e instanceof ValidationError || (e as any).__isValidationError)
+          ) {
+            console.error(
+              `Sync encountered an error: ${
+                e instanceof Error ? e.message : String(e)
+              }`
+            );
+          }
         }
       } finally {
         // Cleanup is handled in waitForPendingChanges
@@ -3129,12 +3178,26 @@ export class SyncConnector<
         hadError = true; // preserve finishSync(error) semantics and logs
         errorMessage = e instanceof Error ? e.message : String(e);
         unrecoverableError = isUnrecoverableSyncError(e);
-        console.error(`Sync encountered an error:`, e);
+        // Don't log validation errors here - they'll be logged by the run handler
+        if (!(e instanceof ValidationError || (e as any).__isValidationError)) {
+          console.error(
+            `Sync encountered an error: ${
+              e instanceof Error ? e.message : String(e)
+            }`
+          );
+        }
       } else {
         hadError = true;
         errorMessage = e instanceof Error ? e.message : String(e);
         unrecoverableError = isUnrecoverableSyncError(e);
-        console.error(`Sync encountered an error:`, e);
+        // Don't log validation errors here - they'll be logged by the run handler
+        if (!(e instanceof ValidationError || (e as any).__isValidationError)) {
+          console.error(
+            `Sync encountered an error: ${
+              e instanceof Error ? e.message : String(e)
+            }`
+          );
+        }
       }
     }
 
