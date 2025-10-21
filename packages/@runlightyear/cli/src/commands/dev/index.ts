@@ -12,6 +12,7 @@ import { prepareConsole } from "../../logging";
 import handleResubscribe from "./handleResubscribe";
 import { largeLogo } from "../../largeLogo";
 import { pushOperation } from "../../shared/operationQueue";
+import { handleLocalHttpRequest } from "./handleLocalHttpRequest";
 import {
   pauseOperationQueue,
   resumeOperationQueue,
@@ -100,6 +101,7 @@ dev
       "localReceiveCustomAppWebhookTriggered",
       handleReceiveCustomAppWebhook
     );
+    subscription.bind("localHttpRequestCreated", handleLocalHttpRequest);
 
     // On startup, fetch any queued runs and enqueue them oldest-first
     try {
