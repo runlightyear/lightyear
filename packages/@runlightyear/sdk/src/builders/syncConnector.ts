@@ -502,22 +502,55 @@ export class SyncConnectorBuilder<
         let items: Array<SyncObject<any>> = [];
 
         if (config.list!.responseSchema) {
-          data = config.list!.responseSchema.parse(data);
+          try {
+            data = config.list!.responseSchema.parse(data);
+          } catch (error: any) {
+            // Enhance error message to show it's during response validation
+            const errorMessage = error?.issues
+              ? JSON.stringify(error.issues, null, 2)
+              : String(error);
+            throw new Error(
+              `Response validation failed for model "${modelName}" list operation.\n` +
+                `Endpoint: ${requestConfig.endpoint}\n` +
+                `This error occurred while validating the API response against the configured responseSchema.\n` +
+                `Validation errors:\n${errorMessage}`
+            );
+          }
         }
 
         // Apply required transform into platform object shape
-        items = config.list!.transform
-          ? config.list!.transform(data)
-          : (data as Array<SyncObject<any>>);
+        try {
+          items = config.list!.transform
+            ? config.list!.transform(data)
+            : (data as Array<SyncObject<any>>);
+        } catch (error: any) {
+          throw new Error(
+            `Transform function failed for model "${modelName}" list operation.\n` +
+              `Endpoint: ${requestConfig.endpoint}\n` +
+              `This error occurred while transforming the API response data.\n` +
+              `Error: ${error?.message || String(error)}`
+          );
+        }
 
         // Validate each item's data field against the model schema
         if (model.schema && items.length > 0) {
           items.forEach((item, index) => {
-            validateAgainstSchema(
-              item.data,
-              model.schema as any,
-              `Model "${modelName}" list item ${index}`
-            );
+            try {
+              validateAgainstSchema(
+                item.data,
+                model.schema as any,
+                `Model "${modelName}" list item ${index}`
+              );
+            } catch (error: any) {
+              // Re-throw with additional context
+              const errorMessage = error?.message || String(error);
+              throw new Error(
+                `Model schema validation failed for model "${modelName}" at item ${index}.\n` +
+                  `This error occurred after the transform step, while validating each item's data against the model schema.\n` +
+                  `Item externalId: ${item.externalId}\n` +
+                  `Validation error: ${errorMessage}`
+              );
+            }
           });
         }
 
@@ -599,9 +632,24 @@ export class SyncConnectorBuilder<
         });
 
         // Validate response if schema provided
-        const validated = (config.create as any).responseSchema
-          ? (config.create as any).responseSchema.parse(response.data)
-          : response.data;
+        let validated = response.data;
+        if ((config.create as any).responseSchema) {
+          try {
+            validated = (config.create as any).responseSchema.parse(
+              response.data
+            );
+          } catch (error: any) {
+            const errorMessage = error?.issues
+              ? JSON.stringify(error.issues, null, 2)
+              : String(error);
+            throw new Error(
+              `Response validation failed for model "${modelName}" create operation.\n` +
+                `Endpoint: ${requestConfig.endpoint}\n` +
+                `This error occurred while validating the API response against the configured responseSchema.\n` +
+                `Validation errors:\n${errorMessage}`
+            );
+          }
+        }
 
         // Optionally transform response into final model
         const result = (config.create as any).transform
@@ -638,9 +686,24 @@ export class SyncConnectorBuilder<
         });
 
         // Validate response if schema provided
-        const validated = (config.update as any).responseSchema
-          ? (config.update as any).responseSchema.parse(response.data)
-          : response.data;
+        let validated = response.data;
+        if ((config.update as any).responseSchema) {
+          try {
+            validated = (config.update as any).responseSchema.parse(
+              response.data
+            );
+          } catch (error: any) {
+            const errorMessage = error?.issues
+              ? JSON.stringify(error.issues, null, 2)
+              : String(error);
+            throw new Error(
+              `Response validation failed for model "${modelName}" update operation.\n` +
+                `Endpoint: ${requestConfig.endpoint}\n` +
+                `This error occurred while validating the API response against the configured responseSchema.\n` +
+                `Validation errors:\n${errorMessage}`
+            );
+          }
+        }
 
         // Optionally transform response into final model
         const result = (config.update as any).transform
@@ -702,8 +765,21 @@ export class SyncConnectorBuilder<
 
           let responseData = response.data;
           if (config.batchCreate!.responseSchema) {
-            responseData =
-              config.batchCreate!.responseSchema.parse(responseData);
+            try {
+              responseData =
+                config.batchCreate!.responseSchema.parse(responseData);
+            } catch (error: any) {
+              const errorMessage = error?.issues
+                ? JSON.stringify(error.issues, null, 2)
+                : String(error);
+              throw new Error(
+                `Response validation failed for model "${modelName}" batchCreate operation.\n` +
+                  `Endpoint: ${requestConfig.endpoint}\n` +
+                  `Batch size: ${batch.length} items\n` +
+                  `This error occurred while validating the API response against the configured responseSchema.\n` +
+                  `Validation errors:\n${errorMessage}`
+              );
+            }
           }
 
           if (config.batchCreate!.extract) {
@@ -768,8 +844,21 @@ export class SyncConnectorBuilder<
           });
           let responseData = response.data;
           if (config.batchUpdate!.responseSchema) {
-            responseData =
-              config.batchUpdate!.responseSchema!.parse(responseData);
+            try {
+              responseData =
+                config.batchUpdate!.responseSchema!.parse(responseData);
+            } catch (error: any) {
+              const errorMessage = error?.issues
+                ? JSON.stringify(error.issues, null, 2)
+                : String(error);
+              throw new Error(
+                `Response validation failed for model "${modelName}" batchUpdate operation.\n` +
+                  `Endpoint: ${requestConfig.endpoint}\n` +
+                  `Batch size: ${batch.length} items\n` +
+                  `This error occurred while validating the API response against the configured responseSchema.\n` +
+                  `Validation errors:\n${errorMessage}`
+              );
+            }
           }
 
           if (config.batchUpdate!.extract) {
@@ -832,8 +921,21 @@ export class SyncConnectorBuilder<
           if (config.batchDelete!.extract) {
             let responseData = response.data;
             if (config.batchDelete!.responseSchema) {
-              responseData =
-                config.batchDelete!.responseSchema!.parse(responseData);
+              try {
+                responseData =
+                  config.batchDelete!.responseSchema!.parse(responseData);
+              } catch (error: any) {
+                const errorMessage = error?.issues
+                  ? JSON.stringify(error.issues, null, 2)
+                  : String(error);
+                throw new Error(
+                  `Response validation failed for model "${modelName}" batchDelete operation.\n` +
+                    `Endpoint: ${requestConfig.endpoint}\n` +
+                    `Batch size: ${batch.length} items\n` +
+                    `This error occurred while validating the API response against the configured responseSchema.\n` +
+                    `Validation errors:\n${errorMessage}`
+                );
+              }
             }
             const extracted = config.batchDelete!.extract!(responseData) ?? [];
             confirmations.push(
@@ -2389,6 +2491,633 @@ export class SyncConnector<
     return this.syncLegacy(type);
   }
 
+  /**
+   * Perform PULL phase for a single model
+   */
+  private async performPullForModel(props: {
+    modelName: string;
+    connector: ModelConnector;
+    syncId: string;
+    collectionName: string;
+    app?: string;
+    customApp?: string;
+    state: any;
+  }): Promise<void> {
+    const {
+      modelName,
+      connector,
+      syncId,
+      collectionName,
+      app,
+      customApp,
+      state,
+    } = props;
+
+    const syncType: "FULL" | "INCREMENTAL" = state.type || "FULL";
+
+    // Read model watermarks
+    let cursor: string | undefined;
+    if (state.lastBatch?.modelName === modelName && state.lastBatch?.cursor) {
+      cursor = state.lastBatch.cursor;
+    } else if (state.modelStatuses?.[modelName]?.cursor) {
+      cursor = state.modelStatuses[modelName].cursor;
+    }
+    let lastExternalId: string | undefined =
+      state.modelStatuses?.[modelName]?.lastExternalId ?? undefined;
+    let lastExternalUpdatedAt: string | undefined =
+      state.modelStatuses?.[modelName]?.lastExternalUpdatedAt ?? undefined;
+    let page: number | undefined =
+      typeof state.modelStatuses?.[modelName]?.page === "number"
+        ? state.modelStatuses[modelName].page
+        : typeof state.page === "number"
+        ? state.page
+        : undefined;
+    let offset: number | undefined =
+      typeof state.modelStatuses?.[modelName]?.offset === "number"
+        ? state.modelStatuses[modelName].offset
+        : typeof state.offset === "number"
+        ? state.offset
+        : undefined;
+
+    console.info(`PULL phase started for model ${modelName}`);
+    const listFn = connector.list;
+    if (!listFn) {
+      console.info(
+        `No list function configured for model ${modelName}, skipping PULL`
+      );
+      return;
+    }
+
+    // Build initial params
+    const buildParams = () => {
+      const params: any = {};
+      if (cursor) params.cursor = cursor;
+      if (typeof page === "number") params.page = page;
+      if (typeof offset === "number") params.offset = offset;
+      if (lastExternalId) params.lastExternalId = lastExternalId;
+      if (lastExternalUpdatedAt)
+        params.lastExternalUpdatedAt = lastExternalUpdatedAt;
+      params.syncType = syncType;
+      return params;
+    };
+
+    // Track pending upserts for error handling
+    const pendingUpserts: Promise<void>[] = [];
+    let hasMore: boolean = true;
+    let pageCount = 0;
+    const pullStartTime = Date.now();
+
+    while (hasMore) {
+      if (isTimeLimitExceeded()) {
+        // Wait for pending upserts before pausing
+        await Promise.all(pendingUpserts);
+        await pauseSync(syncId);
+        throw "RERUN";
+      }
+
+      const fetchStart = Date.now();
+      // Fetch next page
+      const { items, pagination } = await listFn(buildParams());
+      const fetchTime = Date.now() - fetchStart;
+      pageCount++;
+
+      console.info(
+        `📄 Page ${pageCount}: fetched ${
+          items?.length ?? 0
+        } items in ${fetchTime}ms`
+      );
+
+      if (!items || items.length === 0) {
+        break;
+      }
+
+      // Update pagination state
+      cursor = pagination?.cursor;
+      if (typeof pagination?.page === "number") page = pagination.page;
+      if (typeof pagination?.offset === "number") offset = pagination.offset;
+      hasMore = !!pagination?.hasMore;
+
+      // Process current page
+      const objects = items.map((it) => ({
+        externalId: String(it.externalId),
+        externalUpdatedAt: it.externalUpdatedAt
+          ? String(it.externalUpdatedAt)
+          : null,
+        data: it.data,
+      }));
+
+      // Fire-and-forget upsert (don't await) - track promise for error handling
+      const upsertPromise = upsertObjectBatch({
+        collectionName,
+        syncId,
+        modelName,
+        app,
+        customApp,
+        objects,
+        cursor: pagination?.cursor,
+        page:
+          typeof pagination?.page === "number" ? pagination.page : undefined,
+        offset:
+          typeof pagination?.offset === "number"
+            ? pagination.offset
+            : undefined,
+        async: true,
+      }).catch((error) => {
+        console.error(`Failed to upsert batch for ${modelName}:`, error);
+        throw error; // Re-throw to fail the sync
+      });
+
+      pendingUpserts.push(upsertPromise);
+
+      // Update watermarks (server will track actual success)
+      const last = objects[objects.length - 1];
+      lastExternalId = last.externalId;
+      lastExternalUpdatedAt = last.externalUpdatedAt || undefined;
+
+      // Every 10 pages, await all pending to prevent unbounded growth and catch errors
+      if (pendingUpserts.length >= 10) {
+        const checkpointStart = Date.now();
+        await Promise.all(pendingUpserts);
+        const checkpointTime = Date.now() - checkpointStart;
+        const totalTime = Date.now() - pullStartTime;
+        const avgPerPage = totalTime / pageCount;
+        console.info(
+          `✅ Checkpoint at page ${pageCount}: ${
+            pendingUpserts.length
+          } upserts completed in ${checkpointTime}ms (avg ${avgPerPage.toFixed(
+            0
+          )}ms/page)`
+        );
+        pendingUpserts.length = 0;
+      }
+    }
+
+    // Wait for any remaining upserts
+    if (pendingUpserts.length > 0) {
+      const finalStart = Date.now();
+      await Promise.all(pendingUpserts);
+      const finalTime = Date.now() - finalStart;
+      console.info(
+        `✅ Final ${pendingUpserts.length} upserts completed in ${finalTime}ms`
+      );
+    }
+
+    const totalPullTime = Date.now() - pullStartTime;
+    console.info(
+      `📊 PULL complete: ${pageCount} pages in ${(totalPullTime / 1000).toFixed(
+        1
+      )}s (avg ${(totalPullTime / pageCount).toFixed(0)}ms/page)`
+    );
+  }
+
+  /**
+   * Perform PUSH phase for a single model
+   */
+  private async performPushForModel(props: {
+    modelName: string;
+    connector: ModelConnector;
+    syncId: string;
+    collectionName: string;
+  }): Promise<void> {
+    const { modelName, connector, syncId, collectionName } = props;
+
+    console.info(`PUSH phase started for model ${modelName}`);
+
+    while (true) {
+      if (isTimeLimitExceeded()) {
+        await pauseSync(syncId);
+        throw "RERUN";
+      }
+
+      const delta = await retrieveDelta({
+        collectionName,
+        syncId,
+        modelName,
+      });
+      console.info(
+        `Delta received for model ${modelName}: operation=${
+          (delta as any).operation
+        } count=${(delta as any).changes?.length ?? 0}`
+      );
+
+      if (!delta.changes || delta.changes.length === 0) break;
+
+      if (connector.batchCreate && delta.operation === "CREATE") {
+        console.info(
+          `Creating ${delta.changes.length} items for model ${modelName} (batch)`
+        );
+        const payloadType =
+          connector.config.batchCreate?.payloadType ??
+          (connector.config.batchCreate?.extract ? "changes" : "items");
+        const batchInput =
+          payloadType === "changes"
+            ? delta.changes.map((change: any) => {
+                const payload =
+                  change.data ?? change.obj ?? change.payload ?? null;
+                return {
+                  ...change,
+                  data: payload,
+                  obj: change.obj ?? payload,
+                };
+              })
+            : delta.changes.map((c: any) => c.data);
+
+        const created = await connector.batchCreate(batchInput as any);
+
+        let changesToConfirm: Array<{
+          changeId: string;
+          externalId: string;
+          externalUpdatedAt: string | null;
+        }> = [];
+
+        const looksLikeConfirmations =
+          Array.isArray(created) &&
+          created.length > 0 &&
+          created.every(
+            (item: any) =>
+              item &&
+              typeof item === "object" &&
+              "changeId" in item &&
+              ("externalId" in item || "externalUpdatedAt" in item)
+          );
+
+        if (looksLikeConfirmations) {
+          const changeById = new Map(
+            delta.changes.map((change: any) => [change.changeId, change])
+          );
+          changesToConfirm = (created as any).map((item: any) => {
+            const change = changeById.get(String(item.changeId));
+            const externalIdCandidate =
+              item.externalId ??
+              change?.externalId ??
+              change?.data?.id ??
+              change?.data?.externalId;
+            if (
+              externalIdCandidate === undefined ||
+              externalIdCandidate === null
+            ) {
+              throw new Error(
+                `Batch create extract did not provide externalId for change ${item.changeId}`
+              );
+            }
+            return {
+              changeId: String(item.changeId),
+              externalId: String(externalIdCandidate),
+              externalUpdatedAt:
+                item.externalUpdatedAt === undefined ||
+                item.externalUpdatedAt === null
+                  ? null
+                  : String(item.externalUpdatedAt),
+            };
+          });
+        } else {
+          const createdArray = Array.isArray(created) ? created : [];
+          changesToConfirm = createdArray.map((item: any, i: number) => {
+            const change = delta.changes[i];
+            const externalId = (
+              connector.config.create?.extract
+                ? connector.config.create.extract(item)
+                : {
+                    externalId: (item.id ?? item.externalId) as string,
+                    externalUpdatedAt: (item.updatedAt ?? null) as any,
+                  }
+            ) as any;
+            return {
+              changeId: change.changeId,
+              externalId: String(
+                externalId.externalId ?? externalId.id ?? item.id
+              ),
+              externalUpdatedAt: externalId.externalUpdatedAt ?? null,
+            };
+          });
+        }
+
+        try {
+          console.debug(
+            `Confirming ${changesToConfirm.length} CREATE (batch) changes for model ${modelName}:`,
+            changesToConfirm.map((c) => ({
+              changeId: c.changeId,
+              externalId: c.externalId,
+              externalUpdatedAt: c.externalUpdatedAt,
+            }))
+          );
+        } catch {}
+        await confirmChangeBatch({
+          syncId,
+          changes: changesToConfirm,
+          async: true,
+        });
+        console.info(
+          `Confirmed ${changesToConfirm.length} CREATE changes for model ${modelName}`
+        );
+      } else if (connector.batchUpdate && delta.operation === "UPDATE") {
+        console.info(
+          `Updating ${delta.changes.length} items for model ${modelName} (batch)`
+        );
+        const payloadType =
+          connector.config.batchUpdate?.payloadType ??
+          (connector.config.batchUpdate?.extract ? "changes" : "items");
+        const batchInput =
+          payloadType === "changes"
+            ? delta.changes.map((change: any) => {
+                const payload =
+                  change.data ?? change.obj ?? change.payload ?? {};
+                const externalId = String(change.externalId ?? change.id);
+                return {
+                  ...change,
+                  externalId,
+                  id: change.id ?? externalId,
+                  data: payload,
+                  obj: change.obj ?? payload,
+                } as BatchUpdateChange<any>;
+              })
+            : delta.changes.map((c: any) => ({
+                id: c.externalId,
+                data: c.data,
+              }));
+        const updated = await connector.batchUpdate(batchInput as any);
+
+        let changesToConfirm: Array<{
+          changeId: string;
+          externalId: string;
+          externalUpdatedAt: string | null;
+        }> = [];
+
+        const looksLikeConfirmations =
+          Array.isArray(updated) &&
+          updated.length > 0 &&
+          updated.every(
+            (item: any) =>
+              item &&
+              typeof item === "object" &&
+              "changeId" in item &&
+              ("externalId" in item || "externalUpdatedAt" in item)
+          );
+
+        if (looksLikeConfirmations) {
+          const changeById = new Map(
+            delta.changes.map((change: any) => [change.changeId, change])
+          );
+          changesToConfirm = (updated as any).map((item: any) => {
+            const change = changeById.get(String(item.changeId));
+            const externalIdCandidate =
+              item.externalId ??
+              change?.externalId ??
+              change?.data?.id ??
+              change?.data?.externalId;
+            if (
+              externalIdCandidate === undefined ||
+              externalIdCandidate === null
+            ) {
+              throw new Error(
+                `Batch update extract did not provide externalId for change ${item.changeId}`
+              );
+            }
+            return {
+              changeId: String(item.changeId),
+              externalId: String(externalIdCandidate),
+              externalUpdatedAt:
+                item.externalUpdatedAt === undefined ||
+                item.externalUpdatedAt === null
+                  ? null
+                  : String(item.externalUpdatedAt),
+            };
+          });
+        } else {
+          const updatedArray = Array.isArray(updated) ? updated : [];
+          changesToConfirm = updatedArray.map((item: any, i: number) => {
+            const change = delta.changes[i];
+            const extracted = (
+              connector.config.update?.extract
+                ? connector.config.update.extract(item)
+                : {
+                    externalId: change.externalId,
+                    externalUpdatedAt: (item?.updatedAt ?? null) as any,
+                  }
+            ) as any;
+            return {
+              changeId: change.changeId,
+              externalId: String(extracted.externalId ?? change.externalId),
+              externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+            };
+          });
+        }
+
+        try {
+          console.debug(
+            `Confirming ${changesToConfirm.length} UPDATE (batch) changes for model ${modelName}:`,
+            changesToConfirm.map((c) => ({
+              changeId: c.changeId,
+              externalId: c.externalId,
+              externalUpdatedAt: c.externalUpdatedAt,
+            }))
+          );
+        } catch {}
+        await confirmChangeBatch({
+          syncId,
+          changes: changesToConfirm,
+          async: true,
+        });
+        console.info(
+          `Confirmed ${changesToConfirm.length} UPDATE changes for model ${modelName}`
+        );
+      } else if (connector.batchDelete && delta.operation === "DELETE") {
+        console.info(
+          `Deleting ${delta.changes.length} items for model ${modelName} (batch)`
+        );
+        const payloadType =
+          connector.config.batchDelete?.payloadType ??
+          (connector.config.batchDelete?.extract ? "changes" : "ids");
+        const batchInput =
+          payloadType === "changes"
+            ? delta.changes.map((change: any) => ({
+                ...change,
+                externalId: String(change.externalId ?? change.id),
+                id: change.id ?? change.externalId,
+              }))
+            : delta.changes.map((c: any) => ({
+                changeId: c.changeId,
+                externalId: String(c.externalId),
+              }));
+        const deleted = await connector.batchDelete(batchInput as any);
+        let changesToConfirm: Array<{
+          changeId: string;
+          externalId: string;
+        }> = [];
+
+        const looksLikeConfirmations =
+          Array.isArray(deleted) &&
+          deleted.length > 0 &&
+          deleted.every(
+            (item: any) =>
+              item &&
+              typeof item === "object" &&
+              "changeId" in item &&
+              ("externalId" in item || "externalUpdatedAt" in item)
+          );
+
+        if (looksLikeConfirmations) {
+          const changeById = new Map(
+            delta.changes.map((change: any) => [change.changeId, change])
+          );
+          changesToConfirm = (deleted as any).map((item: any) => {
+            const change = changeById.get(String(item.changeId));
+            const externalIdCandidate =
+              item.externalId ?? change?.externalId ?? change?.id;
+            if (
+              externalIdCandidate === undefined ||
+              externalIdCandidate === null
+            ) {
+              throw new Error(
+                `Batch delete extract did not provide externalId for change ${item.changeId}`
+              );
+            }
+            return {
+              changeId: String(item.changeId),
+              externalId: String(externalIdCandidate),
+            };
+          });
+        } else {
+          changesToConfirm = delta.changes.map((c: any) => ({
+            changeId: c.changeId,
+            externalId: String(c.externalId),
+          }));
+        }
+
+        await confirmChangeBatch({
+          syncId,
+          changes: changesToConfirm,
+          async: true,
+        });
+        console.info(
+          `Confirmed ${changesToConfirm.length} DELETE changes for model ${modelName}`
+        );
+      } else {
+        // Fallback to non-batch
+        if (delta.operation === "CREATE" && connector.create) {
+          console.info(
+            `Creating ${delta.changes.length} items for model ${modelName} (non-batch)`
+          );
+          const confirmations: Array<{
+            changeId: string;
+            externalId: string;
+            externalUpdatedAt: string | null;
+          }> = [];
+          for (const change of delta.changes) {
+            const created = await connector.create(change.data);
+            const extracted = (
+              connector.config.create?.extract
+                ? connector.config.create.extract(created)
+                : {
+                    externalId: (created as any).id as string,
+                    externalUpdatedAt: ((created as any).updatedAt ??
+                      null) as any,
+                  }
+            ) as any;
+            confirmations.push({
+              changeId: change.changeId,
+              externalId: String(extracted.externalId ?? (created as any).id),
+              externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+            });
+            try {
+              console.debug(
+                `Confirming CREATE (non-batch) change for model ${modelName}:`,
+                {
+                  changeId: change.changeId,
+                  externalId: String(
+                    extracted.externalId ?? (created as any).id
+                  ),
+                  externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+                }
+              );
+            } catch {}
+          }
+          await confirmChangeBatch({
+            syncId,
+            changes: confirmations,
+            async: true,
+          });
+          console.info(
+            `Confirmed ${confirmations.length} CREATE changes for model ${modelName}`
+          );
+        } else if (delta.operation === "UPDATE" && connector.update) {
+          console.info(
+            `Updating ${delta.changes.length} items for model ${modelName} (non-batch)`
+          );
+          const confirmations: Array<{
+            changeId: string;
+            externalId: string;
+            externalUpdatedAt: string | null;
+          }> = [];
+          for (const change of delta.changes) {
+            const updated = await connector.update(
+              change.externalId,
+              change.data
+            );
+            const extracted = (
+              connector.config.update?.extract
+                ? connector.config.update.extract(updated)
+                : {
+                    externalId: change.externalId,
+                    externalUpdatedAt: ((updated as any).updatedAt ??
+                      null) as any,
+                  }
+            ) as any;
+            confirmations.push({
+              changeId: change.changeId,
+              externalId: String(extracted.externalId ?? change.externalId),
+              externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+            });
+            try {
+              console.debug(
+                `Confirming UPDATE (non-batch) change for model ${modelName}:`,
+                {
+                  changeId: change.changeId,
+                  externalId: String(extracted.externalId ?? change.externalId),
+                  externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+                }
+              );
+            } catch {}
+          }
+          await confirmChangeBatch({
+            syncId,
+            changes: confirmations,
+            async: true,
+          });
+          console.info(
+            `Confirmed ${confirmations.length} UPDATE changes for model ${modelName}`
+          );
+        } else if (delta.operation === "DELETE" && connector.delete) {
+          console.info(
+            `Deleting ${delta.changes.length} items for model ${modelName} (non-batch)`
+          );
+          const confirmations: Array<{
+            changeId: string;
+            externalId: string;
+          }> = [];
+          for (const change of delta.changes) {
+            await connector.delete(change.externalId);
+            confirmations.push({
+              changeId: change.changeId,
+              externalId: String(change.externalId),
+            });
+          }
+          await confirmChangeBatch({
+            syncId,
+            changes: confirmations,
+            async: true,
+          });
+          console.info(
+            `Confirmed ${confirmations.length} DELETE changes for model ${modelName}`
+          );
+        } else {
+          // No applicable operation configured; nothing to push
+          break;
+        }
+      }
+    }
+  }
+
   private async syncLegacy(type?: "FULL" | "INCREMENTAL"): Promise<void> {
     // Test/offline mode: perform a local sync without platform API calls
     try {
@@ -2481,11 +3210,35 @@ export class SyncConnector<
       );
     } catch {}
 
+    // Determine which phase we're resuming into and which model
     const currentModelName: string | undefined =
       sync.currentModel?.name ?? undefined;
+    const currentDirection: "PULL" | "PUSH" | null =
+      sync.currentDirection ?? null;
+
+    // Adjust models list based on resume point
+    let pullModelsToSync = [...modelsToSync];
+    let pushModelsToSync = [...modelsToSync];
+
+    // If resuming, slice the appropriate list
     if (currentModelName) {
       const idx = modelsToSync.indexOf(currentModelName);
-      if (idx >= 0) modelsToSync = modelsToSync.slice(idx);
+      if (idx >= 0) {
+        if (currentDirection === "PULL") {
+          // Resume from current model in PULL phase
+          pullModelsToSync = modelsToSync.slice(idx);
+          // Start PUSH phase from beginning
+          pushModelsToSync = modelsToSync;
+        } else if (currentDirection === "PUSH") {
+          // Skip PULL phase entirely, start PUSH from current model
+          pullModelsToSync = [];
+          pushModelsToSync = modelsToSync.slice(idx);
+        } else {
+          // No direction set, resume from current model (pull first)
+          pullModelsToSync = modelsToSync.slice(idx);
+          pushModelsToSync = modelsToSync;
+        }
+      }
     }
 
     let hadError = false;
@@ -2512,645 +3265,76 @@ export class SyncConnector<
       return false;
     };
 
+    const requestedDirection: "pull" | "push" | "bidirectional" =
+      (sync.requestedDirection as any) || "bidirectional";
+    const shouldPull =
+      requestedDirection === "pull" || requestedDirection === "bidirectional";
+    const shouldPush =
+      requestedDirection === "push" || requestedDirection === "bidirectional";
+
     try {
-      for (const modelName of modelsToSync) {
-        const connector = this.modelConnectors.get(modelName);
-        if (!connector) continue; // Skip missing connectors
+      // PHASE 1: PULL all models
+      if (shouldPull && pullModelsToSync.length > 0) {
+        console.info(
+          `🔄 Starting PULL phase for ${pullModelsToSync.length} models`
+        );
+        await updateSync({ syncId, currentDirection: "PULL" });
 
-        await updateSync({ syncId, currentModelName: modelName });
-
-        // Load latest sync state before starting model
-        let state = await getSync({ syncId });
-        const requestedDirection: "pull" | "push" | "bidirectional" =
-          (state.requestedDirection as any) || "bidirectional";
-        let currentDirection: "PULL" | "PUSH" | null =
-          state.currentDirection ?? null;
-
-        // Read model watermarks
-        let cursor: string | undefined;
-        if (
-          state.lastBatch?.modelName === modelName &&
-          state.lastBatch?.cursor
-        ) {
-          cursor = state.lastBatch.cursor;
-        } else if (state.modelStatuses?.[modelName]?.cursor) {
-          cursor = state.modelStatuses[modelName].cursor;
-        }
-        let lastExternalId: string | undefined =
-          state.modelStatuses?.[modelName]?.lastExternalId ?? undefined;
-        let lastExternalUpdatedAt: string | undefined =
-          state.modelStatuses?.[modelName]?.lastExternalUpdatedAt ?? undefined;
-        const syncType: "FULL" | "INCREMENTAL" = state.type || "FULL";
-        // Determine page/offset using model-specific status when available
-        let page: number | undefined =
-          typeof state.modelStatuses?.[modelName]?.page === "number"
-            ? state.modelStatuses[modelName].page
-            : typeof state.page === "number"
-            ? state.page
-            : undefined;
-        let offset: number | undefined =
-          typeof state.modelStatuses?.[modelName]?.offset === "number"
-            ? state.modelStatuses[modelName].offset
-            : typeof state.offset === "number"
-            ? state.offset
-            : undefined;
-
-        // PULL phase
-        if (
-          (requestedDirection === "pull" ||
-            requestedDirection === "bidirectional") &&
-          currentDirection !== "PUSH"
-        ) {
-          await updateSync({ syncId, currentDirection: "PULL" });
-          console.info(`PULL phase started for model ${modelName}`);
-          // Paginate using the configured list with parallel upserts for speed
-          const listFn = connector.list;
-          if (listFn) {
-            // Build initial params
-            const buildParams = () => {
-              const params: any = {};
-              if (cursor) params.cursor = cursor;
-              if (typeof page === "number") params.page = page;
-              if (typeof offset === "number") params.offset = offset;
-              if (lastExternalId) params.lastExternalId = lastExternalId;
-              if (lastExternalUpdatedAt)
-                params.lastExternalUpdatedAt = lastExternalUpdatedAt;
-              params.syncType = syncType;
-              return params;
-            };
-
-            // Track pending upserts for error handling
-            const pendingUpserts: Promise<void>[] = [];
-            let hasMore: boolean = true;
-            let pageCount = 0;
-            const pullStartTime = Date.now();
-
-            while (hasMore) {
-              if (isTimeLimitExceeded()) {
-                // Wait for pending upserts before pausing
-                await Promise.all(pendingUpserts);
-                await pauseSync(syncId);
-                throw "RERUN";
-              }
-
-              const fetchStart = Date.now();
-              // Fetch next page
-              const { items, pagination } = await listFn(buildParams());
-              const fetchTime = Date.now() - fetchStart;
-              pageCount++;
-
-              console.info(
-                `📄 Page ${pageCount}: fetched ${
-                  items?.length ?? 0
-                } items in ${fetchTime}ms`
-              );
-
-              if (!items || items.length === 0) {
-                break;
-              }
-
-              // Update pagination state
-              cursor = pagination?.cursor;
-              if (typeof pagination?.page === "number") page = pagination.page;
-              if (typeof pagination?.offset === "number")
-                offset = pagination.offset;
-              hasMore = !!pagination?.hasMore;
-
-              // Process current page
-              const objects = items.map((it) => ({
-                externalId: String(it.externalId),
-                externalUpdatedAt: it.externalUpdatedAt
-                  ? String(it.externalUpdatedAt)
-                  : null,
-                data: it.data,
-              }));
-
-              // Fire-and-forget upsert (don't await) - track promise for error handling
-              const upsertPromise = upsertObjectBatch({
-                collectionName,
-                syncId,
-                modelName,
-                app,
-                customApp,
-                objects,
-                cursor: pagination?.cursor,
-                page:
-                  typeof pagination?.page === "number"
-                    ? pagination.page
-                    : undefined,
-                offset:
-                  typeof pagination?.offset === "number"
-                    ? pagination.offset
-                    : undefined,
-                async: true,
-              }).catch((error) => {
-                console.error(
-                  `Failed to upsert batch for ${modelName}:`,
-                  error
-                );
-                throw error; // Re-throw to fail the sync
-              });
-
-              pendingUpserts.push(upsertPromise);
-
-              // Update watermarks (server will track actual success)
-              const last = objects[objects.length - 1];
-              lastExternalId = last.externalId;
-              lastExternalUpdatedAt = last.externalUpdatedAt || undefined;
-
-              // Every 10 pages, await all pending to prevent unbounded growth and catch errors
-              if (pendingUpserts.length >= 10) {
-                const checkpointStart = Date.now();
-                await Promise.all(pendingUpserts);
-                const checkpointTime = Date.now() - checkpointStart;
-                const totalTime = Date.now() - pullStartTime;
-                const avgPerPage = totalTime / pageCount;
-                console.info(
-                  `✅ Checkpoint at page ${pageCount}: ${
-                    pendingUpserts.length
-                  } upserts completed in ${checkpointTime}ms (avg ${avgPerPage.toFixed(
-                    0
-                  )}ms/page)`
-                );
-                pendingUpserts.length = 0;
-              }
-            }
-
-            // Wait for any remaining upserts
-            if (pendingUpserts.length > 0) {
-              const finalStart = Date.now();
-              await Promise.all(pendingUpserts);
-              const finalTime = Date.now() - finalStart;
-              console.info(
-                `✅ Final ${pendingUpserts.length} upserts completed in ${finalTime}ms`
-              );
-            }
-
-            const totalPullTime = Date.now() - pullStartTime;
-            console.info(
-              `📊 PULL complete: ${pageCount} pages in ${(
-                totalPullTime / 1000
-              ).toFixed(1)}s (avg ${(totalPullTime / pageCount).toFixed(
-                0
-              )}ms/page)`
-            );
+        for (const modelName of pullModelsToSync) {
+          const connector = this.modelConnectors.get(modelName);
+          if (!connector) {
+            console.info(`No connector for model ${modelName}, skipping`);
+            continue;
           }
+
+          await updateSync({ syncId, currentModelName: modelName });
+
+          // Load latest sync state before starting model
+          const state = await getSync({ syncId });
+
+          await this.performPullForModel({
+            modelName,
+            connector,
+            syncId,
+            collectionName,
+            app,
+            customApp,
+            state,
+          });
         }
 
-        // PUSH phase
-        if (
-          requestedDirection === "push" ||
-          requestedDirection === "bidirectional"
-        ) {
-          await updateSync({ syncId, currentDirection: "PUSH" });
-          console.info(`PUSH phase started for model ${modelName}`);
-
-          while (true) {
-            if (isTimeLimitExceeded()) {
-              await pauseSync(syncId);
-              throw "RERUN";
-            }
-
-            const delta = await retrieveDelta({
-              collectionName,
-              syncId,
-              modelName,
-            });
-            console.info(
-              `Delta received for model ${modelName}: operation=${
-                (delta as any).operation
-              } count=${(delta as any).changes?.length ?? 0}`
-            );
-
-            if (!delta.changes || delta.changes.length === 0) break;
-
-            if (connector.batchCreate && delta.operation === "CREATE") {
-              console.info(
-                `Creating ${delta.changes.length} items for model ${modelName} (batch)`
-              );
-              const payloadType =
-                connector.config.batchCreate?.payloadType ??
-                (connector.config.batchCreate?.extract ? "changes" : "items");
-              const batchInput =
-                payloadType === "changes"
-                  ? delta.changes.map((change: any) => {
-                      const payload =
-                        change.data ?? change.obj ?? change.payload ?? null;
-                      return {
-                        ...change,
-                        data: payload,
-                        obj: change.obj ?? payload,
-                      };
-                    })
-                  : delta.changes.map((c: any) => c.data);
-
-              const created = await connector.batchCreate(batchInput as any);
-
-              let changesToConfirm: Array<{
-                changeId: string;
-                externalId: string;
-                externalUpdatedAt: string | null;
-              }> = [];
-
-              const looksLikeConfirmations =
-                Array.isArray(created) &&
-                created.length > 0 &&
-                created.every(
-                  (item: any) =>
-                    item &&
-                    typeof item === "object" &&
-                    "changeId" in item &&
-                    ("externalId" in item || "externalUpdatedAt" in item)
-                );
-
-              if (looksLikeConfirmations) {
-                const changeById = new Map(
-                  delta.changes.map((change: any) => [change.changeId, change])
-                );
-                changesToConfirm = (created as any).map((item: any) => {
-                  const change = changeById.get(String(item.changeId));
-                  const externalIdCandidate =
-                    item.externalId ??
-                    change?.externalId ??
-                    change?.data?.id ??
-                    change?.data?.externalId;
-                  if (
-                    externalIdCandidate === undefined ||
-                    externalIdCandidate === null
-                  ) {
-                    throw new Error(
-                      `Batch create extract did not provide externalId for change ${item.changeId}`
-                    );
-                  }
-                  return {
-                    changeId: String(item.changeId),
-                    externalId: String(externalIdCandidate),
-                    externalUpdatedAt:
-                      item.externalUpdatedAt === undefined ||
-                      item.externalUpdatedAt === null
-                        ? null
-                        : String(item.externalUpdatedAt),
-                  };
-                });
-              } else {
-                const createdArray = Array.isArray(created) ? created : [];
-                changesToConfirm = createdArray.map((item: any, i: number) => {
-                  const change = delta.changes[i];
-                  const externalId = (
-                    connector.config.create?.extract
-                      ? connector.config.create.extract(item)
-                      : {
-                          externalId: (item.id ?? item.externalId) as string,
-                          externalUpdatedAt: (item.updatedAt ?? null) as any,
-                        }
-                  ) as any;
-                  return {
-                    changeId: change.changeId,
-                    externalId: String(
-                      externalId.externalId ?? externalId.id ?? item.id
-                    ),
-                    externalUpdatedAt: externalId.externalUpdatedAt ?? null,
-                  };
-                });
-              }
-
-              try {
-                console.debug(
-                  `Confirming ${changesToConfirm.length} CREATE (batch) changes for model ${modelName}:`,
-                  changesToConfirm.map((c) => ({
-                    changeId: c.changeId,
-                    externalId: c.externalId,
-                    externalUpdatedAt: c.externalUpdatedAt,
-                  }))
-                );
-              } catch {}
-              await confirmChangeBatch({
-                syncId,
-                changes: changesToConfirm,
-                async: true,
-              });
-              console.info(
-                `Confirmed ${changesToConfirm.length} CREATE changes for model ${modelName}`
-              );
-            } else if (connector.batchUpdate && delta.operation === "UPDATE") {
-              console.info(
-                `Updating ${delta.changes.length} items for model ${modelName} (batch)`
-              );
-              const payloadType =
-                connector.config.batchUpdate?.payloadType ??
-                (connector.config.batchUpdate?.extract ? "changes" : "items");
-              const batchInput =
-                payloadType === "changes"
-                  ? delta.changes.map((change: any) => {
-                      const payload =
-                        change.data ?? change.obj ?? change.payload ?? {};
-                      const externalId = String(change.externalId ?? change.id);
-                      return {
-                        ...change,
-                        externalId,
-                        id: change.id ?? externalId,
-                        data: payload,
-                        obj: change.obj ?? payload,
-                      } as BatchUpdateChange<any>;
-                    })
-                  : delta.changes.map((c: any) => ({
-                      id: c.externalId,
-                      data: c.data,
-                    }));
-              const updated = await connector.batchUpdate(batchInput as any);
-
-              let changesToConfirm: Array<{
-                changeId: string;
-                externalId: string;
-                externalUpdatedAt: string | null;
-              }> = [];
-
-              const looksLikeConfirmations =
-                Array.isArray(updated) &&
-                updated.length > 0 &&
-                updated.every(
-                  (item: any) =>
-                    item &&
-                    typeof item === "object" &&
-                    "changeId" in item &&
-                    ("externalId" in item || "externalUpdatedAt" in item)
-                );
-
-              if (looksLikeConfirmations) {
-                const changeById = new Map(
-                  delta.changes.map((change: any) => [change.changeId, change])
-                );
-                changesToConfirm = (updated as any).map((item: any) => {
-                  const change = changeById.get(String(item.changeId));
-                  const externalIdCandidate =
-                    item.externalId ??
-                    change?.externalId ??
-                    change?.data?.id ??
-                    change?.data?.externalId;
-                  if (
-                    externalIdCandidate === undefined ||
-                    externalIdCandidate === null
-                  ) {
-                    throw new Error(
-                      `Batch update extract did not provide externalId for change ${item.changeId}`
-                    );
-                  }
-                  return {
-                    changeId: String(item.changeId),
-                    externalId: String(externalIdCandidate),
-                    externalUpdatedAt:
-                      item.externalUpdatedAt === undefined ||
-                      item.externalUpdatedAt === null
-                        ? null
-                        : String(item.externalUpdatedAt),
-                  };
-                });
-              } else {
-                const updatedArray = Array.isArray(updated) ? updated : [];
-                changesToConfirm = updatedArray.map((item: any, i: number) => {
-                  const change = delta.changes[i];
-                  const extracted = (
-                    connector.config.update?.extract
-                      ? connector.config.update.extract(item)
-                      : {
-                          externalId: change.externalId,
-                          externalUpdatedAt: (item?.updatedAt ?? null) as any,
-                        }
-                  ) as any;
-                  return {
-                    changeId: change.changeId,
-                    externalId: String(
-                      extracted.externalId ?? change.externalId
-                    ),
-                    externalUpdatedAt: extracted.externalUpdatedAt ?? null,
-                  };
-                });
-              }
-
-              try {
-                console.debug(
-                  `Confirming ${changesToConfirm.length} UPDATE (batch) changes for model ${modelName}:`,
-                  changesToConfirm.map((c) => ({
-                    changeId: c.changeId,
-                    externalId: c.externalId,
-                    externalUpdatedAt: c.externalUpdatedAt,
-                  }))
-                );
-              } catch {}
-              await confirmChangeBatch({
-                syncId,
-                changes: changesToConfirm,
-                async: true,
-              });
-              console.info(
-                `Confirmed ${changesToConfirm.length} UPDATE changes for model ${modelName}`
-              );
-            } else if (connector.batchDelete && delta.operation === "DELETE") {
-              console.info(
-                `Deleting ${delta.changes.length} items for model ${modelName} (batch)`
-              );
-              const payloadType =
-                connector.config.batchDelete?.payloadType ??
-                (connector.config.batchDelete?.extract ? "changes" : "ids");
-              const batchInput =
-                payloadType === "changes"
-                  ? delta.changes.map((change: any) => ({
-                      ...change,
-                      externalId: String(change.externalId ?? change.id),
-                      id: change.id ?? change.externalId,
-                    }))
-                  : delta.changes.map((c: any) => ({
-                      changeId: c.changeId,
-                      externalId: String(c.externalId),
-                    }));
-              const deleted = await connector.batchDelete(batchInput as any);
-              let changesToConfirm: Array<{
-                changeId: string;
-                externalId: string;
-              }> = [];
-
-              const looksLikeConfirmations =
-                Array.isArray(deleted) &&
-                deleted.length > 0 &&
-                deleted.every(
-                  (item: any) =>
-                    item &&
-                    typeof item === "object" &&
-                    "changeId" in item &&
-                    ("externalId" in item || "externalUpdatedAt" in item)
-                );
-
-              if (looksLikeConfirmations) {
-                const changeById = new Map(
-                  delta.changes.map((change: any) => [change.changeId, change])
-                );
-                changesToConfirm = (deleted as any).map((item: any) => {
-                  const change = changeById.get(String(item.changeId));
-                  const externalIdCandidate =
-                    item.externalId ?? change?.externalId ?? change?.id;
-                  if (
-                    externalIdCandidate === undefined ||
-                    externalIdCandidate === null
-                  ) {
-                    throw new Error(
-                      `Batch delete extract did not provide externalId for change ${item.changeId}`
-                    );
-                  }
-                  return {
-                    changeId: String(item.changeId),
-                    externalId: String(externalIdCandidate),
-                  };
-                });
-              } else {
-                changesToConfirm = delta.changes.map((c: any) => ({
-                  changeId: c.changeId,
-                  externalId: String(c.externalId),
-                }));
-              }
-
-              await confirmChangeBatch({
-                syncId,
-                changes: changesToConfirm,
-                async: true,
-              });
-              console.info(
-                `Confirmed ${changesToConfirm.length} DELETE changes for model ${modelName}`
-              );
-            } else {
-              // Fallback to non-batch
-              if (delta.operation === "CREATE" && connector.create) {
-                console.info(
-                  `Creating ${delta.changes.length} items for model ${modelName} (non-batch)`
-                );
-                const confirmations: Array<{
-                  changeId: string;
-                  externalId: string;
-                  externalUpdatedAt: string | null;
-                }> = [];
-                for (const change of delta.changes) {
-                  const created = await connector.create(change.data);
-                  const extracted = (
-                    connector.config.create?.extract
-                      ? connector.config.create.extract(created)
-                      : {
-                          externalId: (created as any).id as string,
-                          externalUpdatedAt: ((created as any).updatedAt ??
-                            null) as any,
-                        }
-                  ) as any;
-                  confirmations.push({
-                    changeId: change.changeId,
-                    externalId: String(
-                      extracted.externalId ?? (created as any).id
-                    ),
-                    externalUpdatedAt: extracted.externalUpdatedAt ?? null,
-                  });
-                  try {
-                    console.debug(
-                      `Confirming CREATE (non-batch) change for model ${modelName}:`,
-                      {
-                        changeId: change.changeId,
-                        externalId: String(
-                          extracted.externalId ?? (created as any).id
-                        ),
-                        externalUpdatedAt: extracted.externalUpdatedAt ?? null,
-                      }
-                    );
-                  } catch {}
-                }
-                await confirmChangeBatch({
-                  syncId,
-                  changes: confirmations,
-                  async: true,
-                });
-                console.info(
-                  `Confirmed ${confirmations.length} CREATE changes for model ${modelName}`
-                );
-              } else if (delta.operation === "UPDATE" && connector.update) {
-                console.info(
-                  `Updating ${delta.changes.length} items for model ${modelName} (non-batch)`
-                );
-                const confirmations: Array<{
-                  changeId: string;
-                  externalId: string;
-                  externalUpdatedAt: string | null;
-                }> = [];
-                for (const change of delta.changes) {
-                  const updated = await connector.update(
-                    change.externalId,
-                    change.data
-                  );
-                  const extracted = (
-                    connector.config.update?.extract
-                      ? connector.config.update.extract(updated)
-                      : {
-                          externalId: change.externalId,
-                          externalUpdatedAt: ((updated as any).updatedAt ??
-                            null) as any,
-                        }
-                  ) as any;
-                  confirmations.push({
-                    changeId: change.changeId,
-                    externalId: String(
-                      extracted.externalId ?? change.externalId
-                    ),
-                    externalUpdatedAt: extracted.externalUpdatedAt ?? null,
-                  });
-                  try {
-                    console.debug(
-                      `Confirming UPDATE (non-batch) change for model ${modelName}:`,
-                      {
-                        changeId: change.changeId,
-                        externalId: String(
-                          extracted.externalId ?? change.externalId
-                        ),
-                        externalUpdatedAt: extracted.externalUpdatedAt ?? null,
-                      }
-                    );
-                  } catch {}
-                }
-                await confirmChangeBatch({
-                  syncId,
-                  changes: confirmations,
-                  async: true,
-                });
-                console.info(
-                  `Confirmed ${confirmations.length} UPDATE changes for model ${modelName}`
-                );
-              } else if (delta.operation === "DELETE" && connector.delete) {
-                console.info(
-                  `Deleting ${delta.changes.length} items for model ${modelName} (non-batch)`
-                );
-                const confirmations: Array<{
-                  changeId: string;
-                  externalId: string;
-                }> = [];
-                for (const change of delta.changes) {
-                  await connector.delete(change.externalId);
-                  confirmations.push({
-                    changeId: change.changeId,
-                    externalId: String(change.externalId),
-                  });
-                }
-                await confirmChangeBatch({
-                  syncId,
-                  changes: confirmations,
-                  async: true,
-                });
-                console.info(
-                  `Confirmed ${confirmations.length} DELETE changes for model ${modelName}`
-                );
-              } else {
-                // No applicable operation configured; nothing to push
-                break;
-              }
-            }
-          }
-        }
-
-        // Clear direction after model finishes
-        await updateSync({ syncId, currentDirection: null });
+        console.info(`✅ PULL phase complete for all models`);
       }
+
+      // PHASE 2: PUSH all models
+      if (shouldPush && pushModelsToSync.length > 0) {
+        console.info(
+          `🔄 Starting PUSH phase for ${pushModelsToSync.length} models`
+        );
+        await updateSync({ syncId, currentDirection: "PUSH" });
+
+        for (const modelName of pushModelsToSync) {
+          const connector = this.modelConnectors.get(modelName);
+          if (!connector) {
+            console.info(`No connector for model ${modelName}, skipping`);
+            continue;
+          }
+
+          await updateSync({ syncId, currentModelName: modelName });
+
+          await this.performPushForModel({
+            modelName,
+            connector,
+            syncId,
+            collectionName,
+          });
+        }
+
+        console.info(`✅ PUSH phase complete for all models`);
+      }
+
+      // Clear direction after both phases complete
+      await updateSync({ syncId, currentDirection: null });
     } catch (e: any) {
       if (e === "RERUN") throw e;
       if (e === "SKIPPED") {
