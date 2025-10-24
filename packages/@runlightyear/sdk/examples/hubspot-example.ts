@@ -255,6 +255,7 @@ const hubspotSyncConnector = createSyncConnector(
 defineIntegration("hubspot-crm")
   .withTitle("HubSpot CRM")
   .withCustomApp(hubspotCustomApp)
+  .withCollection(hubspotCollection)
   .withActions(
     defineAction("hubspot-get-users")
       .withRun(async () => {

@@ -59,9 +59,16 @@ export default async function runAction({
   try {
     handler = runInContext(compiledCode).handler;
   } catch (error) {
-    console.error(String(error));
+    console.error(
+      `Error loading compiled code for action ${actionName}:`,
+      error
+    );
     status = "FAILED";
-    logs = [`[ERROR]: ${String(error)}`];
+    logs = [
+      `[ERROR]: ${
+        error instanceof Error ? error.message || String(error) : String(error)
+      }`,
+    ];
   }
 
   if (handler) {

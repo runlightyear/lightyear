@@ -15,9 +15,12 @@ describe("IntegrationBuilder", () => {
 
   describe("Basic integration creation", () => {
     it("should create a basic integration with built-in app", () => {
+      const collection = defineCollection("crm").deploy();
+
       const integration = defineIntegration("salesforce-sync")
         .withTitle("Salesforce Sync Integration")
         .withApp("salesforce")
+        .withCollection(collection)
         .deploy();
 
       expect(integration.name).toBe("salesforce-sync");
@@ -25,7 +28,7 @@ describe("IntegrationBuilder", () => {
       expect(integration.app.type).toBe("builtin");
       expect(integration.app.name).toBe("salesforce");
       expect(integration.app.definition).toBeUndefined();
-      expect(integration.collections).toEqual({});
+      expect(integration.collection).toEqual(collection);
       expect(integration.actions).toEqual({});
     });
 
@@ -36,9 +39,12 @@ describe("IntegrationBuilder", () => {
         .addSecret("client_secret")
         .deploy();
 
+      const collection = defineCollection("repositories").deploy();
+
       const integration = defineIntegration("github-sync")
         .withTitle("GitHub Integration")
         .withCustomApp(customApp)
+        .withCollection(collection)
         .deploy();
 
       expect(integration.name).toBe("github-sync");
@@ -46,22 +52,27 @@ describe("IntegrationBuilder", () => {
       expect(integration.app.type).toBe("custom");
       expect(integration.app.name).toBe("github");
       expect(integration.app.definition).toEqual(customApp);
+      expect(integration.collection).toEqual(collection);
     });
 
     it("should create an integration without title", () => {
+      const collection = defineCollection("contacts").deploy();
+
       const integration = defineIntegration("simple-integration")
         .withApp("hubspot")
+        .withCollection(collection)
         .deploy();
 
       expect(integration.name).toBe("simple-integration");
       expect(integration.title).toBeUndefined();
       expect(integration.app.type).toBe("builtin");
       expect(integration.app.name).toBe("hubspot");
+      expect(integration.collection).toEqual(collection);
     });
   });
 
   describe("Collections", () => {
-    it("should add collections to integration", () => {
+    it("should add collection to integration", () => {
       const tmp = defineCollection("tmp-models");
       const contact = defineModel(tmp, "contact").withTitle("Contact").deploy();
 
@@ -72,14 +83,14 @@ describe("IntegrationBuilder", () => {
 
       const integration = defineIntegration("crm-sync")
         .withApp("salesforce")
-        .withCollection("crm", crm)
+        .withCollection(crm)
         .deploy();
 
-      expect(integration.collections).toHaveProperty("crm");
-      expect(integration.collections.crm).toEqual(crm);
+      expect(integration.collection).toEqual(crm);
+      expect(integration.collection.name).toBe("crm");
     });
 
-    it("should add multiple collections at once", () => {
+    it("should allow changing collection", () => {
       const tmp = defineCollection("tmp-models");
       const contact = defineModel(tmp, "contact").deploy();
       const account = defineModel(tmp, "account").deploy();
@@ -87,47 +98,20 @@ describe("IntegrationBuilder", () => {
       const crm = defineCollection("crm").withModel(contact).deploy();
       const sales = defineCollection("sales").withModel(account).deploy();
 
-      const integration = defineIntegration("multi-sync")
+      const integration = defineIntegration("collection-change")
         .withApp("salesforce")
-        .withCollections({
-          crm: crm,
-          sales: sales,
-        })
+        .withCollection(crm)
+        .withCollection(sales) // Replaces previous collection
         .deploy();
 
-      expect(integration.collections).toHaveProperty("crm");
-      expect(integration.collections).toHaveProperty("sales");
-      expect(Object.keys(integration.collections)).toHaveLength(2);
-    });
-
-    it("should support adding collections incrementally", () => {
-      const tmp = defineCollection("tmp-models");
-      const contact = defineModel(tmp, "contact").deploy();
-      const account = defineModel(tmp, "account").deploy();
-      const opportunity = defineModel(tmp, "opportunity").deploy();
-
-      const crm = defineCollection("crm").withModel(contact).deploy();
-      const sales = defineCollection("sales").withModel(account).deploy();
-      const pipeline = defineCollection("pipeline")
-        .withModel(opportunity)
-        .deploy();
-
-      const integration = defineIntegration("incremental-sync")
-        .withApp("salesforce")
-        .withCollection("crm", crm)
-        .withCollection("sales", sales)
-        .withCollections({ pipeline })
-        .deploy();
-
-      expect(Object.keys(integration.collections)).toHaveLength(3);
-      expect(integration.collections.crm).toEqual(crm);
-      expect(integration.collections.sales).toEqual(sales);
-      expect(integration.collections.pipeline).toEqual(pipeline);
+      expect(integration.collection).toEqual(sales);
+      expect(integration.collection.name).toBe("sales");
     });
   });
 
   describe("Actions", () => {
     it("should add actions to integration", () => {
+      const collection = defineCollection("contacts").deploy();
       const syncAction = defineAction("sync-contacts")
         .withTitle("Sync Contacts")
         .withDescription("Synchronize contact data")
@@ -136,6 +120,7 @@ describe("IntegrationBuilder", () => {
 
       const integration = defineIntegration("contact-sync")
         .withApp("salesforce")
+        .withCollection(collection)
         .withAction(syncAction)
         .deploy();
 
@@ -144,6 +129,7 @@ describe("IntegrationBuilder", () => {
     });
 
     it("should add multiple actions at once", () => {
+      const collection = defineCollection("data").deploy();
       const syncAction = defineAction("sync-contacts")
         .withTitle("Sync Contacts")
         .deploy();
@@ -154,6 +140,7 @@ describe("IntegrationBuilder", () => {
 
       const integration = defineIntegration("multi-action-sync")
         .withApp("salesforce")
+        .withCollection(collection)
         .withActions([syncAction, exportAction])
         .deploy();
 
@@ -163,12 +150,14 @@ describe("IntegrationBuilder", () => {
     });
 
     it("should support adding actions incrementally", () => {
+      const collection = defineCollection("tasks").deploy();
       const syncAction = defineAction("sync").deploy();
       const importAction = defineAction("import").deploy();
       const exportAction = defineAction("export").deploy();
 
       const integration = defineIntegration("incremental-actions")
         .withApp("salesforce")
+        .withCollection(collection)
         .addAction(syncAction)
         .addAction(importAction)
         .addActions([exportAction])
@@ -180,7 +169,7 @@ describe("IntegrationBuilder", () => {
       expect(integration.actions.export).toEqual(exportAction);
     });
 
-    it("should work with both collections and actions", () => {
+    it("should work with both collection and actions", () => {
       const tmp = defineCollection("tmp-models");
       const contact = defineModel(tmp, "contact").deploy();
       const crm = defineCollection("crm").withModel(contact).deploy();
@@ -188,37 +177,48 @@ describe("IntegrationBuilder", () => {
 
       const integration = defineIntegration("complete-integration")
         .withApp("salesforce")
-        .withCollection("crm", crm)
+        .withCollection(crm)
         .withAction(syncAction)
         .deploy();
 
-      expect(Object.keys(integration.collections)).toHaveLength(1);
+      expect(integration.collection).toEqual(crm);
       expect(Object.keys(integration.actions)).toHaveLength(1);
-      expect(integration.collections.crm).toEqual(crm);
       expect(integration.actions.sync).toEqual(syncAction);
     });
   });
 
   describe("Error handling", () => {
     it("should throw error when no app is specified", () => {
+      const collection = defineCollection("crm").deploy();
+
       expect(() => {
         defineIntegration("no-app-integration")
           .withTitle("Integration without app")
+          .withCollection(collection)
           .deploy();
       }).toThrow(
-        "Integration requires an app. Use .withApp() for built-in apps or .withCustomApp() for custom apps."
+        'Integration "no-app-integration" requires an app. Use .withApp() for built-in apps or .withCustomApp() for custom apps.'
       );
     });
 
-    it("should throw error even with collections but no app", () => {
-      const crm = defineCollection("crm").deploy();
-
+    it("should throw error when no collection is specified", () => {
       expect(() => {
-        defineIntegration("collections-no-app")
-          .withCollection("crm", crm)
+        defineIntegration("no-collection-integration")
+          .withTitle("Integration without collection")
+          .withApp("salesforce")
           .deploy();
       }).toThrow(
-        "Integration requires an app. Use .withApp() for built-in apps or .withCustomApp() for custom apps."
+        'Integration "no-collection-integration" requires a collection. Use .withCollection() to specify one.'
+      );
+    });
+
+    it("should throw error when neither app nor collection specified", () => {
+      expect(() => {
+        defineIntegration("incomplete-integration")
+          .withTitle("Incomplete integration")
+          .deploy();
+      }).toThrow(
+        'Integration "incomplete-integration" requires an app. Use .withApp() for built-in apps or .withCustomApp() for custom apps.'
       );
     });
   });
@@ -227,9 +227,11 @@ describe("IntegrationBuilder", () => {
     it("should automatically register integrations when deployed", () => {
       expect(getIntegrations()).toHaveLength(0);
 
+      const collection = defineCollection("crm").deploy();
       const integration = defineIntegration("registry-test")
         .withTitle("Registry Test Integration")
         .withApp("salesforce")
+        .withCollection(collection)
         .deploy();
 
       const integrations = getIntegrations();
@@ -240,34 +242,41 @@ describe("IntegrationBuilder", () => {
       expect(integrations[0].metadata?.builderType).toBe("IntegrationBuilder");
       expect(integrations[0].metadata?.createdBy).toBe("defineIntegration");
       expect(integrations[0].metadata?.appType).toBe("builtin");
-      expect(integrations[0].metadata?.collectionCount).toBe(0);
+      expect(integrations[0].metadata?.collectionName).toBe("crm");
       expect(integrations[0].metadata?.actionCount).toBe(0);
     });
 
     it("should track metadata correctly", () => {
       const customApp = defineOAuth2CustomApp("custom").deploy();
       const crm = defineCollection("crm").deploy();
-      const sales = defineCollection("sales").deploy();
       const syncAction = defineAction("sync").deploy();
       const exportAction = defineAction("export").deploy();
 
       defineIntegration("metadata-test")
         .withCustomApp(customApp)
-        .withCollection("crm", crm)
-        .withCollection("sales", sales)
+        .withCollection(crm)
         .addAction(syncAction)
         .addAction(exportAction)
         .deploy();
 
       const integrations = getIntegrations();
       expect(integrations[0].metadata?.appType).toBe("custom");
-      expect(integrations[0].metadata?.collectionCount).toBe(2);
+      expect(integrations[0].metadata?.collectionName).toBe("crm");
       expect(integrations[0].metadata?.actionCount).toBe(2);
     });
 
     it("should generate unique IDs for integrations", () => {
-      defineIntegration("integration1").withApp("salesforce").deploy();
-      defineIntegration("integration1").withApp("hubspot").deploy(); // Same name, different instance
+      const collection1 = defineCollection("crm1").deploy();
+      const collection2 = defineCollection("crm2").deploy();
+
+      defineIntegration("integration1")
+        .withApp("salesforce")
+        .withCollection(collection1)
+        .deploy();
+      defineIntegration("integration1")
+        .withApp("hubspot")
+        .withCollection(collection2)
+        .deploy(); // Same name, different instance
 
       const integrations = getIntegrations();
       expect(integrations).toHaveLength(2);
@@ -291,19 +300,15 @@ describe("IntegrationBuilder", () => {
       const integration = defineIntegration("comprehensive-integration")
         .withTitle("Comprehensive Integration")
         .withCustomApp(customApp)
-        .withCollection("crm", crm)
-        .withCollections({
-          analytics: defineCollection("analytics").addModel("event").deploy(),
-        })
+        .withCollection(crm)
         .deploy();
 
       expect(integration.name).toBe("comprehensive-integration");
       expect(integration.title).toBe("Comprehensive Integration");
       expect(integration.app.type).toBe("custom");
       expect(integration.app.name).toBe("comprehensive");
-      expect(Object.keys(integration.collections)).toHaveLength(2);
-      expect(integration.collections).toHaveProperty("crm");
-      expect(integration.collections).toHaveProperty("analytics");
+      expect(integration.collection).toEqual(crm);
+      expect(integration.collection.name).toBe("crm");
     });
   });
 });

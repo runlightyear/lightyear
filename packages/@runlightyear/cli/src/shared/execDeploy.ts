@@ -27,7 +27,7 @@ export default async function execDeploy(props: ExecDeployProps) {
     getDeployList = runInContextResult.getDeployList;
   } catch (error) {
     prepareConsole();
-    console.error(error);
+    console.error(`Error loading compiled code for deploy:`, error);
     return;
   }
 

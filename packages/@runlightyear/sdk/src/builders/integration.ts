@@ -9,7 +9,7 @@ export class IntegrationBuilder {
   private title?: string;
   private description?: string;
   private app?: Integration["app"];
-  private collections: Record<string, Collection> = {};
+  private collection?: Collection;
   private actions: Record<string, Action> = {};
 
   constructor(name: string) {
@@ -40,11 +40,11 @@ export class IntegrationBuilder {
       if (app.type === "custom" && app.definition)
         builder.withCustomApp(app.definition);
     }
-    const collections =
+    const collection =
       source instanceof IntegrationBuilder
-        ? (source as any).collections
-        : source.collections;
-    if (collections) builder.withCollections({ ...collections });
+        ? (source as any).collection
+        : source.collection;
+    if (collection) builder.withCollection(collection);
     const actions =
       source instanceof IntegrationBuilder
         ? ((source as any).actions as Record<string, Action>)
@@ -89,13 +89,11 @@ export class IntegrationBuilder {
     return this;
   }
 
-  withCollection(name: string, collection: Collection): this {
-    this.collections[name] = collection;
-    return this;
-  }
-
-  withCollections(collections: Record<string, Collection>): this {
-    Object.assign(this.collections, collections);
+  /**
+   * Set the collection for this integration (required)
+   */
+  withCollection(collection: Collection): this {
+    this.collection = collection;
     return this;
   }
 
@@ -158,7 +156,13 @@ export class IntegrationBuilder {
   deploy(): Integration {
     if (!this.app) {
       throw new Error(
-        "Integration requires an app. Use .withApp() for built-in apps or .withCustomApp() for custom apps."
+        `Integration "${this.name}" requires an app. Use .withApp() for built-in apps or .withCustomApp() for custom apps.`
+      );
+    }
+
+    if (!this.collection) {
+      throw new Error(
+        `Integration "${this.name}" requires a collection. Use .withCollection() to specify one.`
       );
     }
 
@@ -167,7 +171,7 @@ export class IntegrationBuilder {
       title: this.title,
       description: this.description,
       app: this.app,
-      collections: this.collections,
+      collection: this.collection,
       actions: this.actions,
     };
 
@@ -176,7 +180,7 @@ export class IntegrationBuilder {
       builderType: "IntegrationBuilder",
       createdBy: "defineIntegration",
       appType: this.app.type,
-      collectionCount: Object.keys(this.collections).length,
+      collectionName: this.collection.name,
       actionCount: Object.keys(this.actions).length,
     });
 

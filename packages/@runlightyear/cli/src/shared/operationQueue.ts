@@ -137,7 +137,7 @@ async function processOperations() {
         console.error(`Unhandled operation ${_exhaustiveCheck}`);
       }
     } catch (error) {
-      console.error(String(error));
+      console.error(`Error processing ${item.operation}:`, error);
     }
   }
   console.debug("Finished processing operations");

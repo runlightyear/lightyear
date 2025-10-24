@@ -96,7 +96,7 @@ export interface Integration {
     name: string;
     definition?: CustomApp;
   };
-  collections: Record<string, Collection>;
+  collection: Collection;
   actions: Record<string, Action>;
 }
 

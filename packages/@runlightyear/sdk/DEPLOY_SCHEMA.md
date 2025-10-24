@@ -179,6 +179,7 @@ interface IntegrationProps {
   description?: string; // Optional
   app?: string; // Must be in available apps list
   customApp?: string; // Must match validNameRegex
+  collection: string; // Collection name (required)
   actions?: string[]; // Array of action names
   webhooks?: string[]; // Array of webhook names
 }
@@ -194,6 +195,7 @@ interface IntegrationProps {
     "title": "Salesforce CRM Sync",
     "description": "Sync contacts and accounts with Salesforce",
     "app": "salesforce",
+    "collection": "crm",
     "actions": ["sync-contacts", "sync-accounts"]
   }
 }
@@ -351,16 +353,17 @@ const app = defineOAuth2CustomApp("github-app")
 
 #### Collections vs Integrations
 
-In our SDK, `IntegrationBuilder` includes collections via `.withCollection()` methods. However, the API schema treats integrations and collections as separate deployment items:
+In our SDK, `IntegrationBuilder` requires a collection via `.withCollection()` method. The API schema treats integrations and collections as separate deployment items, with integrations referencing a collection by name:
 
-- **SDK**: Integration contains collections directly
-- **API**: Integration references collections by name, collections deployed separately
+- **SDK**: Integration contains a collection reference directly
+- **API**: Integration references collection by name, collections deployed separately
 
 This means when deploying:
 
 1. Collections get deployed as separate `"collection"` items
-2. Integrations get deployed as `"integration"` items with just app references
-3. The platform links them together based on naming conventions
+2. Integrations get deployed as `"integration"` items with collection name reference
+3. The platform links them together based on the collection name
+4. **Each integration must be associated with exactly one collection**
 
 #### Built-in vs Custom Apps
 
@@ -405,6 +408,7 @@ The deployment handler automatically transforms between these formats.
       "name": "github-sync",
       "title": "GitHub Repository Sync",
       "customApp": "github-app",
+      "collection": "repositories",
       "description": "Sync GitHub repositories"
     }
   }

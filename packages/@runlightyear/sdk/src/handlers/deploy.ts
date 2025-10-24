@@ -38,6 +38,7 @@ interface IntegrationProps {
   description?: string;
   app?: string; // For built-in apps
   customApp?: string; // For custom apps
+  collection: string; // Collection name (required)
   actions?: string[]; // Array of action names
   webhooks?: string[]; // Array of webhook names
 }
@@ -208,10 +209,18 @@ function transformRegistryToDeploymentSchema(
 
         // Transform SDK integration format to API format
         const integration = item.integration;
+
+        // Collection is required
+        if (!integration.collection) {
+          console.warn("   ❌ Skipping integration without collection:", item);
+          continue;
+        }
+
         const integrationProps: IntegrationProps = {
           name: integration.name || "unnamed-integration",
           title: integration.title || integration.name || "Unnamed Integration",
           description: integration.description,
+          collection: integration.collection.name,
         };
 
         // Handle app vs customApp based on integration.app.type
@@ -231,8 +240,6 @@ function transformRegistryToDeploymentSchema(
           integrationProps.actions = Object.keys(integration.actions);
         }
 
-        // Note: Collections are not part of the API integration schema
-        // They should be deployed separately as collection items
         // Webhooks will be added when we implement webhook builders
 
         const integrationItem = {
@@ -249,6 +256,7 @@ function transformRegistryToDeploymentSchema(
           }`
         );
         console.log(`   📱 App type: ${integration.app?.type || "unknown"}`);
+        console.log(`   📚 Collection: ${integrationProps.collection}`);
         console.log(
           `   ⚡ Actions: ${integrationProps.actions?.join(", ") || "none"}`
         );

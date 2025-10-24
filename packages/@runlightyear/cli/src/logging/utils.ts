@@ -18,7 +18,28 @@ export function argsToStr(args: Array<any>): string {
       }
 
       if (arg instanceof Error) {
-        return String(arg);
+        // Build a comprehensive error string
+        const parts: string[] = [];
+
+        // Add name and message
+        if (arg.name) {
+          parts.push(arg.name);
+        }
+        if (arg.message) {
+          parts.push(arg.message);
+        }
+
+        // If we got nothing useful, try to stringify
+        if (parts.length === 0) {
+          parts.push(String(arg));
+        }
+
+        // Add stack if available and not already included
+        if (arg.stack && !parts.some((p) => p.includes(arg.stack!))) {
+          parts.push(arg.stack);
+        }
+
+        return parts.join(": ");
       }
 
       if (isObject(arg) || isArray(arg)) {
@@ -26,6 +47,13 @@ export function argsToStr(args: Array<any>): string {
 
         try {
           result = JSON.stringify(arg, null, 2);
+          // If it's an empty object or empty array, be more explicit
+          if (result === "{}") {
+            return "[Empty Object]";
+          }
+          if (result === "[]") {
+            return "[Empty Array]";
+          }
         } catch (error) {
           // just use best effort if there is recursion
           result = String(arg);
