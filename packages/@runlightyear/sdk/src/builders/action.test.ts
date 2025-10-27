@@ -32,6 +32,35 @@ describe("ActionBuilder", () => {
       );
     });
 
+    it("should create an action with a type", () => {
+      const fullSyncAction = defineAction("full-sync")
+        .withTitle("Full Sync")
+        .withType("FULL_SYNC")
+        .deploy();
+
+      expect(fullSyncAction.name).toBe("full-sync");
+      expect(fullSyncAction.title).toBe("Full Sync");
+      expect(fullSyncAction.type).toBe("FULL_SYNC");
+
+      const incrementalSyncAction = defineAction("incremental-sync")
+        .withTitle("Incremental Sync")
+        .withType("INCREMENTAL_SYNC")
+        .deploy();
+
+      expect(incrementalSyncAction.name).toBe("incremental-sync");
+      expect(incrementalSyncAction.title).toBe("Incremental Sync");
+      expect(incrementalSyncAction.type).toBe("INCREMENTAL_SYNC");
+    });
+
+    it("should create an action without a type (optional)", () => {
+      const action = defineAction("regular-action")
+        .withTitle("Regular Action")
+        .deploy();
+
+      expect(action.name).toBe("regular-action");
+      expect(action.type).toBeUndefined();
+    });
+
     // Apps functionality has been removed from actions
   });
 

@@ -112,6 +112,103 @@ const duplicateIntegration = defineIntegration
   .withTitle("Contact Management System v2")
   .deploy();
 
+/**
+ * Define an integration with sync schedules
+ */
+
+const scheduledCollection = defineCollection("scheduled-data")
+  .addModel("product")
+  .addModel("order")
+  .deploy();
+
+const scheduledIntegration = defineIntegration("scheduled-sync")
+  .withTitle("Scheduled Data Sync")
+  .withApp("salesforce")
+  .withCollection(scheduledCollection)
+  .withSyncSchedules([
+    { type: "INCREMENTAL", every: "5 minutes" },
+    { type: "FULL", every: "1 day" },
+  ])
+  .deploy();
+
+/**
+ * Define an integration with sync schedules added incrementally
+ */
+
+const incrementalScheduleCollection = defineCollection("incremental-data")
+  .addModel("lead")
+  .deploy();
+
+const incrementalScheduleIntegration = defineIntegration(
+  "incremental-schedule-sync"
+)
+  .withTitle("Incremental Schedule Sync")
+  .withApp("hubspot")
+  .withCollection(incrementalScheduleCollection)
+  .addSyncSchedule({ type: "INCREMENTAL", every: 300 }) // Every 5 minutes (in seconds)
+  .addSyncSchedule({ type: "FULL", every: "1 week" })
+  .deploy();
+
+/**
+ * Define an integration with sync schedules using numeric intervals
+ */
+
+const numericScheduleCollection = defineCollection("numeric-schedule-data")
+  .addModel("task")
+  .deploy();
+
+const numericScheduleIntegration = defineIntegration("numeric-schedule-sync")
+  .withTitle("Numeric Schedule Sync")
+  .withApp("salesforce")
+  .withCollection(numericScheduleCollection)
+  .addSyncSchedules([
+    { type: "INCREMENTAL", every: 600 }, // Every 10 minutes (in seconds)
+    { type: "FULL", every: 86400 }, // Every 24 hours (in seconds)
+  ])
+  .deploy();
+
+/**
+ * Define an integration with both actions and sync schedules
+ */
+
+const fullFeaturedCollection = defineCollection("full-featured-data")
+  .addModel("opportunity")
+  .deploy();
+
+const fullFeaturedAction = defineAction("manual-sync")
+  .withTitle("Manual Sync Trigger")
+  .withRun(async () => {
+    console.log("Manual sync triggered");
+  })
+  .deploy();
+
+const fullFeaturedIntegration = defineIntegration("full-featured-integration")
+  .withTitle("Full Featured Integration")
+  .withCustomApp(customCRMApp)
+  .withCollection(fullFeaturedCollection)
+  .withAction(fullFeaturedAction)
+  .addSyncSchedule({ type: "INCREMENTAL", every: "15 minutes" })
+  .addSyncSchedule({ type: "FULL", every: "1 day" })
+  .deploy();
+
+/**
+ * Define an integration with object-based sync schedule configuration
+ */
+
+const objectScheduleCollection = defineCollection("object-schedule-data")
+  .addModel("invoice")
+  .deploy();
+
+const objectScheduleIntegration = defineIntegration("object-schedule-sync")
+  .withTitle("Object Schedule Sync")
+  .withApp("salesforce")
+  .withCollection(objectScheduleCollection)
+  .withSyncSchedules({
+    incremental: { every: "15 minutes" },
+    full: { every: "3 days" },
+  })
+  .deploy();
+
 // Export examples for reference
 export {
   titledIntegration,
@@ -119,4 +216,9 @@ export {
   customAppIntegration,
   actionIntegration,
   duplicateIntegration,
+  scheduledIntegration,
+  incrementalScheduleIntegration,
+  numericScheduleIntegration,
+  fullFeaturedIntegration,
+  objectScheduleIntegration,
 };

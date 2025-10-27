@@ -1,4 +1,10 @@
-import type { Integration, CustomApp, Collection, Action } from "../types";
+import type {
+  Integration,
+  CustomApp,
+  Collection,
+  Action,
+  SyncSchedule,
+} from "../types";
 import { registerIntegration } from "../registry";
 
 /**
@@ -11,6 +17,7 @@ export class IntegrationBuilder {
   private app?: Integration["app"];
   private collection?: Collection;
   private actions: Record<string, Action> = {};
+  private syncSchedules?: SyncSchedule[];
 
   constructor(name: string) {
     this.name = name;
@@ -53,6 +60,11 @@ export class IntegrationBuilder {
       const actionList = Object.values(actions) as Action[];
       builder.withActions(actionList);
     }
+    const syncSchedules =
+      source instanceof IntegrationBuilder
+        ? (source as any).syncSchedules
+        : source.syncSchedules;
+    if (syncSchedules) builder.withSyncSchedules(syncSchedules);
     return builder;
   }
 
@@ -153,6 +165,91 @@ export class IntegrationBuilder {
     return this;
   }
 
+  /**
+   * Set sync schedules for this integration (override any previously set schedules)
+   */
+  withSyncSchedules(...schedules: SyncSchedule[]): this;
+  withSyncSchedules(schedules: SyncSchedule[]): this;
+  withSyncSchedules(schedules: {
+    incremental?: { every?: number | string };
+    full?: { every?: number | string };
+  }): this;
+  withSyncSchedules(
+    ...schedulesOrArray:
+      | SyncSchedule[]
+      | [SyncSchedule[]]
+      | [
+          {
+            incremental?: { every?: number | string };
+            full?: { every?: number | string };
+          }
+        ]
+  ): this {
+    // Check if it's the object format
+    const firstArg = schedulesOrArray[0];
+    if (
+      firstArg &&
+      !Array.isArray(firstArg) &&
+      typeof firstArg === "object" &&
+      ("incremental" in firstArg || "full" in firstArg)
+    ) {
+      const scheduleObj = firstArg as {
+        incremental?: { every?: number | string };
+        full?: { every?: number | string };
+      };
+      const schedules: SyncSchedule[] = [];
+      if (scheduleObj.incremental) {
+        schedules.push({
+          type: "INCREMENTAL",
+          every: scheduleObj.incremental.every,
+        });
+      }
+      if (scheduleObj.full) {
+        schedules.push({ type: "FULL", every: scheduleObj.full.every });
+      }
+      this.syncSchedules = schedules;
+      return this;
+    }
+
+    // Array format
+    const schedules = Array.isArray(firstArg)
+      ? (firstArg as SyncSchedule[])
+      : (schedulesOrArray as SyncSchedule[]);
+    this.syncSchedules = schedules;
+    return this;
+  }
+
+  /**
+   * Add a sync schedule (incremental, does not clear existing)
+   */
+  addSyncSchedule(schedule: SyncSchedule): this;
+  addSyncSchedule(...schedules: SyncSchedule[]): this;
+  addSyncSchedule(...schedules: SyncSchedule[]): this {
+    if (!this.syncSchedules) {
+      this.syncSchedules = [];
+    }
+    this.syncSchedules.push(...schedules);
+    return this;
+  }
+
+  /**
+   * Add multiple sync schedules (incremental, does not clear existing)
+   */
+  addSyncSchedules(...schedules: SyncSchedule[]): this;
+  addSyncSchedules(schedules: SyncSchedule[]): this;
+  addSyncSchedules(
+    ...schedulesOrArray: SyncSchedule[] | [SyncSchedule[]]
+  ): this {
+    const schedules = Array.isArray(schedulesOrArray[0])
+      ? (schedulesOrArray[0] as SyncSchedule[])
+      : (schedulesOrArray as SyncSchedule[]);
+    if (!this.syncSchedules) {
+      this.syncSchedules = [];
+    }
+    this.syncSchedules.push(...schedules);
+    return this;
+  }
+
   deploy(): Integration {
     if (!this.app) {
       throw new Error(
@@ -173,6 +270,7 @@ export class IntegrationBuilder {
       app: this.app,
       collection: this.collection,
       actions: this.actions,
+      syncSchedules: this.syncSchedules,
     };
 
     // Register the integration in the global registry

@@ -182,6 +182,12 @@ interface IntegrationProps {
   collection: string; // Collection name (required)
   actions?: string[]; // Array of action names
   webhooks?: string[]; // Array of webhook names
+  syncSchedules?: SyncSchedule[]; // Array of sync schedules
+}
+
+interface SyncSchedule {
+  type: "INCREMENTAL" | "FULL"; // Required
+  every?: number | string; // Optional - interval as number (seconds) or string (e.g., "5 minutes")
 }
 ```
 
@@ -196,10 +202,22 @@ interface IntegrationProps {
     "description": "Sync contacts and accounts with Salesforce",
     "app": "salesforce",
     "collection": "crm",
-    "actions": ["sync-contacts", "sync-accounts"]
+    "actions": ["sync-contacts", "sync-accounts"],
+    "syncSchedules": [
+      { "type": "INCREMENTAL", "every": "5 minutes" },
+      { "type": "FULL", "every": "1 day" }
+    ]
   }
 }
 ```
+
+**Sync Schedule Notes**:
+
+- `type`: Specifies whether the sync is incremental (only changes) or full (all data)
+- `every`: Optional interval for automatic sync execution
+  - Can be a **number** representing seconds (e.g., `300` for 5 minutes)
+  - Can be a **string** in human-readable format (e.g., `"5 minutes"`, `"1 day"`, `"1 week"`)
+  - If omitted, the sync schedule can be triggered manually or by other means
 
 ### 4. Action (`type: "action"`)
 
@@ -210,6 +228,7 @@ interface DeployActionProps {
   name: string; // Must match validNameRegex
   title: string; // Min length 1
   description?: string; // Optional
+  type: "FULL_SYNC" | "INCREMENTAL_SYNC" | null; // Action type (null if not set)
   trigger?: ActionTrigger; // Optional trigger config
   apps?: string[]; // Must be in available apps
   customApps?: string[]; // Must match validNameRegex
@@ -223,7 +242,7 @@ interface ActionTrigger {
 }
 ```
 
-**Example**:
+**Example with type:**
 
 ```json
 {
@@ -232,11 +251,27 @@ interface ActionTrigger {
     "name": "sync-contacts",
     "title": "Sync Contacts",
     "description": "Sync contacts from external system",
+    "type": "FULL_SYNC",
     "trigger": {
       "pollingFrequency": 300
     },
     "apps": ["salesforce"],
     "variables": ["batch_size"]
+  }
+}
+```
+
+**Example without type (null):**
+
+```json
+{
+  "type": "action",
+  "actionProps": {
+    "name": "process-data",
+    "title": "Process Data",
+    "description": "Process data from external system",
+    "type": null,
+    "apps": ["salesforce"]
   }
 }
 ```

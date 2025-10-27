@@ -311,4 +311,229 @@ describe("IntegrationBuilder", () => {
       expect(integration.collection.name).toBe("crm");
     });
   });
+
+  describe("Sync schedules", () => {
+    it("should add sync schedules to integration", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("scheduled-sync")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .withSyncSchedules([
+          { type: "INCREMENTAL", every: "5 minutes" },
+          { type: "FULL", every: "1 day" },
+        ])
+        .deploy();
+
+      expect(integration.syncSchedules).toHaveLength(2);
+      expect(integration.syncSchedules?.[0]).toEqual({
+        type: "INCREMENTAL",
+        every: "5 minutes",
+      });
+      expect(integration.syncSchedules?.[1]).toEqual({
+        type: "FULL",
+        every: "1 day",
+      });
+    });
+
+    it("should add sync schedules incrementally", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("incremental-schedules")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .addSyncSchedule({ type: "INCREMENTAL", every: 300 })
+        .addSyncSchedule({ type: "FULL", every: "1 day" })
+        .deploy();
+
+      expect(integration.syncSchedules).toHaveLength(2);
+      expect(integration.syncSchedules?.[0].type).toBe("INCREMENTAL");
+      expect(integration.syncSchedules?.[0].every).toBe(300);
+      expect(integration.syncSchedules?.[1].type).toBe("FULL");
+      expect(integration.syncSchedules?.[1].every).toBe("1 day");
+    });
+
+    it("should add multiple sync schedules at once", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("batch-schedules")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .addSyncSchedules([
+          { type: "INCREMENTAL", every: "15 minutes" },
+          { type: "FULL", every: "1 week" },
+        ])
+        .deploy();
+
+      expect(integration.syncSchedules).toHaveLength(2);
+      expect(integration.syncSchedules?.[0].type).toBe("INCREMENTAL");
+      expect(integration.syncSchedules?.[1].type).toBe("FULL");
+    });
+
+    it("should support sync schedules without every field", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("no-every-schedule")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .addSyncSchedule({ type: "INCREMENTAL" })
+        .deploy();
+
+      expect(integration.syncSchedules).toHaveLength(1);
+      expect(integration.syncSchedules?.[0].type).toBe("INCREMENTAL");
+      expect(integration.syncSchedules?.[0].every).toBeUndefined();
+    });
+
+    it("should replace sync schedules when using withSyncSchedules", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("replace-schedules")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .addSyncSchedule({ type: "INCREMENTAL", every: "5 minutes" })
+        .withSyncSchedules([{ type: "FULL", every: "1 day" }])
+        .deploy();
+
+      expect(integration.syncSchedules).toHaveLength(1);
+      expect(integration.syncSchedules?.[0].type).toBe("FULL");
+    });
+
+    it("should support both number and string for every field", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("mixed-every-types")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .addSyncSchedule({ type: "INCREMENTAL", every: 300 })
+        .addSyncSchedule({ type: "FULL", every: "1 day" })
+        .deploy();
+
+      expect(integration.syncSchedules?.[0].every).toBe(300);
+      expect(typeof integration.syncSchedules?.[0].every).toBe("number");
+      expect(integration.syncSchedules?.[1].every).toBe("1 day");
+      expect(typeof integration.syncSchedules?.[1].every).toBe("string");
+    });
+
+    it("should work with actions and sync schedules together", () => {
+      const collection = defineCollection("contacts").deploy();
+      const syncAction = defineAction("sync-contacts").deploy();
+
+      const integration = defineIntegration("complete-with-schedules")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .withAction(syncAction)
+        .addSyncSchedule({ type: "INCREMENTAL", every: "10 minutes" })
+        .deploy();
+
+      expect(integration.actions).toHaveProperty("sync-contacts");
+      expect(integration.syncSchedules).toHaveLength(1);
+      expect(integration.syncSchedules?.[0].type).toBe("INCREMENTAL");
+    });
+
+    it("should allow integration without sync schedules", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("no-schedules")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .deploy();
+
+      expect(integration.syncSchedules).toBeUndefined();
+    });
+
+    it("should support object-based sync schedule configuration", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("object-schedules")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .withSyncSchedules({
+          incremental: { every: "15 minutes" },
+          full: { every: "3 days" },
+        })
+        .deploy();
+
+      expect(integration.syncSchedules).toHaveLength(2);
+      expect(integration.syncSchedules?.[0]).toEqual({
+        type: "INCREMENTAL",
+        every: "15 minutes",
+      });
+      expect(integration.syncSchedules?.[1]).toEqual({
+        type: "FULL",
+        every: "3 days",
+      });
+    });
+
+    it("should support object-based configuration with only incremental", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("incremental-only-object")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .withSyncSchedules({
+          incremental: { every: "5 minutes" },
+        })
+        .deploy();
+
+      expect(integration.syncSchedules).toHaveLength(1);
+      expect(integration.syncSchedules?.[0]).toEqual({
+        type: "INCREMENTAL",
+        every: "5 minutes",
+      });
+    });
+
+    it("should support object-based configuration with only full", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("full-only-object")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .withSyncSchedules({
+          full: { every: "1 day" },
+        })
+        .deploy();
+
+      expect(integration.syncSchedules).toHaveLength(1);
+      expect(integration.syncSchedules?.[0]).toEqual({
+        type: "FULL",
+        every: "1 day",
+      });
+    });
+
+    it("should support object-based configuration without every field", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("no-every-object")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .withSyncSchedules({
+          incremental: {},
+          full: {},
+        })
+        .deploy();
+
+      expect(integration.syncSchedules).toHaveLength(2);
+      expect(integration.syncSchedules?.[0].type).toBe("INCREMENTAL");
+      expect(integration.syncSchedules?.[0].every).toBeUndefined();
+      expect(integration.syncSchedules?.[1].type).toBe("FULL");
+      expect(integration.syncSchedules?.[1].every).toBeUndefined();
+    });
+
+    it("should support object-based configuration with numeric intervals", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("numeric-object")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .withSyncSchedules({
+          incremental: { every: 900 }, // 15 minutes in seconds
+          full: { every: 259200 }, // 3 days in seconds
+        })
+        .deploy();
+
+      expect(integration.syncSchedules).toHaveLength(2);
+      expect(integration.syncSchedules?.[0].every).toBe(900);
+      expect(integration.syncSchedules?.[1].every).toBe(259200);
+    });
+  });
 });

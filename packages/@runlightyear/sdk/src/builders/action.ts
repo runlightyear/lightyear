@@ -1,5 +1,6 @@
 import type {
   Action,
+  ActionType,
   CustomApp,
   AppVariable,
   AppSecret,
@@ -98,6 +99,7 @@ export class ActionBuilder<
   private name: string;
   private title?: string;
   private description?: string;
+  private type?: ActionType;
   private variables: V;
   private secrets: S;
   private runFunction?: TypedRunFunc<V, S>;
@@ -126,6 +128,11 @@ export class ActionBuilder<
 
   withDescription(description: string): ActionBuilder<V, S> {
     this.description = description;
+    return this;
+  }
+
+  withType(type: ActionType): ActionBuilder<V, S> {
+    this.type = type;
     return this;
   }
 
@@ -279,6 +286,7 @@ export class ActionBuilder<
       const builder = new ActionBuilder<V, S>(source.name);
       builder.title = source.title;
       builder.description = source.description;
+      builder.type = source.type;
       builder.variables = [...source.variables] as unknown as V;
       builder.secrets = [...source.secrets] as unknown as S;
       builder.runFunction = source.runFunction;
@@ -289,6 +297,7 @@ export class ActionBuilder<
     const builder = new ActionBuilder(action.name) as any;
     if (action.title) builder.title = action.title;
     if (action.description) builder.description = action.description;
+    if (action.type) builder.type = action.type;
     if (action.variables && action.variables.length > 0) {
       const newBuilder = builder.withVariables(action.variables);
       if (action.secrets && action.secrets.length > 0) {
@@ -326,6 +335,7 @@ export class ActionBuilder<
       name: this.name,
       title: this.title,
       description: this.description,
+      type: this.type,
       variables:
         this.variables.length > 0
           ? this.variables.map((v) => {

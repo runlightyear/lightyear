@@ -32,6 +32,11 @@ interface CustomAppProps {
   secrets?: Array<string | { name: string; description?: string }>;
 }
 
+interface SyncScheduleProps {
+  type: "INCREMENTAL" | "FULL";
+  every?: number | string;
+}
+
 interface IntegrationProps {
   name: string;
   title: string;
@@ -41,12 +46,14 @@ interface IntegrationProps {
   collection: string; // Collection name (required)
   actions?: string[]; // Array of action names
   webhooks?: string[]; // Array of webhook names
+  syncSchedules?: SyncScheduleProps[]; // Array of sync schedules
 }
 
 interface ActionProps {
   name: string;
   title: string;
   description?: string;
+  type: "FULL_SYNC" | "INCREMENTAL_SYNC" | null;
   variables?: Array<string | { name: string; description?: string }>;
   secrets?: Array<string | { name: string; description?: string }>;
 }
@@ -240,6 +247,11 @@ function transformRegistryToDeploymentSchema(
           integrationProps.actions = Object.keys(integration.actions);
         }
 
+        // Add sync schedules if they exist
+        if (integration.syncSchedules && integration.syncSchedules.length > 0) {
+          integrationProps.syncSchedules = integration.syncSchedules;
+        }
+
         // Webhooks will be added when we implement webhook builders
 
         const integrationItem = {
@@ -259,6 +271,15 @@ function transformRegistryToDeploymentSchema(
         console.log(`   📚 Collection: ${integrationProps.collection}`);
         console.log(
           `   ⚡ Actions: ${integrationProps.actions?.join(", ") || "none"}`
+        );
+        console.log(
+          `   ⏱️ Sync Schedules: ${
+            integrationProps.syncSchedules
+              ? integrationProps.syncSchedules
+                  .map((s) => `${s.type}${s.every ? ` every ${s.every}` : ""}`)
+                  .join(", ")
+              : "none"
+          }`
         );
         deploymentItems.push(integrationItem);
         break;
@@ -303,6 +324,7 @@ function transformRegistryToDeploymentSchema(
             name: item.action.name || "unnamed-action",
             title: item.action.title || item.action.name || "Unnamed Action",
             description: item.action.description,
+            type: item.action.type ?? null,
             variables: actionVariables.length > 0 ? actionVariables : undefined,
             secrets: actionSecrets.length > 0 ? actionSecrets : undefined,
           },

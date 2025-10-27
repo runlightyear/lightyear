@@ -98,6 +98,7 @@ export interface Integration {
   };
   collection: Collection;
   actions: Record<string, Action>;
+  syncSchedules?: SyncSchedule[];
 }
 
 // Run function types for action execution
@@ -138,11 +139,15 @@ export interface RunFuncProps {
 
 export type RunFunc = (props: RunFuncProps) => Promise<void>;
 
+// Action types
+export type ActionType = "FULL_SYNC" | "INCREMENTAL_SYNC";
+
 // Action definition
 export interface Action {
   name: string;
   title?: string;
   description?: string;
+  type?: ActionType;
   variables?: AppVariable[];
   secrets?: AppSecret[];
   run?: RunFunc;
@@ -151,6 +156,14 @@ export interface Action {
 // Sync Connector types
 export type SyncOperation = "create" | "update" | "delete";
 export type SyncMode = "full" | "incremental";
+
+// Sync Schedule types
+export type SyncScheduleType = "INCREMENTAL" | "FULL";
+
+export interface SyncSchedule {
+  type: SyncScheduleType;
+  every?: number | string;
+}
 
 export interface SyncState {
   lastSyncTime?: Date;
