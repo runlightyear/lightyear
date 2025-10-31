@@ -211,6 +211,18 @@ export class IntegrationBuilder {
       return this;
     }
 
+    // If it's an object but doesn't have incremental/full, treat as empty (clear schedules)
+    if (
+      firstArg &&
+      !Array.isArray(firstArg) &&
+      typeof firstArg === "object" &&
+      !("incremental" in firstArg) &&
+      !("full" in firstArg)
+    ) {
+      this.syncSchedules = undefined;
+      return this;
+    }
+
     // Array format
     const schedules = Array.isArray(firstArg)
       ? (firstArg as SyncSchedule[])

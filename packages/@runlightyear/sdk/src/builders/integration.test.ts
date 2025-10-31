@@ -535,5 +535,30 @@ describe("IntegrationBuilder", () => {
       expect(integration.syncSchedules?.[0].every).toBe(900);
       expect(integration.syncSchedules?.[1].every).toBe(259200);
     });
+
+    it("should clear schedules when empty object is passed", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("clear-schedules")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .addSyncSchedule({ type: "INCREMENTAL", every: "5 minutes" })
+        .withSyncSchedules({})
+        .deploy();
+
+      expect(integration.syncSchedules).toBeUndefined();
+    });
+
+    it("should clear schedules when empty object is passed (no prior schedules)", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("no-schedules-empty-object")
+        .withApp("salesforce")
+        .withCollection(collection)
+        .withSyncSchedules({})
+        .deploy();
+
+      expect(integration.syncSchedules).toBeUndefined();
+    });
   });
 });

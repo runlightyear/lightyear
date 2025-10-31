@@ -391,11 +391,6 @@ type ModelConnectorMap<C extends Collection> = {
  *   .withModelConnector("contacts", builder => ...)
  *   .build();
  *
- * // Disable async writes
- * const syncConnector = createSyncConnector(restConnector, collection)
- *   .withModelConnector("contacts", builder => ...)
- *   .withSyncWrites() // Use synchronous writes
- *   .build();
  * ```
  */
 export class SyncConnectorBuilder<
@@ -405,7 +400,6 @@ export class SyncConnectorBuilder<
   private restConnector: TRestConnector;
   private collection: TCollection;
   private modelConnectors: Map<string, ModelConnector> = new Map();
-  private useAsyncWrites: boolean = true; // Default to async writes
 
   constructor(restConnector: TRestConnector, collection: TCollection) {
     this.restConnector = restConnector;
@@ -441,10 +435,6 @@ export class SyncConnectorBuilder<
           return bb;
         });
       });
-      // Copy async writes setting if available
-      if (typeof (source as any).useAsyncWrites === "boolean") {
-        builder.useAsyncWrites = (source as any).useAsyncWrites;
-      }
       return builder;
     }
 
@@ -1024,28 +1014,11 @@ export class SyncConnectorBuilder<
       | undefined;
   }
 
-  /**
-   * Enable or disable async writes (enabled by default)
-   * When enabled, batch operations use async HTTP requests with polling
-   */
-  withAsyncWrites(enabled: boolean = true): this {
-    this.useAsyncWrites = enabled;
-    return this;
-  }
-
-  /**
-   * Use synchronous writes (convenience method)
-   */
-  withSyncWrites(): this {
-    return this.withAsyncWrites(false);
-  }
-
   build(): SyncConnector<TRestConnector, TCollection> {
     return new SyncConnector(
       this.restConnector,
       this.collection,
-      this.modelConnectors,
-      this.useAsyncWrites
+      this.modelConnectors
     );
   }
 }
@@ -1411,18 +1384,15 @@ export class SyncConnector<
   private restConnector: TRestConnector;
   private collection: TCollection;
   private modelConnectors: Map<string, ModelConnector>;
-  private useAsyncWrites: boolean;
 
   constructor(
     restConnector: TRestConnector,
     collection: TCollection,
-    modelConnectors: Map<string, ModelConnector>,
-    useAsyncWrites: boolean = true
+    modelConnectors: Map<string, ModelConnector>
   ) {
     this.restConnector = restConnector;
     this.collection = collection;
     this.modelConnectors = modelConnectors;
-    this.useAsyncWrites = useAsyncWrites;
   }
 
   /**
@@ -1988,41 +1958,39 @@ export class SyncConnector<
 
       // High-level orchestration per sync-requirements
       const ctx = getCurrentContext();
-      let syncId: string | undefined = (ctx as any)?.syncId;
+      const syncId: string | undefined = (ctx as any)?.syncId;
       const managedUserId: string | undefined = (ctx as any)?.managedUserId;
       const app: string | undefined = (ctx as any)?.appName ?? undefined;
       const customApp: string | undefined =
         (ctx as any)?.customAppName ?? undefined;
       const runId: string | undefined = (ctx as any)?.runId ?? undefined;
 
-      // If syncId is not provided in context, start a new sync via API
+      // Verify that syncId is present - sync should already be running
+      console.log(
+        `🔍 Sync context verification: syncId=${
+          syncId ?? "MISSING"
+        } managedUserId=${managedUserId ?? "MISSING"} runId=${
+          runId ?? "MISSING"
+        }`
+      );
+
       if (!syncId) {
-        if (!managedUserId) {
-          console.warn(
-            "No managedUserId in context; attempting to start sync without it"
-          );
-        }
-        const collectionName = this.collection.name;
-        const sync = await startSync({
-          collectionName,
-          appName: app ?? null,
-          customAppName: customApp ?? null,
-          managedUserId,
-          runId,
-          type,
+        const errorMsg =
+          "❌ Missing syncId in context - sync should already be running when sync action is called";
+        console.error(errorMsg);
+        console.error("Context details:", {
+          hasSyncId: !!syncId,
+          hasManagedUserId: !!managedUserId,
+          hasRunId: !!runId,
+          contextKeys: Object.keys(ctx || {}),
         });
-        console.info(
-          `Started sync ${sync?.id} (${
-            sync?.type || "UNKNOWN"
-          }) for collection ${collectionName}`
-        );
-        syncId = sync?.id;
-        if (!syncId) {
-          throw new Error("Failed to start sync: missing id in response");
-        }
-        // Set syncId into the log/context so subsequent platform calls can read it
-        getLogCapture()?.setContext({ syncId } as any);
+        throw new Error(errorMsg);
       }
+
+      console.log(`✅ Sync verification passed: syncId=${syncId}`);
+
+      // Set syncId into the log/context so subsequent platform calls can read it
+      getLogCapture()?.setContext({ syncId } as any);
 
       // Initialize ChangeProcessor with syncId
       changeProcessor = new ChangeProcessor(syncId);
@@ -2459,36 +2427,9 @@ export class SyncConnector<
     }
   }
 
-  async sync(
-    type?: "FULL" | "INCREMENTAL",
-    options?: { useAsyncWrites?: boolean }
-  ): Promise<void> {
-    // Priority order:
-    // 1. Options parameter (if provided)
-    // 2. Instance configuration (from builder)
-    // 3. Environment variable override (can force disable)
-    let useAsync = options?.useAsyncWrites;
-
-    if (useAsync === undefined) {
-      // Check environment variable for forced disable
-      if (
-        process.env.LIGHTYEAR_ASYNC_WRITES === "false" ||
-        process.env.LIGHTYEAR_ASYNC_WRITES === "0"
-      ) {
-        useAsync = false;
-      } else {
-        // Use instance configuration (defaults to true)
-        useAsync = this.useAsyncWrites;
-      }
-    }
-
-    if (useAsync) {
-      console.info("Using async writes for batch operations");
-      return this.syncWithAsyncWrites(type);
-    }
-
-    console.info("Using synchronous writes for batch operations");
-    return this.syncLegacy(type);
+  async sync(type?: "FULL" | "INCREMENTAL"): Promise<void> {
+    console.info("Using async writes for batch operations");
+    return this.syncWithAsyncWrites(type);
   }
 
   /**
@@ -3115,318 +3056,6 @@ export class SyncConnector<
           break;
         }
       }
-    }
-  }
-
-  private async syncLegacy(type?: "FULL" | "INCREMENTAL"): Promise<void> {
-    // Test/offline mode: perform a local sync without platform API calls
-    try {
-      if (process?.env?.NODE_ENV === "test") {
-        for (const model of this.collection.models) {
-          const connector = this.modelConnectors.get(model.name);
-          if (!connector?.list) continue;
-          const { items } = await connector.list({ syncType: type || "FULL" });
-          console.log(
-            `Synced ${items?.length ?? 0} items for model ${model.name}`
-          );
-        }
-        return;
-      }
-    } catch {}
-
-    // High-level orchestration per sync-requirements
-
-    const ctx = getCurrentContext();
-    let syncId: string | undefined = (ctx as any)?.syncId;
-    const managedUserId: string | undefined = (ctx as any)?.managedUserId;
-    const app: string | undefined = (ctx as any)?.appName ?? undefined;
-    const customApp: string | undefined =
-      (ctx as any)?.customAppName ?? undefined;
-    const runId: string | undefined = (ctx as any)?.runId ?? undefined;
-
-    // If syncId is not provided in context, start a new sync via API
-    if (!syncId) {
-      if (!managedUserId) {
-        console.warn(
-          "No managedUserId in context; attempting to start sync without it"
-        );
-      }
-      const collectionName = this.collection.name;
-      const sync = await startSync({
-        collectionName,
-        appName: app ?? null,
-        customAppName: customApp ?? null,
-        managedUserId,
-        runId,
-        type,
-      });
-      console.info(
-        `Started sync ${sync?.id} (${
-          sync?.type || "UNKNOWN"
-        }) for collection ${collectionName}`
-      );
-      syncId = sync?.id;
-      if (!syncId) {
-        throw new Error("Failed to start sync: missing id in response");
-      }
-      // Set syncId into the log/context so subsequent platform calls can read it
-      getLogCapture()?.setContext({ syncId } as any);
-    }
-    // Require managed user for sync execution
-    if (!managedUserId) {
-      throw new Error("Missing managedUserId in context");
-    }
-
-    // Reset time budget for this run
-    resetTimeLimit();
-
-    // Determine models to sync from platform
-    const collectionName = this.collection.name;
-    const orderedModels = await getModels({ collectionName });
-    let modelsToSync = orderedModels.map((m: any) => m.name);
-
-    const sync = await getSync({ syncId });
-    // Log current model and pagination state at the moment the sync starts/resumes
-    try {
-      const currentModel = sync?.currentModel?.name ?? "none";
-      const modelStatus =
-        (sync as any)?.modelStatuses?.[
-          (sync as any)?.currentModel?.name as any
-        ] ?? undefined;
-      const initialCursor =
-        modelStatus?.cursor ?? (sync as any)?.lastBatch?.cursor ?? null;
-      const initialPage =
-        (typeof modelStatus?.page === "number" ? modelStatus.page : null) ??
-        (typeof (sync as any)?.page === "number" ? (sync as any).page : null);
-      const initialOffset =
-        (typeof modelStatus?.offset === "number" ? modelStatus.offset : null) ??
-        (typeof (sync as any)?.offset === "number"
-          ? (sync as any).offset
-          : null);
-      console.info(
-        `Sync start state → collection=${collectionName} sync=${syncId} currentModel=${currentModel} cursor=${
-          initialCursor ?? "none"
-        } page=${initialPage ?? "none"} offset=${initialOffset ?? "none"}`
-      );
-    } catch {}
-
-    // Determine which phase we're resuming into and which model
-    const currentModelName: string | undefined =
-      sync.currentModel?.name ?? undefined;
-    const currentDirection: "PULL" | "PUSH" | null =
-      sync.currentDirection ?? null;
-
-    // Adjust models list based on resume point
-    let pullModelsToSync = [...modelsToSync];
-    let pushModelsToSync = [...modelsToSync];
-
-    // If resuming, slice the appropriate list
-    if (currentModelName) {
-      const idx = modelsToSync.indexOf(currentModelName);
-      if (idx >= 0) {
-        if (currentDirection === "PULL") {
-          // Resume from current model in PULL phase
-          pullModelsToSync = modelsToSync.slice(idx);
-          // Start PUSH phase from beginning
-          pushModelsToSync = modelsToSync;
-        } else if (currentDirection === "PUSH") {
-          // Skip PULL phase entirely, start PUSH from current model
-          pullModelsToSync = [];
-          pushModelsToSync = modelsToSync.slice(idx);
-        } else {
-          // No direction set, resume from current model (pull first)
-          pullModelsToSync = modelsToSync.slice(idx);
-          pushModelsToSync = modelsToSync;
-        }
-      }
-    }
-
-    let hadError = false;
-    let errorMessage: string | undefined = undefined;
-    let unrecoverableError = false;
-    let canceledByServer = false; // 409 Conflict → sync canceled: log but don't fail run
-
-    const isUnrecoverableSyncError = (err: any): boolean => {
-      let status: number | undefined = undefined;
-      if (err && typeof err === "object") {
-        if (typeof (err as any).status === "number") {
-          status = (err as any).status as number;
-        } else if (
-          (err as any).response &&
-          typeof (err as any).response.status === "number"
-        ) {
-          status = (err as any).response.status as number;
-        }
-      }
-      if (typeof status === "number") {
-        return !isTemporaryHttpError(status);
-      }
-      // No status available: treat as temporary
-      return false;
-    };
-
-    const requestedDirection: "pull" | "push" | "bidirectional" =
-      (sync.requestedDirection as any) || "bidirectional";
-    const shouldPull =
-      requestedDirection === "pull" || requestedDirection === "bidirectional";
-    const shouldPush =
-      requestedDirection === "push" || requestedDirection === "bidirectional";
-
-    try {
-      // PHASE 1: PULL all models
-      if (shouldPull && pullModelsToSync.length > 0) {
-        console.info(
-          `🔄 Starting PULL phase for ${pullModelsToSync.length} models`
-        );
-        await updateSync({ syncId, currentDirection: "PULL" });
-
-        for (const modelName of pullModelsToSync) {
-          const connector = this.modelConnectors.get(modelName);
-          if (!connector) {
-            console.info(`No connector for model ${modelName}, skipping`);
-            continue;
-          }
-
-          await updateSync({ syncId, currentModelName: modelName });
-
-          // Load latest sync state before starting model
-          const state = await getSync({ syncId });
-
-          await this.performPullForModel({
-            modelName,
-            connector,
-            syncId,
-            collectionName,
-            app,
-            customApp,
-            state,
-          });
-        }
-
-        console.info(`✅ PULL phase complete for all models`);
-      }
-
-      // PHASE 2: PUSH all models
-      if (shouldPush && pushModelsToSync.length > 0) {
-        console.info(
-          `🔄 Starting PUSH phase for ${pushModelsToSync.length} models`
-        );
-        await updateSync({ syncId, currentDirection: "PUSH" });
-
-        for (const modelName of pushModelsToSync) {
-          const connector = this.modelConnectors.get(modelName);
-          if (!connector) {
-            console.info(`No connector for model ${modelName}, skipping`);
-            continue;
-          }
-
-          await updateSync({ syncId, currentModelName: modelName });
-
-          await this.performPushForModel({
-            modelName,
-            connector,
-            syncId,
-            collectionName,
-          });
-        }
-
-        console.info(`✅ PUSH phase complete for all models`);
-      }
-
-      // Clear direction after both phases complete
-      await updateSync({ syncId, currentDirection: null });
-    } catch (e: any) {
-      if (e === "RERUN") throw e;
-      if (e === "SKIPPED") {
-        console.warn(
-          "Sync start was skipped by server policy; exiting cleanly"
-        );
-        return;
-      }
-      // Detect HTTP status if present on error
-      let status: number | undefined = undefined;
-      if (e && typeof e === "object") {
-        if (typeof (e as any).status === "number") {
-          status = (e as any).status as number;
-        } else if (
-          (e as any).response &&
-          typeof (e as any).response.status === "number"
-        ) {
-          status = (e as any).response.status as number;
-        }
-      }
-
-      // Treat 409 as a canceled sync: log error and finish gracefully without failing run
-      if (status === 409) {
-        canceledByServer = true;
-        hadError = true; // preserve finishSync(error) semantics and logs
-        errorMessage = e instanceof Error ? e.message : String(e);
-        unrecoverableError = isUnrecoverableSyncError(e);
-        // Don't log validation errors here - they'll be logged by the run handler
-        if (!(e instanceof ValidationError || (e as any).__isValidationError)) {
-          console.error(
-            `Sync encountered an error: ${
-              e instanceof Error ? e.message : String(e)
-            }`
-          );
-        }
-      } else {
-        hadError = true;
-        errorMessage = e instanceof Error ? e.message : String(e);
-        unrecoverableError = isUnrecoverableSyncError(e);
-        // Don't log validation errors here - they'll be logged by the run handler
-        if (!(e instanceof ValidationError || (e as any).__isValidationError)) {
-          console.error(
-            `Sync encountered an error: ${
-              e instanceof Error ? e.message : String(e)
-            }`
-          );
-        }
-      }
-    }
-
-    // Finish the sync unless the server has already canceled it (409)
-    if (canceledByServer) {
-      try {
-        console.info(
-          `Sync ${syncId} was canceled by server; skipping finishSync`
-        );
-      } catch {}
-    } else {
-      try {
-        console.info(
-          `Finishing sync ${syncId}${hadError ? " (with error)" : ""} force=${
-            hadError && unrecoverableError
-          }`
-        );
-        if (hadError) {
-          try {
-            await finishSync(syncId, {
-              error: errorMessage,
-              force: true,
-            });
-          } catch (finishErr: any) {
-            console.warn(`finishSync(force=true) failed:`, finishErr);
-          }
-        } else {
-          await finishSync(syncId);
-        }
-        console.info(`Finished sync ${syncId}`);
-      } catch (e) {
-        console.warn(`Failed to finish sync ${syncId}:`, e);
-        // Treat inability to finish the sync as a run-level failure
-        hadError = true;
-        errorMessage =
-          (e instanceof Error ? e.message : String(e)) ||
-          errorMessage ||
-          "Failed to finish sync";
-        // Do not force unless unrecoverable; we already included force above
-      }
-    }
-
-    // If the sync had errors, propagate failure to the caller so the run fails
-    if (hadError) {
-      throw new Error(errorMessage || "Sync failed");
     }
   }
 }

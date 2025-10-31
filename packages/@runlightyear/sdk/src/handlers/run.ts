@@ -203,7 +203,12 @@ export const handleRun: RunHandler = async (
             } as any;
           }
           effectiveManagedUser = fetched.managedUser || effectiveManagedUser;
-          // Populate execution/log context with managed user, integration and app/customApp
+          // Extract syncId from fetched props and add to context
+          const fetchedSyncId = fetched.syncId;
+          if (fetchedSyncId) {
+            console.log(`🔍 Handler: Extracted syncId from run-func-props: ${fetchedSyncId}`);
+          }
+          // Populate execution/log context with managed user, integration, app/customApp, and syncId
           try {
             const { getLogCapture } = await import("../logging/index.js");
             const ctx: any = {
@@ -227,6 +232,11 @@ export const handleRun: RunHandler = async (
               if (authKeys.length === 1) {
                 ctx.customAppName = authKeys[0];
               }
+            }
+            // Add syncId to context if present
+            if (fetchedSyncId) {
+              ctx.syncId = fetchedSyncId;
+              console.log(`✅ Handler: Set syncId in context: ${fetchedSyncId}`);
             }
             if (Object.keys(ctx).length > 0) {
               getLogCapture()?.setContext(ctx);
