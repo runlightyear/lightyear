@@ -99,6 +99,13 @@ export interface Integration {
   collection: Collection;
   actions: Record<string, Action>;
   syncSchedules?: SyncSchedule[];
+  readOnly?: boolean; // If true, entire integration is read-only (skip push operations)
+  writeOnly?: boolean; // If true, entire integration is write-only (skip pull operations)
+  modelPermissions?: Array<{
+    model: string; // Model name
+    readOnly?: boolean; // If true, this model is read-only
+    writeOnly?: boolean; // If true, this model is write-only
+  }>; // Array of model-specific permissions
 }
 
 // Run function types for action execution

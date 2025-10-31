@@ -47,6 +47,13 @@ interface IntegrationProps {
   actions?: string[]; // Array of action names
   webhooks?: string[]; // Array of webhook names
   syncSchedules?: SyncScheduleProps[]; // Array of sync schedules
+  readOnly?: boolean; // If true, entire integration is read-only
+  writeOnly?: boolean; // If true, entire integration is write-only
+  modelPermissions?: Array<{
+    model: string; // Model name
+    readOnly?: boolean; // If true, this model is read-only
+    writeOnly?: boolean; // If true, this model is write-only
+  }>; // Array of model-specific permissions
 }
 
 interface ActionProps {
@@ -250,6 +257,22 @@ function transformRegistryToDeploymentSchema(
         // Add sync schedules if they exist
         if (integration.syncSchedules && integration.syncSchedules.length > 0) {
           integrationProps.syncSchedules = integration.syncSchedules;
+        }
+
+        // Add read-only/write-only flags if they exist
+        if (integration.readOnly !== undefined) {
+          integrationProps.readOnly = integration.readOnly;
+        }
+        if (integration.writeOnly !== undefined) {
+          integrationProps.writeOnly = integration.writeOnly;
+        }
+
+        // Add model permissions if they exist
+        if (
+          integration.modelPermissions &&
+          integration.modelPermissions.length > 0
+        ) {
+          integrationProps.modelPermissions = integration.modelPermissions;
         }
 
         // Webhooks will be added when we implement webhook builders

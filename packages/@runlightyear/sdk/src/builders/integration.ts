@@ -18,6 +18,13 @@ export class IntegrationBuilder {
   private collection?: Collection;
   private actions: Record<string, Action> = {};
   private syncSchedules?: SyncSchedule[];
+  private readOnly?: boolean;
+  private writeOnly?: boolean;
+  private modelPermissions?: Array<{
+    model: string;
+    readOnly?: boolean;
+    writeOnly?: boolean;
+  }>;
 
   constructor(name: string) {
     this.name = name;
@@ -65,6 +72,27 @@ export class IntegrationBuilder {
         ? (source as any).syncSchedules
         : source.syncSchedules;
     if (syncSchedules) builder.withSyncSchedules(syncSchedules);
+    const readOnly =
+      source instanceof IntegrationBuilder
+        ? (source as any).readOnly
+        : (source as any).readOnly;
+    if (readOnly !== undefined) {
+      builder.asReadOnly();
+    }
+    const writeOnly =
+      source instanceof IntegrationBuilder
+        ? (source as any).writeOnly
+        : (source as any).writeOnly;
+    if (writeOnly !== undefined) {
+      builder.asWriteOnly();
+    }
+    const modelPermissions =
+      source instanceof IntegrationBuilder
+        ? (source as any).modelPermissions
+        : (source as any).modelPermissions;
+    if (modelPermissions) {
+      builder.withModelPermissions(modelPermissions);
+    }
     return builder;
   }
 
@@ -262,6 +290,74 @@ export class IntegrationBuilder {
     return this;
   }
 
+  /**
+   * Mark entire integration as read-only (skip push operations)
+   */
+  asReadOnly(): this {
+    this.readOnly = true;
+    return this;
+  }
+
+  /**
+   * Mark entire integration as write-only (skip pull operations)
+   */
+  asWriteOnly(): this {
+    this.writeOnly = true;
+    return this;
+  }
+
+  /**
+   * Mark specific models as read-only
+   * Convenience method that converts to modelPermissions format
+   */
+  withReadOnlyModels(modelNames: string[]): this {
+    if (!this.modelPermissions) {
+      this.modelPermissions = [];
+    }
+    // Remove any existing entries for these models first
+    this.modelPermissions = this.modelPermissions.filter(
+      (p) => !modelNames.includes(p.model)
+    );
+    // Add new entries
+    modelNames.forEach((modelName) => {
+      this.modelPermissions!.push({ model: modelName, readOnly: true });
+    });
+    return this;
+  }
+
+  /**
+   * Mark specific models as write-only
+   * Convenience method that converts to modelPermissions format
+   */
+  withWriteOnlyModels(modelNames: string[]): this {
+    if (!this.modelPermissions) {
+      this.modelPermissions = [];
+    }
+    // Remove any existing entries for these models first
+    this.modelPermissions = this.modelPermissions.filter(
+      (p) => !modelNames.includes(p.model)
+    );
+    // Add new entries
+    modelNames.forEach((modelName) => {
+      this.modelPermissions!.push({ model: modelName, writeOnly: true });
+    });
+    return this;
+  }
+
+  /**
+   * Set model-specific permissions directly
+   */
+  withModelPermissions(
+    permissions: Array<{
+      model: string;
+      readOnly?: boolean;
+      writeOnly?: boolean;
+    }>
+  ): this {
+    this.modelPermissions = permissions;
+    return this;
+  }
+
   deploy(): Integration {
     if (!this.app) {
       throw new Error(
@@ -275,6 +371,48 @@ export class IntegrationBuilder {
       );
     }
 
+    // Validation: Cannot have both readOnly and writeOnly set to true
+    if (this.readOnly === true && this.writeOnly === true) {
+      throw new Error(
+        `Integration "${this.name}" cannot be both read-only and write-only. Remove one of the flags.`
+      );
+    }
+
+    // Validation: Check model permissions for conflicts
+    if (this.modelPermissions) {
+      const modelSet = new Set<string>();
+      for (const perm of this.modelPermissions) {
+        // Check for duplicate models
+        if (modelSet.has(perm.model)) {
+          throw new Error(
+            `Integration "${this.name}" has duplicate model "${perm.model}" in modelPermissions. Each model should appear only once.`
+          );
+        }
+        modelSet.add(perm.model);
+
+        // Check for conflicting flags on same model
+        if (perm.readOnly === true && perm.writeOnly === true) {
+          throw new Error(
+            `Integration "${this.name}" model "${perm.model}" cannot be both read-only and write-only.`
+          );
+        }
+
+        // Check if integration-level readOnly conflicts with model writeOnly
+        if (this.readOnly === true && perm.writeOnly === true) {
+          throw new Error(
+            `Integration "${this.name}" is read-only but model "${perm.model}" is marked as write-only. Remove the conflicting configuration.`
+          );
+        }
+
+        // Check if integration-level writeOnly conflicts with model readOnly
+        if (this.writeOnly === true && perm.readOnly === true) {
+          throw new Error(
+            `Integration "${this.name}" is write-only but model "${perm.model}" is marked as read-only. Remove the conflicting configuration.`
+          );
+        }
+      }
+    }
+
     const integration: Integration = {
       name: this.name,
       title: this.title,
@@ -283,6 +421,9 @@ export class IntegrationBuilder {
       collection: this.collection,
       actions: this.actions,
       syncSchedules: this.syncSchedules,
+      readOnly: this.readOnly,
+      writeOnly: this.writeOnly,
+      modelPermissions: this.modelPermissions,
     };
 
     // Register the integration in the global registry

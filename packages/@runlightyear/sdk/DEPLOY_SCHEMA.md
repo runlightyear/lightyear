@@ -183,6 +183,13 @@ interface IntegrationProps {
   actions?: string[]; // Array of action names
   webhooks?: string[]; // Array of webhook names
   syncSchedules?: SyncSchedule[]; // Array of sync schedules
+  readOnly?: boolean; // If true, entire integration is read-only (skip push operations)
+  writeOnly?: boolean; // If true, entire integration is write-only (skip pull operations)
+  modelPermissions?: Array<{
+    model: string; // Model name
+    readOnly?: boolean; // If true, this model is read-only
+    writeOnly?: boolean; // If true, this model is write-only
+  }>; // Array of model-specific permissions
 }
 
 interface SyncSchedule {
@@ -206,6 +213,40 @@ interface SyncSchedule {
     "syncSchedules": [
       { "type": "INCREMENTAL", "every": "5 minutes" },
       { "type": "FULL", "every": "1 day" }
+    ]
+  }
+}
+```
+
+**Example with read-only configuration**:
+
+```json
+{
+  "type": "integration",
+  "integrationProps": {
+    "name": "hubspot-read-only",
+    "title": "HubSpot Read-Only Sync",
+    "app": "hubspot",
+    "collection": "crm",
+    "readOnly": true
+  }
+}
+```
+
+**Example with model-specific permissions**:
+
+```json
+{
+  "type": "integration",
+  "integrationProps": {
+    "name": "hubspot-mixed",
+    "title": "HubSpot Mixed Permissions",
+    "app": "hubspot",
+    "collection": "crm",
+    "modelPermissions": [
+      { "model": "owner", "readOnly": true },
+      { "model": "contact", "readOnly": false },
+      { "model": "event", "writeOnly": true }
     ]
   }
 }

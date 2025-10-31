@@ -561,4 +561,220 @@ describe("IntegrationBuilder", () => {
       expect(integration.syncSchedules).toBeUndefined();
     });
   });
+
+  describe("Read-only and write-only configuration", () => {
+    it("should mark integration as read-only", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("read-only-integration")
+        .withApp("hubspot")
+        .withCollection(collection)
+        .asReadOnly()
+        .deploy();
+
+      expect(integration.readOnly).toBe(true);
+      expect(integration.writeOnly).toBeUndefined();
+      expect(integration.modelPermissions).toBeUndefined();
+    });
+
+    it("should mark integration as write-only", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("write-only-integration")
+        .withApp("hubspot")
+        .withCollection(collection)
+        .asWriteOnly()
+        .deploy();
+
+      expect(integration.writeOnly).toBe(true);
+      expect(integration.readOnly).toBeUndefined();
+      expect(integration.modelPermissions).toBeUndefined();
+    });
+
+    it("should mark specific models as read-only", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("mixed-permissions")
+        .withApp("hubspot")
+        .withCollection(collection)
+        .withReadOnlyModels(["owner", "user"])
+        .deploy();
+
+      expect(integration.readOnly).toBeUndefined();
+      expect(integration.writeOnly).toBeUndefined();
+      expect(integration.modelPermissions).toEqual([
+        { model: "owner", readOnly: true },
+        { model: "user", readOnly: true },
+      ]);
+    });
+
+    it("should mark specific models as write-only", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("write-only-models")
+        .withApp("hubspot")
+        .withCollection(collection)
+        .withWriteOnlyModels(["event", "webhook"])
+        .deploy();
+
+      expect(integration.readOnly).toBeUndefined();
+      expect(integration.writeOnly).toBeUndefined();
+      expect(integration.modelPermissions).toEqual([
+        { model: "event", writeOnly: true },
+        { model: "webhook", writeOnly: true },
+      ]);
+    });
+
+    it("should use modelPermissions directly", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("direct-permissions")
+        .withApp("hubspot")
+        .withCollection(collection)
+        .withModelPermissions([
+          { model: "owner", readOnly: true },
+          { model: "contact", readOnly: false },
+          { model: "event", writeOnly: true },
+        ])
+        .deploy();
+
+      expect(integration.modelPermissions).toEqual([
+        { model: "owner", readOnly: true },
+        { model: "contact", readOnly: false },
+        { model: "event", writeOnly: true },
+      ]);
+    });
+
+    it("should throw error when integration is both read-only and write-only", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      expect(() => {
+        defineIntegration("conflicting-integration")
+          .withApp("hubspot")
+          .withCollection(collection)
+          .asReadOnly()
+          .asWriteOnly()
+          .deploy();
+      }).toThrow(
+        'Integration "conflicting-integration" cannot be both read-only and write-only'
+      );
+    });
+
+    it("should throw error when model is both read-only and write-only", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      expect(() => {
+        defineIntegration("conflicting-model")
+          .withApp("hubspot")
+          .withCollection(collection)
+          .withModelPermissions([
+            { model: "owner", readOnly: true, writeOnly: true },
+          ])
+          .deploy();
+      }).toThrow(
+        'Integration "conflicting-model" model "owner" cannot be both read-only and write-only'
+      );
+    });
+
+    it("should throw error when integration is read-only but model is write-only", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      expect(() => {
+        defineIntegration("read-only-with-write-model")
+          .withApp("hubspot")
+          .withCollection(collection)
+          .asReadOnly()
+          .withModelPermissions([{ model: "event", writeOnly: true }])
+          .deploy();
+      }).toThrow(
+        'Integration "read-only-with-write-model" is read-only but model "event" is marked as write-only'
+      );
+    });
+
+    it("should throw error when integration is write-only but model is read-only", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      expect(() => {
+        defineIntegration("write-only-with-read-model")
+          .withApp("hubspot")
+          .withCollection(collection)
+          .asWriteOnly()
+          .withModelPermissions([{ model: "owner", readOnly: true }])
+          .deploy();
+      }).toThrow(
+        'Integration "write-only-with-read-model" is write-only but model "owner" is marked as read-only'
+      );
+    });
+
+    it("should throw error for duplicate models in modelPermissions", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      expect(() => {
+        defineIntegration("duplicate-models")
+          .withApp("hubspot")
+          .withCollection(collection)
+          .withModelPermissions([
+            { model: "owner", readOnly: true },
+            { model: "owner", writeOnly: true },
+          ])
+          .deploy();
+      }).toThrow(
+        'Integration "duplicate-models" has duplicate model "owner" in modelPermissions'
+      );
+    });
+
+    it("should update model permissions when withReadOnlyModels is called multiple times", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("update-permissions")
+        .withApp("hubspot")
+        .withCollection(collection)
+        .withReadOnlyModels(["owner"])
+        .withReadOnlyModels(["owner", "user"])
+        .deploy();
+
+      expect(integration.modelPermissions).toEqual([
+        { model: "owner", readOnly: true },
+        { model: "user", readOnly: true },
+      ]);
+    });
+
+    it("should copy read-only/write-only fields in IntegrationBuilder.from()", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const original = defineIntegration("original")
+        .withApp("hubspot")
+        .withCollection(collection)
+        .asReadOnly()
+        .withReadOnlyModels(["owner"])
+        .deploy();
+
+      const copied = defineIntegration.from(original)
+        .withApp("hubspot")
+        .withCollection(collection)
+        .deploy();
+
+      expect(copied.readOnly).toBe(true);
+      expect(copied.modelPermissions).toEqual([
+        { model: "owner", readOnly: true },
+      ]);
+    });
+
+    it("should support chaining read-only methods", () => {
+      const collection = defineCollection("contacts").deploy();
+
+      const integration = defineIntegration("chained-methods")
+        .withApp("hubspot")
+        .withCollection(collection)
+        .asReadOnly()
+        .withReadOnlyModels(["owner", "user"])
+        .deploy();
+
+      expect(integration.readOnly).toBe(true);
+      expect(integration.modelPermissions).toEqual([
+        { model: "owner", readOnly: true },
+        { model: "user", readOnly: true },
+      ]);
+    });
+  });
 });
