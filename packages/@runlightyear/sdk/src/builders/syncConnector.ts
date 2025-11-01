@@ -1732,6 +1732,123 @@ export class SyncConnector<
         `Processing ${delta.changes.length} CREATE changes for model ${modelName} (individual requests via batch endpoint)`
       );
 
+      // Register extract function for individual CREATE requests if not already registered
+      if (!processor.hasBatchExtractFunctionForModel(modelName)) {
+        const createExtractFn = connector.config.create?.extract;
+        const extractFn = (responseData: any, changeIds?: string[]) => {
+          // For individual requests, each response corresponds to one change
+          // changeIds will be provided by ChangeProcessor as second parameter
+          const changeId = changeIds && changeIds.length > 0 ? changeIds[0] : "";
+          
+          if (createExtractFn) {
+            // Use the model's extract function
+            // The extract function expects the transformed response (after responseSchema validation and transform)
+            // This matches the behavior of the sync create method
+            try {
+              // Validate response if schema provided
+              let validated = responseData;
+              const createConfig = connector.config.create!;
+              if ((createConfig as any).responseSchema) {
+                try {
+                  validated = (createConfig as any).responseSchema.parse(
+                    responseData
+                  );
+                } catch (error: any) {
+                  // If validation fails but transform exists, try to proceed anyway
+                  // The transform function might be able to handle the raw response structure
+                  if ((createConfig as any).transform) {
+                    console.warn(
+                      `Response schema validation failed for model "${modelName}" create operation, but transform function exists. Proceeding with raw response. Validation errors: ${JSON.stringify(error?.issues || [error], null, 2)}`
+                    );
+                    validated = responseData; // Use raw response
+                  } else {
+                    // No transform function, so validation is required
+                    const errorMessage = error?.issues
+                      ? JSON.stringify(error.issues, null, 2)
+                      : String(error);
+                    throw new Error(
+                      `Response validation failed for model "${modelName}" create operation.\n` +
+                        `Validation errors:\n${errorMessage}`
+                    );
+                  }
+                }
+              }
+
+              // Apply transform function if provided
+              const transformed = (createConfig as any).transform
+                ? (createConfig as any).transform(validated)
+                : validated;
+
+              // Now call extract function with the transformed response
+              const extracted = createExtractFn(transformed);
+              // CREATE extract always returns externalId as string (required)
+              if (!extracted.externalId) {
+                throw new Error(
+                  `Extract function returned missing externalId. Transformed response keys: ${Object.keys(transformed || {}).join(", ")}`
+                );
+              }
+              return [
+                {
+                  changeId,
+                  externalId: String(extracted.externalId),
+                  externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+                },
+              ];
+            } catch (error) {
+              // Don't log here - let changeProcessor handle error logging
+              // This prevents duplicate error messages
+              throw error;
+            }
+          } else {
+            // Default extraction - try common patterns for nested responses
+            let externalId: string | null = null;
+            let externalUpdatedAt: string | null = null;
+            
+            // Try direct properties first
+            externalId =
+              responseData?.id ||
+              responseData?.externalId ||
+              null;
+            
+            // Try nested structures (common patterns: { owner: { id } }, { data: { id } }, { result: { id } })
+            if (!externalId && responseData) {
+              externalId =
+                responseData.owner?.id ||
+                responseData.data?.id ||
+                responseData.result?.id ||
+                responseData.item?.id ||
+                null;
+            }
+            
+            externalUpdatedAt =
+              responseData?.updatedAt ||
+              responseData?.externalUpdatedAt ||
+              responseData?.createdAt ||
+              responseData?.owner?.updatedAt ||
+              responseData?.owner?.createdAt ||
+              responseData?.data?.updatedAt ||
+              responseData?.data?.createdAt ||
+              null;
+            
+            if (!externalId) {
+              throw new Error(
+                `Could not extract externalId from CREATE response. Response structure: ${JSON.stringify(responseData, null, 2)}`
+              );
+            }
+            return [
+              {
+                changeId,
+                externalId: String(externalId),
+                externalUpdatedAt: externalUpdatedAt
+                  ? String(externalUpdatedAt)
+                  : null,
+              },
+            ];
+          }
+        };
+        processor.registerBatchExtractFunctionByModel(modelName, extractFn);
+      }
+
       const requests = delta.changes.map((change: any) => {
         const requestConfig = connector.config.create!.request(change.data);
 
@@ -1756,10 +1873,76 @@ export class SyncConnector<
       console.info(
         `Sent ${requests.length} parallel CREATE requests for model ${modelName}`
       );
+
+      // Give responses a moment to start coming back before continuing
+      // This helps when responses come back quickly via localhost proxy
+      await new Promise((resolve) => setTimeout(resolve, 500));
     } else if (delta.operation === "UPDATE" && connector.update) {
       console.info(
         `Processing ${delta.changes.length} UPDATE changes for model ${modelName} (individual requests via batch endpoint)`
       );
+
+      // Register extract function for individual UPDATE requests if not already registered
+      if (!processor.hasBatchExtractFunctionForModel(modelName)) {
+        const updateExtractFn = connector.config.update?.extract;
+        const extractFn = (responseData: any, changeIds?: string[]) => {
+          // For individual requests, each response corresponds to one change
+          // changeIds will be provided by ChangeProcessor as second parameter
+          const changeId = changeIds && changeIds.length > 0 ? changeIds[0] : "";
+          
+          if (updateExtractFn) {
+            // Use the model's extract function
+            const extracted = updateExtractFn(responseData);
+            // For UPDATE, externalId is optional in extract function
+            // We need to ensure we have a valid externalId string
+            let externalId: string;
+            if (extracted.externalId) {
+              externalId = String(extracted.externalId);
+            } else {
+              // Fallback: try to extract from response or use placeholder
+              // But we should always have externalId from the original change
+              const fallbackId =
+                responseData?.id || responseData?.externalId || null;
+              if (!fallbackId) {
+                throw new Error(
+                  `Could not extract externalId from UPDATE response. Response keys: ${Object.keys(responseData || {}).join(", ")}`
+                );
+              }
+              externalId = String(fallbackId);
+            }
+            return [
+              {
+                changeId,
+                externalId,
+                externalUpdatedAt: extracted.externalUpdatedAt ?? null,
+              },
+            ];
+          } else {
+            // Default extraction
+            const externalId =
+              responseData?.id || responseData?.externalId || null;
+            const externalUpdatedAt =
+              responseData?.updatedAt ||
+              responseData?.externalUpdatedAt ||
+              null;
+            if (!externalId) {
+              throw new Error(
+                `Could not extract externalId from UPDATE response. Response keys: ${Object.keys(responseData || {}).join(", ")}`
+              );
+            }
+            return [
+              {
+                changeId,
+                externalId: String(externalId),
+                externalUpdatedAt: externalUpdatedAt
+                  ? String(externalUpdatedAt)
+                  : null,
+              },
+            ];
+          }
+        };
+        processor.registerBatchExtractFunctionByModel(modelName, extractFn);
+      }
 
       const requests = delta.changes.map((change: any) => {
         const requestConfig = connector.config.update!.request(
@@ -1788,10 +1971,31 @@ export class SyncConnector<
       console.info(
         `Sent ${requests.length} parallel UPDATE requests for model ${modelName}`
       );
+
+      // Give responses a moment to start coming back before continuing
+      await new Promise((resolve) => setTimeout(resolve, 500));
     } else if (delta.operation === "DELETE" && connector.delete) {
       console.info(
         `Processing ${delta.changes.length} DELETE changes for model ${modelName} (individual requests via batch endpoint)`
       );
+
+      // Register extract function for individual DELETE requests if not already registered
+      if (!processor.hasBatchExtractFunctionForModel(modelName)) {
+        // For DELETE operations, the externalId is typically in the URL path
+        // The ChangeProcessor will extract it from the request URL
+        const extractFn = (responseData: any, changeIds?: string[]) => {
+          // For DELETE, the ChangeProcessor will extract externalId from the request URL
+          // This is just a placeholder - the ChangeProcessor handles the actual extraction
+          const changeId = changeIds && changeIds.length > 0 ? changeIds[0] : "";
+          return [
+            {
+              changeId,
+              externalId: "", // Will be extracted from request URL by ChangeProcessor
+            },
+          ];
+        };
+        processor.registerBatchExtractFunctionByModel(modelName, extractFn);
+      }
 
       const requests = delta.changes.map((change: any) => {
         const requestConfig = connector.config.delete!.request(
@@ -1818,6 +2022,14 @@ export class SyncConnector<
 
       console.info(
         `Sent ${requests.length} parallel DELETE requests for model ${modelName}`
+      );
+
+      // Give responses a moment to start coming back before continuing
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    } else {
+      // No method available for this operation type
+      throw new Error(
+        `Cannot process ${delta.operation} delta for model "${modelName}": no ${delta.operation.toLowerCase()} method is configured`
       );
     }
   }
@@ -1911,6 +2123,11 @@ export class SyncConnector<
         changes: confirmations,
         async: false,
       });
+    } else {
+      // No method available for this operation type
+      throw new Error(
+        `Cannot process ${delta.operation} delta for model "${modelName}": no ${delta.operation.toLowerCase()} method is configured`
+      );
     }
   }
 
@@ -2047,6 +2264,9 @@ export class SyncConnector<
           if (!connector) continue;
 
           await updateSync({ syncId, currentModelName: modelName });
+          
+          // Track if we've sent any HTTP requests during PUSH phase for this model
+          let hasSentRequests = false;
 
           // Load latest sync state before starting model
           let state = await getSync({ syncId });
@@ -2266,6 +2486,7 @@ export class SyncConnector<
                   modelName,
                   changeProcessor
                 );
+                hasSentRequests = true;
               } else if (
                 connector.batchUpdate &&
                 delta.operation === "UPDATE"
@@ -2276,6 +2497,7 @@ export class SyncConnector<
                   modelName,
                   changeProcessor
                 );
+                hasSentRequests = true;
               } else if (
                 connector.batchDelete &&
                 delta.operation === "DELETE"
@@ -2286,14 +2508,30 @@ export class SyncConnector<
                   modelName,
                   changeProcessor
                 );
+                hasSentRequests = true;
               } else {
                 // Process individual operations asynchronously
+                // Validate that the required method exists before processing
+                if (delta.operation === "CREATE" && !connector.create) {
+                  throw new Error(
+                    `Cannot process CREATE delta for model "${modelName}": create method is not configured`
+                  );
+                } else if (delta.operation === "UPDATE" && !connector.update) {
+                  throw new Error(
+                    `Cannot process UPDATE delta for model "${modelName}": update method is not configured`
+                  );
+                } else if (delta.operation === "DELETE" && !connector.delete) {
+                  throw new Error(
+                    `Cannot process DELETE delta for model "${modelName}": delete method is not configured`
+                  );
+                }
                 await this.processIndividualChangesAsync(
                   connector,
                   delta,
                   modelName,
                   changeProcessor
                 );
+                hasSentRequests = true;
               }
 
               // Track changes processed
@@ -2317,6 +2555,68 @@ export class SyncConnector<
 
           // Clear direction after model finishes
           await updateSync({ syncId, currentDirection: null });
+
+          // Process any pending confirmations for this model before moving to next model
+          // This helps prevent delta locks when moving between models
+          // Poll until all writes are confirmed or timeout
+          if (hasSentRequests) {
+            console.info(
+              `🔄 Processing confirmations for model ${modelName} before moving to next model...`
+            );
+            
+            // Wait longer initially if we sent requests, as platform may need time to queue them
+            // This is especially important for localhost proxy where requests may be delayed
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+            
+            let confirmationAttempts = 0;
+            const maxConfirmationAttempts = 40; // Wait up to ~40 seconds for responses
+            let consecutiveZeroCounts = 0; // Track consecutive zero counts
+            
+            while (confirmationAttempts < maxConfirmationAttempts) {
+              const result = await changeProcessor.processUnconfirmedChanges();
+              
+              // If no pending writes and no changes, check if we've seen zeros consistently
+              // This handles the case where requests haven't been queued yet
+              if (result.pendingWritesCount === 0 && !result.hasChanges) {
+                consecutiveZeroCounts++;
+                // If we've seen zero for 3 consecutive checks, we're probably done
+                // But if it's early (first few attempts), keep checking in case requests are slow to appear
+                if (consecutiveZeroCounts >= 3 && confirmationAttempts >= 5) {
+                  console.info(
+                    `✅ All confirmations complete for model ${modelName} after ${confirmationAttempts + 1} attempts`
+                  );
+                  break;
+                }
+              } else {
+                consecutiveZeroCounts = 0; // Reset counter if we see any activity
+              }
+              
+              if (result.pendingWritesCount > 0) {
+                console.info(
+                  `⏳ ${result.pendingWritesCount} writes still pending for model ${modelName}, waiting... (attempt ${confirmationAttempts + 1}/${maxConfirmationAttempts})`
+                );
+              } else if (confirmationAttempts < 5) {
+                // Log early attempts even if zero, to show we're waiting for requests to appear
+                console.info(
+                  `⏳ Waiting for HTTP requests to appear for model ${modelName}... (attempt ${confirmationAttempts + 1}/${maxConfirmationAttempts})`
+                );
+              }
+              
+              confirmationAttempts++;
+              
+              // Wait before next attempt (exponential backoff, but faster initial checks)
+              const waitTime = confirmationAttempts <= 5 
+                ? 1000 // Check every second for first 5 attempts
+                : Math.min(1000 * (confirmationAttempts - 5), 2000); // Then exponential backoff
+              await new Promise((resolve) => setTimeout(resolve, waitTime));
+            }
+            
+            if (confirmationAttempts >= maxConfirmationAttempts) {
+              console.warn(
+                `⚠️  Confirmation timeout for model ${modelName} - ${maxConfirmationAttempts} attempts reached. Writes may be confirmed in final pass.`
+              );
+            }
+          }
         }
 
         // Final confirmation passes - poll until no pending writes remain
@@ -3069,8 +3369,10 @@ export class SyncConnector<
             `Confirmed ${confirmations.length} DELETE changes for model ${modelName}`
           );
         } else {
-          // No applicable operation configured; nothing to push
-          break;
+          // No method available for this operation type
+          throw new Error(
+            `Cannot process ${delta.operation} delta for model "${modelName}": no ${delta.operation.toLowerCase()} method is configured`
+          );
         }
       }
     }
