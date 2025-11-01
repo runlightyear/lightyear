@@ -196,6 +196,7 @@ function transformRegistryToDeploymentSchema(
               "Unnamed Custom App",
             authType: item.customApp.type || "OAUTH2",
             hasOAuth: item.customApp.oauthConnector ? true : undefined,
+            isOwnApp: item.customApp.isOwnApp ?? false,
             variables: variables.length > 0 ? variables : undefined,
             secrets: secrets.length > 0 ? secrets : undefined,
           },

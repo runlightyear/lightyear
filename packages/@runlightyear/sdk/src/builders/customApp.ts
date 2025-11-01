@@ -18,6 +18,7 @@ export class CustomAppBuilder {
   private variables: AppVariable[] = [];
   private secrets: AppSecret[] = [];
   private oauthConnector?: OAuthConnectorClass | OAuthConnectorFactory;
+  private isOwnApp: boolean = false;
 
   constructor(name: string, type: AppAuthType) {
     this.name = name;
@@ -53,6 +54,11 @@ export class CustomAppBuilder {
         ? (source as any).oauthConnector
         : source.oauthConnector;
     if (oauthConnector) builder.withOAuthConnector(oauthConnector);
+    const isOwnApp =
+      source instanceof CustomAppBuilder
+        ? (source as any).isOwnApp
+        : source.isOwnApp;
+    if (isOwnApp) builder.asOwnApp();
     return builder;
   }
 
@@ -117,6 +123,15 @@ export class CustomAppBuilder {
     return this;
   }
 
+  /**
+   * Mark this custom app as the developer's own product (first-party).
+   * Useful for distinguishing between third-party integrations and first-party apps.
+   */
+  asOwnApp(): this {
+    this.isOwnApp = true;
+    return this;
+  }
+
   deploy(): CustomApp {
     const app: CustomApp = {
       name: this.name,
@@ -125,6 +140,7 @@ export class CustomAppBuilder {
       variables: this.variables.length > 0 ? this.variables : undefined,
       secrets: this.secrets.length > 0 ? this.secrets : undefined,
       oauthConnector: this.oauthConnector,
+      isOwnApp: this.isOwnApp,
     };
 
     // Register the custom app in the global registry

@@ -112,6 +112,20 @@ const duplicateSalesforceApp = defineCustomApp
   .withTitle("Salesforce CRM v2")
   .deploy();
 
+/**
+ * Create a custom app marked as the developer's own product (first-party)
+ */
+
+const myCompanyApp = defineOAuth2CustomApp("my-company-api")
+  .withTitle("My Company API")
+  .asOwnApp() // Marks this as first-party/own product
+  .addVariable("environment", {
+    title: "Environment",
+    defaultValue: "production",
+    required: true,
+  })
+  .deploy();
+
 // Export examples for reference
 export {
   simpleApiKeyApp,
@@ -122,4 +136,5 @@ export {
   githubApp,
   salesforceApp,
   duplicateSalesforceApp,
+  myCompanyApp,
 };

@@ -88,7 +88,7 @@ export interface CustomApp {
    * If true, marks this custom app as the developer's own product (first-party).
    * Useful for distinguishing between third-party integrations and first-party apps.
    */
-  isOwnProduct?: boolean;
+  isOwnApp?: boolean;
 }
 
 // Integration definition
