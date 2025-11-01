@@ -84,6 +84,11 @@ export interface CustomApp {
   variables?: AppVariable[];
   secrets?: AppSecret[];
   oauthConnector?: OAuthConnectorClass | OAuthConnectorFactory;
+  /**
+   * If true, marks this custom app as the developer's own product (first-party).
+   * Useful for distinguishing between third-party integrations and first-party apps.
+   */
+  isOwnProduct?: boolean;
 }
 
 // Integration definition

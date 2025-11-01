@@ -2055,11 +2055,18 @@ export class SyncConnector<
           let currentDirection: "PULL" | "PUSH" | null =
             state.currentDirection ?? null;
 
+          // Check model-level read/write restrictions
+          const modelStatus = state.modelStatuses?.[modelName];
+          const readOnly = modelStatus?.readOnly ?? false;
+          const writeOnly = modelStatus?.writeOnly ?? false;
+
           // PULL phase remains synchronous
+          // Skip PULL if model is writeOnly (can only write, not read)
           if (
             (requestedDirection === "pull" ||
               requestedDirection === "bidirectional") &&
-            currentDirection !== "PUSH"
+            currentDirection !== "PUSH" &&
+            !writeOnly
           ) {
             await updateSync({ syncId, currentDirection: "PULL" });
             console.info(`PULL phase started for model ${modelName}`);
@@ -2193,12 +2200,18 @@ export class SyncConnector<
                 )}ms/page)`
               );
             }
+          } else if (writeOnly) {
+            console.info(
+              `⏭️  PULL phase skipped for model ${modelName} (writeOnly=true)`
+            );
           }
 
           // PUSH phase with async HTTP
+          // Skip PUSH if model is readOnly (can only read, not write)
           if (
-            requestedDirection === "push" ||
-            requestedDirection === "bidirectional"
+            (requestedDirection === "push" ||
+              requestedDirection === "bidirectional") &&
+            !readOnly
           ) {
             await updateSync({ syncId, currentDirection: "PUSH" });
             console.info(`PUSH phase started for model ${modelName}`);
@@ -2296,6 +2309,10 @@ export class SyncConnector<
                 }
               }
             }
+          } else if (readOnly) {
+            console.info(
+              `⏭️  PUSH phase skipped for model ${modelName} (readOnly=true)`
+            );
           }
 
           // Clear direction after model finishes
