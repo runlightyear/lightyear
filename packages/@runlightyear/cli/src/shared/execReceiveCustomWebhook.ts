@@ -36,7 +36,10 @@ export async function execReceiveCustomWebhook(
     handler = runInContext(compiledCode).handler;
   } catch (error) {
     prepareConsole();
-    console.error(error);
+    console.error(
+      `Error loading compiled code for receiveCustomWebhook:`,
+      error
+    );
     return;
   }
 

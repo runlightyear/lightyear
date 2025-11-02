@@ -193,6 +193,33 @@ export const CrmNoteJsonSchema = {
     title: { type: ["string", "null"] },
     content: { type: ["string", "null"] },
     timestamp: { type: ["string", "null"] },
+    accountId: {
+      anyOf: [
+        {
+          type: "string",
+          references: "account",
+        },
+        { type: "null" },
+      ],
+    },
+    contactId: {
+      anyOf: [
+        {
+          type: "string",
+          references: "contact",
+        },
+        { type: "null" },
+      ],
+    },
+    opportunityId: {
+      anyOf: [
+        {
+          type: "string",
+          references: "opportunity",
+        },
+        { type: "null" },
+      ],
+    },
   },
   additionalProperties: false,
 } as const;

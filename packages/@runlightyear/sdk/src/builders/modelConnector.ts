@@ -20,6 +20,7 @@ import type {
   BatchDeleteChange,
   SyncObject,
 } from "./syncConnector";
+import { validateAgainstSchema } from "../utils/schemaValidation";
 
 /**
  * ModelConnectorBuilder - builds a connector for a specific model
@@ -166,6 +167,17 @@ export class ModelConnectorBuilder<T = any> {
           items = data as Array<SyncObject<T>>;
         }
 
+        // Validate each item's data field against the model schema
+        if (this.model.schema && items.length > 0) {
+          items.forEach((item, index) => {
+            validateAgainstSchema(
+              item.data,
+              this.model.schema as any,
+              `Model "${this.model.name}" list item ${index}`
+            );
+          });
+        }
+
         if (this.config.list!.filter) {
           items = items.filter((obj) =>
             this.config.list!.filter!({
@@ -241,9 +253,20 @@ export class ModelConnectorBuilder<T = any> {
           data: requestConfig.data || transformedData,
         });
 
-        return this.config.create!.transform
+        const result = this.config.create!.transform
           ? this.config.create!.transform(response.data)
           : response.data;
+
+        // Validate the transformed result against the model schema
+        if (this.model.schema) {
+          validateAgainstSchema(
+            result,
+            this.model.schema as any,
+            `Model "${this.model.name}" create result`
+          );
+        }
+
+        return result;
       };
     }
 
@@ -262,9 +285,20 @@ export class ModelConnectorBuilder<T = any> {
           data: requestConfig.data || transformedData,
         });
 
-        return this.config.update!.transform
+        const result = this.config.update!.transform
           ? this.config.update!.transform(response.data)
           : response.data;
+
+        // Validate the transformed result against the model schema
+        if (this.model.schema) {
+          validateAgainstSchema(
+            result,
+            this.model.schema as any,
+            `Model "${this.model.name}" update result`
+          );
+        }
+
+        return result;
       };
     }
 

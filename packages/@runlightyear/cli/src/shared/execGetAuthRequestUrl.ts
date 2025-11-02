@@ -29,9 +29,13 @@ export async function execGetAuthRequestUrl(props: ExecGetAuthRequestUrlProps) {
     handler = runInContext(compiledCode).handler;
   } catch (error) {
     prepareConsole();
-    console.error(error);
+    console.error(`Error loading compiled code for getAuthRequestUrl:`, error);
     status = "FAILED";
-    logs = [`[ERROR] ${String(error)}`];
+    logs = [
+      `[ERROR] ${
+        error instanceof Error ? error.message || String(error) : String(error)
+      }`,
+    ];
   }
 
   if (handler) {

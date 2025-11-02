@@ -84,6 +84,11 @@ export interface CustomApp {
   variables?: AppVariable[];
   secrets?: AppSecret[];
   oauthConnector?: OAuthConnectorClass | OAuthConnectorFactory;
+  /**
+   * If true, marks this custom app as the developer's own product (first-party).
+   * Useful for distinguishing between third-party integrations and first-party apps.
+   */
+  isOwnApp?: boolean;
 }
 
 // Integration definition
@@ -96,8 +101,16 @@ export interface Integration {
     name: string;
     definition?: CustomApp;
   };
-  collections: Record<string, Collection>;
+  collection: Collection;
   actions: Record<string, Action>;
+  syncSchedules?: SyncSchedule[];
+  readOnly?: boolean; // If true, entire integration is read-only (skip push operations)
+  writeOnly?: boolean; // If true, entire integration is write-only (skip pull operations)
+  modelPermissions?: Array<{
+    model: string; // Model name
+    readOnly?: boolean; // If true, this model is read-only
+    writeOnly?: boolean; // If true, this model is write-only
+  }>; // Array of model-specific permissions
 }
 
 // Run function types for action execution
@@ -138,11 +151,15 @@ export interface RunFuncProps {
 
 export type RunFunc = (props: RunFuncProps) => Promise<void>;
 
+// Action types
+export type ActionType = "FULL_SYNC" | "INCREMENTAL_SYNC";
+
 // Action definition
 export interface Action {
   name: string;
   title?: string;
   description?: string;
+  type?: ActionType;
   variables?: AppVariable[];
   secrets?: AppSecret[];
   run?: RunFunc;
@@ -151,6 +168,14 @@ export interface Action {
 // Sync Connector types
 export type SyncOperation = "create" | "update" | "delete";
 export type SyncMode = "full" | "incremental";
+
+// Sync Schedule types
+export type SyncScheduleType = "INCREMENTAL" | "FULL";
+
+export interface SyncSchedule {
+  type: SyncScheduleType;
+  every?: number | string;
+}
 
 export interface SyncState {
   lastSyncTime?: Date;

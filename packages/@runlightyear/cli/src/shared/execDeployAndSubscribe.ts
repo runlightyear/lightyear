@@ -18,7 +18,7 @@ export default async function execDeployAndSubscribe(environment?: string) {
   try {
     runInContext(compiledCode);
   } catch (error) {
-    console.error(String(error));
+    console.error(`Error loading compiled code for deployAndSubscribe:`, error);
     return;
   }
 

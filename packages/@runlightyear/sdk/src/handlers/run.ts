@@ -1,4 +1,5 @@
 import type { InternalResponse, RunHandler } from "./types";
+import { ValidationError } from "../utils/ValidationError";
 
 interface RunPayload {
   actionName: string;
@@ -202,7 +203,12 @@ export const handleRun: RunHandler = async (
             } as any;
           }
           effectiveManagedUser = fetched.managedUser || effectiveManagedUser;
-          // Populate execution/log context with managed user, integration and app/customApp
+          // Extract syncId from fetched props and add to context
+          const fetchedSyncId = fetched.syncId;
+          if (fetchedSyncId) {
+            console.log(`🔍 Handler: Extracted syncId from run-func-props: ${fetchedSyncId}`);
+          }
+          // Populate execution/log context with managed user, integration, app/customApp, and syncId
           try {
             const { getLogCapture } = await import("../logging/index.js");
             const ctx: any = {
@@ -226,6 +232,11 @@ export const handleRun: RunHandler = async (
               if (authKeys.length === 1) {
                 ctx.customAppName = authKeys[0];
               }
+            }
+            // Add syncId to context if present
+            if (fetchedSyncId) {
+              ctx.syncId = fetchedSyncId;
+              console.log(`✅ Handler: Set syncId in context: ${fetchedSyncId}`);
             }
             if (Object.keys(ctx).length > 0) {
               getLogCapture()?.setContext(ctx);
@@ -336,15 +347,22 @@ export const handleRun: RunHandler = async (
     };
   } catch (error) {
     console.error("💥 Action execution failed!");
-    console.error("❌ Error details:", error);
 
-    // Enhanced error logging
-    if (error instanceof Error) {
-      console.error(`🏷️ Error type: ${error.constructor.name}`);
-      console.error(`📝 Error name: ${error.name}`);
-      console.error(`💬 Error message: ${error.message}`);
-      console.error(`🔍 Error stack:`);
-      console.error(error.stack);
+    // Handle validation errors specially (check flag since error may have been serialized)
+    if (
+      error &&
+      (error instanceof ValidationError || (error as any).__isValidationError)
+    ) {
+      console.error(`💬 Error message:\n${(error as any).message || error}`);
+      // No stack trace for validation errors
+    } else if (error instanceof Error) {
+      console.error(`💬 Error message:\n${error.message}`);
+
+      // Log stack trace for non-validation errors
+      if (error.stack) {
+        console.error(`🔍 Error stack:`);
+        console.error(error.stack);
+      }
     } else {
       console.error(`🤷 Non-Error object thrown:`);
       console.error(`   Type: ${typeof error}`);

@@ -29,7 +29,7 @@ export async function execRequestAccessToken(
     handler = runInContext(compiledCode).handler;
   } catch (error) {
     prepareConsole();
-    console.error(error);
+    console.error(`Error loading compiled code for requestAccessToken:`, error);
     throw error;
   }
 

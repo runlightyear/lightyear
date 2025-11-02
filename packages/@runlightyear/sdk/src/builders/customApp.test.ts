@@ -215,4 +215,69 @@ describe("CustomAppBuilder", () => {
       expect(app.secrets).toHaveLength(2);
     });
   });
+
+  describe("asOwnApp", () => {
+    it("should mark a custom app as own app", () => {
+      const app = defineOAuth2CustomApp("my-company-api")
+        .withTitle("My Company API")
+        .asOwnApp()
+        .deploy();
+
+      expect(app.isOwnApp).toBe(true);
+    });
+
+    it("should set isOwnApp to false when not explicitly set", () => {
+      const app = defineApiKeyCustomApp("third-party-api")
+        .withTitle("Third Party API")
+        .deploy();
+
+      expect(app.isOwnApp).toBe(false);
+    });
+
+    it("should support method chaining with asOwnApp", () => {
+      const app = defineOAuth2CustomApp("my-product")
+        .withTitle("My Product")
+        .asOwnApp()
+        .addVariable("apiVersion", { required: true })
+        .addSecret("apiKey", { required: true })
+        .deploy();
+
+      expect(app.isOwnApp).toBe(true);
+      expect(app.variables).toHaveLength(1);
+      expect(app.secrets).toHaveLength(1);
+    });
+
+    it("should preserve isOwnApp when using from()", () => {
+      const originalApp = defineOAuth2CustomApp("original")
+        .withTitle("Original App")
+        .asOwnApp()
+        .deploy();
+
+      const clonedApp = defineCustomApp.from(originalApp)
+        .withTitle("Cloned App")
+        .deploy();
+
+      expect(clonedApp.isOwnApp).toBe(true);
+      expect(clonedApp.name).toBe("original");
+      expect(clonedApp.title).toBe("Cloned App");
+    });
+
+    it("should work with all custom app types", () => {
+      const oauthApp = defineOAuth2CustomApp("oauth-app")
+        .asOwnApp()
+        .deploy();
+
+      const apiKeyApp = defineApiKeyCustomApp("apikey-app")
+        .asOwnApp()
+        .deploy();
+
+      const basicApp = defineBasicCustomApp("basic-app")
+        .asOwnApp()
+        .deploy();
+
+      expect(oauthApp.isOwnApp).toBe(true);
+      expect(apiKeyApp.isOwnApp).toBe(true);
+      expect(basicApp.isOwnApp).toBe(true);
+    });
+  });
 });

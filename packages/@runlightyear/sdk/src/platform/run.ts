@@ -11,6 +11,8 @@ export interface RunFuncProps {
     externalId: string;
     displayName: string | null;
   } | null;
+  syncId?: string | null;
+  syncRunNumber?: number | null;
 }
 
 export async function getRunFuncProps(runId: string): Promise<RunFuncProps> {

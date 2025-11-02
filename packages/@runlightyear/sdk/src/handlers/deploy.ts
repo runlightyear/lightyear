@@ -32,20 +32,35 @@ interface CustomAppProps {
   secrets?: Array<string | { name: string; description?: string }>;
 }
 
+interface SyncScheduleProps {
+  type: "INCREMENTAL" | "FULL";
+  every?: number | string;
+}
+
 interface IntegrationProps {
   name: string;
   title: string;
   description?: string;
   app?: string; // For built-in apps
   customApp?: string; // For custom apps
+  collection: string; // Collection name (required)
   actions?: string[]; // Array of action names
   webhooks?: string[]; // Array of webhook names
+  syncSchedules?: SyncScheduleProps[]; // Array of sync schedules
+  readOnly?: boolean; // If true, entire integration is read-only
+  writeOnly?: boolean; // If true, entire integration is write-only
+  modelPermissions?: Array<{
+    model: string; // Model name
+    readOnly?: boolean; // If true, this model is read-only
+    writeOnly?: boolean; // If true, this model is write-only
+  }>; // Array of model-specific permissions
 }
 
 interface ActionProps {
   name: string;
   title: string;
   description?: string;
+  type: "FULL_SYNC" | "INCREMENTAL_SYNC" | null;
   variables?: Array<string | { name: string; description?: string }>;
   secrets?: Array<string | { name: string; description?: string }>;
 }
@@ -181,6 +196,7 @@ function transformRegistryToDeploymentSchema(
               "Unnamed Custom App",
             authType: item.customApp.type || "OAUTH2",
             hasOAuth: item.customApp.oauthConnector ? true : undefined,
+            isOwnApp: item.customApp.isOwnApp ?? false,
             variables: variables.length > 0 ? variables : undefined,
             secrets: secrets.length > 0 ? secrets : undefined,
           },
@@ -208,10 +224,18 @@ function transformRegistryToDeploymentSchema(
 
         // Transform SDK integration format to API format
         const integration = item.integration;
+
+        // Collection is required
+        if (!integration.collection) {
+          console.warn("   ❌ Skipping integration without collection:", item);
+          continue;
+        }
+
         const integrationProps: IntegrationProps = {
           name: integration.name || "unnamed-integration",
           title: integration.title || integration.name || "Unnamed Integration",
           description: integration.description,
+          collection: integration.collection.name,
         };
 
         // Handle app vs customApp based on integration.app.type
@@ -231,8 +255,27 @@ function transformRegistryToDeploymentSchema(
           integrationProps.actions = Object.keys(integration.actions);
         }
 
-        // Note: Collections are not part of the API integration schema
-        // They should be deployed separately as collection items
+        // Add sync schedules if they exist
+        if (integration.syncSchedules && integration.syncSchedules.length > 0) {
+          integrationProps.syncSchedules = integration.syncSchedules;
+        }
+
+        // Add read-only/write-only flags if they exist
+        if (integration.readOnly !== undefined) {
+          integrationProps.readOnly = integration.readOnly;
+        }
+        if (integration.writeOnly !== undefined) {
+          integrationProps.writeOnly = integration.writeOnly;
+        }
+
+        // Add model permissions if they exist
+        if (
+          integration.modelPermissions &&
+          integration.modelPermissions.length > 0
+        ) {
+          integrationProps.modelPermissions = integration.modelPermissions;
+        }
+
         // Webhooks will be added when we implement webhook builders
 
         const integrationItem = {
@@ -249,8 +292,18 @@ function transformRegistryToDeploymentSchema(
           }`
         );
         console.log(`   📱 App type: ${integration.app?.type || "unknown"}`);
+        console.log(`   📚 Collection: ${integrationProps.collection}`);
         console.log(
           `   ⚡ Actions: ${integrationProps.actions?.join(", ") || "none"}`
+        );
+        console.log(
+          `   ⏱️ Sync Schedules: ${
+            integrationProps.syncSchedules
+              ? integrationProps.syncSchedules
+                  .map((s) => `${s.type}${s.every ? ` every ${s.every}` : ""}`)
+                  .join(", ")
+              : "none"
+          }`
         );
         deploymentItems.push(integrationItem);
         break;
@@ -295,6 +348,7 @@ function transformRegistryToDeploymentSchema(
             name: item.action.name || "unnamed-action",
             title: item.action.title || item.action.name || "Unnamed Action",
             description: item.action.description,
+            type: item.action.type ?? null,
             variables: actionVariables.length > 0 ? actionVariables : undefined,
             secrets: actionSecrets.length > 0 ? actionSecrets : undefined,
           },

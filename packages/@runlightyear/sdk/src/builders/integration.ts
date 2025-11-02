@@ -1,4 +1,10 @@
-import type { Integration, CustomApp, Collection, Action } from "../types";
+import type {
+  Integration,
+  CustomApp,
+  Collection,
+  Action,
+  SyncSchedule,
+} from "../types";
 import { registerIntegration } from "../registry";
 
 /**
@@ -9,8 +15,16 @@ export class IntegrationBuilder {
   private title?: string;
   private description?: string;
   private app?: Integration["app"];
-  private collections: Record<string, Collection> = {};
+  private collection?: Collection;
   private actions: Record<string, Action> = {};
+  private syncSchedules?: SyncSchedule[];
+  private readOnly?: boolean;
+  private writeOnly?: boolean;
+  private modelPermissions?: Array<{
+    model: string;
+    readOnly?: boolean;
+    writeOnly?: boolean;
+  }>;
 
   constructor(name: string) {
     this.name = name;
@@ -40,11 +54,11 @@ export class IntegrationBuilder {
       if (app.type === "custom" && app.definition)
         builder.withCustomApp(app.definition);
     }
-    const collections =
+    const collection =
       source instanceof IntegrationBuilder
-        ? (source as any).collections
-        : source.collections;
-    if (collections) builder.withCollections({ ...collections });
+        ? (source as any).collection
+        : source.collection;
+    if (collection) builder.withCollection(collection);
     const actions =
       source instanceof IntegrationBuilder
         ? ((source as any).actions as Record<string, Action>)
@@ -52,6 +66,32 @@ export class IntegrationBuilder {
     if (actions) {
       const actionList = Object.values(actions) as Action[];
       builder.withActions(actionList);
+    }
+    const syncSchedules =
+      source instanceof IntegrationBuilder
+        ? (source as any).syncSchedules
+        : source.syncSchedules;
+    if (syncSchedules) builder.withSyncSchedules(syncSchedules);
+    const readOnly =
+      source instanceof IntegrationBuilder
+        ? (source as any).readOnly
+        : (source as any).readOnly;
+    if (readOnly !== undefined) {
+      builder.asReadOnly();
+    }
+    const writeOnly =
+      source instanceof IntegrationBuilder
+        ? (source as any).writeOnly
+        : (source as any).writeOnly;
+    if (writeOnly !== undefined) {
+      builder.asWriteOnly();
+    }
+    const modelPermissions =
+      source instanceof IntegrationBuilder
+        ? (source as any).modelPermissions
+        : (source as any).modelPermissions;
+    if (modelPermissions) {
+      builder.withModelPermissions(modelPermissions);
     }
     return builder;
   }
@@ -89,13 +129,11 @@ export class IntegrationBuilder {
     return this;
   }
 
-  withCollection(name: string, collection: Collection): this {
-    this.collections[name] = collection;
-    return this;
-  }
-
-  withCollections(collections: Record<string, Collection>): this {
-    Object.assign(this.collections, collections);
+  /**
+   * Set the collection for this integration (required)
+   */
+  withCollection(collection: Collection): this {
+    this.collection = collection;
     return this;
   }
 
@@ -155,11 +193,224 @@ export class IntegrationBuilder {
     return this;
   }
 
+  /**
+   * Set sync schedules for this integration (override any previously set schedules)
+   */
+  withSyncSchedules(...schedules: SyncSchedule[]): this;
+  withSyncSchedules(schedules: SyncSchedule[]): this;
+  withSyncSchedules(schedules: {
+    incremental?: { every?: number | string };
+    full?: { every?: number | string };
+  }): this;
+  withSyncSchedules(
+    ...schedulesOrArray:
+      | SyncSchedule[]
+      | [SyncSchedule[]]
+      | [
+          {
+            incremental?: { every?: number | string };
+            full?: { every?: number | string };
+          }
+        ]
+  ): this {
+    // Check if it's the object format
+    const firstArg = schedulesOrArray[0];
+    if (
+      firstArg &&
+      !Array.isArray(firstArg) &&
+      typeof firstArg === "object" &&
+      ("incremental" in firstArg || "full" in firstArg)
+    ) {
+      const scheduleObj = firstArg as {
+        incremental?: { every?: number | string };
+        full?: { every?: number | string };
+      };
+      const schedules: SyncSchedule[] = [];
+      if (scheduleObj.incremental) {
+        schedules.push({
+          type: "INCREMENTAL",
+          every: scheduleObj.incremental.every,
+        });
+      }
+      if (scheduleObj.full) {
+        schedules.push({ type: "FULL", every: scheduleObj.full.every });
+      }
+      this.syncSchedules = schedules;
+      return this;
+    }
+
+    // If it's an object but doesn't have incremental/full, treat as empty (clear schedules)
+    if (
+      firstArg &&
+      !Array.isArray(firstArg) &&
+      typeof firstArg === "object" &&
+      !("incremental" in firstArg) &&
+      !("full" in firstArg)
+    ) {
+      this.syncSchedules = undefined;
+      return this;
+    }
+
+    // Array format
+    const schedules = Array.isArray(firstArg)
+      ? (firstArg as SyncSchedule[])
+      : (schedulesOrArray as SyncSchedule[]);
+    this.syncSchedules = schedules;
+    return this;
+  }
+
+  /**
+   * Add a sync schedule (incremental, does not clear existing)
+   */
+  addSyncSchedule(schedule: SyncSchedule): this;
+  addSyncSchedule(...schedules: SyncSchedule[]): this;
+  addSyncSchedule(...schedules: SyncSchedule[]): this {
+    if (!this.syncSchedules) {
+      this.syncSchedules = [];
+    }
+    this.syncSchedules.push(...schedules);
+    return this;
+  }
+
+  /**
+   * Add multiple sync schedules (incremental, does not clear existing)
+   */
+  addSyncSchedules(...schedules: SyncSchedule[]): this;
+  addSyncSchedules(schedules: SyncSchedule[]): this;
+  addSyncSchedules(
+    ...schedulesOrArray: SyncSchedule[] | [SyncSchedule[]]
+  ): this {
+    const schedules = Array.isArray(schedulesOrArray[0])
+      ? (schedulesOrArray[0] as SyncSchedule[])
+      : (schedulesOrArray as SyncSchedule[]);
+    if (!this.syncSchedules) {
+      this.syncSchedules = [];
+    }
+    this.syncSchedules.push(...schedules);
+    return this;
+  }
+
+  /**
+   * Mark entire integration as read-only (skip push operations)
+   */
+  asReadOnly(): this {
+    this.readOnly = true;
+    return this;
+  }
+
+  /**
+   * Mark entire integration as write-only (skip pull operations)
+   */
+  asWriteOnly(): this {
+    this.writeOnly = true;
+    return this;
+  }
+
+  /**
+   * Mark specific models as read-only
+   * Convenience method that converts to modelPermissions format
+   */
+  withReadOnlyModels(modelNames: string[]): this {
+    if (!this.modelPermissions) {
+      this.modelPermissions = [];
+    }
+    // Remove any existing entries for these models first
+    this.modelPermissions = this.modelPermissions.filter(
+      (p) => !modelNames.includes(p.model)
+    );
+    // Add new entries
+    modelNames.forEach((modelName) => {
+      this.modelPermissions!.push({ model: modelName, readOnly: true });
+    });
+    return this;
+  }
+
+  /**
+   * Mark specific models as write-only
+   * Convenience method that converts to modelPermissions format
+   */
+  withWriteOnlyModels(modelNames: string[]): this {
+    if (!this.modelPermissions) {
+      this.modelPermissions = [];
+    }
+    // Remove any existing entries for these models first
+    this.modelPermissions = this.modelPermissions.filter(
+      (p) => !modelNames.includes(p.model)
+    );
+    // Add new entries
+    modelNames.forEach((modelName) => {
+      this.modelPermissions!.push({ model: modelName, writeOnly: true });
+    });
+    return this;
+  }
+
+  /**
+   * Set model-specific permissions directly
+   */
+  withModelPermissions(
+    permissions: Array<{
+      model: string;
+      readOnly?: boolean;
+      writeOnly?: boolean;
+    }>
+  ): this {
+    this.modelPermissions = permissions;
+    return this;
+  }
+
   deploy(): Integration {
     if (!this.app) {
       throw new Error(
-        "Integration requires an app. Use .withApp() for built-in apps or .withCustomApp() for custom apps."
+        `Integration "${this.name}" requires an app. Use .withApp() for built-in apps or .withCustomApp() for custom apps.`
       );
+    }
+
+    if (!this.collection) {
+      throw new Error(
+        `Integration "${this.name}" requires a collection. Use .withCollection() to specify one.`
+      );
+    }
+
+    // Validation: Cannot have both readOnly and writeOnly set to true
+    if (this.readOnly === true && this.writeOnly === true) {
+      throw new Error(
+        `Integration "${this.name}" cannot be both read-only and write-only. Remove one of the flags.`
+      );
+    }
+
+    // Validation: Check model permissions for conflicts
+    if (this.modelPermissions) {
+      const modelSet = new Set<string>();
+      for (const perm of this.modelPermissions) {
+        // Check for duplicate models
+        if (modelSet.has(perm.model)) {
+          throw new Error(
+            `Integration "${this.name}" has duplicate model "${perm.model}" in modelPermissions. Each model should appear only once.`
+          );
+        }
+        modelSet.add(perm.model);
+
+        // Check for conflicting flags on same model
+        if (perm.readOnly === true && perm.writeOnly === true) {
+          throw new Error(
+            `Integration "${this.name}" model "${perm.model}" cannot be both read-only and write-only.`
+          );
+        }
+
+        // Check if integration-level readOnly conflicts with model writeOnly
+        if (this.readOnly === true && perm.writeOnly === true) {
+          throw new Error(
+            `Integration "${this.name}" is read-only but model "${perm.model}" is marked as write-only. Remove the conflicting configuration.`
+          );
+        }
+
+        // Check if integration-level writeOnly conflicts with model readOnly
+        if (this.writeOnly === true && perm.readOnly === true) {
+          throw new Error(
+            `Integration "${this.name}" is write-only but model "${perm.model}" is marked as read-only. Remove the conflicting configuration.`
+          );
+        }
+      }
     }
 
     const integration: Integration = {
@@ -167,8 +418,12 @@ export class IntegrationBuilder {
       title: this.title,
       description: this.description,
       app: this.app,
-      collections: this.collections,
+      collection: this.collection,
       actions: this.actions,
+      syncSchedules: this.syncSchedules,
+      readOnly: this.readOnly,
+      writeOnly: this.writeOnly,
+      modelPermissions: this.modelPermissions,
     };
 
     // Register the integration in the global registry
@@ -176,7 +431,7 @@ export class IntegrationBuilder {
       builderType: "IntegrationBuilder",
       createdBy: "defineIntegration",
       appType: this.app.type,
-      collectionCount: Object.keys(this.collections).length,
+      collectionName: this.collection.name,
       actionCount: Object.keys(this.actions).length,
     });
 

@@ -179,8 +179,22 @@ interface IntegrationProps {
   description?: string; // Optional
   app?: string; // Must be in available apps list
   customApp?: string; // Must match validNameRegex
+  collection: string; // Collection name (required)
   actions?: string[]; // Array of action names
   webhooks?: string[]; // Array of webhook names
+  syncSchedules?: SyncSchedule[]; // Array of sync schedules
+  readOnly?: boolean; // If true, entire integration is read-only (skip push operations)
+  writeOnly?: boolean; // If true, entire integration is write-only (skip pull operations)
+  modelPermissions?: Array<{
+    model: string; // Model name
+    readOnly?: boolean; // If true, this model is read-only
+    writeOnly?: boolean; // If true, this model is write-only
+  }>; // Array of model-specific permissions
+}
+
+interface SyncSchedule {
+  type: "INCREMENTAL" | "FULL"; // Required
+  every?: number | string; // Optional - interval as number (seconds) or string (e.g., "5 minutes")
 }
 ```
 
@@ -194,10 +208,57 @@ interface IntegrationProps {
     "title": "Salesforce CRM Sync",
     "description": "Sync contacts and accounts with Salesforce",
     "app": "salesforce",
-    "actions": ["sync-contacts", "sync-accounts"]
+    "collection": "crm",
+    "actions": ["sync-contacts", "sync-accounts"],
+    "syncSchedules": [
+      { "type": "INCREMENTAL", "every": "5 minutes" },
+      { "type": "FULL", "every": "1 day" }
+    ]
   }
 }
 ```
+
+**Example with read-only configuration**:
+
+```json
+{
+  "type": "integration",
+  "integrationProps": {
+    "name": "hubspot-read-only",
+    "title": "HubSpot Read-Only Sync",
+    "app": "hubspot",
+    "collection": "crm",
+    "readOnly": true
+  }
+}
+```
+
+**Example with model-specific permissions**:
+
+```json
+{
+  "type": "integration",
+  "integrationProps": {
+    "name": "hubspot-mixed",
+    "title": "HubSpot Mixed Permissions",
+    "app": "hubspot",
+    "collection": "crm",
+    "modelPermissions": [
+      { "model": "owner", "readOnly": true },
+      { "model": "contact", "readOnly": false },
+      { "model": "event", "writeOnly": true }
+    ]
+  }
+}
+```
+
+**Sync Schedule Notes**:
+
+- `type`: Specifies whether the sync is incremental (only changes) or full (all data)
+- `every`: Optional interval for automatic sync execution
+  - Can be a **number** representing seconds (e.g., `300` for 5 minutes)
+  - Can be a **string** in human-readable format (e.g., `"5 minutes"`, `"1 day"`, `"1 week"`)
+  - If omitted, the sync schedule can be triggered manually or by other means
 
 ### 4. Action (`type: "action"`)
 
@@ -208,6 +269,7 @@ interface DeployActionProps {
   name: string; // Must match validNameRegex
   title: string; // Min length 1
   description?: string; // Optional
+  type: "FULL_SYNC" | "INCREMENTAL_SYNC" | null; // Action type (null if not set)
   trigger?: ActionTrigger; // Optional trigger config
   apps?: string[]; // Must be in available apps
   customApps?: string[]; // Must match validNameRegex
@@ -221,7 +283,7 @@ interface ActionTrigger {
 }
 ```
 
-**Example**:
+**Example with type:**
 
 ```json
 {
@@ -230,11 +292,27 @@ interface ActionTrigger {
     "name": "sync-contacts",
     "title": "Sync Contacts",
     "description": "Sync contacts from external system",
+    "type": "FULL_SYNC",
     "trigger": {
       "pollingFrequency": 300
     },
     "apps": ["salesforce"],
     "variables": ["batch_size"]
+  }
+}
+```
+
+**Example without type (null):**
+
+```json
+{
+  "type": "action",
+  "actionProps": {
+    "name": "process-data",
+    "title": "Process Data",
+    "description": "Process data from external system",
+    "type": null,
+    "apps": ["salesforce"]
   }
 }
 ```
@@ -351,16 +429,17 @@ const app = defineOAuth2CustomApp("github-app")
 
 #### Collections vs Integrations
 
-In our SDK, `IntegrationBuilder` includes collections via `.withCollection()` methods. However, the API schema treats integrations and collections as separate deployment items:
+In our SDK, `IntegrationBuilder` requires a collection via `.withCollection()` method. The API schema treats integrations and collections as separate deployment items, with integrations referencing a collection by name:
 
-- **SDK**: Integration contains collections directly
-- **API**: Integration references collections by name, collections deployed separately
+- **SDK**: Integration contains a collection reference directly
+- **API**: Integration references collection by name, collections deployed separately
 
 This means when deploying:
 
 1. Collections get deployed as separate `"collection"` items
-2. Integrations get deployed as `"integration"` items with just app references
-3. The platform links them together based on naming conventions
+2. Integrations get deployed as `"integration"` items with collection name reference
+3. The platform links them together based on the collection name
+4. **Each integration must be associated with exactly one collection**
 
 #### Built-in vs Custom Apps
 
@@ -405,6 +484,7 @@ The deployment handler automatically transforms between these formats.
       "name": "github-sync",
       "title": "GitHub Repository Sync",
       "customApp": "github-app",
+      "collection": "repositories",
       "description": "Sync GitHub repositories"
     }
   }

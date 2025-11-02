@@ -20,6 +20,7 @@ export class ChangeProcessor {
     externalUpdatedAt?: string | null;
   }> = [];
   private confirmedChangeIds: Set<string> = new Set();
+  private failedRequestIds: Set<string> = new Set(); // Track requests from which extraction has failed
   private deltaBatchCount: number = 0;
   private changesSinceLastConfirmation: number = 0;
 
@@ -105,6 +106,10 @@ export class ChangeProcessor {
 
       const httpRequests = result.httpRequests;
 
+      console.debug(
+        `processUnconfirmedChanges: Found ${httpRequests.length} HTTP requests, ${result.pendingWritesCount} pending writes`
+      );
+
       if (httpRequests.length === 0) {
         return {
           hasChanges: false,
@@ -117,6 +122,8 @@ export class ChangeProcessor {
         externalId: string;
         externalUpdatedAt?: string | null;
       }> = [];
+      
+      let attemptedExtraction = false; // Track if we actually attempted to extract from any request
 
       // Process each HTTP request (already grouped by the API)
       for (const item of httpRequests) {
@@ -133,6 +140,30 @@ export class ChangeProcessor {
         if (unconfirmedChangeIds.length === 0) {
           continue;
         }
+
+        // Skip requests that have already failed extraction (don't retry them)
+        if (this.failedRequestIds.has(requestId)) {
+          console.debug(
+            `⏭️  Skipping request ${requestId} - extraction previously failed`
+          );
+          continue;
+        }
+
+        // Skip requests that don't have responses yet (statusCode is null or responseBody is empty)
+        if (
+          httpRequest.statusCode === null ||
+          httpRequest.statusCode === undefined ||
+          !httpRequest.responseBody
+        ) {
+          console.info(
+            `⏳ HTTP request ${requestId} not ready yet (statusCode: ${httpRequest.statusCode}, hasResponseBody: ${!!httpRequest.responseBody}), skipping for now`
+          );
+          continue;
+        }
+
+        console.debug(
+          `Processing HTTP request ${requestId} for model ${modelName}: status=${httpRequest.statusCode}, changeIds=[${unconfirmedChangeIds.join(", ")}]`
+        );
 
         // Check if request failed
         if (httpRequest.statusCode >= 400) {
@@ -169,12 +200,96 @@ export class ChangeProcessor {
 
         if (batchExtractFn) {
           // Use custom batch extract function
+          attemptedExtraction = true; // Mark that we're attempting extraction
           try {
-            const batchConfirmations = batchExtractFn(responseData);
+            // For model-level extract functions with individual requests,
+            // the function might need the changeIds to properly map responses
+            // Try calling with changeIds as second parameter (for individual requests)
+            let batchConfirmations: Array<{
+              changeId: string;
+              externalId: string;
+              externalUpdatedAt?: string | null;
+            }>;
+            try {
+              // Try calling with changeIds as second parameter (if function accepts it)
+              batchConfirmations = (batchExtractFn as any)(
+                responseData,
+                unconfirmedChangeIds
+              );
+            } catch (error) {
+              // Fall back to calling with just responseData (original signature)
+              console.debug(
+                `Extract function doesn't accept changeIds parameter, using original signature. Error: ${error}`
+              );
+              batchConfirmations = batchExtractFn(responseData);
+            }
+            
+            console.debug(
+              `Extract function returned ${batchConfirmations.length} confirmations for request ${requestId}`
+            );
+
+            // If extract function didn't include changeIds (e.g., for individual requests),
+            // map them ourselves
+            if (
+              batchConfirmations.length === unconfirmedChangeIds.length &&
+              batchConfirmations.some((c) => !c.changeId || c.changeId === "")
+            ) {
+              // Map changeIds to confirmations in order
+              batchConfirmations = batchConfirmations.map((confirmation, index) => ({
+                ...confirmation,
+                changeId: unconfirmedChangeIds[index] || confirmation.changeId,
+              }));
+            }
+
+            // For DELETE operations, if externalId is missing, try to extract from request
+            // DELETE endpoints often have the ID in the URL path (e.g., /api/users/:id)
+            // or we need to look it up from the original change data
+            for (let i = 0; i < batchConfirmations.length; i++) {
+              const confirmation = batchConfirmations[i];
+              if (!confirmation.externalId && httpRequest.method === "DELETE") {
+                // Try to extract ID from URL path (most common case)
+                // Match the last segment of the path (e.g., /api/users/123 -> 123)
+                const urlMatch = httpRequest.url.match(/\/([^\/\?]+)(?:\?|$)/);
+                if (urlMatch && urlMatch[1]) {
+                  confirmation.externalId = urlMatch[1];
+                } else {
+                  // Try URL query parameter
+                  try {
+                    const urlObj = new URL(httpRequest.url);
+                    confirmation.externalId =
+                      urlObj.searchParams.get("id") ||
+                      urlObj.searchParams.get("externalId") ||
+                      null;
+                  } catch {
+                    // If URL parsing fails, try request body
+                    try {
+                      const requestBody = JSON.parse(
+                        httpRequest.requestBody || "{}"
+                      );
+                      confirmation.externalId =
+                        requestBody.id || requestBody.externalId || null;
+                    } catch {
+                      // If all extraction fails, log a warning
+                      console.warn(
+                        `Could not extract externalId for DELETE request ${requestId} from URL: ${httpRequest.url}`
+                      );
+                    }
+                  }
+                }
+              }
+            }
 
             // Add confirmations for the unconfirmed changes only
             for (const confirmation of batchConfirmations) {
               if (unconfirmedChangeIds.includes(confirmation.changeId)) {
+                // For DELETE operations, externalId should have been extracted from URL
+                // If it's still missing, skip this confirmation
+                if (!confirmation.externalId) {
+                  console.warn(
+                    `Skipping confirmation for change ${confirmation.changeId}: missing externalId (method: ${httpRequest.method})`
+                  );
+                  continue;
+                }
                 confirmations.push({
                   changeId: confirmation.changeId,
                   externalId: confirmation.externalId,
@@ -189,14 +304,21 @@ export class ChangeProcessor {
             }
             // Note: Don't delete by-model extract functions - they're reused for all batches of that model
           } catch (error) {
+            // Extraction failed - this is a critical error that should fail the sync
+            // Log the error and throw it to stop the sync
+            const errorMessage = error instanceof Error ? error.message : String(error);
             console.error(
-              `❌ Failed to extract batch confirmations for request ${requestId}:`,
-              error
+              `❌ Failed to extract batch confirmations for request ${requestId}. Sync will be failed. Error:`,
+              errorMessage
             );
-            // On error, we might want to retry, so don't delete the extract function
+            // Throw the error to fail the sync
+            throw new Error(
+              `Failed to extract confirmations from HTTP request ${requestId} for model "${modelName}": ${errorMessage}`
+            );
           }
         } else {
           // No custom extract function - use default logic based on changeIds length
+          attemptedExtraction = true; // Mark that we're attempting extraction
           if (unconfirmedChangeIds.length === 1) {
             // Single change - extract directly from response
             const changeId = unconfirmedChangeIds[0];
@@ -237,11 +359,28 @@ export class ChangeProcessor {
         console.info(
           `📊 Extracted ${confirmations.length} confirmations from ${httpRequests.length} requests`
         );
+        
+        // Check if any of the requests were async (have syncInfo in request body)
+        let isAsync = false;
+        for (const item of httpRequests) {
+          try {
+            const requestBody = JSON.parse(item.httpRequest.requestBody || "{}");
+            if (requestBody.syncInfo || requestBody.async === true) {
+              isAsync = true;
+              break;
+            }
+          } catch {
+            // Ignore parse errors
+          }
+        }
+        
         this.confirmationQueue.push(...confirmations);
         console.info(`⏱️  Starting confirmation flush...`);
-        await this.flushConfirmations();
+        await this.flushConfirmations(isAsync);
         console.info(`⏱️  Confirmation flush complete`);
-      } else {
+      } else if (attemptedExtraction) {
+        // Only log warning if we actually attempted extraction but got no confirmations
+        // Don't log if all requests were skipped (failed, not ready, etc.)
         console.warn(
           `⚠️  No confirmations extracted - external IDs could not be extracted`
         );
@@ -258,9 +397,9 @@ export class ChangeProcessor {
   }
 
   /**
-   * Flush pending confirmations in batches (sent in parallel for speed)
+   * Flush pending confirmations in batches (sent in parallel for speed, with concurrency limit)
    */
-  async flushConfirmations(batchSize: number = 100) {
+  async flushConfirmations(async: boolean = false, batchSize: number = 100) {
     if (this.confirmationQueue.length === 0) {
       return;
     }
@@ -282,16 +421,24 @@ export class ChangeProcessor {
       console.info(`💾 Confirming ${toConfirm.length} changes...`);
     }
 
-    // Process all batches in parallel for speed
-    const results = await Promise.allSettled(
-      batches.map((batch) =>
-        confirmChangeBatch({
-          syncId: this.syncId,
-          changes: batch,
-          async: false,
-        })
-      )
-    );
+    // Process batches in parallel with a concurrency limit to avoid overwhelming the AbortSignal
+    // Even though we increased the listener limit, it's still good practice to limit concurrency
+    const MAX_PARALLEL_BATCHES = 50;
+    const results: PromiseSettledResult<void>[] = [];
+
+    for (let i = 0; i < batches.length; i += MAX_PARALLEL_BATCHES) {
+      const batchChunk = batches.slice(i, i + MAX_PARALLEL_BATCHES);
+      const chunkResults = await Promise.allSettled(
+        batchChunk.map((batch) =>
+          confirmChangeBatch({
+            syncId: this.syncId,
+            changes: batch,
+            async,
+          })
+        )
+      );
+      results.push(...chunkResults);
+    }
 
     // Process results and mark confirmed
     let successCount = 0;

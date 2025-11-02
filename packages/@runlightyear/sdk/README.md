@@ -46,6 +46,61 @@ const googleDriveApp = defineOAuth2CustomApp("google-drive")
   .deploy();
 ```
 
+### Integrations with Sync Schedules
+
+```typescript
+import {
+  defineIntegration,
+  defineCollection,
+  defineAction,
+} from "@runlightyear/sdk";
+
+// Define a collection
+const crmCollection = defineCollection("crm")
+  .addModel("contact")
+  .addModel("account")
+  .deploy();
+
+// Define an action
+const syncAction = defineAction("sync-data")
+  .withTitle("Sync Data")
+  .withRun(async ({ auths }) => {
+    console.log("Syncing data...");
+  })
+  .deploy();
+
+// Define an integration with sync schedules (object-based API)
+const integration = defineIntegration("salesforce-sync")
+  .withTitle("Salesforce CRM Sync")
+  .withApp("salesforce")
+  .withCollection(crmCollection)
+  .withAction(syncAction)
+  .withSyncSchedules({
+    incremental: { every: "5 minutes" },
+    full: { every: "1 day" },
+  })
+  .deploy();
+
+// Alternative: array-based API
+const integration2 = defineIntegration("hubspot-sync")
+  .withTitle("HubSpot Sync")
+  .withApp("hubspot")
+  .withCollection(crmCollection)
+  .withSyncSchedules([
+    { type: "INCREMENTAL", every: "5 minutes" },
+    { type: "FULL", every: "1 day" },
+  ])
+  .deploy();
+```
+
+Sync schedules support:
+
+- **Type**: `"INCREMENTAL"` for delta syncs or `"FULL"` for complete syncs
+- **Interval**: Can be a number (seconds) or string (e.g., "5 minutes", "1 day", "1 week")
+- **Object API**: Pass `{ incremental: {...}, full: {...} }` for a cleaner syntax
+- **Array API**: Pass an array of schedule objects for more flexibility
+- Multiple schedules per integration
+
 ### Custom OAuth Connector
 
 ```typescript

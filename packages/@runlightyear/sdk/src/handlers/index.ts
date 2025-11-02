@@ -136,10 +136,11 @@ export const handler: DirectHandler = async (
             setLogContext({ runId: runData.runId });
           }
           // Also set additional execution context commonly needed by SDK internals
+          // Note: syncId is extracted from run-func-props in handleRun, not from initial event
           try {
             const integrationName = runData?.integration?.name;
             const managedUser = runData?.managedUser;
-            const syncId = runData?.context?.syncId;
+            
             const extraContext: any = {};
             if (integrationName) extraContext.integrationName = integrationName;
             try {
@@ -166,10 +167,7 @@ export const handler: DirectHandler = async (
               extraContext.managedUserDisplayName =
                 managedUser.displayName ?? null;
             }
-            if (syncId) {
-              // Custom key consumed by SyncConnector
-              extraContext.syncId = syncId;
-            }
+            // syncId will be set in context by handleRun when it fetches run-func-props
             if (Object.keys(extraContext).length > 0) {
               getLogCapture()?.setContext(extraContext);
             }
@@ -202,14 +200,14 @@ export const handler: DirectHandler = async (
         } finally {
           // Ensure final log upload before stopping
           if (logCapture && logCapture.getLogCount() > 0) {
-            console.log("📤 Final log flush before operation completion...");
+            console.debug("📤 Final log flush before operation completion...");
             await logCapture.flush();
             // Small delay to allow upload to complete
             await new Promise((resolve) => setTimeout(resolve, 100));
           }
 
           // Completely stop log capture after run completes
-          console.log("🛑 Stopping log capture for run operation...");
+          console.debug("🛑 Stopping log capture for run operation...");
           stopLogCapture();
         }
         break;
