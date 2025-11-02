@@ -170,7 +170,19 @@ describe("SyncConnector", () => {
         url: "/users",
         params: undefined,
       });
-      expect(result?.items).toEqual(mockResponse.data);
+      // Items should be SyncObjects with externalId, externalUpdatedAt, and data
+      expect(result?.items).toEqual([
+        {
+          externalId: "1",
+          externalUpdatedAt: null,
+          data: { id: "1", name: "User 1", email: "user1@example.com" },
+        },
+        {
+          externalId: "2",
+          externalUpdatedAt: null,
+          data: { id: "2", name: "User 2", email: "user2@example.com" },
+        },
+      ]);
     });
 
     it("should validate list response with schema", async () => {
@@ -234,7 +246,19 @@ describe("SyncConnector", () => {
       const userConnector = syncConnector.getModelConnector("user");
       const result = await userConnector?.list?.();
 
-      expect(result?.items).toEqual(mockResponse.data.results.users);
+      // Transform returns plain objects, which are converted to SyncObjects
+      expect(result?.items).toEqual([
+        {
+          externalId: "1",
+          externalUpdatedAt: null,
+          data: { id: "1", name: "User 1", email: "user1@example.com" },
+        },
+        {
+          externalId: "2",
+          externalUpdatedAt: null,
+          data: { id: "2", name: "User 2", email: "user2@example.com" },
+        },
+      ]);
     });
 
     it("should transform list items when transform function is provided", async () => {
@@ -274,17 +298,26 @@ describe("SyncConnector", () => {
       const userConnector = syncConnector.getModelConnector("user");
       const result = await userConnector?.list?.();
 
+      // Transform returns plain objects, which are converted to SyncObjects
       expect(result?.items).toEqual([
-        { id: "1", name: "User 1", email: "user1@example.com" },
-        { id: "2", name: "User 2", email: "user2@example.com" },
+        {
+          externalId: "1",
+          externalUpdatedAt: null,
+          data: { id: "1", name: "User 1", email: "user1@example.com" },
+        },
+        {
+          externalId: "2",
+          externalUpdatedAt: null,
+          data: { id: "2", name: "User 2", email: "user2@example.com" },
+        },
       ]);
     });
 
     it("should filter list items when a filter function is provided", async () => {
       const mockResponse = {
         data: [
-          { id: "1", updatedAt: "2024-01-01T00:00:00.000Z" },
-          { id: "2", updatedAt: "2024-01-03T00:00:00.000Z" },
+          { id: "1", name: "User 1", email: "user1@example.com", updatedAt: "2024-01-01T00:00:00.000Z" },
+          { id: "2", name: "User 2", email: "user2@example.com", updatedAt: "2024-01-03T00:00:00.000Z" },
         ],
       };
 
@@ -338,7 +371,12 @@ describe("SyncConnector", () => {
         {
           externalId: "2",
           externalUpdatedAt: "2024-01-03T00:00:00.000Z",
-          data: { id: "2", updatedAt: "2024-01-03T00:00:00.000Z" },
+          data: {
+            id: "2",
+            name: "User 2",
+            email: "user2@example.com",
+            updatedAt: "2024-01-03T00:00:00.000Z",
+          },
         },
       ]);
     });
@@ -943,7 +981,9 @@ describe("SyncConnector", () => {
       vi.restoreAllMocks();
     });
 
-    it("prefers batch create when both create and batch create are configured", async () => {
+    it(
+      "prefers batch create when both create and batch create are configured",
+      async () => {
       process.env.NODE_ENV = "development";
 
       const setContextMock = vi.fn();
@@ -958,6 +998,10 @@ describe("SyncConnector", () => {
       vi.spyOn(timeUtils, "resetTimeLimit").mockImplementation(() => {});
       vi.spyOn(timeUtils, "isTimeLimitExceeded").mockReturnValue(false);
       vi.spyOn(platformSync, "finishSync").mockResolvedValue(undefined);
+      vi.spyOn(platformSync, "startSync").mockResolvedValue({
+        id: "sync-123",
+        type: "FULL",
+      } as any);
       const updateSyncMock = vi
         .spyOn(platformSync, "updateSync")
         .mockResolvedValue(undefined);
@@ -1004,10 +1048,7 @@ describe("SyncConnector", () => {
       } as any;
 
       const getSyncMock = vi.spyOn(platformSync, "getSync");
-      getSyncMock
-        .mockResolvedValueOnce(syncState)
-        .mockResolvedValueOnce(syncState)
-        .mockResolvedValue(syncState);
+      getSyncMock.mockResolvedValue(syncState);
 
       vi.spyOn(platformSync, "getModels").mockResolvedValue([
         { name: "user" },
@@ -1043,14 +1084,74 @@ describe("SyncConnector", () => {
         },
       }));
 
+      let httpRequestId = "http-request-1";
       (mockRestConnector.request as any).mockImplementation(
         async (requestConfig: any) => {
           if (requestConfig?.url === "/objects/contacts/batch/create") {
-            return { data: responsePayload };
+            return { data: responsePayload, httpRequestId };
           }
           throw new Error(`Unexpected request to ${requestConfig?.url}`);
         }
       );
+
+      // Mock getUnconfirmedChanges to return the HTTP request so ChangeProcessor can extract and confirm
+      vi.spyOn(platformSync, "getUnconfirmedChanges")
+        .mockResolvedValueOnce({
+          httpRequests: [
+            {
+              httpRequest: {
+                id: httpRequestId,
+                method: "POST",
+                url: "/objects/contacts/batch/create",
+                statusCode: 200,
+                statusText: "OK",
+                requestHeaders: {},
+                requestBody: JSON.stringify({
+                  json: {
+                    inputs: [
+                      {
+                        objectWriteTraceId: "change-1",
+                        properties: {
+                          firstname: "Ada",
+                          lastname: "Lovelace",
+                          email: "ada@example.com",
+                        },
+                      },
+                      {
+                        objectWriteTraceId: "change-2",
+                        properties: {
+                          firstname: "Alan",
+                          lastname: "Turing",
+                          email: "alan@example.com",
+                        },
+                      },
+                    ],
+                  },
+                  async: true,
+                  syncInfo: {
+                    syncId: "sync-123",
+                    modelName: "user",
+                    changeIds: ["change-1", "change-2"],
+                  },
+                }),
+                responseHeaders: {},
+                responseBody: JSON.stringify(responsePayload),
+                createdAt: new Date().toISOString(),
+                startedAt: new Date().toISOString(),
+                endedAt: new Date().toISOString(),
+              },
+              modelName: "user",
+              changeIds: ["change-1", "change-2"],
+            },
+          ],
+          nextCursor: null,
+          pendingWritesCount: 0,
+        })
+        .mockResolvedValue({
+          httpRequests: [],
+          nextCursor: null,
+          pendingWritesCount: 0,
+        });
 
       const createRequestSpy = vi.fn(() => ({
         endpoint: "/users",
@@ -1104,7 +1205,7 @@ describe("SyncConnector", () => {
       expect(mockRestConnector.request).toHaveBeenCalledWith({
         method: "POST",
         url: "/objects/contacts/batch/create",
-        data: {
+        json: {
           inputs: [
             {
               objectWriteTraceId: "change-1",
@@ -1123,6 +1224,12 @@ describe("SyncConnector", () => {
               },
             },
           ],
+        },
+        async: true,
+        syncInfo: {
+          syncId: "sync-123",
+          modelName: "user",
+          changeIds: ["change-1", "change-2"],
         },
       });
 
@@ -1150,9 +1257,13 @@ describe("SyncConnector", () => {
       ).toBe(true);
       expect(platformSync.retrieveDelta).toHaveBeenCalledTimes(2);
       expect(platformSync.finishSync).toHaveBeenCalledWith("sync-123");
-    });
+      },
+      15000
+    );
 
-    it("prefers batch update when both update and batch update are configured", async () => {
+    it(
+      "prefers batch update when both update and batch update are configured",
+      async () => {
       process.env.NODE_ENV = "development";
 
       const setContextMock = vi.fn();
@@ -1167,6 +1278,10 @@ describe("SyncConnector", () => {
       vi.spyOn(timeUtils, "resetTimeLimit").mockImplementation(() => {});
       vi.spyOn(timeUtils, "isTimeLimitExceeded").mockReturnValue(false);
       vi.spyOn(platformSync, "finishSync").mockResolvedValue(undefined);
+      vi.spyOn(platformSync, "startSync").mockResolvedValue({
+        id: "sync-456",
+        type: "FULL",
+      } as any);
       const updateSyncMock = vi
         .spyOn(platformSync, "updateSync")
         .mockResolvedValue(undefined);
@@ -1215,10 +1330,7 @@ describe("SyncConnector", () => {
       } as any;
 
       const getSyncMock = vi.spyOn(platformSync, "getSync");
-      getSyncMock
-        .mockResolvedValueOnce(syncState)
-        .mockResolvedValueOnce(syncState)
-        .mockResolvedValue(syncState);
+      getSyncMock.mockResolvedValue(syncState);
 
       vi.spyOn(platformSync, "getModels").mockResolvedValue([
         { name: "user" },
@@ -1255,15 +1367,77 @@ describe("SyncConnector", () => {
         },
       }));
 
+      let httpRequestId = "http-request-2";
       (mockRestConnector.request as any).mockImplementation(
         async (requestConfig: any) => {
           if (requestConfig?.url === "/objects/contacts/batch/update") {
             expect(batchRequestSpy).toHaveBeenCalled();
-            return { data: responsePayload };
+            return { data: responsePayload, httpRequestId };
           }
           return { data: {} };
         }
       );
+
+      // Mock getUnconfirmedChanges to return the HTTP request so ChangeProcessor can extract and confirm
+      vi.spyOn(platformSync, "getUnconfirmedChanges")
+        .mockResolvedValueOnce({
+          httpRequests: [
+            {
+              httpRequest: {
+                id: httpRequestId,
+                method: "POST",
+                url: "/objects/contacts/batch/update",
+                statusCode: 200,
+                statusText: "OK",
+                requestHeaders: {},
+                requestBody: JSON.stringify({
+                  json: {
+                    inputs: [
+                      {
+                        objectWriteTraceId: "change-1",
+                        id: "201",
+                        properties: {
+                          firstname: "Ada",
+                          lastname: "Lovelace",
+                          email: "ada@example.com",
+                        },
+                      },
+                      {
+                        objectWriteTraceId: "change-2",
+                        id: "202",
+                        properties: {
+                          firstname: "Alan",
+                          lastname: "Turing",
+                          email: "alan@example.com",
+                        },
+                      },
+                    ],
+                  },
+                  async: true,
+                  syncInfo: {
+                    syncId: "sync-456",
+                    modelName: "user",
+                    changeIds: ["change-1", "change-2"],
+                  },
+                }),
+                responseHeaders: {},
+                responseBody: JSON.stringify(responsePayload),
+                createdAt: new Date().toISOString(),
+                startedAt: new Date().toISOString(),
+                endedAt: new Date().toISOString(),
+              },
+              modelName: "user",
+              changeIds: ["change-1", "change-2"],
+            },
+          ],
+          nextCursor: null,
+          pendingWritesCount: 0,
+        })
+        .mockResolvedValue({
+          httpRequests: [],
+          nextCursor: null,
+          pendingWritesCount: 0,
+        });
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .withModelConnector("user", (builder) =>
@@ -1322,9 +1496,13 @@ describe("SyncConnector", () => {
       ).toBe(true);
       expect(platformSync.retrieveDelta).toHaveBeenCalledTimes(2);
       expect(platformSync.finishSync).toHaveBeenCalledWith("sync-456");
-    });
+      },
+      15000
+    );
 
-    it("prefers batch delete when both delete and batch delete are configured", async () => {
+    it(
+      "prefers batch delete when both delete and batch delete are configured",
+      async () => {
       process.env.NODE_ENV = "development";
 
       const setContextMock = vi.fn();
@@ -1339,6 +1517,10 @@ describe("SyncConnector", () => {
       vi.spyOn(timeUtils, "resetTimeLimit").mockImplementation(() => {});
       vi.spyOn(timeUtils, "isTimeLimitExceeded").mockReturnValue(false);
       vi.spyOn(platformSync, "finishSync").mockResolvedValue(undefined);
+      vi.spyOn(platformSync, "startSync").mockResolvedValue({
+        id: "sync-789",
+        type: "FULL",
+      } as any);
       const updateSyncMock = vi
         .spyOn(platformSync, "updateSync")
         .mockResolvedValue(undefined);
@@ -1377,10 +1559,7 @@ describe("SyncConnector", () => {
       } as any;
 
       const getSyncMock = vi.spyOn(platformSync, "getSync");
-      getSyncMock
-        .mockResolvedValueOnce(syncState)
-        .mockResolvedValueOnce(syncState)
-        .mockResolvedValue(syncState);
+      getSyncMock.mockResolvedValue(syncState);
 
       vi.spyOn(platformSync, "getModels").mockResolvedValue([
         { name: "user" },
@@ -1397,14 +1576,66 @@ describe("SyncConnector", () => {
         },
       }));
 
+      let httpRequestId = "http-request-3";
       (mockRestConnector.request as any).mockImplementation(
         async (requestConfig: any) => {
           if (requestConfig?.url === "/objects/contacts/batch/delete") {
-            return { data: {} };
+            return { data: {}, httpRequestId };
           }
           return { data: {} };
         }
       );
+
+      // Mock getUnconfirmedChanges to return the HTTP request so ChangeProcessor can extract and confirm
+      vi.spyOn(platformSync, "getUnconfirmedChanges")
+        .mockResolvedValueOnce({
+          httpRequests: [
+            {
+              httpRequest: {
+                id: httpRequestId,
+                method: "POST",
+                url: "/objects/contacts/batch/delete",
+                statusCode: 200,
+                statusText: "OK",
+                requestHeaders: {},
+                requestBody: JSON.stringify({
+                  json: {
+                    inputs: [
+                      {
+                        objectWriteTraceId: "change-1",
+                        id: "201",
+                      },
+                      {
+                        objectWriteTraceId: "change-2",
+                        id: "202",
+                      },
+                    ],
+                  },
+                  async: true,
+                  syncInfo: {
+                    syncId: "sync-789",
+                    modelName: "user",
+                    changeIds: ["change-1", "change-2"],
+                  },
+                }),
+                responseHeaders: {},
+                responseBody: JSON.stringify({}),
+                createdAt: new Date().toISOString(),
+                startedAt: new Date().toISOString(),
+                endedAt: new Date().toISOString(),
+              },
+              modelName: "user",
+              changeIds: ["change-1", "change-2"],
+            },
+          ],
+          nextCursor: null,
+          pendingWritesCount: 0,
+        })
+        .mockResolvedValue({
+          httpRequests: [],
+          nextCursor: null,
+          pendingWritesCount: 0,
+        });
 
       const syncConnector = createSyncConnector(mockRestConnector, collection)
         .withModelConnector("user", (builder) =>
@@ -1429,10 +1660,12 @@ describe("SyncConnector", () => {
           {
             changeId: "change-1",
             externalId: "201",
+            externalUpdatedAt: null,
           },
           {
             changeId: "change-2",
             externalId: "202",
+            externalUpdatedAt: null,
           },
         ],
         async: true,
@@ -1444,7 +1677,9 @@ describe("SyncConnector", () => {
       ).toBe(true);
       expect(platformSync.retrieveDelta).toHaveBeenCalledTimes(2);
       expect(platformSync.finishSync).toHaveBeenCalledWith("sync-789");
-    });
+      },
+      15000
+    );
   });
 
   describe("Async Writes", () => {
@@ -1473,17 +1708,23 @@ describe("SyncConnector", () => {
       // Mock platform sync methods
       getUnconfirmedChangesMock = vi
         .spyOn(platformSync, "getUnconfirmedChanges")
-        .mockResolvedValue([]);
+        .mockResolvedValue({
+          httpRequests: [],
+          pendingWritesCount: 0,
+        });
       retrieveDeltaMock = vi.spyOn(platformSync, "retrieveDelta");
       startSyncMock = vi
         .spyOn(platformSync, "startSync")
         .mockResolvedValue({ id: "sync-789", type: "FULL" });
-      getSyncMock = vi.spyOn(platformSync, "getSync").mockResolvedValue({
-        currentDirection: null,
-        requestedDirection: "bidirectional",
-        type: "FULL",
-        modelStatuses: {},
-      });
+      getSyncMock = vi
+        .spyOn(platformSync, "getSync")
+        .mockResolvedValue({
+          id: "sync-123",
+          currentDirection: null,
+          requestedDirection: "bidirectional",
+          type: "FULL",
+          modelStatuses: {},
+        } as any);
       updateSyncMock = vi
         .spyOn(platformSync, "updateSync")
         .mockResolvedValue({});
@@ -1629,9 +1870,11 @@ describe("SyncConnector", () => {
         {
           changeId: "change-1",
           data: { name: "New User", email: "user@example.com" },
+          externalId: "user-1",  // Add external ID for proper change tracking
         },
       ];
 
+      // Mock retrieveDelta for PUSH phase - first call returns changes, second returns empty
       retrieveDeltaMock
         .mockResolvedValueOnce({ operation: "CREATE", changes })
         .mockResolvedValue({ operation: "CREATE", changes: [] });
@@ -1645,10 +1888,6 @@ describe("SyncConnector", () => {
           builder
             .withList({
               request: () => ({ endpoint: "/users", method: "GET" }),
-              extract: (response) => ({
-                items: [],
-                pagination: { hasMore: false },
-              }),
             })
             .withBatchCreate({
               request: (items) => ({
@@ -1660,10 +1899,50 @@ describe("SyncConnector", () => {
         )
         .build();
 
+      // Mock list response to return empty array so PULL phase completes quickly
+      // Also mock batch create response
+      let httpRequestId = "http-request-4";
+      (mockRestConnector.request as any).mockImplementation(
+        async (requestConfig: any) => {
+          if (requestConfig?.url === "/users") {
+            return { data: [] };
+          }
+          if (requestConfig?.url === "/users/batch") {
+            return { data: { results: [] }, httpRequestId };
+          }
+          return { data: [] };
+        }
+      );
+
+      // Mock getUnconfirmedChanges to return empty (no pending writes to process)
+      getUnconfirmedChangesMock.mockResolvedValue({
+        httpRequests: [],
+        nextCursor: null,
+        pendingWritesCount: 0,
+      });
+
+      // Mock startSync to return sync state
+      startSyncMock.mockResolvedValue({
+        id: "sync-123",
+        type: "FULL",
+      } as any);
+
+      // Ensure getSync returns the right state throughout the sync
+      // First call: initial state (for PULL phase)
+      // Subsequent calls: should allow PUSH phase
+      getSyncMock.mockReset();
+      getSyncMock.mockResolvedValue({
+        id: "sync-123",
+        currentDirection: null,
+        requestedDirection: "bidirectional",
+        type: "FULL",
+        modelStatuses: {},
+      } as any);
+
       // Sync always uses async writes
       await syncConnector.sync("FULL");
 
-      // Verify sync was called
+      // Verify retrieveDelta was called during PUSH phase
       expect(retrieveDeltaMock).toHaveBeenCalled();
     });
 

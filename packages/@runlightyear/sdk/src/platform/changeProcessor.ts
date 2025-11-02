@@ -359,9 +359,24 @@ export class ChangeProcessor {
         console.info(
           `📊 Extracted ${confirmations.length} confirmations from ${httpRequests.length} requests`
         );
+        
+        // Check if any of the requests were async (have syncInfo in request body)
+        let isAsync = false;
+        for (const item of httpRequests) {
+          try {
+            const requestBody = JSON.parse(item.httpRequest.requestBody || "{}");
+            if (requestBody.syncInfo || requestBody.async === true) {
+              isAsync = true;
+              break;
+            }
+          } catch {
+            // Ignore parse errors
+          }
+        }
+        
         this.confirmationQueue.push(...confirmations);
         console.info(`⏱️  Starting confirmation flush...`);
-        await this.flushConfirmations();
+        await this.flushConfirmations(isAsync);
         console.info(`⏱️  Confirmation flush complete`);
       } else if (attemptedExtraction) {
         // Only log warning if we actually attempted extraction but got no confirmations
@@ -384,7 +399,7 @@ export class ChangeProcessor {
   /**
    * Flush pending confirmations in batches (sent in parallel for speed, with concurrency limit)
    */
-  async flushConfirmations(batchSize: number = 100) {
+  async flushConfirmations(async: boolean = false, batchSize: number = 100) {
     if (this.confirmationQueue.length === 0) {
       return;
     }
@@ -418,7 +433,7 @@ export class ChangeProcessor {
           confirmChangeBatch({
             syncId: this.syncId,
             changes: batch,
-            async: false,
+            async,
           })
         )
       );

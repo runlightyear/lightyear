@@ -510,9 +510,35 @@ export class SyncConnectorBuilder<
 
         // Apply required transform into platform object shape
         try {
-          items = config.list!.transform
-            ? config.list!.transform(data)
-            : (data as Array<SyncObject<any>>);
+          let rawItems: any[];
+          if (config.list!.transform) {
+            rawItems = config.list!.transform(data);
+          } else {
+            rawItems = Array.isArray(data) ? data : [];
+          }
+          
+          // Convert items to SyncObject format (handles both transform and non-transform cases)
+          items = rawItems.map((item: any, index: number) => {
+            // Check if item is already a SyncObject (has 'data' property)
+            if (item && typeof item === "object" && "data" in item) {
+              return item as SyncObject<any>;
+            }
+            // Convert plain object to SyncObject format
+            // Use 'id' or 'externalId' as the externalId, fallback to index if neither exists
+            const externalId = String(
+              item?.id ?? item?.externalId ?? `item-${index}`
+            );
+            const externalUpdatedAt =
+              item?.updatedAt ??
+              item?.externalUpdatedAt ??
+              item?.updated_at ??
+              null;
+            return {
+              externalId,
+              externalUpdatedAt: externalUpdatedAt ? String(externalUpdatedAt) : null,
+              data: item,
+            };
+          });
         } catch (error: any) {
           throw new Error(
             `Transform function failed for model "${modelName}" list operation.\n` +
@@ -526,6 +552,10 @@ export class SyncConnectorBuilder<
         if (model.schema && items.length > 0) {
           items.forEach((item, index) => {
             try {
+              // Handle case where item might be undefined or null
+              if (!item) {
+                throw new Error("Item is undefined or null");
+              }
               validateAgainstSchema(
                 item.data,
                 model.schema as any,
@@ -537,7 +567,7 @@ export class SyncConnectorBuilder<
               throw new Error(
                 `Model schema validation failed for model "${modelName}" at item ${index}.\n` +
                   `This error occurred after the transform step, while validating each item's data against the model schema.\n` +
-                  `Item externalId: ${item.externalId}\n` +
+                  `Item externalId: ${item?.externalId ?? "undefined"}\n` +
                   `Validation error: ${errorMessage}`
               );
             }
@@ -2071,7 +2101,7 @@ export class SyncConnector<
       await confirmChangeBatch({
         syncId,
         changes: confirmations,
-        async: false,
+        async: true,
       });
     } else if (delta.operation === "UPDATE" && connector.update) {
       console.info(
@@ -2101,7 +2131,7 @@ export class SyncConnector<
       await confirmChangeBatch({
         syncId,
         changes: confirmations,
-        async: false,
+        async: true,
       });
     } else if (delta.operation === "DELETE" && connector.delete) {
       console.info(
@@ -2121,7 +2151,7 @@ export class SyncConnector<
       await confirmChangeBatch({
         syncId,
         changes: confirmations,
-        async: false,
+        async: true,
       });
     } else {
       // No method available for this operation type
