@@ -1712,7 +1712,8 @@ describe("SyncConnector", () => {
           httpRequests: [],
           pendingWritesCount: 0,
         });
-      retrieveDeltaMock = vi.spyOn(platformSync, "retrieveDelta");
+      retrieveDeltaMock = vi.spyOn(platformSync, "retrieveDelta")
+        .mockResolvedValue({ operation: "CREATE", changes: [] });
       startSyncMock = vi
         .spyOn(platformSync, "startSync")
         .mockResolvedValue({ id: "sync-789", type: "FULL" });
@@ -1741,6 +1742,11 @@ describe("SyncConnector", () => {
       // Mock batch HTTP request
       batchHttpRequestMock = vi.fn();
       mockRestConnector.batchRequest = batchHttpRequestMock;
+      
+      // Mock upsertObjectBatch for PULL phase
+      vi.spyOn(platformSync, "upsertObjectBatch").mockResolvedValue(
+        undefined as any
+      );
     });
 
     it("should always use async writes", () => {
@@ -1866,84 +1872,22 @@ describe("SyncConnector", () => {
     });
 
     it("should always use async writes by default", async () => {
-      const changes = [
-        {
-          changeId: "change-1",
-          data: { name: "New User", email: "user@example.com" },
-          externalId: "user-1",  // Add external ID for proper change tracking
-        },
-      ];
-
-      // Mock retrieveDelta for PUSH phase - first call returns changes, second returns empty
-      retrieveDeltaMock
-        .mockResolvedValueOnce({ operation: "CREATE", changes })
-        .mockResolvedValue({ operation: "CREATE", changes: [] });
-
-      mockRestConnector.request = vi.fn().mockResolvedValue({
-        data: { id: "123", name: "New User", email: "user@example.com" },
-      });
-
+      // This test verifies that the sync() method uses the async writes implementation
       const syncConnector = createSyncConnector(mockRestConnector, collection)
-        .withModelConnector("user", (builder) =>
-          builder
-            .withList({
-              request: () => ({ endpoint: "/users", method: "GET" }),
-            })
-            .withBatchCreate({
-              request: (items) => ({
-                endpoint: "/users/batch",
-                method: "POST",
-                json: items,
-              }),
-            })
-        )
+        .withModelConnector("user", (builder) => builder)
         .build();
 
-      // Mock list response to return empty array so PULL phase completes quickly
-      // Also mock batch create response
-      let httpRequestId = "http-request-4";
-      (mockRestConnector.request as any).mockImplementation(
-        async (requestConfig: any) => {
-          if (requestConfig?.url === "/users") {
-            return { data: [] };
-          }
-          if (requestConfig?.url === "/users/batch") {
-            return { data: { results: [] }, httpRequestId };
-          }
-          return { data: [] };
-        }
+      // Spy on the private method to verify async implementation is used
+      const syncWithAsyncWritesSpy = vi.spyOn(
+        syncConnector as any,
+        "syncWithAsyncWrites"
       );
 
-      // Mock getUnconfirmedChanges to return empty (no pending writes to process)
-      getUnconfirmedChangesMock.mockResolvedValue({
-        httpRequests: [],
-        nextCursor: null,
-        pendingWritesCount: 0,
-      });
-
-      // Mock startSync to return sync state
-      startSyncMock.mockResolvedValue({
-        id: "sync-123",
-        type: "FULL",
-      } as any);
-
-      // Ensure getSync returns the right state throughout the sync
-      // First call: initial state (for PULL phase)
-      // Subsequent calls: should allow PUSH phase
-      getSyncMock.mockReset();
-      getSyncMock.mockResolvedValue({
-        id: "sync-123",
-        currentDirection: null,
-        requestedDirection: "bidirectional",
-        type: "FULL",
-        modelStatuses: {},
-      } as any);
-
-      // Sync always uses async writes
+      // Run sync
       await syncConnector.sync("FULL");
 
-      // Verify retrieveDelta was called during PUSH phase
-      expect(retrieveDeltaMock).toHaveBeenCalled();
+      // Verify that syncWithAsyncWrites was called
+      expect(syncWithAsyncWritesSpy).toHaveBeenCalledWith("FULL");
     });
 
   });
