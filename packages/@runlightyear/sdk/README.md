@@ -78,6 +78,7 @@ const integration = defineIntegration("salesforce-sync")
   .withSyncSchedules({
     incremental: { every: "5 minutes" },
     full: { every: "1 day" },
+    initial: { maxRetries: 3 },
   })
   .deploy();
 
@@ -89,15 +90,20 @@ const integration2 = defineIntegration("hubspot-sync")
   .withSyncSchedules([
     { type: "INCREMENTAL", every: "5 minutes" },
     { type: "FULL", every: "1 day" },
+    { type: "INITIAL", maxRetries: 3 },
   ])
   .deploy();
 ```
 
 Sync schedules support:
 
-- **Type**: `"INCREMENTAL"` for delta syncs or `"FULL"` for complete syncs
+- **Type**: 
+  - `"INCREMENTAL"` for delta syncs (only changes)
+  - `"FULL"` for complete syncs (all data)
+  - `"INITIAL"` for initial syncs (requires `maxRetries` parameter)
 - **Interval**: Can be a number (seconds) or string (e.g., "5 minutes", "1 day", "1 week")
-- **Object API**: Pass `{ incremental: {...}, full: {...} }` for a cleaner syntax
+- **maxRetries**: Required for `"INITIAL"` type - non-negative integer specifying maximum retry attempts
+- **Object API**: Pass `{ incremental: {...}, full: {...}, initial: { maxRetries: N } }` for a cleaner syntax
 - **Array API**: Pass an array of schedule objects for more flexibility
 - Multiple schedules per integration
 
