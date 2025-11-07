@@ -219,6 +219,22 @@ export async function pauseSync(syncId: string): Promise<void> {
   });
 }
 
+export async function continueSync(syncId: string): Promise<void> {
+  const envName = getEnvName();
+  console.warn(`⚠️ [DEBUG] Calling continueSync for syncId=${syncId}`);
+  const response = await makeApiRequest(`/api/v1/envs/${envName}/syncs/${syncId}/continue`, {
+    method: "POST",
+  });
+  
+  // Dump all response headers for debugging
+  const headers: Record<string, string> = {};
+  response.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+  
+  console.warn(`⚠️ [DEBUG] continueSync completed: syncId=${syncId} status=${response.status} headers=${JSON.stringify(headers)}`);
+}
+
 export async function finishSync(
   syncId: string,
   options?: { error?: string; force?: boolean }
