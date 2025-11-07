@@ -170,11 +170,12 @@ export type SyncOperation = "create" | "update" | "delete";
 export type SyncMode = "full" | "incremental";
 
 // Sync Schedule types
-export type SyncScheduleType = "INCREMENTAL" | "FULL";
+export type SyncScheduleType = "INCREMENTAL" | "FULL" | "INITIAL";
 
 export interface SyncSchedule {
   type: SyncScheduleType;
   every?: number | string;
+  maxRetries?: number; // Required when type is "INITIAL"
 }
 
 export interface SyncState {
