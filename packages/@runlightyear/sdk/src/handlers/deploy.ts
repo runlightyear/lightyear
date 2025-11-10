@@ -33,9 +33,9 @@ interface CustomAppProps {
 }
 
 interface SyncScheduleProps {
-  type: "INCREMENTAL" | "FULL" | "INITIAL";
+  type: "INCREMENTAL" | "FULL" | "BASELINE";
   every?: number | string;
-  maxRetries?: number; // Required when type is "INITIAL"
+  maxRetries?: number; // Required when type is "BASELINE"
 }
 
 interface IntegrationProps {
