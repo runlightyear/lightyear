@@ -613,7 +613,7 @@ export function setLogContext(context: {
 }
 
 /**
- * Get the current context (for internal use by HTTP requests)
+ * Get the current context (for internal use by HTTP requests and sync operations)
  */
 export function getCurrentContext(): {
   runId?: string;
@@ -621,6 +621,12 @@ export function getCurrentContext(): {
   deliveryId?: string;
   subscriptionActivityId?: string;
   authorizerActivityId?: string;
+  syncId?: string;
+  modelName?: string;
+  integrationName?: string;
+  managedUserId?: string;
+  managedUserExternalId?: string;
+  managedUserDisplayName?: string | null;
 } {
   return globalLogCapture?.getContext() || {};
 }

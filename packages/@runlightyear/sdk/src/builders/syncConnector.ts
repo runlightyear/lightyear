@@ -8,7 +8,7 @@ import {
   upsertObjectBatch,
   retrieveDelta,
   confirmChangeBatch,
-  pauseSync,
+  continueSync,
   startSync,
   finishSync,
   getUnconfirmedChanges,
@@ -516,7 +516,7 @@ export class SyncConnectorBuilder<
           } else {
             rawItems = Array.isArray(data) ? data : [];
           }
-          
+
           // Convert items to SyncObject format (handles both transform and non-transform cases)
           items = rawItems.map((item: any, index: number) => {
             // Check if item is already a SyncObject (has 'data' property)
@@ -535,7 +535,9 @@ export class SyncConnectorBuilder<
               null;
             return {
               externalId,
-              externalUpdatedAt: externalUpdatedAt ? String(externalUpdatedAt) : null,
+              externalUpdatedAt: externalUpdatedAt
+                ? String(externalUpdatedAt)
+                : null,
               data: item,
             };
           });
@@ -1509,13 +1511,33 @@ export class SyncConnector<
             ? responseData
             : responseData?.results || responseData?.data || [];
 
+          // Validate we have items
+          if (!Array.isArray(items) || items.length === 0) {
+            console.warn(
+              `⚠️ Default extract function: Response does not contain an array of items. ` +
+                `Expected array or object with 'results'/'data' property. ` +
+                `Response type: ${typeof responseData}, ` +
+                `Is array: ${Array.isArray(responseData)}, ` +
+                `Has results: ${!!responseData?.results}, ` +
+                `Has data: ${!!responseData?.data}`
+            );
+          }
+
           return batch.map((change: any, index: number) => {
             const item = items[index] || {};
+            const externalId = item.id || item.externalId || change.externalId;
+
+            // Warn if we couldn't find a valid external ID
+            if (!externalId) {
+              console.warn(
+                `⚠️ Default extract function: Could not find externalId for change ${change.changeId} at index ${index}. ` +
+                  `Item keys: ${Object.keys(item).join(", ")}`
+              );
+            }
+
             return {
               changeId: change.changeId,
-              externalId: String(
-                item.id || item.externalId || change.externalId || index
-              ),
+              externalId: externalId ? String(externalId) : "",
               externalUpdatedAt:
                 item.updatedAt ||
                 item.externalUpdatedAt ||
@@ -1526,13 +1548,19 @@ export class SyncConnector<
         });
 
       // Register batch extract function (only once per model)
+      const responseSchema = connector.config.batchCreate?.responseSchema;
       if (response.httpRequestId) {
         processor.registerBatchExtractFunction(
           response.httpRequestId,
-          extractFn
+          extractFn,
+          responseSchema
         );
       } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
-        processor.registerBatchExtractFunctionByModel(modelName, extractFn);
+        processor.registerBatchExtractFunctionByModel(
+          modelName,
+          extractFn,
+          responseSchema
+        );
       }
     }
   }
@@ -1620,13 +1648,33 @@ export class SyncConnector<
             ? responseData
             : responseData?.results || responseData?.data || [];
 
+          // Validate we have items
+          if (!Array.isArray(items) || items.length === 0) {
+            console.warn(
+              `⚠️ Default extract function (UPDATE): Response does not contain an array of items. ` +
+                `Expected array or object with 'results'/'data' property. ` +
+                `Response type: ${typeof responseData}, ` +
+                `Is array: ${Array.isArray(responseData)}, ` +
+                `Has results: ${!!responseData?.results}, ` +
+                `Has data: ${!!responseData?.data}`
+            );
+          }
+
           return batch.map((change: any, index: number) => {
             const item = items[index] || {};
+            const externalId = item.id || item.externalId || change.externalId;
+
+            // Warn if we couldn't find a valid external ID
+            if (!externalId) {
+              console.warn(
+                `⚠️ Default extract function (UPDATE): Could not find externalId for change ${change.changeId} at index ${index}. ` +
+                  `Item keys: ${Object.keys(item).join(", ")}`
+              );
+            }
+
             return {
               changeId: change.changeId,
-              externalId: String(
-                item.id || item.externalId || change.externalId || index
-              ),
+              externalId: externalId ? String(externalId) : "",
               externalUpdatedAt:
                 item.updatedAt ||
                 item.externalUpdatedAt ||
@@ -1637,13 +1685,19 @@ export class SyncConnector<
         });
 
       // Register batch extract function (only once per model)
+      const responseSchema = connector.config.batchUpdate?.responseSchema;
       if (response.httpRequestId) {
         processor.registerBatchExtractFunction(
           response.httpRequestId,
-          extractFn
+          extractFn,
+          responseSchema
         );
       } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
-        processor.registerBatchExtractFunctionByModel(modelName, extractFn);
+        processor.registerBatchExtractFunctionByModel(
+          modelName,
+          extractFn,
+          responseSchema
+        );
       }
     }
   }
@@ -1736,13 +1790,19 @@ export class SyncConnector<
         });
 
       // Register batch extract function (only once per model)
+      const responseSchema = connector.config.batchDelete?.responseSchema;
       if (response.httpRequestId) {
         processor.registerBatchExtractFunction(
           response.httpRequestId,
-          extractFn
+          extractFn,
+          responseSchema
         );
       } else if (!processor.hasBatchExtractFunctionForModel(modelName)) {
-        processor.registerBatchExtractFunctionByModel(modelName, extractFn);
+        processor.registerBatchExtractFunctionByModel(
+          modelName,
+          extractFn,
+          responseSchema
+        );
       }
     }
   }
@@ -1768,8 +1828,9 @@ export class SyncConnector<
         const extractFn = (responseData: any, changeIds?: string[]) => {
           // For individual requests, each response corresponds to one change
           // changeIds will be provided by ChangeProcessor as second parameter
-          const changeId = changeIds && changeIds.length > 0 ? changeIds[0] : "";
-          
+          const changeId =
+            changeIds && changeIds.length > 0 ? changeIds[0] : "";
+
           if (createExtractFn) {
             // Use the model's extract function
             // The extract function expects the transformed response (after responseSchema validation and transform)
@@ -1788,7 +1849,11 @@ export class SyncConnector<
                   // The transform function might be able to handle the raw response structure
                   if ((createConfig as any).transform) {
                     console.warn(
-                      `Response schema validation failed for model "${modelName}" create operation, but transform function exists. Proceeding with raw response. Validation errors: ${JSON.stringify(error?.issues || [error], null, 2)}`
+                      `Response schema validation failed for model "${modelName}" create operation, but transform function exists. Proceeding with raw response. Validation errors: ${JSON.stringify(
+                        error?.issues || [error],
+                        null,
+                        2
+                      )}`
                     );
                     validated = responseData; // Use raw response
                   } else {
@@ -1814,7 +1879,9 @@ export class SyncConnector<
               // CREATE extract always returns externalId as string (required)
               if (!extracted.externalId) {
                 throw new Error(
-                  `Extract function returned missing externalId. Transformed response keys: ${Object.keys(transformed || {}).join(", ")}`
+                  `Extract function returned missing externalId. Transformed response keys: ${Object.keys(
+                    transformed || {}
+                  ).join(", ")}`
                 );
               }
               return [
@@ -1833,13 +1900,10 @@ export class SyncConnector<
             // Default extraction - try common patterns for nested responses
             let externalId: string | null = null;
             let externalUpdatedAt: string | null = null;
-            
+
             // Try direct properties first
-            externalId =
-              responseData?.id ||
-              responseData?.externalId ||
-              null;
-            
+            externalId = responseData?.id || responseData?.externalId || null;
+
             // Try nested structures (common patterns: { owner: { id } }, { data: { id } }, { result: { id } })
             if (!externalId && responseData) {
               externalId =
@@ -1849,7 +1913,7 @@ export class SyncConnector<
                 responseData.item?.id ||
                 null;
             }
-            
+
             externalUpdatedAt =
               responseData?.updatedAt ||
               responseData?.externalUpdatedAt ||
@@ -1859,10 +1923,14 @@ export class SyncConnector<
               responseData?.data?.updatedAt ||
               responseData?.data?.createdAt ||
               null;
-            
+
             if (!externalId) {
               throw new Error(
-                `Could not extract externalId from CREATE response. Response structure: ${JSON.stringify(responseData, null, 2)}`
+                `Could not extract externalId from CREATE response. Response structure: ${JSON.stringify(
+                  responseData,
+                  null,
+                  2
+                )}`
               );
             }
             return [
@@ -1918,8 +1986,9 @@ export class SyncConnector<
         const extractFn = (responseData: any, changeIds?: string[]) => {
           // For individual requests, each response corresponds to one change
           // changeIds will be provided by ChangeProcessor as second parameter
-          const changeId = changeIds && changeIds.length > 0 ? changeIds[0] : "";
-          
+          const changeId =
+            changeIds && changeIds.length > 0 ? changeIds[0] : "";
+
           if (updateExtractFn) {
             // Use the model's extract function
             const extracted = updateExtractFn(responseData);
@@ -1935,7 +2004,9 @@ export class SyncConnector<
                 responseData?.id || responseData?.externalId || null;
               if (!fallbackId) {
                 throw new Error(
-                  `Could not extract externalId from UPDATE response. Response keys: ${Object.keys(responseData || {}).join(", ")}`
+                  `Could not extract externalId from UPDATE response. Response keys: ${Object.keys(
+                    responseData || {}
+                  ).join(", ")}`
                 );
               }
               externalId = String(fallbackId);
@@ -1957,7 +2028,9 @@ export class SyncConnector<
               null;
             if (!externalId) {
               throw new Error(
-                `Could not extract externalId from UPDATE response. Response keys: ${Object.keys(responseData || {}).join(", ")}`
+                `Could not extract externalId from UPDATE response. Response keys: ${Object.keys(
+                  responseData || {}
+                ).join(", ")}`
               );
             }
             return [
@@ -2016,7 +2089,8 @@ export class SyncConnector<
         const extractFn = (responseData: any, changeIds?: string[]) => {
           // For DELETE, the ChangeProcessor will extract externalId from the request URL
           // This is just a placeholder - the ChangeProcessor handles the actual extraction
-          const changeId = changeIds && changeIds.length > 0 ? changeIds[0] : "";
+          const changeId =
+            changeIds && changeIds.length > 0 ? changeIds[0] : "";
           return [
             {
               changeId,
@@ -2059,7 +2133,9 @@ export class SyncConnector<
     } else {
       // No method available for this operation type
       throw new Error(
-        `Cannot process ${delta.operation} delta for model "${modelName}": no ${delta.operation.toLowerCase()} method is configured`
+        `Cannot process ${
+          delta.operation
+        } delta for model "${modelName}": no ${delta.operation.toLowerCase()} method is configured`
       );
     }
   }
@@ -2156,7 +2232,9 @@ export class SyncConnector<
     } else {
       // No method available for this operation type
       throw new Error(
-        `Cannot process ${delta.operation} delta for model "${modelName}": no ${delta.operation.toLowerCase()} method is configured`
+        `Cannot process ${
+          delta.operation
+        } delta for model "${modelName}": no ${delta.operation.toLowerCase()} method is configured`
       );
     }
   }
@@ -2294,7 +2372,7 @@ export class SyncConnector<
           if (!connector) continue;
 
           await updateSync({ syncId, currentModelName: modelName });
-          
+
           // Track if we've sent any HTTP requests during PUSH phase for this model
           let hasSentRequests = false;
 
@@ -2344,10 +2422,19 @@ export class SyncConnector<
 
               while (hasMore) {
                 if (isTimeLimitExceeded()) {
-                  // Wait for pending upserts before pausing
+                  // Wait for pending upserts before continuing
+                  console.warn(
+                    `⚠️ [DEBUG] Time limit exceeded in pull phase, waiting for ${pendingUpserts.length} pending upserts`
+                  );
                   await Promise.all(pendingUpserts);
-                  await pauseSync(syncId);
-                  throw "RERUN";
+                  console.warn(
+                    `⚠️ [DEBUG] Pending upserts complete, calling continueSync for syncId=${syncId}`
+                  );
+                  await continueSync(syncId);
+                  console.info(
+                    "⏱️ Time limit reached, sync will continue in next run"
+                  );
+                  return;
                 }
 
                 const params: any = {
@@ -2471,13 +2558,16 @@ export class SyncConnector<
 
             while (true) {
               if (isTimeLimitExceeded()) {
-                // Time limit reached - pause immediately
+                // Time limit reached - continue on next run
                 // Unconfirmed changes will be processed on next run
-                console.info(
-                  "⏱️  Time limit reached, pausing sync (unconfirmed changes will be handled on next run)..."
+                console.warn(
+                  `⚠️ [DEBUG] Time limit exceeded in push phase, calling continueSync for syncId=${syncId}`
                 );
-                await pauseSync(syncId);
-                throw "RERUN";
+                await continueSync(syncId);
+                console.info(
+                  "⏱️  Time limit reached, continuing sync on next run (unconfirmed changes will be handled on next run)..."
+                );
+                return;
               }
 
               const deltaStart = Date.now();
@@ -2593,18 +2683,18 @@ export class SyncConnector<
             console.info(
               `🔄 Processing confirmations for model ${modelName} before moving to next model...`
             );
-            
+
             // Wait longer initially if we sent requests, as platform may need time to queue them
             // This is especially important for localhost proxy where requests may be delayed
             await new Promise((resolve) => setTimeout(resolve, 3000));
-            
+
             let confirmationAttempts = 0;
             const maxConfirmationAttempts = 40; // Wait up to ~40 seconds for responses
             let consecutiveZeroCounts = 0; // Track consecutive zero counts
-            
+
             while (confirmationAttempts < maxConfirmationAttempts) {
               const result = await changeProcessor.processUnconfirmedChanges();
-              
+
               // If no pending writes and no changes, check if we've seen zeros consistently
               // This handles the case where requests haven't been queued yet
               if (result.pendingWritesCount === 0 && !result.hasChanges) {
@@ -2613,34 +2703,43 @@ export class SyncConnector<
                 // But if it's early (first few attempts), keep checking in case requests are slow to appear
                 if (consecutiveZeroCounts >= 3 && confirmationAttempts >= 5) {
                   console.info(
-                    `✅ All confirmations complete for model ${modelName} after ${confirmationAttempts + 1} attempts`
+                    `✅ All confirmations complete for model ${modelName} after ${
+                      confirmationAttempts + 1
+                    } attempts`
                   );
                   break;
                 }
               } else {
                 consecutiveZeroCounts = 0; // Reset counter if we see any activity
               }
-              
+
               if (result.pendingWritesCount > 0) {
                 console.info(
-                  `⏳ ${result.pendingWritesCount} writes still pending for model ${modelName}, waiting... (attempt ${confirmationAttempts + 1}/${maxConfirmationAttempts})`
+                  `⏳ ${
+                    result.pendingWritesCount
+                  } writes still pending for model ${modelName}, waiting... (attempt ${
+                    confirmationAttempts + 1
+                  }/${maxConfirmationAttempts})`
                 );
               } else if (confirmationAttempts < 5) {
                 // Log early attempts even if zero, to show we're waiting for requests to appear
                 console.info(
-                  `⏳ Waiting for HTTP requests to appear for model ${modelName}... (attempt ${confirmationAttempts + 1}/${maxConfirmationAttempts})`
+                  `⏳ Waiting for HTTP requests to appear for model ${modelName}... (attempt ${
+                    confirmationAttempts + 1
+                  }/${maxConfirmationAttempts})`
                 );
               }
-              
+
               confirmationAttempts++;
-              
+
               // Wait before next attempt (exponential backoff, but faster initial checks)
-              const waitTime = confirmationAttempts <= 5 
-                ? 1000 // Check every second for first 5 attempts
-                : Math.min(1000 * (confirmationAttempts - 5), 2000); // Then exponential backoff
+              const waitTime =
+                confirmationAttempts <= 5
+                  ? 1000 // Check every second for first 5 attempts
+                  : Math.min(1000 * (confirmationAttempts - 5), 2000); // Then exponential backoff
               await new Promise((resolve) => setTimeout(resolve, waitTime));
             }
-            
+
             if (confirmationAttempts >= maxConfirmationAttempts) {
               console.warn(
                 `⚠️  Confirmation timeout for model ${modelName} - ${maxConfirmationAttempts} attempts reached. Writes may be confirmed in final pass.`
@@ -2857,10 +2956,17 @@ export class SyncConnector<
 
     while (hasMore) {
       if (isTimeLimitExceeded()) {
-        // Wait for pending upserts before pausing
+        // Wait for pending upserts before continuing
+        console.warn(
+          `⚠️ [DEBUG] Time limit exceeded in pull phase, waiting for ${pendingUpserts.length} pending upserts`
+        );
         await Promise.all(pendingUpserts);
-        await pauseSync(syncId);
-        throw "RERUN";
+        console.warn(
+          `⚠️ [DEBUG] Pending upserts complete, calling continueSync for syncId=${syncId}`
+        );
+        await continueSync(syncId);
+        console.info("⏱️ Time limit reached, sync will continue in next run");
+        return;
       }
 
       const fetchStart = Date.now();
@@ -2973,8 +3079,12 @@ export class SyncConnector<
 
     while (true) {
       if (isTimeLimitExceeded()) {
-        await pauseSync(syncId);
-        throw "RERUN";
+        console.warn(
+          `⚠️ [DEBUG] Time limit exceeded in legacy push, calling continueSync for syncId=${syncId}`
+        );
+        await continueSync(syncId);
+        console.info("⏱️ Time limit reached, sync will continue in next run");
+        return;
       }
 
       const delta = await retrieveDelta({
@@ -3401,7 +3511,9 @@ export class SyncConnector<
         } else {
           // No method available for this operation type
           throw new Error(
-            `Cannot process ${delta.operation} delta for model "${modelName}": no ${delta.operation.toLowerCase()} method is configured`
+            `Cannot process ${
+              delta.operation
+            } delta for model "${modelName}": no ${delta.operation.toLowerCase()} method is configured`
           );
         }
       }
